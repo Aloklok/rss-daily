@@ -35,6 +35,8 @@ const App: React.FC = () => {
     const setBriefingDetailArticleId = useArticleStore(state => state.setBriefingDetailArticleId);
     const briefingDetailArticle = useArticleStore(selectBriefingDetailArticle);
 
+ 
+
 
  // 2. 【增加】一个新的处理函数，专门用于打开 ArticleList 中的文章详情
  const handleOpenArticleListDetail = useCallback((article: Article) => {
@@ -92,6 +94,14 @@ const App: React.FC = () => {
         addArticles([articleWithFullContent]);
 
     }, [addArticles, setSelectedArticleId]);
+
+       // 1. 【增加】一个新的处理函数，专门用于分类/标签/收藏的点击
+    // 它的作用是直接在主内容区显示全文
+    const handleOpenMainDetail = useCallback((article: Article) => {
+        // 这个函数和侧边栏点击收藏文章的行为完全一样
+        setSelectedArticleId(article.id);
+        addArticles([article]);
+    }, [setSelectedArticleId, addArticles]);
 
     const { 
         isInitialLoad,
@@ -273,7 +283,7 @@ const onMonthChange = useCallback((month: string) => {
                     availableMonths={availableMonths}
                     selectedMonth={selectedMonth}
                     onMonthChange={onMonthChange}
-                    onOpenArticle={handleOpenArticle}
+                    onOpenArticle={handleOpenMainDetail}
                     onRefresh={refreshFilters}
                     datesForMonth={datesForMonth}
                     dailyStatuses={dailyStatuses}
@@ -339,7 +349,10 @@ const onMonthChange = useCallback((month: string) => {
                 ) : (activeFilter?.type === 'category' || activeFilter?.type === 'tag' || activeFilter?.type === 'search') ? (
                     <ArticleList
                         articleIds={activeFilter.type === 'search' ? (searchResultIds || []) : filteredArticleIds}
-                        onOpenArticle={handleOpenArticleListDetail}
+                        onOpenArticle={activeFilter.type === 'search' 
+                            ? handleOpenArticleListDetail // 搜索结果 -> 打开简报详情
+                            : handleOpenReader        // 分类/标签 -> 打开主内容区全文
+                            }
                         isLoading={isLoading}
                     />
                 ) : (

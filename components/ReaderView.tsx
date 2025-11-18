@@ -1,7 +1,8 @@
 import React, { useEffect, useState,useRef } from 'react';
 import { CleanArticleContent, Article, Tag } from '../types';
 import TagPopover from './TagPopover'; // 【新增】导入 TagPopover
-
+import { useArticleMetadata } from '../hooks/useArticleMetadata';
+import { getRandomColorClass } from '../utils/colorUtils';
 const LoadingSpinner: React.FC = () => (
     <div className="flex items-center justify-center h-full w-full">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -30,6 +31,9 @@ const ReaderView: React.FC<ReaderViewProps> = ({
 }) => {
     const [isTagPopoverOpen, setIsTagPopoverOpen] = useState(false); // 【新增】管理 TagPopover 状态
     const contentRef = useRef<HTMLDivElement>(null);
+
+    // 即使 article 为 null，这个 hook 也会安全地返回一个空数组
+    const { userTagLabels } = useArticleMetadata(article);
     useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
@@ -76,6 +80,8 @@ const ReaderView: React.FC<ReaderViewProps> = ({
         }
     }, [isVisible]);
 
+
+
     return (
         <>
             <div 
@@ -110,10 +116,38 @@ const ReaderView: React.FC<ReaderViewProps> = ({
                     <div className="flex-grow overflow-y-auto">
                         {isLoading ? (
                            <LoadingSpinner />
-                        ) : content ? (
+                        ) : content&& article ? (
                             <article className="p-6 md:p-8 select-none">
                                 <h1 className="text-2xl md:text-3xl font-bold font-serif text-gray-900 mb-2">{content.title}</h1>
-                                <p className="text-gray-500 mb-6 border-b pb-4">来源: {content.source}</p>
+                                  {/* 4. 【修改】元数据区域重构 */}
+                                  <div className="mb-6 border-b pb-4">
+                                    {/* 第一行：来源 */}
+                                    <p className="text-gray-500">来源: {content.source}</p>
+                                    
+                                    {/* 第二行：用户标签 (仅当有标签时显示) */}
+                                    {userTagLabels.length > 0 && (
+                                        <div className="mt-4 flex flex-wrap gap-2">
+                                            {userTagLabels.map(label => (
+                                                <span key={label} className={`text-sm font-semibold inline-block py-1 px-3 rounded-full ${getRandomColorClass(label)}`}>
+                                                    #{label}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* 第三行：原文链接按钮 (居右) */}
+                                    <div className="mt-4 flex justify-end">
+                                        <a
+                                            href={article.link}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 bg-stone-200 hover:bg-stone-300 text-stone-800"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" /><path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" /></svg>
+                                            <span>原文</span>
+                                        </a>
+                                    </div>
+                                </div>
                                 <div ref={contentRef}
                                     className="prose prose-lg max-w-none text-gray-800 leading-relaxed select-text"
                                     dangerouslySetInnerHTML={{ __html: content.content }} 
