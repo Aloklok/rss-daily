@@ -15,7 +15,7 @@ async function searchArticles(req: VercelRequest, res: VercelResponse) {
   try {
     // 【核心修改】使用 .rpc() 调用我们刚刚创建的不区分大小写的函数
     const { data, error } = await supabase
-      .rpc('search_articles_by_keyword_case_insensitive', {
+      .rpc('search_articles_by_partial_keyword', {
         search_term: query.trim() // 将用户的搜索词作为参数传递
       });
 
