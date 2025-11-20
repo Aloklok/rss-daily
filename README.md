@@ -1,3 +1,7 @@
+已更新 README.md，反映了最新的架构重构（统一模态框、按需加载逻辑）以及组件变动。
+
+```markdown
+// ----- 1. 修改 - 更新项目文档以反映最新的架构重构 -----
 # Briefing Hub 项目文档
 
 ## 项目概述
@@ -16,12 +20,16 @@ Briefing Hub 是一个基于 React 和 TypeScript 构建的现代化 RSS 阅读�
 ## 用户界面 (UI) 交互
 
 - **每日进度标记**：在日历视图中，每个日期前都有一个状态图标，用户可以点击将其标记为“已完成”，以便追踪每日简报的阅读进度。
-- **全局侧边栏切换**：在移动设备上，侧边栏可以通过屏幕顶部的按钮进行展开和折叠。在桌面视图中，侧边栏始终可见，但其宽度可根据折叠状态调整。当进入文章阅读模式时，此按钮会自动隐藏，以提供沉浸式阅读体验。
+- **全局侧边栏切换**：在移动设备上，侧边栏可以通过屏幕顶部的按钮进行展开和折叠。在桌面视图中，侧边栏始终可见，但其宽度可根据折叠状态调整。
 - **文章列表增强**：在分类/标签的文章列表中，每篇文章现在会直观地显示其收藏状态（通过星形图标）和所有关联的用户标签，提供更丰富的信息概览。
-- **阅读模式浮动操作**：当文章在阅读模式下打开时，右下角会显示一组浮动按钮，提供便捷操作：
-  - **返回首页**：快速返回到每日简报视图。
-  - **添加/编辑标签**：管理当前文章的自定义标签。
-  - **收藏/取消收藏**：将文章添加到收藏夹或从中移除。
+- **统一阅读体验 (Unified Modal)**：
+  - 点击任何视图（简报列表、分类列表、搜索结果）中的文章，都会弹出一个**统一的模态框**。
+  - **双模式切换**：用户可以在顶部一键切换 **“📊 智能简报”**（基于 Supabase 的 AI 分析摘要）和 **“📄 原文阅读”**（基于 FreshRSS 的清洗全文）。
+  - **按需加载**：在分类或搜索视图中，默认只加载基础信息；当用户进入“智能简报”模式时，系统会自动检测并按需拉取 AI 分析数据，如果数据尚未生成，会显示友好的提示。
+  - **浮动操作**：右下角提供便捷操作：
+    - **返回首页**：快速返回到每日简报视图。
+    - **添加/编辑标签**：管理当前文章的自定义标签。
+    - **收藏/取消收藏**：将文章添加到收藏夹或从中移除。
 
 ## 技术栈
 
@@ -42,6 +50,9 @@ Briefing Hub 是一个基于 React 和 TypeScript 构建的现代化 RSS 阅读�
 
 ### 核心目录结构
 - **`components/`**: 存放所有 UI 组件。
+  - **`UnifiedArticleModal.tsx`**: 核心阅读组件，整合了简报展示和全文阅读逻辑。
+  - **`ArticleCard.tsx`**: 用于展示简报风格的文章卡片。
+  - **`Sidebar.tsx`**: 侧边栏导航与过滤器。
 - **`hooks/`**: 存放与 UI 逻辑和状态管理连接相关的自定义 React Hooks。
 - **`services/`**: 存放与外部世界交互的服务模块。
 - **`store/`**: 存放 Zustand 全局状态管理的定义。
@@ -104,13 +115,13 @@ CREATE TABLE public.articles (
 
 #### 4. `store/articleStore.ts` - 客户端状态中心 (Zustand)
 - **职责**: 应用的**“单一事实来源”**与**客户端业务逻辑中心**。
-  - **统一状态存储**: 它存储了所有经过融合的、完整的文章数据 (`articlesById`)，以及关键的 UI 状态（如 `activeFilter`、`timeSlot`
-  `selectedArticleId`、`isReaderVisible`）和元数据（如 `availableFilters`）。
+  - **统一状态存储**: 它存储了所有经过融合的、完整的文章数据 (`articlesById`)，以及关键的 UI 状态（如 `activeFilter`、`timeSlot`、`selectedArticleId`、`modalArticleId`）和元数据（如 `availableFilters`）。
   - **智能状态更新**: Store 内的 Actions (如 `updateArticle`) 封装了核心的客户端业务逻辑。例如，当一篇文章状态被更新时，该 action 不仅会更新这篇文章本身，还会**自动同步更新** `starredArticleIds` 列表，并**动态计算**受影响标签的 `count` 数量。这保证了所有派生状态的一致性，并避免了不必要的 API 调用。
 
 
 #### 5. `App.tsx` 与 UI 组件 - 消费与渲染层
-- **职责**: `App.tsx` 现在主要负责应用的整体布局和顶层协调。它从 `articleStore` 订阅必要的全局状态（如 `activeFilter`、`selectedArticleId`），并根据这些状态决定渲染哪个主视图组件（如 `Briefing`、`ArticleList` 或 `ArticleDetail`）。各个子组件（如 `Sidebar`, `ReaderView`）**直接从 `articleStore` 订阅它们所需的数据和 actions**。例如，`Sidebar` 不再需要通过 props 接收回调，而是直接调用 store 的 `setSelectedArticleId` action。这种模式最大限度地减少了 props-drilling，实现了组件间的彻底解耦和高效渲染。
+- **职责**: `App.tsx` 现在主要负责应用的整体布局和顶层协调。它从 `articleStore` 订阅必要的全局状态（如 `activeFilter`、`selectedArticleId`、`modalArticleId`），并根据这些状态决定渲染哪个主视图组件（如 `Briefing`、`ArticleList`）以及是否显示 `UnifiedArticleModal`。
+- **解耦**: 各个子组件（如 `Sidebar`, `UnifiedArticleModal`）**直接从 `articleStore` 订阅它们所需的数据和 actions**。例如，`Sidebar` 不再需要通过 props 接收回调，而是直接调用 store 的 `setSelectedArticleId` action。这种模式最大限度地减少了 props-drilling，实现了组件间的彻底解耦和高效渲染。
 
 ## 后端 API (Vercel Serverless Functions)
 
@@ -124,8 +135,9 @@ CREATE TABLE public.articles (
 - **`api/update-state.ts`**: 通用的文章状态更新接口，处理所有“写”操作。
 - **`api/articles.ts`**: 获取单篇文章的“干净”内容，用于阅读器模式。
 - **`api/get-available-dates.ts`**: 获取有文章的可用日期列表。
-- **`api/get-daily-statuses.ts`**: 【新增】批量获取每日简报的完成状态。
-- **`api/update-daily-status.ts`**: 【新增】更新某一天的简报完成状态。
+- **`api/get-daily-statuses.ts`**: 批量获取每日简报的完成状态。
+- **`api/update-daily-status.ts`**: 更新某一天的简报完成状态。
+- **`api/search-articles.ts`**: 基于 Supabase 的关键词搜索接口。
 
 ## 环境变量
 - `VITE_SUPABASE_URL` - Supabase 项目 URL (用于前端客户端)
@@ -134,7 +146,7 @@ CREATE TABLE public.articles (
 - `SUPABASE_SERVICE_ROLE_KEY` - Supabase 服务角色密钥 (用于 Vercel Serverless Functions 后端)
 - `FRESHRSS_API_URL` - FreshRSS API 基础 URL (用于 Vercel Serverless Functions 后端)
 - `FRESHRSS_AUTH_TOKEN` - FreshRSS 认证令牌 (用于 Vercel Serverless Functions 后端)
-- `ACCESS_TOKEN` - 【新增】用于 Middleware 访问控制的秘密令牌。
+- `ACCESS_TOKEN` - 用于 Middleware 访问控制的秘密令牌。
 
 ## 开发命令
 
@@ -154,28 +166,4 @@ CREATE TABLE public.articles (
 - `vercel link`
 - 在 Vercel 项目设置中配置所有必要的环境变量。
 - `vercel --prod` 部署到生产环境。
-
-
-
-## TODO
-
-最佳解决方案：SSG + ISR (增量静态再生)
-这就是 Next.js 等现代框架提供的“银弹”。ISR 是一种巧妙的混合模式，它结合了 SSG 的极致性能和 SSR 的动态性。
-工作流程:
-构建时 (Build Time):
-在 npm run build 时，你可以告诉 Next.js：“请为我预先生成最近 7 天的简报页面。”
-于是，Next.js 会获取这 7 天的数据，并生成 .../briefing/2025-11-07.html, .../briefing/2025-11-06.html 等静态文件。这些文件会被部署到 CDN。
-用户首次访问:
-访问最近 7 天的页面: 用户直接从 CDN 获得一个预先生成好的、包含完整内容的静态 HTML。体验和 SSG 一样快。
-访问一个更早的、未被预生成的页面 (比如一个月前):
-Next.js 会在第一次有用户请求这个页面时，在服务器端按需生成它（就像 SSR）。
-然后，Next.js 会将这个新生成的 HTML 页面缓存到 CDN。
-之后所有访问这个页面的用户，都会直接从 CDN 获取这个缓存好的静态页面。
-内容更新 (ISR 的魔法):
-你在配置页面时，可以加一个 revalidate 选项，比如 revalidate: 600 (10分钟)。
-流程:
-用户访问今天的简报页面 (.../briefing/2025-11-07.html)。他会立即从 CDN 获得一个缓存的、可能是旧版本的页面。
-同时，Next.js 会在后台检查：“距离上次生成这个页面过去 10 分钟了吗？”
-如果超过了 10 分钟，Next.js 会在后台静默地重新获取最新数据，并生成一个新的静态 HTML 页面。
-它用这个新页面去覆盖 CDN 上的旧缓存。
-下一个访问这个页面的用户，就会看到更新后的内容了。
+```

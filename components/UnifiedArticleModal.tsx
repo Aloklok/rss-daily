@@ -14,31 +14,31 @@ interface UnifiedArticleModalProps {
     article: Article;
     onClose: () => void;
     onStateChange: (articleId: string | number, tagsToAdd: string[], tagsToRemove: string[]) => Promise<any>;
+    initialMode?: 'briefing' | 'reader';
 }
 
-const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({ article, onClose, onStateChange }) => {
-    const [viewMode, setViewMode] = useState<'briefing' | 'reader'>('briefing');
-    
+const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({ article, onClose, onStateChange, initialMode = 'briefing' }) => {
+    const [viewMode, setViewMode] = useState<'briefing' | 'reader'>(initialMode);
     // 原文内容状态
     const [readerContent, setReaderContent] = useState<CleanArticleContent | null>(null);
     const [isLoadingReader, setIsLoadingReader] = useState(false);
-    
+
     // 简报数据加载状态
     const [isLoadingBriefing, setIsLoadingBriefing] = useState(false);
     // 1. 【新增】标记是否已经尝试过获取简报数据，防止死循环
     const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
-    
+
     const updateArticle = useArticleStore(state => state.updateArticle);
-    
+
     const [isTagPopoverOpen, setIsTagPopoverOpen] = useState(false);
     const { isStarred, userTagLabels } = useArticleMetadata(article);
     const contentRef = useRef<HTMLDivElement>(null);
 
     // 判断是否拥有简报数据
     const hasBriefingData = useMemo(() => {
-        return (article.summary && article.summary.length > 0) || 
-               (article.verdict && article.verdict.score > 0) ||
-               (article.briefingSection && article.briefingSection !== '');
+        return (article.summary && article.summary.length > 0) ||
+            (article.verdict && article.verdict.score > 0) ||
+            (article.briefingSection && article.briefingSection !== '');
     }, [article]);
 
     // 2. 【新增】当文章 ID 变化时，重置尝试状态
@@ -46,8 +46,9 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({ article, onCl
         setHasAttemptedFetch(false);
         setIsLoadingBriefing(false);
         setReaderContent(null);
-        setViewMode('briefing'); // 默认重置回简报模式
-    }, [article.id]);
+        setViewMode(initialMode);
+        setReaderContent(null);
+    }, [article.id, initialMode]);
 
     // 3. 【修改】获取 Supabase 数据逻辑
     useEffect(() => {
@@ -58,12 +59,12 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({ article, onCl
                 try {
                     const detailsMap = await getArticlesDetails([article.id]);
                     const details = detailsMap[article.id];
-                    
+
                     if (details) {
-                        const mergedArticle = { 
-                            ...article, 
+                        const mergedArticle = {
+                            ...article,
                             ...details,
-                            tags: article.tags 
+                            tags: article.tags
                         };
                         updateArticle(mergedArticle);
                     }
@@ -125,7 +126,7 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({ article, onCl
 
     const renderReaderContent = () => {
         if (isLoadingReader) return <LoadingSpinner />;
-        
+
         if (!readerContent) return (
             <div className="p-8 text-center text-gray-500">
                 <p>无法加载文章内容。</p>
@@ -165,7 +166,7 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({ article, onCl
             return (
                 <div className="flex flex-col items-center justify-center h-64 space-y-4">
                     <LoadingSpinner />
-                    <p className="text-gray-500 text-sm">正在生成智能简报...</p>
+                    <p className="text-gray-500 text-sm">正在抓取智能简报...</p>
                 </div>
             );
         }
@@ -193,10 +194,10 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({ article, onCl
 
         return (
             <div className="p-4 md:p-6">
-                <ArticleCard 
-                    article={article} 
-                    showActions={false} 
-                    onReaderModeRequest={() => setViewMode('reader')} 
+                <ArticleCard
+                    article={article}
+                    showActions={false}
+                    onReaderModeRequest={() => setViewMode('reader')}
                     onStateChange={onStateChange}
                 />
             </div>
@@ -207,23 +208,21 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({ article, onCl
         <>
             <div onClick={onClose} className="fixed inset-0 bg-black/60 z-30 transition-opacity duration-300 animate-fadeIn" />
             <div className="fixed top-0 right-0 h-full w-full max-w-2xl bg-neutral-50 bg-paper-texture shadow-2xl z-40 transform transition-transform duration-300 animate-slideInRight flex flex-col">
-                
+
                 {/* Header */}
                 <div className="flex items-center justify-between p-3 border-b bg-white/80 backdrop-blur-md z-10">
                     <div className="flex bg-gray-200/80 p-1 rounded-lg">
                         <button
                             onClick={() => setViewMode('briefing')}
-                            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
-                                viewMode === 'briefing' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-                            }`}
+                            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${viewMode === 'briefing' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                                }`}
                         >
                             📊 智能简报
                         </button>
                         <button
                             onClick={() => setViewMode('reader')}
-                            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
-                                viewMode === 'reader' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-                            }`}
+                            className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${viewMode === 'reader' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                                }`}
                         >
                             📄 原文阅读
                         </button>
@@ -247,10 +246,10 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({ article, onCl
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a1 1 0 011-1h5a.997.997 0 01.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" /></svg>
                         </button>
                         {isTagPopoverOpen && (
-                            <TagPopover 
-                                article={article} 
-                                onClose={() => setIsTagPopoverOpen(false)} 
-                                onStateChange={onStateChange} 
+                            <TagPopover
+                                article={article}
+                                onClose={() => setIsTagPopoverOpen(false)}
+                                onStateChange={onStateChange}
                             />
                         )}
                     </div>
@@ -260,9 +259,8 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({ article, onCl
                             const STAR_TAG = 'user/-/state/com.google/starred';
                             onStateChange(article.id, isStarred ? [] : [STAR_TAG], isStarred ? [STAR_TAG] : []);
                         }}
-                        className={`p-3 text-white rounded-full shadow-lg transition-all ${
-                            isStarred ? 'bg-amber-500 hover:bg-amber-600' : 'bg-gray-800 hover:bg-gray-950'
-                        }`}
+                        className={`p-3 text-white rounded-full shadow-lg transition-all ${isStarred ? 'bg-amber-500 hover:bg-amber-600' : 'bg-gray-800 hover:bg-gray-950'
+                            }`}
                     >
                         {isStarred ? (
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>

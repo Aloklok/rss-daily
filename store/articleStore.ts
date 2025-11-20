@@ -1,22 +1,22 @@
 // src/store/articleStore.ts
 
 import { create } from 'zustand';
-import { Article, Filter, AvailableFilters, Tag } from '../types'; 
+import { Article, Filter, AvailableFilters, Tag } from '../types';
 
 
 
 const getTodayInShanghai = (): string => {
   const formatter = new Intl.DateTimeFormat('en-CA', {
-      year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Shanghai'
+    year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Shanghai'
   });
   return formatter.format(new Date());
 };
 const getCurrentTimeSlotInShanghai = (): 'morning' | 'afternoon' | 'evening' => {
   const now = new Date();
   const hour = parseInt(new Intl.DateTimeFormat('en-US', {
-      hour: '2-digit',
-      hour12: false,
-      timeZone: 'Asia/Shanghai'
+    hour: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Shanghai'
   }).format(now), 10);
 
   if (hour < 12) return 'morning';
@@ -30,13 +30,15 @@ interface ArticleStoreState {
   articlesById: Record<string | number, Article>;
   starredArticleIds: (string | number)[]; // 【修改】从 Set 改为 Array
   activeFilter: Filter | null;
-  // 1. 【增加】新的状态，用于控制简报详情面板的显示
-  // 2. 【增加】设置新状态的 action
+  // 1. 【新增】模态框的初始模式 ('briefing' | 'reader')
+  modalInitialMode: 'briefing' | 'reader';
   timeSlot: 'morning' | 'afternoon' | 'evening' | null; // 【增】
   selectedArticleId: string | number | null;
   availableFilters: AvailableFilters;
   modalArticleId: string | number | null;
-  setModalArticleId: (id: string | number | null) => void;
+  openModal: (id: string | number, mode?: 'briefing' | 'reader') => void;
+  closeModal: () => void;
+  setModalArticleId: (id: string | number | null) => void; // 兼容旧代码
   markArticlesAsRead: (ids: (string | number)[]) => void;
   addArticles: (articles: Article[]) => void;
   updateArticle: (updatedArticle: Article) => void;
@@ -58,7 +60,18 @@ export const useArticleStore = create<ArticleStoreState>((set, get) => ({
   timeSlot: null, // 【增】
   selectedArticleId: null,
   modalArticleId: null,
-  setModalArticleId: (id) => set({ modalArticleId: id }),
+  modalInitialMode: 'briefing',
+  openModal: (id, mode: 'briefing' | 'reader' = 'briefing') => set({
+    modalArticleId: id,
+    modalInitialMode: mode
+  }),
+
+  closeModal: () => set({
+    modalArticleId: null,
+    modalInitialMode: 'briefing'
+  }),
+  // 兼容旧调用，默认走 briefing
+  setModalArticleId: (id) => set({ modalArticleId: id, modalInitialMode: 'briefing' }),
   availableFilters: { categories: [], tags: [] },
   addArticles: (articles) => {
     if (!articles || articles.length === 0) return;
@@ -87,28 +100,28 @@ export const useArticleStore = create<ArticleStoreState>((set, get) => ({
         newStarredArticleIds = newStarredArticleIds.filter(id => id !== updatedArticle.id);
       }
 
-       // --- 【核心逻辑】开始动态更新标签计数 ---
-       const oldUserTags = new Set((oldArticle?.tags || []).filter(isUserTag));
-       const newUserTags = new Set((updatedArticle.tags || []).filter(isUserTag));
- 
-       const tagsToAdd = [...newUserTags].filter(t => !oldUserTags.has(t));
-       const tagsToRemove = [...oldUserTags].filter(t => !newUserTags.has(t));
-       
-       let newAvailableTags = [...state.availableFilters.tags];
- 
-       if (tagsToAdd.length > 0 || tagsToRemove.length > 0) {
-         newAvailableTags = newAvailableTags.map(tag => {
-           const newTag = { ...tag };
-           if (tagsToAdd.includes(newTag.id)) {
-             newTag.count = (newTag.count || 0) + 1;
-           }
-           if (tagsToRemove.includes(newTag.id)) {
-             newTag.count = Math.max(0, (newTag.count || 0) - 1);
-           }
-           return newTag;
-         });
-       }
-       // --- 结束动态更新标签计数 ---
+      // --- 【核心逻辑】开始动态更新标签计数 ---
+      const oldUserTags = new Set((oldArticle?.tags || []).filter(isUserTag));
+      const newUserTags = new Set((updatedArticle.tags || []).filter(isUserTag));
+
+      const tagsToAdd = [...newUserTags].filter(t => !oldUserTags.has(t));
+      const tagsToRemove = [...oldUserTags].filter(t => !newUserTags.has(t));
+
+      let newAvailableTags = [...state.availableFilters.tags];
+
+      if (tagsToAdd.length > 0 || tagsToRemove.length > 0) {
+        newAvailableTags = newAvailableTags.map(tag => {
+          const newTag = { ...tag };
+          if (tagsToAdd.includes(newTag.id)) {
+            newTag.count = (newTag.count || 0) + 1;
+          }
+          if (tagsToRemove.includes(newTag.id)) {
+            newTag.count = Math.max(0, (newTag.count || 0) - 1);
+          }
+          return newTag;
+        });
+      }
+      // --- 结束动态更新标签计数 ---
 
       return {
         articlesById: newArticlesById,
@@ -154,23 +167,23 @@ export const useArticleStore = create<ArticleStoreState>((set, get) => ({
 
   setActiveFilter: (filter) => {
     let newTimeSlot: 'morning' | 'afternoon' | 'evening' | null = null;
-    
+
     // 在 action 内部计算正确的 timeSlot
     if (filter?.type === 'date') {
-        const today = getTodayInShanghai();
-        if (filter.value === today) {
-            // 如果是今天，计算当前时间槽
-            newTimeSlot = getCurrentTimeSlotInShanghai();
-        } 
-        // 对于历史日期，newTimeSlot 保持为 null (全天)
+      const today = getTodayInShanghai();
+      if (filter.value === today) {
+        // 如果是今天，计算当前时间槽
+        newTimeSlot = getCurrentTimeSlotInShanghai();
+      }
+      // 对于历史日期，newTimeSlot 保持为 null (全天)
     }
     // 对于非日期过滤器，newTimeSlot 也保持为 null
 
     // 原子地更新 filter 和 timeSlot
-    set({ 
-      activeFilter: filter, 
-      selectedArticleId: null, 
-      timeSlot: newTimeSlot 
+    set({
+      activeFilter: filter,
+      selectedArticleId: null,
+      timeSlot: newTimeSlot
     });
   },
 
