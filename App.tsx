@@ -2,10 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import FloatingActionButtons from './components/FloatingActionButtons';
-// ----- 1. 修改开始 (移除旧组件，导入新组件) -----
-// 移除 BriefingDetailView, ReaderView 导入
 import UnifiedArticleModal from './components/UnifiedArticleModal';
-// ----- 1. 修改结束 -----
 import Sidebar from './components/Sidebar';
 import Briefing from './components/Briefing';
 import ArticleDetail from './components/ArticleDetail';
@@ -13,14 +10,9 @@ import ArticleList from './components/ArticleList';
 import LoadingSpinner from './components/LoadingSpinner';
 import Toast from './components/Toast';
 import { Article, Tag, BriefingReport, GroupedArticles, Filter } from './types';
-// ----- 2. 修改开始 (移除 selectBriefingDetailArticle) -----
 import { useArticleStore, selectSelectedArticle } from './store/articleStore';
-// ----- 2. 修改结束 -----
 import { useQueryClient } from '@tanstack/react-query';
 import { useFilters } from './hooks/useFilters';
-// ----- 3. 修改开始 (移除 useReader) -----
-// 移除 useReader 导入
-// ----- 3. 修改结束 -----
 import { getTodayInShanghai, getCurrentTimeSlotInShanghai, getCleanArticleContent } from './services/api';
 import {
     useBriefingArticles,
@@ -37,15 +29,16 @@ const App: React.FC = () => {
     const [toast, setToast] = useState<{ isVisible: boolean; message: string; type: 'success' | 'error' | 'info' }>({ isVisible: false, message: '', type: 'info' });
     const queryClient = useQueryClient();
 
-    // ----- 4. 修改开始 (使用新的 modalArticleId) -----
-    // 移除 briefingDetailArticleId, briefingDetailArticle 相关逻辑
+    // ----- 1. 修改: 优化 modalArticle 订阅，避免全局重渲染 -----
     const modalArticleId = useArticleStore(state => state.modalArticleId);
-    const modalInitialMode = useArticleStore(state => state.modalInitialMode); // 获取初始模式
+    const modalInitialMode = useArticleStore(state => state.modalInitialMode);
     const openModal = useArticleStore(state => state.openModal);
     const closeModal = useArticleStore(state => state.closeModal);
-    const articlesById = useArticleStore((state) => state.articlesById);
-    const modalArticle = modalArticleId ? articlesById[modalArticleId] : null;
-    // ----- 4. 修改结束 -----
+
+    // 只订阅当前模态框展示的那一篇文章，而不是整个 articlesById
+    const modalArticle = useArticleStore(state =>
+        state.modalArticleId ? state.articlesById[state.modalArticleId] : null
+    );
 
     const activeFilter = useArticleStore(state => state.activeFilter);
     const timeSlot = useArticleStore(state => state.timeSlot);
@@ -64,24 +57,17 @@ const App: React.FC = () => {
     }, []);
 
 
-    // ----- 2. 修改开始 (区分两种打开逻辑) -----
-
-    // 场景 A: 从列表/搜索点击 -> 默认看简报
     const handleOpenFromList = useCallback((article: Article) => {
         addArticles([article]);
         openModal(article.id, 'briefing');
     }, [addArticles, openModal]);
 
-    // 场景 B: 从简报卡片点击“阅读” -> 默认看全文
     const handleOpenFromBriefingCard = useCallback((article: Article) => {
         addArticles([article]);
-        openModal(article.id, 'reader'); // <--- 关键修改：这里传入 'reader'
+        openModal(article.id, 'reader');
     }, [addArticles, openModal]);
 
-    // ----- 2. 修改结束 -----
 
-
-    // 侧边栏点击逻辑保持不变，仍然是桌面端显示在主区域
     const handleOpenMainDetail = useCallback((article: Article) => {
         setSelectedArticleId(article.id);
         addArticles([article]);
@@ -113,56 +99,44 @@ const App: React.FC = () => {
 
     const filteredArticleIds = filteredArticleIdsFromQuery || [];
 
-    const unreadArticleIdsInView = useMemo(() => {
-        const READ_TAG = 'user/-/state/com.google/read';
-        let articleIdsToCheck: (string | number)[] = [];
+    // ----- 2. 修改: 移除 unreadArticleIdsInView 计算逻辑 -----
+    // 该逻辑已移动到 FloatingActionButtons 组件内部
 
+    // ----- 3. 修改: 计算当前视图中的文章 ID 列表，传递给 FAB -----
+    const articleIdsInView = useMemo(() => {
         if (activeFilter?.type === 'date') {
-            articleIdsToCheck = briefingArticleIds || [];
+            return briefingArticleIds || [];
         } else if (activeFilter?.type === 'category' || activeFilter?.type === 'tag') {
-            articleIdsToCheck = filteredArticleIds || [];
+            return filteredArticleIds || [];
+        } else if (activeFilter?.type === 'search') {
+            return searchResultIds || [];
         }
+        return [];
+    }, [activeFilter, briefingArticleIds, filteredArticleIds, searchResultIds]);
 
-        return articleIdsToCheck
-            .map(id => articlesById[id])
-            .filter(article => article && !article.tags?.includes(READ_TAG))
-            .map(article => article.id);
-    }, [activeFilter, briefingArticleIds, filteredArticleIds, articlesById]);
 
     const handleMarkAllClick = () => {
-        if (unreadArticleIdsInView.length > 0) {
-            markAllAsRead(unreadArticleIdsInView);
+        // 这里的逻辑稍微复杂一点，因为 markAllAsRead 需要 ID 列表。
+        // 我们可以直接使用 articleIdsInView，因为 FAB 内部已经判断了是否有未读。
+        // 但为了保持一致性，我们可以在这里重新获取一下未读 ID，或者直接把 articleIdsInView 传给 mutation，后端会处理。
+        // 简单起见，我们传递当前视图的所有 ID，store/API 层会过滤掉已读的。
+        if (articleIdsInView.length > 0) {
+            markAllAsRead(articleIdsInView);
         } else {
             showToast('没有需要标记的文章', 'info');
         }
     };
 
-    const reports: BriefingReport[] = useMemo(() => {
-        if (!briefingArticleIds || briefingArticleIds.length === 0) return [];
-        const articlesForReport = briefingArticleIds.map(id => articlesById[id]).filter(Boolean) as Article[];
-        const groupedArticles = articlesForReport.reduce((acc, article) => {
-            const group = article.briefingSection || '常规更新';
-            if (!acc[group]) acc[group] = [];
-            acc[group].push(article);
-            return acc;
-        }, {} as GroupedArticles);
-        return [{ id: 1, title: "Daily Briefing", articles: groupedArticles }];
-    }, [briefingArticleIds, articlesById]);
-
-    // ----- 6. 修改开始 (移除 useReader 调用) -----
-    // 移除 useReader 相关的所有解构
-    // ----- 6. 修改结束 -----
+    // ----- 4. 修改: 移除 reports 计算逻辑 -----
+    // 该逻辑已移动到 Briefing 组件内部
 
     const sidebarArticle = useArticleStore(selectSelectedArticle);
-    // ----- 7. 修改开始 (移除 isReaderVisible) -----
-    // const isReaderVisible = useArticleStore(state => state.isReaderVisible);
-    // ----- 7. 修改结束 -----
 
     const { mutateAsync: updateArticleState, isPending: isUpdatingArticle } = useUpdateArticleState();
     const { mutate: markAllAsRead, isPending: isMarkingAsRead } = useMarkAllAsRead();
 
-    const handleArticleStateChange = (articleId: string | number, tagsToAdd: string[], tagsToRemove: string[]) => {
-        return updateArticleState({ articleId, tagsToAdd, tagsToRemove }, {
+    const handleArticleStateChange = async (articleId: string | number, tagsToAdd: string[], tagsToRemove: string[]) => {
+        await updateArticleState({ articleId, tagsToAdd, tagsToRemove }, {
             onSuccess: (updatedArticle) => {
             },
             onError: (error) => {
@@ -237,7 +211,6 @@ const App: React.FC = () => {
                 />
             </div>
 
-            {/* ----- 8. 修改开始 (更新按钮隐藏逻辑) ----- */}
             <button
                 onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
                 className={`fixed top-5 p-2 bg-white rounded-full shadow-lg hover:shadow-xl duration-300 ease-in-out border border-gray-200 hover:border-gray-300 z-50
@@ -267,7 +240,6 @@ const App: React.FC = () => {
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="3" y="4" width="18" height="16" rx="2" strokeWidth="2" /><path d="M9 4v16" strokeWidth="2" /></svg>
                 )}
             </button>
-            {/* ----- 8. 修改结束 ----- */}
 
             <div ref={mainContentRef} className={`flex-1 bg-neutral-50 bg-paper-texture ${!isSidebarCollapsed && isMdUp ? 'md:ml-80' : ''}`}>
                 <div className="w-full max-w-3xl mx-auto px-2 md:px-8">
@@ -280,11 +252,11 @@ const App: React.FC = () => {
                         />
                     ) : activeFilter?.type === 'date' ? (
                         <Briefing
-                            reports={reports}
+                            articleIds={briefingArticleIds || []} // 5. 修改: 传递 IDs
                             timeSlot={timeSlot}
-                            selectedReportId={reports[0]?.id || null}
+                            selectedReportId={1} // 简化: 只有一个报告
                             onReportSelect={() => { }}
-                            onReaderModeRequest={handleOpenFromBriefingCard} // 简报中的“阅读”按钮现在触发模态框
+                            onReaderModeRequest={handleOpenFromBriefingCard}
                             onStateChange={handleArticleStateChange}
                             onTimeSlotChange={setTimeSlot}
                             isSidebarCollapsed={isSidebarCollapsed}
@@ -294,7 +266,7 @@ const App: React.FC = () => {
                     ) : (activeFilter?.type === 'category' || activeFilter?.type === 'tag' || activeFilter?.type === 'search') ? (
                         <ArticleList
                             articleIds={activeFilter.type === 'search' ? (searchResultIds || []) : filteredArticleIds}
-                            onOpenArticle={handleOpenFromList} // 列表点击统一触发模态框
+                            onOpenArticle={handleOpenFromList}
                             isLoading={isLoading}
                         />
                     ) : (
@@ -302,27 +274,24 @@ const App: React.FC = () => {
                     )}
 
                     <FloatingActionButtons
-                        selectedArticle={sidebarArticle}
+                        selectedArticleId={sidebarArticle?.id || null} // 6. 修改: 传递 ID
+                        articleIdsInView={articleIdsInView} // 7. 修改: 传递视图中的 IDs
                         isBriefingFetching={isBriefingFetching}
                         isUpdatingArticle={isUpdatingArticle}
                         isMarkingAsRead={isMarkingAsRead}
-                        hasUnreadInView={unreadArticleIdsInView.length > 0}
                         onArticleStateChange={handleArticleStateChange}
                         onMarkAllClick={handleMarkAllClick}
                         onRefreshToHome={handleRefreshToHome}
                     />
 
-                    {/* ----- 9. 修改开始 (渲染统一模态框) ----- */}
                     {modalArticle && (
                         <UnifiedArticleModal
                             article={modalArticle}
-                            onClose={closeModal} // 使用 closeModal
+                            onClose={closeModal}
                             onStateChange={handleArticleStateChange}
-                            initialMode={modalInitialMode} // <--- 传入 store 中的模式
+                            initialMode={modalInitialMode}
                         />
                     )}
-                    {/* 移除 ReaderView 和 BriefingDetailView 的渲染 */}
-                    {/* ----- 9. 修改结束 ----- */}
 
                     <Toast
                         message={toast.message}

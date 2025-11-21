@@ -1,12 +1,12 @@
 // components/Briefing.tsx
 
-import React, { useMemo,memo } from 'react';
-import { Article, BriefingReport, Tag, Filter } from '../types';
+import React, { useMemo, memo } from 'react';
+import { Article, BriefingReport, Tag, Filter, GroupedArticles } from '../types';
 import ArticleGroup from './ArticleGroup';
 import { useArticleStore } from '../store/articleStore';
 
 interface ReportContentProps {
-    report: BriefingReport; 
+    report: BriefingReport;
     onReaderModeRequest: (article: Article) => void;
     onStateChange: (articleId: string | number, tagsToAdd: string[], tagsToRemove: string[]) => Promise<void>;
 }
@@ -106,16 +106,16 @@ const ReportContent: React.FC<ReportContentProps> = memo(({ report, onReaderMode
 ReportContent.displayName = 'ReportContent';
 
 interface BriefingProps {
-  reports: BriefingReport[];
-  timeSlot: 'morning' | 'afternoon' | 'evening' | null;
-  selectedReportId: number | null;
-  onReportSelect: (id: number) => void;
-  onReaderModeRequest: (article: Article) => void;
-  onStateChange: (articleId: string | number, tagsToAdd: string[], tagsToRemove: string[]) => Promise<void>;
-  onTimeSlotChange: (slot: 'morning' | 'afternoon' | 'evening' | null) => void;
-  isSidebarCollapsed: boolean;
-  onToggleSidebar: () => void;
-  articleCount: number;
+    articleIds: (string | number)[]; // 【修改】只接收 IDs
+    timeSlot: 'morning' | 'afternoon' | 'evening' | null;
+    selectedReportId: number | null;
+    onReportSelect: (id: number) => void;
+    onReaderModeRequest: (article: Article) => void;
+    onStateChange: (articleId: string | number, tagsToAdd: string[], tagsToRemove: string[]) => Promise<void>;
+    onTimeSlotChange: (slot: 'morning' | 'afternoon' | 'evening' | null) => void;
+    isSidebarCollapsed: boolean;
+    onToggleSidebar: () => void;
+    articleCount: number;
 }
 
 const GRADIENTS = [
@@ -124,143 +124,158 @@ const GRADIENTS = [
     'from-lime-400 via-emerald-500 to-cyan-500'
 ];
 
-const Briefing: React.FC<BriefingProps> = ({ reports, timeSlot, selectedReportId,onReportSelect, onReaderModeRequest, onStateChange, onTimeSlotChange, isSidebarCollapsed, onToggleSidebar,articleCount}) => {
-  const activeFilter = useArticleStore(state => state.activeFilter);
-  const selectedReport = reports.find(r => r.id === selectedReportId);
+const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedReportId, onReportSelect, onReaderModeRequest, onStateChange, onTimeSlotChange, isSidebarCollapsed, onToggleSidebar, articleCount }) => {
+    // 1. 【新增】内部订阅文章数据
+    const articlesById = useArticleStore(state => state.articlesById);
+    const activeFilter = useArticleStore(state => state.activeFilter);
 
-  const randomGradient = useMemo(() => {
-    if(activeFilter?.type !== 'date') return GRADIENTS[0];
-    const dateAsNumber = new Date(activeFilter.value + 'T00:00:00').getDate();
-    return GRADIENTS[dateAsNumber % GRADIENTS.length];
-  }, [activeFilter]);
-  
-  const isToday = useMemo(() => {
-    if (activeFilter?.type !== 'date') return false;
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    const d = String(now.getDate()).padStart(2, '0');
-    const todayLocal = `${y}-${m}-${d}`;
-    return activeFilter.value === todayLocal;
-  }, [activeFilter]);
+    // 2. 【新增】内部生成 reports
+    const reports: BriefingReport[] = useMemo(() => {
+        if (!articleIds || articleIds.length === 0) return [];
+        const articlesForReport = articleIds.map(id => articlesById[id]).filter(Boolean) as Article[];
+        const groupedArticles = articlesForReport.reduce((acc, article) => {
+            const group = article.briefingSection || '常规更新';
+            if (!acc[group]) acc[group] = [];
+            acc[group].push(article);
+            return acc;
+        }, {} as GroupedArticles);
+        return [{ id: 1, title: "Daily Briefing", articles: groupedArticles }];
+    }, [articleIds, articlesById]);
 
-  const getGreeting = () => {
-      const hour = new Date().getHours();
-      if (hour >= 0 && hour < 5) return '凌晨好';
-      if (hour >= 5 && hour < 12) return '早上好';
-      if (hour >= 12 && hour < 14) return '中午好';
-      if (hour >= 14 && hour < 18) return '下午好';
-      if (hour >= 18 && hour < 22) return '傍晚好';
-      return '晚上好';
-  }
+    const selectedReport = reports.find(r => r.id === selectedReportId);
 
-  const renderHeader = () => {
-      if (activeFilter?.type === 'date') {
-          const dateObj = new Date(activeFilter.value + 'T00:00:00');
-          const datePart = dateObj.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });
-          const weekdayPart = dateObj.toLocaleDateString('zh-CN', { weekday: 'long' });
+    const randomGradient = useMemo(() => {
+        if (activeFilter?.type !== 'date') return GRADIENTS[0];
+        const dateAsNumber = new Date(activeFilter.value + 'T00:00:00').getDate();
+        return GRADIENTS[dateAsNumber % GRADIENTS.length];
+    }, [activeFilter]);
 
-          const now = new Date();
-          const currentHour = now.getHours();
+    const isToday = useMemo(() => {
+        if (activeFilter?.type !== 'date') return false;
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        const todayLocal = `${y}-${m}-${d}`;
+        return activeFilter.value === todayLocal;
+    }, [activeFilter]);
 
-          const getCurrentTimeSlot = () => {
-              if (currentHour >= 0 && currentHour < 12) return 'morning';
-              if (currentHour >= 12 && currentHour < 19) return 'afternoon';
-              return 'evening';
-          };
-          const autoSelectedSlot = isToday ? getCurrentTimeSlot() : null;
+    const getGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour >= 0 && hour < 5) return '凌晨好';
+        if (hour >= 5 && hour < 12) return '早上好';
+        if (hour >= 12 && hour < 14) return '中午好';
+        if (hour >= 14 && hour < 18) return '下午好';
+        if (hour >= 18 && hour < 22) return '傍晚好';
+        return '晚上好';
+    }
 
-          return (
-             <header className={`relative mb-6 md:mb-12 bg-gradient-to-br ${randomGradient} rounded-2xl p-4 md:p-8 text-white shadow-lg`}>
-                
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div className="flex-grow">
-                        <div className="mb-4">
-                             <h1 className="text-4xl md:text-5xl font-serif font-bold leading-none tracking-tight">
-                                {isToday ? '今天' : datePart}
-                            </h1>
-                             <div className="mt-2 md:mt-3 inline-block bg-white/20 backdrop-blur-sm text-white/90 px-3 py-1 rounded-full text-base md:text-lg font-medium">
-                                {isToday ? (
-                                    <>
-                                        <span>{datePart}</span>
-                                        <span className="mx-2 opacity-60">·</span>
+    const renderHeader = () => {
+        if (activeFilter?.type === 'date') {
+            const dateObj = new Date(activeFilter.value + 'T00:00:00');
+            const datePart = dateObj.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });
+            const weekdayPart = dateObj.toLocaleDateString('zh-CN', { weekday: 'long' });
+
+            const now = new Date();
+            const currentHour = now.getHours();
+
+            const getCurrentTimeSlot = () => {
+                if (currentHour >= 0 && currentHour < 12) return 'morning';
+                if (currentHour >= 12 && currentHour < 19) return 'afternoon';
+                return 'evening';
+            };
+            const autoSelectedSlot = isToday ? getCurrentTimeSlot() : null;
+
+            return (
+                <header className={`relative mb-6 md:mb-12 bg-gradient-to-br ${randomGradient} rounded-2xl p-4 md:p-8 text-white shadow-lg`}>
+
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div className="flex-grow">
+                            <div className="mb-4">
+                                <h1 className="text-4xl md:text-5xl font-serif font-bold leading-none tracking-tight">
+                                    {isToday ? '今天' : datePart}
+                                </h1>
+                                <div className="mt-2 md:mt-3 inline-block bg-white/20 backdrop-blur-sm text-white/90 px-3 py-1 rounded-full text-base md:text-lg font-medium">
+                                    {isToday ? (
+                                        <>
+                                            <span>{datePart}</span>
+                                            <span className="mx-2 opacity-60">·</span>
+                                            <span>{weekdayPart}</span>
+                                        </>
+                                    ) : (
                                         <span>{weekdayPart}</span>
-                                    </>
-                                ) : (
-                                    <span>{weekdayPart}</span>
-                                )}
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                        {isToday ? (
-                            <p className="mt-4 md:mt-6 text-lg md:text-xl font-serif font-bold tracking-tight text-white/95">
-                                {getGreeting()}，欢迎阅读今日简报
-                                {articleCount > 0 && `，共 ${articleCount} 篇文章。`}
-                            </p>
-                        ) : (
-                            articleCount > 0 && (
+                            {isToday ? (
                                 <p className="mt-4 md:mt-6 text-lg md:text-xl font-serif font-bold tracking-tight text-white/95">
-                                    欢迎阅读本期简报，共 {articleCount} 篇文章。
+                                    {getGreeting()}，欢迎阅读今日简报
+                                    {articleCount > 0 && `，共 ${articleCount} 篇文章。`}
                                 </p>
-                            )
+                            ) : (
+                                articleCount > 0 && (
+                                    <p className="mt-4 md:mt-6 text-lg md:text-xl font-serif font-bold tracking-tight text-white/95">
+                                        欢迎阅读本期简报，共 {articleCount} 篇文章。
+                                    </p>
+                                )
+                            )}
+                        </div>
+                        {activeFilter?.type === 'date' && (
+                            <div className="mt-2 md:mt-0 flex-shrink-0 flex items-center gap-2">
+                                <div className="bg-black/10 p-1.5 rounded-full flex gap-1">
+                                    {(['morning', 'afternoon', 'evening'] as const).map(slotOption => {
+                                        const labelMap: Record<'morning' | 'afternoon' | 'evening', string> = { morning: '早上', afternoon: '中午', evening: '晚上' };
+                                        const isSelected = timeSlot === slotOption || (timeSlot === null && autoSelectedSlot === slotOption);
+                                        return (
+                                            <button
+                                                key={slotOption}
+                                                onClick={() => onTimeSlotChange(isSelected ? null : slotOption)}
+                                                className={`px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base font-semibold rounded-full transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-white/50 ${isSelected ? 'bg-white text-blue-600 shadow-md' : 'text-white/80 hover:bg-white/10'
+                                                    }`}
+                                            >
+                                                {labelMap[slotOption]}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
                         )}
                     </div>
-                    {activeFilter?.type === 'date' && (
-                         <div className="mt-2 md:mt-0 flex-shrink-0 flex items-center gap-2">
-                            <div className="bg-black/10 p-1.5 rounded-full flex gap-1">
-                                {(['morning','afternoon','evening'] as const).map(slotOption => {
-                                    const labelMap: Record<'morning'|'afternoon'|'evening', string> = { morning: '早上', afternoon: '中午', evening: '晚上' };
-                                    const isSelected = timeSlot === slotOption || (timeSlot === null && autoSelectedSlot === slotOption);
-                                    return (
-                                        <button
-                                            key={slotOption}
-                                            onClick={() => onTimeSlotChange(isSelected ? null : slotOption)}
-                                            className={`px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base font-semibold rounded-full transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-white/50 ${
-                                                isSelected ? 'bg-white text-blue-600 shadow-md' : 'text-white/80 hover:bg-white/10'
-                                            }`}
-                                        >
-                                            {labelMap[slotOption]}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </header>
-          );
-      }
-      return null;
-  }
+                </header>
+            );
+        }
+        return null;
+    }
 
-  return (
-    <main className="flex-1 px-2 py-2 md:p-8 lg:p-10">
-      <div className="max-w-6xl mx-auto">
-        {renderHeader()}
-        
-        {reports.length > 0 ? (
-            <div className="space-y-10">
-                {reports.map(report => (
-                    <ReportContent 
-                        key={report.id} 
-                        report={report} 
-                        onReaderModeRequest={onReaderModeRequest}
-                        onStateChange={onStateChange}
-                    />
-                ))}
+    return (
+        <main className="flex-1 px-2 py-2 md:p-8 lg:p-10">
+            <div className="max-w-6xl mx-auto">
+                {renderHeader()}
+
+                {reports.length > 0 ? (
+                    <div className="space-y-10">
+                        {reports.map(report => (
+                            <ReportContent
+                                key={report.id}
+                                report={report}
+                                onReaderModeRequest={onReaderModeRequest}
+                                onStateChange={onStateChange}
+                            />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-20">
+                        <p className="text-2xl font-semibold text-stone-600">
+                            {isToday
+                                ? '暂无简报，请稍后查看。'
+                                : '该日期下没有简报。'
+                            }
+                        </p>
+                    </div>
+                )}
             </div>
-        ) : (
-          <div className="text-center py-20">
-            <p className="text-2xl font-semibold text-stone-600">
-                {isToday 
-                    ? '暂无简报，请稍后查看。'
-                    : '该日期下没有简报。'
-                }
-            </p>
-          </div>
-        )}
-      </div>
-    </main>
-  );
+        </main>
+    );
 };
 
 export default memo(Briefing);
