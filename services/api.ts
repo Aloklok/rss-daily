@@ -1,5 +1,5 @@
 import { Article, BriefingReport, Tag, CleanArticleContent, AvailableFilters, Filter, GroupedArticles } from '../types';
-import { STAR_TAG } from '../api/constants';
+import { STAR_TAG } from '../api/_constants';
 
 
 
