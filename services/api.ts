@@ -1,4 +1,5 @@
 import { Article, BriefingReport, Tag, CleanArticleContent, AvailableFilters, Filter, GroupedArticles } from '../types';
+import { STAR_TAG } from '../constants';
 
 
 
@@ -110,7 +111,7 @@ export const getCurrentTimeSlotInShanghai = (): 'morning' | 'afternoon' | 'eveni
 // 【增】为 getArticlesByLabel 创建一个语义化的别名
 export const getRawStarredArticles = (): Promise<Article[]> => {
     // 复用 getArticlesByLabel，传入固定的 "starred" 标签 ID
-    return getArticlesByLabel({ type: 'starred', value: 'user/-/state/com.google/starred' });
+    return getArticlesByLabel({ type: 'starred', value: STAR_TAG });
 };
 
 
@@ -231,7 +232,7 @@ export const getArticlesByLabel = (filter: Filter): Promise<Article[]> => {
 
 export const getStarredArticles = (): Promise<Article[]> => {
     // Reuse getArticlesByLabel with the specific stream ID for starred articles
-    return getArticlesByLabel({ type: 'starred', value: 'user/-/state/com.google/starred' });
+    return getArticlesByLabel({ type: 'starred', value: STAR_TAG });
 };
 
 export const getAvailableFilters = (): Promise<AvailableFilters> => {

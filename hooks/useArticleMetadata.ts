@@ -3,9 +3,7 @@
 import { useMemo } from 'react';
 import { Article } from '../types';
 import { useArticleStore } from '../store/articleStore';
-
-const STAR_TAG = 'user/-/state/com.google/starred';
-const READ_TAG = 'user/-/state/com.google/read';
+import { STAR_TAG, READ_TAG } from '../constants';
 
 /**
  * 一个健壮的自定义 Hook，用于从 article 对象中派生出常用的元数据。

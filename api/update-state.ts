@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { apiHandler, getFreshRssClient } from './_utils.js';
+import { STAR_TAG, READ_TAG } from '../constants';
 
 
 async function updateArticleState(req: VercelRequest, res: VercelResponse) {
@@ -26,8 +27,8 @@ async function updateArticleState(req: VercelRequest, res: VercelResponse) {
 
     if (action && typeof isAdding === 'boolean') {
         const tagMap = {
-            star: 'user/-/state/com.google/starred',
-            read: 'user/-/state/com.google/read',
+            star: STAR_TAG,
+            read: READ_TAG,
         };
         const tag = tagMap[action as 'star' | 'read'];
         if (tag) {

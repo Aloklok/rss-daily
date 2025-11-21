@@ -254,9 +254,9 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({ article, onCl
                         )}
                     </div>
 
+import { STAR_TAG } from '../constants';
                     <button
                         onClick={() => {
-                            const STAR_TAG = 'user/-/state/com.google/starred';
                             onStateChange(article.id, isStarred ? [] : [STAR_TAG], isStarred ? [STAR_TAG] : []);
                         }}
                         className={`p-3 text-white rounded-full shadow-lg transition-all ${isStarred ? 'bg-amber-500 hover:bg-amber-600' : 'bg-gray-800 hover:bg-gray-950'

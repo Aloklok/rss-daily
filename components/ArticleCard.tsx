@@ -5,30 +5,31 @@ import { Article, Tag } from '../types';
 import TagPopover from './TagPopover';
 import { useArticleMetadata } from '../hooks/useArticleMetadata';
 import { getRandomColorClass } from '../utils/colorUtils';
+import { STAR_TAG, READ_TAG } from '../constants';
 // 1. 【修改】将所有辅助组件和常量移至文件顶层，使其不随 ArticleCard 的渲染而重新创建
 
 const CALLOUT_THEMES = { '一句话总结': { icon: '📝', color: 'pink' }, '技术洞察': { icon: '🔬', color: 'blue' }, '值得注意': { icon: '⚠️', color: 'brown' }, '市场观察': { icon: '📈', color: 'green' } } as const;
-const calloutCardClasses = { 
-    pink: { bg: 'bg-pink-100', title: 'text-pink-950', body: 'text-pink-900', emphasis: 'font-bold text-violet-700' }, 
-    blue: { bg: 'bg-blue-100', title: 'text-blue-950', body: 'text-blue-900', emphasis: 'font-bold text-violet-700' }, 
-    brown: { bg: 'bg-orange-100', title: 'text-orange-950', body: 'text-orange-900', emphasis: 'font-bold text-violet-700' }, 
-    green: { bg: 'bg-green-100', title: 'text-green-950', body: 'text-green-900', emphasis: 'font-bold text-violet-700' } 
+const calloutCardClasses = {
+    pink: { bg: 'bg-pink-100', title: 'text-pink-950', body: 'text-pink-900', emphasis: 'font-bold text-violet-700' },
+    blue: { bg: 'bg-blue-100', title: 'text-blue-950', body: 'text-blue-900', emphasis: 'font-bold text-violet-700' },
+    brown: { bg: 'bg-orange-100', title: 'text-orange-950', body: 'text-orange-900', emphasis: 'font-bold text-violet-700' },
+    green: { bg: 'bg-green-100', title: 'text-green-950', body: 'text-green-900', emphasis: 'font-bold text-violet-700' }
 };
 const parseBold = (text: string, emphasisClass: string = 'font-semibold text-current') => { if (!text) return ''; const parts = text.split(/\*\*(.*?)\*\*/g); return parts.map((part, i) => i % 2 === 1 ? <strong key={i} className={emphasisClass}>{part}</strong> : part); };
 
 // --- 外部化的组件定义 ---
 
-const SpinnerIcon: React.FC = memo(() => ( <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> ));
+const SpinnerIcon: React.FC = memo(() => (<svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>));
 SpinnerIcon.displayName = 'SpinnerIcon';
 
-const IconCheckCircle: React.FC = memo(() => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg> ));
+const IconCheckCircle: React.FC = memo(() => (<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>));
 IconCheckCircle.displayName = 'IconCheckCircle';
 
-const IconCircle: React.FC = memo(() => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> ));
+const IconCircle: React.FC = memo(() => (<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>));
 IconCircle.displayName = 'IconCircle';
 
 interface CalloutProps { title: keyof typeof CALLOUT_THEMES; content: string; }
-const Callout: React.FC<CalloutProps> = memo(({ title, content }) => { const theme = CALLOUT_THEMES[title]; const colors = calloutCardClasses[theme.color]; return ( <aside className={`rounded-2xl p-5 backdrop-blur-lg ring-1 ring-white/30 ${colors.bg}`}><div className="flex items-center gap-x-3 mb-3"><span className="text-2xl">{theme.icon}</span><h4 className={`text-lg font-bold ${colors.title}`}>{title}</h4></div><div className={`${colors.body} text-[15px] leading-relaxed font-medium`}>{parseBold(content, colors.emphasis)}</div></aside> ); });
+const Callout: React.FC<CalloutProps> = memo(({ title, content }) => { const theme = CALLOUT_THEMES[title]; const colors = calloutCardClasses[theme.color]; return (<aside className={`rounded-2xl p-5 backdrop-blur-lg ring-1 ring-white/30 ${colors.bg}`}><div className="flex items-center gap-x-3 mb-3"><span className="text-2xl">{theme.icon}</span><h4 className={`text-lg font-bold ${colors.title}`}>{title}</h4></div><div className={`${colors.body} text-[15px] leading-relaxed font-medium`}>{parseBold(content, colors.emphasis)}</div></aside>); });
 Callout.displayName = 'Callout';
 
 interface ActionButtonsProps {
@@ -39,10 +40,8 @@ interface ActionButtonsProps {
 }
 
 const ActionButtons: React.FC<ActionButtonsProps> = memo(({ article, onReaderModeRequest, onStateChange, className }) => {
-    const STAR_TAG = 'user/-/state/com.google/starred';
-    const READ_TAG = 'user/-/state/com.google/read';
     const { isStarred, isRead, userTagLabels: displayedUserTags } = useArticleMetadata(article);
-   
+
     const [isTagPopoverOpen, setIsTagPopoverOpen] = useState(false);
     const [isLoading, setIsLoading] = useState<'star' | 'read' | null>(null);
 
@@ -72,20 +71,20 @@ const ActionButtons: React.FC<ActionButtonsProps> = memo(({ article, onReaderMod
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                             阅读
                         </button>
-                        <button 
-                            onClick={() => handleToggleState('star')} 
-                            disabled={!!isLoading} 
+                        <button
+                            onClick={() => handleToggleState('star')}
+                            disabled={!!isLoading}
                             className={`${actionButtonClass} ${isStarred ? 'bg-amber-400 text-amber-950' : 'bg-amber-200 hover:bg-amber-300 text-amber-900'} ${isLoading ? 'cursor-wait' : ''}`}
                         >
-                           {isLoading === 'star' ? <SpinnerIcon /> : <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>}
+                            {isLoading === 'star' ? <SpinnerIcon /> : <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>}
                             {isStarred ? '已收藏' : '收藏'}
                         </button>
-                        <button 
-                            onClick={() => handleToggleState('read')} 
-                            disabled={!!isLoading} 
+                        <button
+                            onClick={() => handleToggleState('read')}
+                            disabled={!!isLoading}
                             className={`${actionButtonClass} ${isRead ? 'bg-emerald-400 text-emerald-950 hover:bg-emerald-500' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'} ${isLoading ? 'cursor-wait' : ''}`}
                         >
-                           {isLoading === 'read' ? <SpinnerIcon /> : (isRead ? <IconCheckCircle /> : <IconCircle />)}
+                            {isLoading === 'read' ? <SpinnerIcon /> : (isRead ? <IconCheckCircle /> : <IconCircle />)}
                             {isRead ? '已读' : '标记已读'}
                         </button>
                         <div className="relative" onClick={(e) => e.stopPropagation()}>
@@ -115,20 +114,20 @@ const ActionButtons: React.FC<ActionButtonsProps> = memo(({ article, onReaderMod
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                         <span className="text-xs sr-only">阅读</span>
                     </button>
-                    <button 
-                        onClick={() => handleToggleState('star')} 
-                        disabled={!!isLoading} 
+                    <button
+                        onClick={() => handleToggleState('star')}
+                        disabled={!!isLoading}
                         className={`${mobileActionButtonClass} ${isStarred ? 'text-amber-500' : 'text-gray-600'} ${isLoading ? 'cursor-wait' : ''}`}
                     >
-                       {isLoading === 'star' ? <SpinnerIcon /> : <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>}
+                        {isLoading === 'star' ? <SpinnerIcon /> : <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>}
                         <span className="text-xs sr-only">{isStarred ? '已收藏' : '收藏'}</span>
                     </button>
-                    <button 
-                        onClick={() => handleToggleState('read')} 
-                        disabled={!!isLoading} 
+                    <button
+                        onClick={() => handleToggleState('read')}
+                        disabled={!!isLoading}
                         className={`${mobileActionButtonClass} ${isRead ? 'text-emerald-600' : 'text-gray-600'} ${isLoading ? 'cursor-wait' : ''}`}
-                    >                       
-                   {isLoading === 'read' ? <SpinnerIcon /> : (isRead ? <IconCheckCircle /> : <IconCircle />)}
+                    >
+                        {isLoading === 'read' ? <SpinnerIcon /> : (isRead ? <IconCheckCircle /> : <IconCircle />)}
                         <span className="text-xs sr-only">{isRead ? '已读' : '标记已读'}</span>
                     </button>
                     <div className="relative" onClick={(e) => e.stopPropagation()}>
@@ -162,7 +161,7 @@ interface ArticleCardProps {
     showActions?: boolean;
 }
 
-const ArticleCard: React.FC<ArticleCardProps> = ({ article,onReaderModeRequest, onStateChange, showActions = true }) => {
+const ArticleCard: React.FC<ArticleCardProps> = ({ article, onReaderModeRequest, onStateChange, showActions = true }) => {
     // 2. 【删除】内部组件定义已全部移出
     const { isStarred } = useArticleMetadata(article);
     const publishedDate = new Date(article.published).toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });

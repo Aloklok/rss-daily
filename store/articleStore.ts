@@ -1,9 +1,9 @@
 // src/store/articleStore.ts
 
 import { create } from 'zustand';
+import { create } from 'zustand';
 import { Article, Filter, AvailableFilters, Tag } from '../types';
-
-
+import { STAR_TAG, READ_TAG } from '../constants'; // Import STAR_TAG and READ_TAG
 
 const getTodayInShanghai = (): string => {
   const formatter = new Intl.DateTimeFormat('en-CA', {
@@ -23,8 +23,6 @@ const getCurrentTimeSlotInShanghai = (): 'morning' | 'afternoon' | 'evening' => 
   if (hour < 19) return 'afternoon';
   return 'evening';
 };
-
-
 
 interface ArticleStoreState {
   articlesById: Record<string | number, Article>;
@@ -49,8 +47,6 @@ interface ArticleStoreState {
   setTimeSlot: (slot: 'morning' | 'afternoon' | 'evening' | null) => void; // 【增】
 }
 
-const STAR_TAG = 'user/-/state/com.google/starred';
-const READ_TAG = 'user/-/state/com.google/read'; // 2. 【增加】将 READ_TAG 移到外部，方便复用
 const isUserTag = (tagId: string) => !tagId.includes('/state/com.google/') && !tagId.includes('/state/org.freshrss/');
 
 export const useArticleStore = create<ArticleStoreState>((set, get) => ({

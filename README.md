@@ -16,6 +16,7 @@ Briefing Hub 是一个基于 React 和 TypeScript 构建的现代化 RSS 阅读�
 - **渐进式 Web 应用 (PWA)**：支持离线访问和快速加载，提供接近原生应用的体验。
 - **工作流集成**：支持以天为单位标记简报的完成状态，帮助用户追踪阅读进度。
 - **安全访问控制**：通过 Vercel Edge Middleware 实现无密码认证，确保项目私密性的同时提供无缝的访问体验。
+- **统一常量管理**：将关键标签常量（如 READ_TAG 和 STAR_TAG）统一管理在 constants.ts 中，消除魔法字符串，提高代码可维护性。
 
 ## 用户界面 (UI) 交互
 
@@ -53,6 +54,7 @@ Briefing Hub 是一个基于 React 和 TypeScript 构建的现代化 RSS 阅读�
   - **`UnifiedArticleModal.tsx`**: 核心阅读组件，整合了简报展示和全文阅读逻辑。
   - **`ArticleCard.tsx`**: 用于展示简报风格的文章卡片。
   - **`Sidebar.tsx`**: 侧边栏导航与过滤器。
+- **`constants.ts`**: 存放全局常量定义，如标签常量（READ_TAG, STAR_TAG）等。
 - **`hooks/`**: 存放与 UI 逻辑和状态管理连接相关的自定义 React Hooks。
 - **`services/`**: 存放与外部世界交互的服务模块。
 - **`store/`**: 存放 Zustand 全局状态管理的定义。
@@ -93,6 +95,10 @@ CREATE TABLE public.articles (
 #### 3. 统一的 `Article` 对象
 
 前端通过**数据融合**，将上述两个数据源的信息合并成一个统一的 `Article` 对象，其 `tags` 数组是融合模型的集中体现，混合了多种“标签类”信息。
+
+#### 4. 统一常量管理
+
+为了消除代码中的“魔法字符串”并提高可维护性，关键的标签常量（如 `READ_TAG` 和 `STAR_TAG`）现在统一定义在 `constants.ts` 文件中。这些常量在需要的地方通过导入使用，确保了代码的一致性和易维护性。当需要修改标签格式时，只需在 `constants.ts` 中进行一处更改即可。
 
 ---
 

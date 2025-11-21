@@ -5,6 +5,7 @@ import { Article, Tag } from '../types';
 import TagPopover from './TagPopover';
 import { useArticleMetadata } from '../hooks/useArticleMetadata';
 import { useArticleStore } from '../store/articleStore';
+import { READ_TAG, STAR_TAG } from '../constants';
 
 interface FloatingActionButtonsProps {
     selectedArticleId: string | number | null; // 【修改】接收 ID
@@ -37,7 +38,6 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({
 
     // 2. 【新增】内部订阅：计算是否有未读文章
     const hasUnreadInView = useArticleStore(state => {
-        const READ_TAG = 'user/-/state/com.google/read';
         return articleIdsInView.some(id => {
             const article = state.articlesById[id];
             return article && !article.tags?.includes(READ_TAG);
@@ -80,7 +80,6 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({
                     </div>
                     <button
                         onClick={() => {
-                            const STAR_TAG = 'user/-/state/com.google/starred';
                             onArticleStateChange(selectedArticle.id, isStarred ? [] : [STAR_TAG], isStarred ? [STAR_TAG] : []);
                         }}
                         disabled={isUpdatingArticle}
