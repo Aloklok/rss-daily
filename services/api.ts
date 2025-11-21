@@ -1,5 +1,5 @@
 import { Article, BriefingReport, Tag, CleanArticleContent, AvailableFilters, Filter, GroupedArticles } from '../types';
-import { STAR_TAG } from '../constants';
+import { STAR_TAG } from '../api/constants';
 
 
 
@@ -64,7 +64,7 @@ export const showToast = (message: string, type: 'success' | 'error' = 'success'
     toast.style.opacity = '0';
     toast.style.transition = 'opacity 0.3s ease-in-out, transform 0.3s ease-in-out';
     toast.style.transform = 'translateY(20px)';
-    
+
     document.body.appendChild(toast);
 
     // Animate in
@@ -127,7 +127,7 @@ export const getBriefingReportsByDate = async (date: string, slot?: 'morning' | 
     try {
         const data = await apiService.request<GroupedArticles>('/api/get-briefings', { params });
         if (!data || Object.values(data).every(arr => arr.length === 0)) return [];
-        
+
         const reportTitle = `${new Date(date).toLocaleString('zh-CN', { month: 'long', day: 'numeric' })}简报`;
         return [{ id: 1, title: reportTitle, articles: data }];
     } catch {
@@ -142,14 +142,14 @@ export const getArticlesDetails = (articleIds: (string | number)[]): Promise<Rec
     // 使用 URLSearchParams 来正确处理数组参数
     const params = new URLSearchParams();
     articleIds.forEach(id => params.append('articleIds', String(id)));
-    
+
     // 调用我们刚刚修改的 get-briefings 端点
     return apiService.request<Record<string, Article>>(`/api/get-briefings?${params.toString()}`);
 };
 
-export const markAllAsRead = (articleIds: (string | number)[]): Promise<(string|number)[]> => {
+export const markAllAsRead = (articleIds: (string | number)[]): Promise<(string | number)[]> => {
     if (!articleIds || articleIds.length === 0) return Promise.resolve([]);
-    
+
     return apiService.request<void>('/api/update-state', {
         method: 'POST',
         body: { articleIds, action: 'read', isAdding: true },

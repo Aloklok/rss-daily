@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import { create } from 'zustand';
 import { Article, Filter, AvailableFilters, Tag } from '../types';
-import { STAR_TAG, READ_TAG } from '../constants'; // Import STAR_TAG and READ_TAG
+import { STAR_TAG, READ_TAG } from '../api/constants'; // Import STAR_TAG and READ_TAG
 
 const getTodayInShanghai = (): string => {
   const formatter = new Intl.DateTimeFormat('en-CA', {
