@@ -2,7 +2,7 @@
 
 import { 
     getBriefingReportsByDate, 
-    getRawStarredArticles, // 【增】导入新的 API 函数
+    getRawStarredArticles, 
     getArticlesByLabel, 
     getStarredArticles, 
     getArticlesDetails,
@@ -16,18 +16,26 @@ import { Article } from '../types';
 // 负责为 “FreshRSS文章” 补充 “Supabase详情”
 async function mergeWithSupabaseDetails(freshArticles: Article[]): Promise<Article[]> {
     if (!freshArticles || freshArticles.length === 0) return [];
-    const articleIds = freshArticles.map(a => a.id);
-    const supaDetailsById = await getArticlesDetails(articleIds);
-    return freshArticles.map(freshArticle => {
-        const supaDetails = supaDetailsById[freshArticle.id];
-        // 合并时，以 FreshRSS 的数据为基础，用 Supabase 的数据覆盖默认值
-        return supaDetails ? { ...supaDetails, ...freshArticle } : freshArticle;
-    });
+    
+    try {
+        const articleIds = freshArticles.map(a => a.id);
+        const supaDetailsById = await getArticlesDetails(articleIds);
+        return freshArticles.map(freshArticle => {
+            const supaDetails = supaDetailsById[freshArticle.id];
+            // 合并时，以 FreshRSS 的数据为基础，用 Supabase 的数据覆盖默认值
+            return supaDetails ? { ...supaDetails, ...freshArticle } : freshArticle;
+        });
+    } catch (error) {
+        console.warn('Failed to merge Supabase details, returning fresh articles only:', error);
+        // 如果融合失败（比如 URL 太长），降级返回原始文章，保证列表能显示
+        return freshArticles;
+    }
 }
 
 // --- 导出的“数据加载器”函数 ---
 
 // 1. 加载简报文章（已融合）
+// 简报必须融合，因为需要 verdict.importance 进行分组
 export async function fetchBriefingArticles(date: string, slot: string | null): Promise<Article[]> {
     const fetchedReports = await getBriefingReportsByDate(date, slot as any);
     const supaArticles = fetchedReports.flatMap(report => Object.values(report.articles).flat());
@@ -36,7 +44,6 @@ export async function fetchBriefingArticles(date: string, slot: string | null): 
     const articleIds = supaArticles.map(a => a.id);
     const statesById = await getArticleStates(articleIds);
 
-    // 为 “Supabase文章” 补充 “FreshRSS状态” 并进行数据转换
     return supaArticles.map(supaArticle => ({
         ...supaArticle,
         briefingSection: supaArticle.verdict?.importance || '常规更新',
@@ -44,36 +51,42 @@ export async function fetchBriefingArticles(date: string, slot: string | null): 
     }));
 }
 
-// 2. 加载分类/标签文章（已融合）
+// 2. 加载分类/标签文章（【核心修改】不再融合）
 export async function fetchFilteredArticles(filterValue: string): Promise<Article[]> {
-    const freshArticles = await getArticlesByLabel({ value: filterValue } as any);
-    return mergeWithSupabaseDetails(freshArticles);
+    console.log(`[Loader] Requesting articles for: ${filterValue}`); // 🔍 Debug 1
+    
+      // 1. 获取 FreshRSS 数据
+      const freshArticles = await getArticlesByLabel({ value: filterValue } as any);
+    
+      // 2. 【重要】直接返回，不要调用 mergeWithSupabaseDetails
+      // 既然 UnifiedArticleModal 已经支持按需加载详情，这里就不需要预加载了。
+      // 这避免了因 ID 过长导致的请求失败。
+      return freshArticles;
 }
 
-// 3. 加载收藏文章（已融合）
+// 3. 加载收藏文章（【核心修改】建议也不再融合，保持一致性）
 export async function fetchStarredArticles(): Promise<Article[]> {
     const freshArticles = await getStarredArticles();
-    return mergeWithSupabaseDetails(freshArticles);
+    return freshArticles; // 直接返回
 }
 
 
-// 【增】4. 加载收藏文章的“头部信息”（仅 ID 和标题，供侧边栏初始化使用）
+// 4. 加载收藏文章的“头部信息”（仅 ID 和标题，供侧边栏初始化使用）
 export async function fetchStarredArticleHeaders(): Promise<{ id: string | number; title: string }[]> {
     const freshArticles = await getRawStarredArticles();
-    // 只返回侧边栏需要的最少信息，不进行任何 Supabase 合并
     return freshArticles.map(article => ({
         id: article.id,
         title: article.title,
     }));
 }
 
-// 2. 【增加】一个新的加载器函数，用于搜索
+// 5. 搜索（保持融合，或者也可以改为不融合）
+// 搜索通常返回结果较少，且 Supabase 是搜索源，所以逻辑稍有不同
 export async function fetchSearchResults(query: string): Promise<Article[]> {
-    // 首先从 Supabase 获取包含核心内容的文章
+    // 搜索源是 Supabase，所以这里天然就有 Supabase 数据
     const supaArticles = await searchArticlesByKeyword(query);
     if (supaArticles.length === 0) return [];
 
-    // 然后，像简报一样，为这些文章补充 FreshRSS 的状态
     const articleIds = supaArticles.map(a => a.id);
     const statesById = await getArticleStates(articleIds);
 

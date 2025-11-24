@@ -1,7 +1,6 @@
 // hooks/useDailyStatus.ts
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getDailyStatuses, updateDailyStatus } from '../services/api';
 import { getDailyStatuses, updateDailyStatus, showToast } from '../services/api';
 // --- Query Hook ---
 // 用于获取指定月份的每日完成状态

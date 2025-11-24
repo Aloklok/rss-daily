@@ -5,7 +5,7 @@ import { Article, Tag } from '../types';
 import TagPopover from './TagPopover';
 import { useArticleMetadata } from '../hooks/useArticleMetadata';
 import { getRandomColorClass } from '../utils/colorUtils';
-import { STAR_TAG, READ_TAG } from '../api/_constants';
+import { STAR_TAG, READ_TAG } from '../constants';
 // 1. 【修改】将所有辅助组件和常量移至文件顶层，使其不随 ArticleCard 的渲染而重新创建
 
 const CALLOUT_THEMES = { '一句话总结': { icon: '📝', color: 'pink' }, '技术洞察': { icon: '🔬', color: 'blue' }, '值得注意': { icon: '⚠️', color: 'brown' }, '市场观察': { icon: '📈', color: 'green' } } as const;

@@ -41,7 +41,14 @@ async function getArticlesByLabel(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ message: 'Stream ID is required.' });
     }
     const freshRss = getFreshRssClient();
-    const data = await freshRss.get<{ items: any[] }>(`/stream/contents/${streamId}`, {
+   // 1. 【核心修复】手动处理特殊字符
+    // 我们不能用 encodeURIComponent，因为它会破坏路径中的 '/'
+    // 我们只需要把 '&' 变成 '%26'，把 '+' 变成 '%2B' (以防万一)
+    // 这样 FreshRSS 既能识别路径结构，又能正确解码标签名
+    const safeStreamId = streamId.replace(/&/g, '%26');
+
+    // 2. 使用处理后的 safeStreamId
+    const data = await freshRss.get<{ items: any[] }>(`/stream/contents/${safeStreamId}`, {
         output: 'json',
         excludeContent: '1'
     });

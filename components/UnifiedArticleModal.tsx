@@ -9,7 +9,7 @@ import { getCleanArticleContent, getArticlesDetails } from '../services/api';
 import { useArticleStore } from '../store/articleStore';
 import { useArticleMetadata } from '../hooks/useArticleMetadata';
 import { getRandomColorClass } from '../utils/colorUtils';
-import { STAR_TAG, READ_TAG } from '../api/_constants';
+import { STAR_TAG, READ_TAG } from '../constants';
 
 interface UnifiedArticleModalProps {
     article: Article;

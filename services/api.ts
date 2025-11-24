@@ -1,5 +1,5 @@
 import { Article, BriefingReport, Tag, CleanArticleContent, AvailableFilters, Filter, GroupedArticles } from '../types';
-import { STAR_TAG } from '../api/_constants';
+import { STAR_TAG } from '../constants';
 
 
 
@@ -227,7 +227,9 @@ export const editArticleTag = async (articleId: string | number, tagsToAdd: stri
 export const getArticlesByLabel = (filter: Filter): Promise<Article[]> => {
     return apiService.request<Article[]>('/api/articles-categories-tags', {
         params: { value: filter.value },
-    }).catch(() => []);
+    }); 
+    // ❌ 删除 .catch(() => []); 
+    // 这样我们才能在控制台看到真正的红色报错
 };
 
 export const getStarredArticles = (): Promise<Article[]> => {

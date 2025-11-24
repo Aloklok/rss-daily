@@ -5,7 +5,7 @@ import { Article, Tag } from '../types';
 import TagPopover from './TagPopover';
 import { useArticleMetadata } from '../hooks/useArticleMetadata';
 import { useArticleStore } from '../store/articleStore';
-import { READ_TAG, STAR_TAG } from '../api/_constants';
+import { READ_TAG, STAR_TAG } from '../constants';
 
 interface FloatingActionButtonsProps {
     selectedArticleId: string | number | null; // 【修改】接收 ID

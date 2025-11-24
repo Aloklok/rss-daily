@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { CleanArticleContent, Article, Tag } from '../types';
-import { STAR_TAG } from '../api/_constants'; // Import STAR_TAG constant
+import { STAR_TAG } from '../constants'; // Import STAR_TAG constant
 import TagPopover from './TagPopover'; // 【新增】导入 TagPopover
 import { useArticleMetadata } from '../hooks/useArticleMetadata';
 import { getRandomColorClass } from '../utils/colorUtils';
