@@ -74,5 +74,9 @@ export const useUpdateDailyStatus = () => {
           // 【增】在出错时也显示 Toast
           showToast('状态更新失败，请重试', 'error');
       },
+      onSettled: (data, error, variables) => {
+        const month = variables.date.substring(0, 7);
+        queryClient.invalidateQueries({ queryKey: ['dailyStatuses', month] });
+    }
     });
 };
