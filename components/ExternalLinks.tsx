@@ -83,7 +83,7 @@ const LINKS: LinkConfig[] = [
     },
     {
         id: 'tech-radar',
-        title: 'Radar Thoughtworks',
+        title: 'Thoughtworks Radar',
         url: 'https://www.thoughtworks.com/radar',
         theme: 'teal',
         iconPath: (
@@ -92,9 +92,10 @@ const LINKS: LinkConfig[] = [
     }
 ];
 
-// 4. 单个卡片组件 (保持不变)
+// 4. 单个卡片组件 (按单词维度智能缩放)
 const LinkCard: React.FC<{ config: LinkConfig }> = ({ config }) => {
     const styles = THEME_STYLES[config.theme];
+    const words = config.title.split(' ');
 
     return (
         <a
@@ -103,24 +104,40 @@ const LinkCard: React.FC<{ config: LinkConfig }> = ({ config }) => {
             rel="noopener noreferrer"
             className="group block relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-100 to-gray-50 p-0.5 transition-all duration-300 no-underline hover:shadow-md"
         >
-            <div className="relative h-full min-h-[50px] w-full rounded-[10px] bg-white px-3 py-2 overflow-hidden">
-
-                {/* 背景装饰 */}
+            <div className="relative h-full min-h-[50px] w-full rounded-[10px] bg-white px-2.5 py-2 overflow-hidden">
+                {/* 背景装饰保持不变 */}
                 <div className={`absolute -right-3 -top-3 h-16 w-16 md:-right-4 md:-top-4 md:h-12 md:w-12 rounded-full border ${styles.border1} opacity-60 group-hover:scale-150 transition-transform duration-700 ease-out pointer-events-none`}></div>
                 <div className={`absolute -right-3 -top-3 h-16 w-16 md:-right-4 md:-top-4 md:h-12 md:w-12 rounded-full border ${styles.border2} opacity-0 group-hover:opacity-30 group-hover:animate-ping transition-opacity duration-300 pointer-events-none`}></div>
 
-                {/* --- 内容层 --- */}
-                <div className="relative z-10 flex items-center justify-between w-full h-full gap-2">
-
+                <div className="relative z-10 flex items-center justify-between w-full h-full gap-1">
                     {/* 文字区域 */}
-                    <div className="flex-1 flex flex-col justify-center min-w-0">
-                        <span className={`text-[11px] font-bold uppercase tracking-wider leading-tight break-words ${styles.text}`}>
-                            {config.title}
-                        </span>
+                    <div className="flex-1 flex flex-wrap items-center content-center min-w-0 leading-none">
+                        {words.map((word, index) => {
+                            // --- 修正逻辑 ---
+                            // 只有超过 10 个字符的词（例如 Thoughtworks）才会被视为长词
+                            // NotebookLM (10字符) 会被视为普通词，保持原样
+                            const isLongWord = word.length > 10;
+
+                            return (
+                                <span
+                                    key={index}
+                                    className={`
+                                        font-bold uppercase break-all
+                                        ${styles.text}
+                                        /* 长词(>10): 9px + 紧凑 */
+                                        /* 正常词(<=10): 11px + 宽松 */
+                                        ${isLongWord ? 'text-[9px] tracking-tighter' : 'text-[11px] tracking-wider'}
+                                        ${index < words.length - 1 ? 'mr-1' : ''}
+                                    `}
+                                >
+                                    {word}
+                                </span>
+                            );
+                        })}
                     </div>
 
                     {/* 图标区域 */}
-                    <div className={`flex-none ${styles.icon} ${styles.iconHover} transition-colors`}>
+                    <div className={`flex-none -mr-0.5 ${styles.icon} ${styles.iconHover} transition-colors`}>
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 md:h-5 md:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                             {config.iconPath}
                         </svg>
@@ -134,7 +151,7 @@ const LinkCard: React.FC<{ config: LinkConfig }> = ({ config }) => {
 // 5. 导出主组件
 const ExternalLinks: React.FC = () => {
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 px-1">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-1 px-1">
             {LINKS.map(link => (
                 <LinkCard key={link.id} config={link} />
             ))}
