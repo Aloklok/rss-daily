@@ -117,7 +117,9 @@ export const getRawStarredArticles = (): Promise<Article[]> => {
 
 
 export const getAvailableDates = (): Promise<string[]> => {
-    return apiService.request<string[]>('/api/get-available-dates').catch(() => []);
+    return apiService.request<string[]>('/api/get-available-dates', {
+        params: { _t: Date.now().toString() } 
+    }).catch(() => []);
 };
 
 export const getBriefingReportsByDate = async (date: string, slot?: 'morning' | 'afternoon' | 'evening'): Promise<BriefingReport[]> => {
