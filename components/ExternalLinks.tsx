@@ -66,7 +66,7 @@ const LINKS: LinkConfig[] = [
     },
     {
         id: 'tech-radar',
-        title: 'thoughtworks Radar',
+        title: 'Radar thoughtworks',
         url: 'https://www.thoughtworks.com/radar',
         theme: 'teal',
         iconPath: (
