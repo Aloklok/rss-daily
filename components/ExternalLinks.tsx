@@ -2,8 +2,8 @@
 
 import React from 'react';
 
-// 1. 定义配置类型
-type LinkTheme = 'teal' | 'indigo' | 'slate';
+// 1. 定义配置类型 (新增 'orange')
+type LinkTheme = 'teal' | 'indigo' | 'slate' | 'orange';
 
 interface LinkConfig {
     id: string;
@@ -13,7 +13,7 @@ interface LinkConfig {
     iconPath: React.ReactNode;
 }
 
-// 2. 定义样式映射
+// 2. 定义样式映射 (新增 orange 样式)
 const THEME_STYLES: Record<LinkTheme, {
     text: string;
     icon: string;
@@ -41,10 +41,17 @@ const THEME_STYLES: Record<LinkTheme, {
         iconHover: 'group-hover:text-slate-600',
         border1: 'border-slate-200',
         border2: 'border-slate-300',
+    },
+    orange: {
+        text: 'text-orange-600',
+        icon: 'text-orange-700',
+        iconHover: 'group-hover:text-orange-500',
+        border1: 'border-orange-100',
+        border2: 'border-orange-200',
     }
 };
 
-// 3. 定义链接数据
+// 3. 定义链接数据 (新增 Cloudflare Radar)
 const LINKS: LinkConfig[] = [
     {
         id: 'notebooklm',
@@ -65,8 +72,18 @@ const LINKS: LinkConfig[] = [
         )
     },
     {
+        id: 'cloudflare-radar',
+        title: 'Cloudflare Radar',
+        url: 'https://radar.cloudflare.com/',
+        theme: 'orange',
+        iconPath: (
+            // 地球图标，代表全球流量监控
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
+        )
+    },
+    {
         id: 'tech-radar',
-        title: 'Radar thoughtworks',
+        title: 'Radar Thoughtworks',
         url: 'https://www.thoughtworks.com/radar',
         theme: 'teal',
         iconPath: (
@@ -75,7 +92,7 @@ const LINKS: LinkConfig[] = [
     }
 ];
 
-// 4. 单个卡片组件
+// 4. 单个卡片组件 (保持不变)
 const LinkCard: React.FC<{ config: LinkConfig }> = ({ config }) => {
     const styles = THEME_STYLES[config.theme];
 
@@ -88,7 +105,7 @@ const LinkCard: React.FC<{ config: LinkConfig }> = ({ config }) => {
         >
             <div className="relative h-full min-h-[50px] w-full rounded-[10px] bg-white px-3 py-2 overflow-hidden">
 
-                {/* 背景装饰 (保持不变) */}
+                {/* 背景装饰 */}
                 <div className={`absolute -right-3 -top-3 h-16 w-16 md:-right-4 md:-top-4 md:h-12 md:w-12 rounded-full border ${styles.border1} opacity-60 group-hover:scale-150 transition-transform duration-700 ease-out pointer-events-none`}></div>
                 <div className={`absolute -right-3 -top-3 h-16 w-16 md:-right-4 md:-top-4 md:h-12 md:w-12 rounded-full border ${styles.border2} opacity-0 group-hover:opacity-30 group-hover:animate-ping transition-opacity duration-300 pointer-events-none`}></div>
 
@@ -96,19 +113,13 @@ const LinkCard: React.FC<{ config: LinkConfig }> = ({ config }) => {
                 <div className="relative z-10 flex items-center justify-between w-full h-full gap-2">
 
                     {/* 文字区域 */}
-                    {/* 
-                       【核心修复】
-                       1. min-w-0: 允许 flex 子项缩小到比内容更小，这是防止长单词撑爆布局的关键。
-                       2. break-words: 确保长单词在必要时换行。
-                    */}
                     <div className="flex-1 flex flex-col justify-center min-w-0">
-                        <span className={`text-[11px] font-bold uppercase tracking-wider leading-tight ${styles.text}`}>
+                        <span className={`text-[11px] font-bold uppercase tracking-wider leading-tight break-words ${styles.text}`}>
                             {config.title}
                         </span>
                     </div>
 
                     {/* 图标区域 */}
-                    {/* flex-none: 确保图标永远保持原始大小，不会被挤扁 */}
                     <div className={`flex-none ${styles.icon} ${styles.iconHover} transition-colors`}>
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 md:h-5 md:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                             {config.iconPath}
@@ -123,7 +134,7 @@ const LinkCard: React.FC<{ config: LinkConfig }> = ({ config }) => {
 // 5. 导出主组件
 const ExternalLinks: React.FC = () => {
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-1 px-1">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 px-1">
             {LINKS.map(link => (
                 <LinkCard key={link.id} config={link} />
             ))}
