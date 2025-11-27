@@ -1,14 +1,15 @@
 import { useCallback } from 'react';
 import { Article } from '../types';
 import { useArticleStore } from '../store/articleStore';
+import { useUIStore } from '../store/uiStore';
 import { useUpdateArticleState, useMarkAllAsRead } from './useArticles';
 
 export const useArticleActions = (
     showToast: (message: string, type: 'success' | 'error' | 'info') => void
 ) => {
-    const setSelectedArticleId = useArticleStore(state => state.setSelectedArticleId);
+    const setSelectedArticleId = useUIStore(state => state.setSelectedArticleId);
+    const openModal = useUIStore(state => state.openModal);
     const addArticles = useArticleStore(state => state.addArticles);
-    const openModal = useArticleStore(state => state.openModal);
 
     const { mutateAsync: updateArticleState, isPending: isUpdatingArticle } = useUpdateArticleState();
     const { mutate: markAllAsRead, isPending: isMarkingAsRead } = useMarkAllAsRead();

@@ -4,6 +4,7 @@ import React, { useMemo, memo } from 'react';
 import { Article, BriefingReport, Tag, Filter, GroupedArticles } from '../types';
 import ArticleGroup from './ArticleGroup';
 import { useArticleStore } from '../store/articleStore';
+import { useUIStore } from '../store/uiStore';
 
 interface ReportContentProps {
     report: BriefingReport;
@@ -127,7 +128,7 @@ const GRADIENTS = [
 const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedReportId, onReportSelect, onReaderModeRequest, onStateChange, onTimeSlotChange, isSidebarCollapsed, onToggleSidebar, articleCount }) => {
     // 1. 【新增】内部订阅文章数据
     const articlesById = useArticleStore(state => state.articlesById);
-    const activeFilter = useArticleStore(state => state.activeFilter);
+    const activeFilter = useUIStore(state => state.activeFilter);
 
     // 2. 【新增】内部生成 reports
     const reports: BriefingReport[] = useMemo(() => {

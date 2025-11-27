@@ -6,7 +6,8 @@ import Toast from './components/Toast';
 import { MainLayout } from './components/MainLayout';
 import { MainContent } from './components/MainContent';
 import { Filter } from './types';
-import { useArticleStore, selectSelectedArticle } from './store/articleStore';
+import { useArticleStore } from './store/articleStore';
+import { useUIStore } from './store/uiStore';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFilters } from './hooks/useFilters';
 import { getCurrentTimeSlotInShanghai } from './services/api';
@@ -27,20 +28,23 @@ const App: React.FC = () => {
     const { toast, showToast } = useAppToast();
     const queryClient = useQueryClient();
 
-    // Store State
-    const modalArticleId = useArticleStore(state => state.modalArticleId);
-    const modalInitialMode = useArticleStore(state => state.modalInitialMode);
-    const closeModal = useArticleStore(state => state.closeModal);
-    const activeFilter = useArticleStore(state => state.activeFilter);
-    const timeSlot = useArticleStore(state => state.timeSlot);
-    const setTimeSlot = useArticleStore(state => state.setTimeSlot);
-    const setSelectedArticleId = useArticleStore(state => state.setSelectedArticleId);
-    const sidebarArticle = useArticleStore(selectSelectedArticle);
+    // UI Store State
+    const activeFilter = useUIStore(state => state.activeFilter);
+    const setActiveFilter = useUIStore(state => state.setActiveFilter);
+    const modalArticleId = useUIStore(state => state.modalArticleId);
+    const closeModal = useUIStore(state => state.closeModal);
+    const modalInitialMode = useUIStore(state => state.modalInitialMode);
+    const selectedArticleId = useUIStore(state => state.selectedArticleId);
+    const timeSlot = useUIStore(state => state.timeSlot);
+    const setTimeSlot = useUIStore(state => state.setTimeSlot);
+
+    // Article Store State (Data State)
+    const setSelectedArticleId = useUIStore(state => state.setSelectedArticleId);
+    const articlesById = useArticleStore(state => state.articlesById);
 
     // Derived State
-    const modalArticle = useArticleStore(state =>
-        state.modalArticleId ? state.articlesById[state.modalArticleId] : null
-    );
+    const sidebarArticle = selectedArticleId ? articlesById[selectedArticleId] : null;
+    const modalArticle = modalArticleId ? articlesById[modalArticleId] : null;
 
     // Actions
     const {

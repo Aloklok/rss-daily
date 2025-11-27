@@ -1,9 +1,8 @@
 // components/ArticleDetail.tsx
 
-import React, { useEffect, useState,useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Article, CleanArticleContent, Tag } from '../types'; // 导入 Tag
 import { getCleanArticleContent } from '../services/api';
-import { useArticleStore, selectSelectedArticle } from '../store/articleStore';
 import { useArticleMetadata } from '../hooks/useArticleMetadata';
 import { getRandomColorClass } from '../utils/colorUtils';
 
@@ -35,7 +34,7 @@ function stripLeadingTitle(contentHtml: string, title: string): string {
   return contentHtml;
 }
 
-const ArticleDetail: React.FC<ArticleDetailProps> = ({ article, onClose}) => {
+const ArticleDetail: React.FC<ArticleDetailProps> = ({ article, onClose }) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [content, setContent] = useState<CleanArticleContent | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -50,23 +49,23 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({ article, onClose}) => {
   useEffect(() => {
     // 【增】添加键盘事件监听器
     const handleKeyDown = (event: KeyboardEvent) => {
-        if ((event.metaKey || event.ctrlKey) && event.key === 'a') {
-            if (contentRef.current) {
-                event.preventDefault();
-                const range = document.createRange();
-                range.selectNodeContents(contentRef.current);
-                const selection = window.getSelection();
-                if (selection) {
-                    selection.removeAllRanges();
-                    selection.addRange(range);
-                }
-            }
+      if ((event.metaKey || event.ctrlKey) && event.key === 'a') {
+        if (contentRef.current) {
+          event.preventDefault();
+          const range = document.createRange();
+          range.selectNodeContents(contentRef.current);
+          const selection = window.getSelection();
+          if (selection) {
+            selection.removeAllRanges();
+            selection.addRange(range);
+          }
         }
+      }
     };
     // 【增】组件挂载时添加监听，卸载时移除
     document.addEventListener('keydown', handleKeyDown);
     return () => {
-        document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keydown', handleKeyDown);
     };
   }, []); // 【查】空依赖数组确保只在挂载和卸载时运行
 
@@ -132,16 +131,16 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({ article, onClose}) => {
           <header className="mb-6 border-b pb-6">
             <h1 className="text-3xl md:text-4xl font-bold font-serif text-gray-900 mb-2">{content.title || article.title}</h1>
             <p className="text-sm text-gray-500">来源: {content.source || article.sourceName}</p>
-            
+
             {/* 【核心修改】在这里渲染标签 */}
             {userTagLabels.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-2">
-                    {userTagLabels.map(label => (
-                        <span key={label} className={`text-sm font-semibold inline-block py-1 px-3 rounded-full ${getRandomColorClass(label)}`}>
-                            #{label}
-                        </span>
-                    ))}
-                </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {userTagLabels.map(label => (
+                  <span key={label} className={`text-sm font-semibold inline-block py-1 px-3 rounded-full ${getRandomColorClass(label)}`}>
+                    #{label}
+                  </span>
+                ))}
+              </div>
             )}
           </header>
           <div ref={contentRef} className="prose prose-lg max-w-none text-gray-800 leading-relaxed mt-6 select-text" dangerouslySetInnerHTML={{ __html: content.content }} />

@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Filter, AvailableFilters } from '../types';
-import { getAvailableDates, getAvailableFilters, getTodayInShanghai} from '../services/api';
+import { getAvailableDates, getAvailableFilters, getTodayInShanghai } from '../services/api';
 import { useArticleStore } from '../store/articleStore';
+import { useUIStore } from '../store/uiStore';
 import { useDailyStatusesForMonth, useUpdateDailyStatus } from './useDailyStatus';
 
 const CACHE_KEY_ACTIVE_FILTER = 'cachedActiveFilter';
@@ -13,16 +14,16 @@ export const useFilters = () => {
     const [dates, setDates] = useState<string[]>([]);
     const [selectedMonth, setSelectedMonth] = useState<string>('');
     const [isInitialLoad, setIsInitialLoad] = useState(true);
-    
-    const activeFilter = useArticleStore(state => state.activeFilter);
-    const setActiveFilter = useArticleStore(state => state.setActiveFilter);
+
+    const activeFilter = useUIStore(state => state.activeFilter);
+    const setActiveFilter = useUIStore(state => state.setActiveFilter);
     const availableFilters = useArticleStore(state => state.availableFilters);
     const setAvailableFilters = useArticleStore(state => state.setAvailableFilters);
     const [isRefreshing, setIsRefreshing] = useState(false);
 
 
 
-     // --- 【核心集成】 ---
+    // --- 【核心集成】 ---
     // 1. 【增】使用 useDailyStatusesForMonth Hook 获取状态数据
     const { data: dailyStatuses, isLoading: isLoadingStatuses } = useDailyStatusesForMonth(selectedMonth);
 
@@ -37,15 +38,15 @@ export const useFilters = () => {
 
 
 
-     // 在 useEffect 中，我们只负责设置 filter，不再需要自己计算 timeSlot
-     useEffect(() => {
+    // 在 useEffect 中，我们只负责设置 filter，不再需要自己计算 timeSlot
+    useEffect(() => {
         const fetchInitialFilterData = async () => {
             const today = getTodayInShanghai();
             if (today) {
                 const initialFilter = { type: 'date' as const, value: today };
                 // 【改】直接调用简单的 setActiveFilter，它会自动处理 timeSlot
                 setActiveFilter(initialFilter);
-                
+
                 sessionStorage.setItem(CACHE_KEY_ACTIVE_FILTER, JSON.stringify(initialFilter));
                 const cachedMonth = sessionStorage.getItem(CACHE_KEY_SELECTED_MONTH);
                 const month = cachedMonth ? JSON.parse(cachedMonth) : today.substring(0, 7);
@@ -117,7 +118,7 @@ export const useFilters = () => {
             sessionStorage.removeItem(CACHE_KEY_ACTIVE_FILTER);
         }
     };
-    
+
     const handleResetFilter = () => {
         const today = getTodayInShanghai();
         if (!today) return;

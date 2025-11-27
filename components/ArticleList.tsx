@@ -3,6 +3,7 @@
 import React, { memo, useMemo } from 'react';
 import { Article, Filter, Tag } from '../types';
 import { useArticleStore } from '../store/articleStore';
+import { useUIStore } from '../store/uiStore';
 import { useArticleMetadata } from '../hooks/useArticleMetadata';
 import { getRandomColorClass } from '../utils/colorUtils';
 
@@ -57,7 +58,7 @@ const ArticleList: React.FC<ArticleListProps> = ({
   hasNextPage,
   isFetchingNextPage
 }) => {
-  const activeFilter = useArticleStore((state) => state.activeFilter);
+  const activeFilter = useUIStore((state) => state.activeFilter);
 
   const randomGradient = useMemo(() => {
     if (!activeFilter) return GRADIENTS[0];
