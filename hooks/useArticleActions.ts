@@ -3,10 +3,10 @@ import { Article } from '../types';
 import { useArticleStore } from '../store/articleStore';
 import { useUIStore } from '../store/uiStore';
 import { useUpdateArticleState, useMarkAllAsRead } from './useArticles';
+import { useToastStore } from '../store/toastStore';
 
-export const useArticleActions = (
-    showToast: (message: string, type: 'success' | 'error' | 'info') => void
-) => {
+export const useArticleActions = () => {
+    const showToast = useToastStore(state => state.showToast);
     const setSelectedArticleId = useUIStore(state => state.setSelectedArticleId);
     const openModal = useUIStore(state => state.openModal);
     const addArticles = useArticleStore(state => state.addArticles);

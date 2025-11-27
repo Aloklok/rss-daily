@@ -1,30 +1,11 @@
-import { useState, useCallback } from 'react';
-
-export interface ToastState {
-    isVisible: boolean;
-    message: string;
-    type: 'success' | 'error' | 'info';
-}
+import { useToastStore } from '../store/toastStore';
 
 export const useAppToast = () => {
-    const [toast, setToast] = useState<ToastState>({
-        isVisible: false,
-        message: '',
-        type: 'info'
-    });
-
-    const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
-        setToast({ isVisible: true, message, type });
-        setTimeout(() => setToast(prev => ({ ...prev, isVisible: false })), 3000);
-    }, []);
-
-    const hideToast = useCallback(() => {
-        setToast(prev => ({ ...prev, isVisible: false }));
-    }, []);
+    const toast = useToastStore();
 
     return {
         toast,
-        showToast,
-        hideToast
+        showToast: toast.showToast,
+        hideToast: toast.hideToast
     };
 };

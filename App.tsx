@@ -25,7 +25,7 @@ const App: React.FC = () => {
     const [isMdUp, setIsMdUp] = useState<boolean>(false);
 
     // Custom Hooks
-    const { toast, showToast } = useAppToast();
+    const { toast, hideToast } = useAppToast();
     const queryClient = useQueryClient();
 
     // UI Store State
@@ -55,7 +55,7 @@ const App: React.FC = () => {
         handleMarkAllClick,
         isUpdatingArticle,
         isMarkingAsRead
-    } = useArticleActions(showToast);
+    } = useArticleActions(); // Removed showToast argument
 
     // Data Fetching
     const { data: searchResultIds, isLoading: isSearchLoading } = useSearchResults(
@@ -203,7 +203,7 @@ const App: React.FC = () => {
             <Toast
                 message={toast.message}
                 isVisible={toast.isVisible}
-                onClose={() => showToast('', 'info')} // Close just hides it
+                onClose={hideToast}
                 type={toast.type}
             />
         </MainLayout>

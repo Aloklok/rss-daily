@@ -46,39 +46,13 @@ const apiService = {
     },
 };
 
+import { useToastStore } from '../store/toastStore';
+
+// ... (existing imports)
+
 // --- Reusable Toast Notification Utility ---
-export const showToast = (message: string, type: 'success' | 'error' = 'success') => {
-    if (typeof window === 'undefined') return;
-
-    const toast = document.createElement('div');
-    toast.textContent = message;
-    toast.style.position = 'fixed';
-    toast.style.bottom = '20px';
-    toast.style.right = '20px';
-    toast.style.backgroundColor = type === 'success' ? '#4CAF50' : '#F44336';
-    toast.style.color = 'white';
-    toast.style.padding = '12px 24px';
-    toast.style.borderRadius = '6px';
-    toast.style.zIndex = '1001';
-    toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-    toast.style.opacity = '0';
-    toast.style.transition = 'opacity 0.3s ease-in-out, transform 0.3s ease-in-out';
-    toast.style.transform = 'translateY(20px)';
-
-    document.body.appendChild(toast);
-
-    // Animate in
-    setTimeout(() => {
-        toast.style.opacity = '1';
-        toast.style.transform = 'translateY(0)';
-    }, 10);
-
-    // Animate out and remove
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateY(20px)';
-        setTimeout(() => document.body.removeChild(toast), 300);
-    }, 3000);
+export const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    useToastStore.getState().showToast(message, type);
 };
 
 // --- Helper for Shanghai Timezone ---
