@@ -27,7 +27,7 @@ Briefing Hub 是一个基于 React 和 TypeScript 构建的现代化 RSS 阅读�
     - **返回首页**：快速返回到每日简报视图。
     - **添加/编辑标签**：管理当前文章的自定义标签。
     - **收藏/取消收藏**：将文章添加到收藏夹或从中移除。
-- **趋势工具集成**：侧边栏提供“趋势”入口，点击后在主视图展示 NotebookLM、GitHub Trending、ThoughtWorks Radar 和 Cloudflare Radar 等常用工具的快捷入口，采用响应式卡片设计。
+- **趋势工具集成**：侧边栏提供“趋势”入口，采用极简主义设计，将工具分为“工具”、“趋势”和“数据库”三大类。每个卡片采用紧凑的水平布局，并使用特定的主题色（如红色、粉色、绿色等）进行视觉区分。
 
 ## 技术栈
 
@@ -48,13 +48,19 @@ Briefing Hub 是一个基于 React 和 TypeScript 构建的现代化 RSS 阅读�
 
 ### 核心目录结构
 - **`components/`**: 存放所有 UI 组件。
+  - **`MainLayout.tsx`**: 应用的主布局组件，处理侧边栏和响应式逻辑。
+  - **`MainContent.tsx`**: 主内容区域组件，负责根据过滤器状态渲染不同的视图。
   - **`UnifiedArticleModal.tsx`**: 核心阅读组件，整合了简报展示和全文阅读逻辑。
   - **`ArticleCard.tsx`**: 用于展示简报风格的文章卡片。
   - **`Sidebar.tsx`**: 侧边栏导航与过滤器。
-  - **`TrendsView.tsx`**: 趋势工具展示组件。
+  - **`TrendsView.tsx`**: 趋势工具展示组件，包含工具、趋势和数据库三大类。
 - **`src/constants.ts`**: 存放前端全局常量定义。
 - **`api/_constants.ts`**: 存放后端全局常量定义（与前端分离，避免构建问题）。
-- **`hooks/`**: 存放与 UI 逻辑和状态管理连接相关的自定义 React Hooks。
+- **`hooks/`**: 存放自定义 React Hooks。
+  - **`useAppToast.ts`**: 管理全局 Toast 提示状态。
+  - **`useArticleActions.ts`**: 封装文章操作逻辑（打开、标记、更新状态）。
+  - **`useArticles.ts`**: 数据获取与缓存逻辑。
+  - **`useFilters.ts`**: 过滤器状态管理。
 - **`services/`**: 存放与外部世界交互的服务模块。
 - **`store/`**: 存放 Zustand 全局状态管理的定义。
 
