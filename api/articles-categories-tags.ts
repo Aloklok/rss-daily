@@ -36,24 +36,34 @@ function mapFreshItemToMinimalArticle(item: any): Article {
 }
 
 async function getArticlesByLabel(req: VercelRequest, res: VercelResponse) {
-    const { value: streamId } = req.query;
+    const { value: streamId, n, c } = req.query;
     if (!streamId || typeof streamId !== 'string') {
         return res.status(400).json({ message: 'Stream ID is required.' });
     }
     const freshRss = getFreshRssClient();
-   // 1. 【核心修复】手动处理特殊字符
+    // 1. 【核心修复】手动处理特殊字符
     // 我们不能用 encodeURIComponent，因为它会破坏路径中的 '/'
     // 我们只需要把 '&' 变成 '%26'，把 '+' 变成 '%2B' (以防万一)
     // 这样 FreshRSS 既能识别路径结构，又能正确解码标签名
     const safeStreamId = streamId.replace(/&/g, '%26');
 
-    // 2. 使用处理后的 safeStreamId
-    const data = await freshRss.get<{ items: any[] }>(`/stream/contents/${safeStreamId}`, {
+    // 2. 构建查询参数
+    const params: Record<string, string> = {
         output: 'json',
         excludeContent: '1'
-    });
+    };
+    if (n) params.n = String(n);
+    if (c) params.c = String(c);
+
+    // 3. 使用处理后的 safeStreamId 和参数
+    const data = await freshRss.get<{ items: any[], continuation?: string }>(`/stream/contents/${safeStreamId}`, params);
     const articles = (data.items || []).map(mapFreshItemToMinimalArticle);
-    return res.status(200).json(articles);
+
+    // 4. 返回文章列表和 continuation token
+    return res.status(200).json({
+        articles,
+        continuation: data.continuation
+    });
 }
 
 export default apiHandler(['GET'], getArticlesByLabel);

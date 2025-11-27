@@ -10,6 +10,9 @@ interface ArticleListProps {
   articleIds: (string | number)[];
   onOpenArticle: (article: Article) => void;
   isLoading: boolean;
+  fetchNextPage?: () => void;
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
 }
 
 const GRADIENTS = [
@@ -18,12 +21,9 @@ const GRADIENTS = [
   'from-lime-400 via-emerald-500 to-cyan-500'
 ];
 
-// 1. 【修改】ArticleListItem 现在接收 articleId 而不是 article 对象
 const ArticleListItem: React.FC<{ articleId: string | number; onOpenArticle: (article: Article) => void }> = memo(({ articleId, onOpenArticle }) => {
-  // 2. 【核心修改】组件内部订阅 store，只获取自己的数据
   const article = useArticleStore(state => state.articlesById[articleId]);
 
-  // 如果文章不存在（理论上不应发生），返回 null
   if (!article) return null;
 
   const { isStarred, userTagLabels: displayedUserTags } = useArticleMetadata(article);
@@ -49,14 +49,15 @@ const ArticleListItem: React.FC<{ articleId: string | number; onOpenArticle: (ar
 });
 ArticleListItem.displayName = 'ArticleListItem';
 
-
-const ArticleList: React.FC<ArticleListProps> = ({ articleIds, onOpenArticle, isLoading }) => {
-  // 3. 【核心修改】ArticleList 不再订阅 articlesById
-  // const articlesById = useArticleStore((state) => state.articlesById); // 移除
+const ArticleList: React.FC<ArticleListProps> = ({
+  articleIds,
+  onOpenArticle,
+  isLoading,
+  fetchNextPage,
+  hasNextPage,
+  isFetchingNextPage
+}) => {
   const activeFilter = useArticleStore((state) => state.activeFilter);
-
-  // 4. 【移除】不再需要在列表层级映射文章对象
-  // const articles = articleIds.map(id => articlesById[id]).filter(Boolean) as Article[];
 
   const randomGradient = useMemo(() => {
     if (!activeFilter) return GRADIENTS[0];
@@ -96,10 +97,22 @@ const ArticleList: React.FC<ArticleListProps> = ({ articleIds, onOpenArticle, is
       </header>
       <div className="space-y-0.5">
         {articleIds.map((id) => (
-          // 5. 【修改】只传递 articleId
           <ArticleListItem key={id} articleId={id} onOpenArticle={onOpenArticle} />
         ))}
       </div>
+
+      {/* Load More Button */}
+      {hasNextPage && (
+        <div className="mt-8 flex justify-center">
+          <button
+            onClick={() => fetchNextPage?.()}
+            disabled={isFetchingNextPage}
+            className="px-6 py-2 bg-white border border-gray-300 rounded-full text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors shadow-sm"
+          >
+            {isFetchingNextPage ? '加载中...' : '加载更多'}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

@@ -110,15 +110,15 @@ export const getCurrentTimeSlotInShanghai = (): 'morning' | 'afternoon' | 'eveni
 
 // 【增】为 getArticlesByLabel 创建一个语义化的别名
 export const getRawStarredArticles = (): Promise<Article[]> => {
-    // 复用 getArticlesByLabel，传入固定的 "starred" 标签 ID
-    return getArticlesByLabel({ type: 'starred', value: STAR_TAG });
+    // 复用 getArticlesByLabel，传入固定的 "starred" 标签 ID，获取 50 条
+    return getArticlesByLabel({ type: 'starred', value: STAR_TAG }, undefined, 50).then(res => res.articles);
 };
 
 
 
 export const getAvailableDates = (): Promise<string[]> => {
     return apiService.request<string[]>('/api/get-available-dates', {
-        params: { _t: Date.now().toString() } 
+        params: { _t: Date.now().toString() }
     }).catch(() => []);
 };
 
@@ -226,17 +226,20 @@ export const editArticleTag = async (articleId: string | number, tagsToAdd: stri
     }
 };
 
-export const getArticlesByLabel = (filter: Filter): Promise<Article[]> => {
-    return apiService.request<Article[]>('/api/articles-categories-tags', {
-        params: { value: filter.value },
-    }); 
+export const getArticlesByLabel = (filter: Filter, continuation?: string, n: number = 20): Promise<{ articles: Article[], continuation?: string }> => {
+    const params: Record<string, string> = { value: filter.value, n: String(n) };
+    if (continuation) params.c = continuation;
+
+    return apiService.request<{ articles: Article[], continuation?: string }>('/api/articles-categories-tags', {
+        params,
+    });
     // ❌ 删除 .catch(() => []); 
     // 这样我们才能在控制台看到真正的红色报错
 };
 
 export const getStarredArticles = (): Promise<Article[]> => {
-    // Reuse getArticlesByLabel with the specific stream ID for starred articles
-    return getArticlesByLabel({ type: 'starred', value: STAR_TAG });
+    // Reuse getArticlesByLabel with the specific stream ID for starred articles, fetch 50 items
+    return getArticlesByLabel({ type: 'starred', value: STAR_TAG }, undefined, 50).then(res => res.articles);
 };
 
 export const getAvailableFilters = (): Promise<AvailableFilters> => {

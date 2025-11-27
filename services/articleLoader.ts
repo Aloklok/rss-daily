@@ -1,10 +1,10 @@
 // services/articleLoader.ts
 
-import { 
-    getBriefingReportsByDate, 
-    getRawStarredArticles, 
-    getArticlesByLabel, 
-    getStarredArticles, 
+import {
+    getBriefingReportsByDate,
+    getRawStarredArticles,
+    getArticlesByLabel,
+    getStarredArticles,
     getArticlesDetails,
     getArticleStates,
     searchArticlesByKeyword
@@ -16,7 +16,7 @@ import { Article } from '../types';
 // 负责为 “FreshRSS文章” 补充 “Supabase详情”
 async function mergeWithSupabaseDetails(freshArticles: Article[]): Promise<Article[]> {
     if (!freshArticles || freshArticles.length === 0) return [];
-    
+
     try {
         const articleIds = freshArticles.map(a => a.id);
         const supaDetailsById = await getArticlesDetails(articleIds);
@@ -52,16 +52,16 @@ export async function fetchBriefingArticles(date: string, slot: string | null): 
 }
 
 // 2. 加载分类/标签文章（【核心修改】不再融合）
-export async function fetchFilteredArticles(filterValue: string): Promise<Article[]> {
-    console.log(`[Loader] Requesting articles for: ${filterValue}`); // 🔍 Debug 1
-    
-      // 1. 获取 FreshRSS 数据
-      const freshArticles = await getArticlesByLabel({ value: filterValue } as any);
-    
-      // 2. 【重要】直接返回，不要调用 mergeWithSupabaseDetails
-      // 既然 UnifiedArticleModal 已经支持按需加载详情，这里就不需要预加载了。
-      // 这避免了因 ID 过长导致的请求失败。
-      return freshArticles;
+export async function fetchFilteredArticles(filterValue: string, continuation?: string, n: number = 20): Promise<{ articles: Article[], continuation?: string }> {
+    console.log(`[Loader] Requesting articles for: ${filterValue}, continuation: ${continuation}`); // 🔍 Debug 1
+
+    // 1. 获取 FreshRSS 数据
+    const response = await getArticlesByLabel({ value: filterValue } as any, continuation, n);
+
+    // 2. 【重要】直接返回，不要调用 mergeWithSupabaseDetails
+    // 既然 UnifiedArticleModal 已经支持按需加载详情，这里就不需要预加载了。
+    // 这避免了因 ID 过长导致的请求失败。
+    return response;
 }
 
 // 3. 加载收藏文章（【核心修改】建议也不再融合，保持一致性）

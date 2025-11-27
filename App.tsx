@@ -76,11 +76,19 @@ const App: React.FC = () => {
         timeSlot
     );
 
-    const { data: filteredArticleIdsFromQuery, isLoading: isFilterLoading } = useFilteredArticles(
+    const {
+        data: filteredArticlesData,
+        isLoading: isFilterLoading,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage
+    } = useFilteredArticles(
         (activeFilter?.type === 'category' || activeFilter?.type === 'tag') ? activeFilter.value : null
     );
 
-    const filteredArticleIds = filteredArticleIdsFromQuery || [];
+    const filteredArticleIds = useMemo(() => {
+        return filteredArticlesData?.pages.flatMap((page: { articles: (string | number)[] }) => page.articles) || [];
+    }, [filteredArticlesData]);
 
     // Computed
     const articleIdsInView = useMemo(() => {
@@ -163,6 +171,9 @@ const App: React.FC = () => {
                 onTimeSlotChange={setTimeSlot}
                 onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
                 onOpenFromList={handleOpenFromList}
+                fetchNextPage={fetchNextPage}
+                hasNextPage={hasNextPage}
+                isFetchingNextPage={isFetchingNextPage}
             />
 
             <FloatingActionButtons

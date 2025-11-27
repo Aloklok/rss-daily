@@ -1,13 +1,13 @@
 // hooks/useArticles.ts
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-    fetchBriefingArticles, 
-    fetchFilteredArticles, 
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
+import {
+    fetchBriefingArticles,
+    fetchFilteredArticles,
     fetchSearchResults,
-    fetchStarredArticleHeaders 
+    fetchStarredArticleHeaders
 } from '../services/articleLoader'; // 1. 【核心修改】从新的加载器导入
-import { getRawStarredArticles,editArticleTag, editArticleState, markAllAsRead as apiMarkAllAsRead } from '../services/api';
+import { getRawStarredArticles, editArticleTag, editArticleState, markAllAsRead as apiMarkAllAsRead } from '../services/api';
 import { useArticleStore } from '../store/articleStore';
 import { getTodayInShanghai } from '../services/api';
 // --- Query Hooks (现在变得非常简洁) ---
@@ -46,14 +46,26 @@ export const useBriefingArticles = (date: string | null, slot: string | null) =>
 
 export const useFilteredArticles = (filterValue: string | null) => {
     const addArticles = useArticleStore(state => state.addArticles);
-    return useQuery({
+
+    return useInfiniteQuery({
         queryKey: ['articles', filterValue],
-        queryFn: async () => {
-            if (!filterValue) return [];
-            const mergedArticles = await fetchFilteredArticles(filterValue);
-            addArticles(mergedArticles);
-            return mergedArticles.map(a => a.id);
+        queryFn: async ({ pageParam }) => {
+            if (!filterValue) return { articles: [], continuation: undefined };
+
+            // pageParam is the continuation token
+            const result = await fetchFilteredArticles(filterValue, pageParam as string | undefined);
+
+            // Add articles to the store
+            addArticles(result.articles);
+
+            // Return structure expected by infinite query
+            return {
+                articles: result.articles.map(a => a.id), // We only need IDs for the UI list
+                continuation: result.continuation
+            };
         },
+        initialPageParam: undefined as string | undefined,
+        getNextPageParam: (lastPage) => lastPage.continuation, // Use the continuation token for the next page
         enabled: !!filterValue,
     });
 };
@@ -63,12 +75,12 @@ export const useStarredArticles = () => {
     return useQuery({
         queryKey: ['starredHeaders'],
         queryFn: async () => {
-             // 【改】直接调用最底层的 API 函数，获取 FreshRSS 的原始数据
+            // 【改】直接调用最底层的 API 函数，获取 FreshRSS 的原始数据
             const freshArticles = await getRawStarredArticles();
-            
+
             // 我们只更新 starredArticleIds 列表
             setStarredArticleIds(freshArticles.map(a => a.id));
-            
+
             // 返回头部信息给 useSidebar Hook
             return freshArticles.map(a => ({ id: a.id, title: a.title, link: a.link, sourceName: a.sourceName, published: a.published, tags: a.tags }));
         },
@@ -85,36 +97,36 @@ export const useUpdateArticleState = () => {
 
     return useMutation({
         mutationFn: async ({ articleId, tagsToAdd, tagsToRemove }: { articleId: string | number, tagsToAdd: string[], tagsToRemove: string[] }) => {
-             // 2. 【增加】创建一个数组来收集所有需要执行的 promise
-             const apiPromises: Promise<any>[] = [];
+            // 2. 【增加】创建一个数组来收集所有需要执行的 promise
+            const apiPromises: Promise<any>[] = [];
 
-             // --- 处理状态标签 (收藏/已读) ---
-             const stateTagsToAdd = tagsToAdd.filter(t => t.startsWith('user/-/state'));
-             const stateTagsToRemove = tagsToRemove.filter(t => t.startsWith('user/-/state'));
- 
-             for (const tag of stateTagsToAdd) {
-                 if (tag.includes('starred')) apiPromises.push(editArticleState(articleId, 'star', true));
-                 if (tag.includes('read')) apiPromises.push(editArticleState(articleId, 'read', true));
-             }
-             for (const tag of stateTagsToRemove) {
-                 if (tag.includes('starred')) apiPromises.push(editArticleState(articleId, 'star', false));
-                 if (tag.includes('read')) apiPromises.push(editArticleState(articleId, 'read', false));
-             }
-             
-             // --- 处理用户自定义标签 ---
-             const userTagsToAdd = tagsToAdd.filter(t => !t.startsWith('user/-/state'));
-             const userTagsToRemove = tagsToRemove.filter(t => !t.startsWith('user/-/state'));
- 
-             if (userTagsToAdd.length > 0 || userTagsToRemove.length > 0) {
-                 apiPromises.push(editArticleTag(articleId, userTagsToAdd, userTagsToRemove));
-             }
- 
-             // 3. 【修改】使用 Promise.all 来并行执行所有 API 请求
-             // 只有当所有请求都成功时，才会继续往下执行
-             await Promise.all(apiPromises);
- 
+            // --- 处理状态标签 (收藏/已读) ---
+            const stateTagsToAdd = tagsToAdd.filter(t => t.startsWith('user/-/state'));
+            const stateTagsToRemove = tagsToRemove.filter(t => t.startsWith('user/-/state'));
 
-            
+            for (const tag of stateTagsToAdd) {
+                if (tag.includes('starred')) apiPromises.push(editArticleState(articleId, 'star', true));
+                if (tag.includes('read')) apiPromises.push(editArticleState(articleId, 'read', true));
+            }
+            for (const tag of stateTagsToRemove) {
+                if (tag.includes('starred')) apiPromises.push(editArticleState(articleId, 'star', false));
+                if (tag.includes('read')) apiPromises.push(editArticleState(articleId, 'read', false));
+            }
+
+            // --- 处理用户自定义标签 ---
+            const userTagsToAdd = tagsToAdd.filter(t => !t.startsWith('user/-/state'));
+            const userTagsToRemove = tagsToRemove.filter(t => !t.startsWith('user/-/state'));
+
+            if (userTagsToAdd.length > 0 || userTagsToRemove.length > 0) {
+                apiPromises.push(editArticleTag(articleId, userTagsToAdd, userTagsToRemove));
+            }
+
+            // 3. 【修改】使用 Promise.all 来并行执行所有 API 请求
+            // 只有当所有请求都成功时，才会继续往下执行
+            await Promise.all(apiPromises);
+
+
+
             // API 成功后，计算并返回最新的文章对象
             const articleToUpdate = articlesById[articleId];
             if (!articleToUpdate) throw new Error("Article not found in store");

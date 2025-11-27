@@ -16,6 +16,11 @@ interface MainContentProps {
     timeSlot: 'morning' | 'afternoon' | 'evening' | null;
     isSidebarCollapsed: boolean;
 
+    // Pagination props
+    fetchNextPage?: () => void;
+    hasNextPage?: boolean;
+    isFetchingNextPage?: boolean;
+
     // Callbacks
     onCloseArticle: () => void;
     onOpenFromBriefingCard: (article: Article) => void;
@@ -34,6 +39,9 @@ export const MainContent: React.FC<MainContentProps> = ({
     filteredArticleIds,
     timeSlot,
     isSidebarCollapsed,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
     onCloseArticle,
     onOpenFromBriefingCard,
     onStateChange,
@@ -81,6 +89,9 @@ export const MainContent: React.FC<MainContentProps> = ({
                 articleIds={activeFilter.type === 'search' ? (searchResultIds || []) : (filteredArticleIds || [])}
                 onOpenArticle={onOpenFromList}
                 isLoading={isLoading}
+                fetchNextPage={fetchNextPage}
+                hasNextPage={hasNextPage}
+                isFetchingNextPage={isFetchingNextPage}
             />
         );
     }
