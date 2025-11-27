@@ -25,7 +25,7 @@ async function getBriefings(req: VercelRequest, res: VercelResponse) {
             acc[article.id] = article;
             return acc;
         }, {} as Record<string, Article>);
-        
+
         return res.status(200).json(articlesById);
     }
 
@@ -73,7 +73,7 @@ async function getBriefings(req: VercelRequest, res: VercelResponse) {
     }
 
     const uniqueById = new Map<string | number, Article>();
-    articles.forEach((a: any) => { uniqueById.set(a.id, a as Article); });
+    articles.forEach((a: Article) => { uniqueById.set(a.id, a); });
     const deduped = Array.from(uniqueById.values());
 
     const groupedArticles: { [key: string]: Article[] } = {

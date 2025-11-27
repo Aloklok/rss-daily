@@ -2,9 +2,9 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { apiHandler, getFreshRssClient } from './_utils.js';
-import { Article } from '../types';
+import { Article, FreshRSSItem } from '../types';
 
-function mapFreshItemToMinimalArticle(item: any): Article {
+function mapFreshItemToMinimalArticle(item: FreshRSSItem): Article {
     const annotationTags = (item.annotations || [])
         .map((anno: { id: string }) => anno.id)
         .filter(Boolean);
@@ -56,7 +56,7 @@ async function getArticlesByLabel(req: VercelRequest, res: VercelResponse) {
     if (c) params.c = String(c);
 
     // 3. 使用处理后的 safeStreamId 和参数
-    const data = await freshRss.get<{ items: any[], continuation?: string }>(`/stream/contents/${safeStreamId}`, params);
+    const data = await freshRss.get<{ items: FreshRSSItem[], continuation?: string }>(`/stream/contents/${safeStreamId}`, params);
     const articles = (data.items || []).map(mapFreshItemToMinimalArticle);
 
     // 4. 返回文章列表和 continuation token

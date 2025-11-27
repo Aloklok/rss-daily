@@ -119,11 +119,7 @@ interface BriefingProps {
     articleCount: number;
 }
 
-const GRADIENTS = [
-    'from-rose-400 via-fuchsia-500 to-indigo-500', 'from-green-400 via-cyan-500 to-blue-500',
-    'from-amber-400 via-orange-500 to-red-500', 'from-teal-400 via-sky-500 to-purple-500',
-    'from-lime-400 via-emerald-500 to-cyan-500'
-];
+import { getRandomGradient } from '../utils/colorUtils';
 
 const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedReportId, onReportSelect, onReaderModeRequest, onStateChange, onTimeSlotChange, isSidebarCollapsed, onToggleSidebar, articleCount }) => {
     // 1. 【新增】内部订阅文章数据
@@ -146,9 +142,10 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedRepor
     const selectedReport = reports.find(r => r.id === selectedReportId);
 
     const randomGradient = useMemo(() => {
-        if (activeFilter?.type !== 'date') return GRADIENTS[0];
-        const dateAsNumber = new Date(activeFilter.value + 'T00:00:00').getDate();
-        return GRADIENTS[dateAsNumber % GRADIENTS.length];
+        if (activeFilter?.type !== 'date') return getRandomGradient('default');
+        // Use the full date string as the key to ensure different gradients for different days
+        // but consistent for the same day
+        return getRandomGradient(activeFilter.value);
     }, [activeFilter]);
 
     const isToday = useMemo(() => {

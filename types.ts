@@ -63,3 +63,16 @@ export type Filter = {
   type: 'date' | 'category' | 'tag' | 'starred' | 'search' | 'trends';
   value: string;
 }
+
+export interface FreshRSSItem {
+  id: string;
+  title: string;
+  published: number; // Unix timestamp
+  alternate?: { href: string }[];
+  origin?: { title: string };
+  canonical?: { href: string }[];
+  categories?: string[];
+  annotations?: { id: string }[];
+  summary?: { content: string };
+  content?: { content: string };
+}

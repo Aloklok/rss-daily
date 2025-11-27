@@ -82,7 +82,26 @@ export const useStarredArticles = () => {
             setStarredArticleIds(freshArticles.map(a => a.id));
 
             // 返回头部信息给 useSidebar Hook
-            return freshArticles.map(a => ({ id: a.id, title: a.title, link: a.link, sourceName: a.sourceName, published: a.published, tags: a.tags }));
+            return freshArticles.map(a => ({
+                id: a.id,
+                title: a.title,
+                link: a.link,
+                sourceName: a.sourceName,
+                published: a.published,
+                tags: a.tags,
+                // Fill in missing properties with defaults to satisfy Article interface
+                created_at: new Date().toISOString(),
+                category: '',
+                briefingSection: '',
+                keywords: [],
+                verdict: { type: '', score: 0 },
+                summary: '',
+                tldr: '',
+                highlights: '',
+                critiques: '',
+                marketTake: '',
+                n8n_processing_date: undefined
+            }));
         },
     });
 };

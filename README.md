@@ -51,23 +51,27 @@ Briefing Hub 是一个基于 React 和 TypeScript 构建的现代化 RSS 阅读�
 - **`components/`**: 存放所有 UI 组件。
   - **`MainLayout.tsx`**: 应用的主布局组件，处理侧边栏和响应式逻辑。
   - **`MainContent.tsx`**: 主内容区域组件，负责根据过滤器状态渲染不同的视图。
-  - **`UnifiedArticleModal.tsx`**: 核心阅读组件，整合了简报展示和全文阅读逻辑。
+  - **`UnifiedArticleModal.tsx`**: 核心阅读组件，作为容器组件管理状态，通过子组件渲染界面。
+    - **`article-modal/`**: 存放模态框的子组件（Header, ReaderView, BriefingView, Actions）。
   - **`ArticleCard.tsx`**: 用于展示简报风格的文章卡片。
   - **`Sidebar.tsx`**: 侧边栏导航与过滤器。
   - **`TrendsView.tsx`**: 趋势工具展示组件，包含工具、趋势和数据库三大类。
 - **`src/constants.ts`**: 存放前端全局常量定义。
 - **`api/_constants.ts`**: 存放后端全局常量定义（与前端分离，避免构建问题）。
 - **`hooks/`**: 存放自定义 React Hooks。
-  - **`useAppToast.ts`**: 管理全局 Toast 提示状态。
+  - **`useAppToast.ts`**: 封装 `useToastStore`，提供统一的 Toast 调用接口。
   - **`useArticleActions.ts`**: 封装文章操作逻辑（打开、标记、更新状态）。
   - **`useArticles.ts`**: 数据获取与缓存逻辑。
   - **`useFilters.ts`**: 过滤器状态管理。
 - **`services/`**: 存放与外部世界交互的服务模块。
 - **`store/`**: 存放 Zustand 全局状态管理的定义。
+  - **`articleStore.ts`**: 管理文章数据状态。
+  - **`uiStore.ts`**: 管理 UI 交互状态。
+  - **`toastStore.ts`**: 管理全局 Toast 通知状态。
 
 ---
 
-### **核心数据模型与数据源**
+### 核心数据模型与数据源
 
 应用的**核心挑战与解决方案**在于融合两个独立的数据源（Supabase 和 FreshRSS），以创建一个统一的 `Article` 对象模型。
 
@@ -111,7 +115,7 @@ CREATE TABLE public.articles (
 ### 状态与数据流架构
 
 #### 1. `services/api.ts` - 原始 API 层
-- **职责**: 作为最底层的通信模块，只负责与后端 API 端点进行原始的 `fetch` 通信，对返回的数据不做任何处理。此外，它也包含一些客户端辅助函数，如 `getCurrentTimeSlotInShanghai`，用于处理时区相关的计算。
+- **职责**: 作为最底层的通信模块，只负责与后端 API 端点进行原始的 `fetch` 通信，对返回的数据不做任何处理。此外，它也包含一些客户端辅助函数，如 `getCurrentTimeSlotInShanghai`，用于处理时区相关的计算。现在也包含 `showToast` 的非 React 组件实现，直接调用 Store。
 
 #### 2. `services/articleLoader.ts` - 数据加载与融合层
 - **职责**: **核心业务逻辑层**。它封装了所有复杂的数据融合与转换过程。
@@ -125,15 +129,17 @@ CREATE TABLE public.articles (
 - **`use...Mutation` Hooks**: 负责处理所有“写”操作（如更新文章状态、标记每日进度），并内置了乐观更新/非乐观更新、状态回滚和用户反馈逻辑。
 - **`useFilters.ts`**: 作为核心业务逻辑 Hook，它负责计算和触发 `activeFilter` 和 `timeSlot` 的原子化更新，确保数据请求的准确性并消除冗余调用。
 
-#### 4. `store/articleStore.ts` - 客户端状态中心 (Zustand)
+#### 4. `store/` - 客户端状态中心 (Zustand)
 - **职责**: 应用的**“单一事实来源”**与**客户端业务逻辑中心**。
-  - **统一状态存储**: 它存储了所有经过融合的、完整的文章数据 (`articlesById`)，以及关键的 UI 状态（如 `activeFilter`、`timeSlot`、`selectedArticleId`、`modalArticleId`）和元数据（如 `availableFilters`）。
+  - **`articleStore.ts`**: 存储所有经过融合的、完整的文章数据 (`articlesById`)，以及元数据（如 `availableFilters`）。
+  - **`uiStore.ts`**: 存储纯 UI 状态，如 `activeFilter`、`timeSlot`、`selectedArticleId`、`modalArticleId`。这实现了数据与 UI 的分离，减少了不必要的渲染。
+  - **`toastStore.ts`**: 管理全局 Toast 通知状态，消除了 Prop Drilling，并允许在非组件环境（如 API 层）中触发通知。
   - **智能状态更新**: Store 内的 Actions (如 `updateArticle`) 封装了核心的客户端业务逻辑。例如，当一篇文章状态被更新时，该 action 不仅会更新这篇文章本身，还会**自动同步更新** `starredArticleIds` 列表，并**动态计算**受影响标签的 `count` 数量。这保证了所有派生状态的一致性，并避免了不必要的 API 调用。
 
 
 #### 5. `App.tsx` 与 UI 组件 - 消费与渲染层
-- **职责**: `App.tsx` 现在主要负责应用的整体布局和顶层协调。它从 `articleStore` 订阅必要的全局状态（如 `activeFilter`、`selectedArticleId`、`modalArticleId`），并根据这些状态决定渲染哪个主视图组件（如 `Briefing`、`ArticleList`）以及是否显示 `UnifiedArticleModal`。
-- **解耦**: 各个子组件（如 `Sidebar`, `UnifiedArticleModal`）**直接从 `articleStore` 订阅它们所需的数据和 actions**。例如，`Sidebar` 不再需要通过 props 接收回调，而是直接调用 store 的 `setSelectedArticleId` action。这种模式最大限度地减少了 props-drilling，实现了组件间的彻底解耦和高效渲染。
+- **职责**: `App.tsx` 现在主要负责应用的整体布局和顶层协调。它从 `uiStore` 订阅必要的全局状态，并根据这些状态决定渲染哪个主视图组件。
+- **解耦**: 各个子组件（如 `Sidebar`, `UnifiedArticleModal`）**直接从对应的 Store 订阅它们所需的数据和 actions**。例如，`Sidebar` 不再需要通过 props 接收回调，而是直接调用 `uiStore` 的 `setSelectedArticleId` action。这种模式最大限度地减少了 props-drilling，实现了组件间的彻底解耦和高效渲染。
 
 ## 后端 API (Vercel Serverless Functions)
 
