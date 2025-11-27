@@ -7,7 +7,7 @@ import { useArticleStore } from '../store/articleStore';
 import TechRadarLink from './TechRadarLink';
 import GitHubTrendingLink from './GitHubTrendingLink';
 import NotebookLMLink from './NotebookLMLink';
-import ExternalLinks from './ExternalLinks';
+
 
 
 const StatusIcon: React.FC<{ completed: boolean; onClick: (e: React.MouseEvent) => void }> = ({ completed, onClick }) => {
@@ -329,8 +329,17 @@ const Sidebar = React.memo<SidebarProps>(({
                     {renderCalendarTab()}
                 </div>
             </div>
-            <div className="mt-4 mb-2">
-                <ExternalLinks />
+            <div className="mt-auto mb-2 pt-4 border-t border-gray-200">
+                <button
+                    onClick={() => setActiveFilter({ type: 'trends', value: '' })}
+                    className={`w-full text-left px-3 py-2 rounded-lg transition-colors duration-200 flex items-center gap-3 ${activeFilter?.type === 'trends'
+                        ? 'bg-gray-800 text-white font-semibold'
+                        : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                >
+                    <span>📈</span>
+                    <span className="flex-1">趋势</span>
+                </button>
             </div>
         </aside>
     );

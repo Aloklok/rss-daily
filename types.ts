@@ -56,10 +56,10 @@ export interface CleanArticleContent {
 }
 
 export interface AvailableFilters {
-    categories: Tag[]; // 【修改】使用 Tag 类型，它现在也包含 count
-    tags: Tag[];       // 【修改】使用 Tag 类型
+  categories: Tag[]; // 【修改】使用 Tag 类型，它现在也包含 count
+  tags: Tag[];       // 【修改】使用 Tag 类型
 }
 export type Filter = {
-  type: 'date' | 'category' | 'tag' | 'starred' | 'search';
+  type: 'date' | 'category' | 'tag' | 'starred' | 'search' | 'trends';
   value: string;
 }

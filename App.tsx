@@ -9,6 +9,7 @@ import ArticleDetail from './components/ArticleDetail';
 import ArticleList from './components/ArticleList';
 import LoadingSpinner from './components/LoadingSpinner';
 import Toast from './components/Toast';
+import TrendsView from './components/TrendsView';
 import { Article, Tag, BriefingReport, GroupedArticles, Filter } from './types';
 import { useArticleStore, selectSelectedArticle } from './store/articleStore';
 import { useQueryClient } from '@tanstack/react-query';
@@ -250,6 +251,8 @@ const App: React.FC = () => {
                             article={sidebarArticle}
                             onClose={() => setSelectedArticleId(null)}
                         />
+                    ) : activeFilter?.type === 'trends' ? (
+                        <TrendsView />
                     ) : activeFilter?.type === 'date' ? (
                         <Briefing
                             articleIds={briefingArticleIds || []} // 5. 修改: 传递 IDs

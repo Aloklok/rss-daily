@@ -1,7 +1,3 @@
-已更新 README.md，反映了最新的架构重构（统一模态框、按需加载逻辑）以及组件变动。
-
-```markdown
-// ----- 1. 修改 - 更新项目文档以反映最新的架构重构 -----
 # Briefing Hub 项目文档
 
 ## 项目概述
@@ -16,7 +12,7 @@ Briefing Hub 是一个基于 React 和 TypeScript 构建的现代化 RSS 阅读�
 - **渐进式 Web 应用 (PWA)**：支持离线访问和快速加载，提供接近原生应用的体验。
 - **工作流集成**：支持以天为单位标记简报的完成状态，帮助用户追踪阅读进度。
 - **安全访问控制**：通过 Vercel Edge Middleware 实现无密码认证，确保项目私密性的同时提供无缝的访问体验。
-- **统一常量管理**：将关键标签常量（如 READ_TAG 和 STAR_TAG）统一管理在 constants.ts 中，消除魔法字符串，提高代码可维护性。
+- **统一常量管理**：将关键标签常量（如 READ_TAG 和 STAR_TAG）统一管理在 `constants.ts` 中，消除魔法字符串，提高代码可维护性。
 
 ## 用户界面 (UI) 交互
 
@@ -31,6 +27,7 @@ Briefing Hub 是一个基于 React 和 TypeScript 构建的现代化 RSS 阅读�
     - **返回首页**：快速返回到每日简报视图。
     - **添加/编辑标签**：管理当前文章的自定义标签。
     - **收藏/取消收藏**：将文章添加到收藏夹或从中移除。
+- **趋势工具集成**：侧边栏提供“趋势”入口，点击后在主视图展示 NotebookLM、GitHub Trending、ThoughtWorks Radar 和 Cloudflare Radar 等常用工具的快捷入口，采用响应式卡片设计。
 
 ## 技术栈
 
@@ -54,7 +51,9 @@ Briefing Hub 是一个基于 React 和 TypeScript 构建的现代化 RSS 阅读�
   - **`UnifiedArticleModal.tsx`**: 核心阅读组件，整合了简报展示和全文阅读逻辑。
   - **`ArticleCard.tsx`**: 用于展示简报风格的文章卡片。
   - **`Sidebar.tsx`**: 侧边栏导航与过滤器。
-- **`constants.ts`**: 存放全局常量定义，如标签常量（READ_TAG, STAR_TAG）等。
+  - **`TrendsView.tsx`**: 趋势工具展示组件。
+- **`src/constants.ts`**: 存放前端全局常量定义。
+- **`api/_constants.ts`**: 存放后端全局常量定义（与前端分离，避免构建问题）。
 - **`hooks/`**: 存放与 UI 逻辑和状态管理连接相关的自定义 React Hooks。
 - **`services/`**: 存放与外部世界交互的服务模块。
 - **`store/`**: 存放 Zustand 全局状态管理的定义。
@@ -172,4 +171,3 @@ CREATE TABLE public.articles (
 - `vercel link`
 - 在 Vercel 项目设置中配置所有必要的环境变量。
 - `vercel --prod` 部署到生产环境。
-```
