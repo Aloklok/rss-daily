@@ -185,19 +185,28 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedRepor
             const autoSelectedSlot = isToday ? getCurrentTimeSlot() : null;
 
             return (
-                <header className={`relative mb-6 md:mb-12 bg-gradient-to-br ${randomGradient} rounded-2xl p-4 md:p-8 text-white shadow-lg`}>
+                <header className={`relative mb-6 md:mb-10 overflow-hidden rounded-3xl shadow-2xl transition-all duration-500 hover:shadow-3xl group`}>
+                    {/* Background Gradient & Texture */}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${randomGradient} opacity-95`}></div>
+                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
 
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <div className="flex-grow">
-                            <div className="mb-4">
-                                <h1 className="text-4xl md:text-5xl font-serif font-bold leading-none tracking-tight">
+                    {/* Glassmorphism Overlay */}
+                    <div className="absolute inset-0 bg-white/5 backdrop-blur-[1px]"></div>
+
+                    <div className="relative p-5 md:p-8 flex flex-col gap-6">
+
+                        {/* Top Row: Date & Time Slot Selector */}
+                        <div className="flex justify-between items-start">
+                            {/* Left: Date */}
+                            <div>
+                                <h1 className="text-4xl md:text-6xl font-serif font-bold text-white tracking-tight drop-shadow-sm">
                                     {isToday ? '今天' : datePart}
                                 </h1>
-                                <div className="mt-2 md:mt-3 inline-block bg-white/20 backdrop-blur-sm text-white/90 px-3 py-1 rounded-full text-base md:text-lg font-medium">
+                                <div className="mt-4 inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white/90 px-3 py-1 rounded-full text-base md:text-lg font-medium">
                                     {isToday ? (
                                         <>
                                             <span>{datePart}</span>
-                                            <span className="mx-2 opacity-60">·</span>
+                                            <span className="w-1 h-1 rounded-full bg-white/60"></span>
                                             <span>{weekdayPart}</span>
                                         </>
                                     ) : (
@@ -205,39 +214,45 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedRepor
                                     )}
                                 </div>
                             </div>
-                            {isToday ? (
-                                <p className="mt-4 md:mt-6 text-lg md:text-xl font-serif font-bold tracking-tight text-white/95">
-                                    {getGreeting()}，欢迎阅读今日简报
-                                    {articleCount > 0 && `，共 ${articleCount} 篇文章。`}
-                                </p>
-                            ) : (
-                                articleCount > 0 && (
-                                    <p className="mt-4 md:mt-6 text-lg md:text-xl font-serif font-bold tracking-tight text-white/95">
-                                        欢迎阅读本期简报，共 {articleCount} 篇文章。
-                                    </p>
-                                )
-                            )}
-                        </div>
-                        {activeFilter?.type === 'date' && (
-                            <div className="mt-2 md:mt-0 flex-shrink-0 flex items-center gap-2">
-                                <div className="bg-black/10 p-1.5 rounded-full flex gap-1">
+
+                            {/* Right: Time Slot Selector */}
+                            {activeFilter?.type === 'date' && (
+                                <div className="flex-shrink-0 bg-white/10 backdrop-blur-md border border-white/20 p-1 rounded-xl flex gap-1 shadow-inner">
                                     {(['morning', 'afternoon', 'evening'] as const).map(slotOption => {
                                         const labelMap: Record<'morning' | 'afternoon' | 'evening', string> = { morning: '早上', afternoon: '中午', evening: '晚上' };
                                         const isSelected = timeSlot === slotOption || (timeSlot === null && autoSelectedSlot === slotOption);
+
                                         return (
                                             <button
                                                 key={slotOption}
                                                 onClick={() => onTimeSlotChange(isSelected ? null : slotOption)}
-                                                className={`px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base font-semibold rounded-full transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-white/50 ${isSelected ? 'bg-white text-blue-600 shadow-md' : 'text-white/80 hover:bg-white/10'
-                                                    }`}
+                                                className={`
+                                                    relative px-4 py-2 rounded-lg text-base font-bold transition-all duration-300 ease-out
+                                                    ${isSelected
+                                                        ? 'bg-white text-indigo-900 shadow-md scale-105 z-10'
+                                                        : 'text-white/80 hover:bg-white/10 hover:text-white'
+                                                    }
+                                                `}
                                             >
                                                 {labelMap[slotOption]}
                                             </button>
                                         );
                                     })}
                                 </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
+
+                        {/* Bottom Row: Greeting (Full Width) */}
+                        <div className="w-full pt-2 border-t border-white/10">
+                            <p className="text-base md:text-xl text-white/95 font-serif font-bold leading-relaxed">
+                                {isToday ? (
+                                    <span>{getGreeting()}，欢迎阅读今日简报</span>
+                                ) : (
+                                    <span>欢迎阅读本期简报</span>
+                                )}
+                                {articleCount > 0 && <span className="ml-1">，共 {articleCount} 篇文章。</span>}
+                            </p>
+                        </div>
                     </div>
                 </header>
             );
