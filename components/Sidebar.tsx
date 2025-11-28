@@ -128,6 +128,7 @@ const Sidebar = React.memo<SidebarProps>(({
                         onToggleDailyStatus={onToggleDailyStatus}
                         activeFilter={activeFilter}
                         onDateSelect={(date) => setActiveFilter({ type: 'date', value: date })}
+                        selectedArticleId={selectedArticleId}
                     />
                 </div>
             </div>

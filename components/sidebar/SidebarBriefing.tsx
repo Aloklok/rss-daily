@@ -11,6 +11,7 @@ interface SidebarBriefingProps {
     onToggleDailyStatus: (date: string, currentStatus: boolean) => void;
     activeFilter: Filter | null;
     onDateSelect: (date: string) => void;
+    selectedArticleId: string | number | null;
 }
 
 const StatusIcon: React.FC<{ completed: boolean; onClick: (e: React.MouseEvent) => void }> = ({ completed, onClick }) => {
@@ -56,10 +57,11 @@ const SidebarBriefing: React.FC<SidebarBriefingProps> = ({
     dailyStatuses,
     onToggleDailyStatus,
     activeFilter,
-    onDateSelect
+    onDateSelect,
+    selectedArticleId
 }) => {
     const isFilterActive = (type: string, value: string) => {
-        return activeFilter?.type === type && activeFilter?.value === value;
+        return activeFilter?.type === type && activeFilter?.value === value && !selectedArticleId;
     };
 
     return (
