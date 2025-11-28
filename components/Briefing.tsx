@@ -5,6 +5,7 @@ import { Article, BriefingReport, Tag, Filter, GroupedArticles } from '../types'
 import ArticleGroup from './ArticleGroup';
 import { useArticleStore } from '../store/articleStore';
 import { useUIStore } from '../store/uiStore';
+import LoadingSpinner from './LoadingSpinner';
 
 interface ReportContentProps {
     report: BriefingReport;
@@ -117,11 +118,12 @@ interface BriefingProps {
     isSidebarCollapsed: boolean;
     onToggleSidebar: () => void;
     articleCount: number;
+    isLoading?: boolean;
 }
 
 import { getRandomGradient } from '../utils/colorUtils';
 
-const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedReportId, onReportSelect, onReaderModeRequest, onStateChange, onTimeSlotChange, isSidebarCollapsed, onToggleSidebar, articleCount }) => {
+const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedReportId, onReportSelect, onReaderModeRequest, onStateChange, onTimeSlotChange, isSidebarCollapsed, onToggleSidebar, articleCount, isLoading }) => {
     // 1. 【新增】内部订阅文章数据
     const articlesById = useArticleStore(state => state.articlesById);
     const activeFilter = useUIStore(state => state.activeFilter);
@@ -196,13 +198,13 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedRepor
                     <div className="relative p-5 md:p-8 flex flex-col gap-6">
 
                         {/* Top Row: Date & Time Slot Selector */}
-                        <div className="flex justify-between items-start">
+                        <div className="relative block md:flex md:justify-between items-start">
                             {/* Left: Date */}
                             <div>
                                 <h1 className="text-4xl md:text-6xl font-serif font-bold text-white tracking-tight drop-shadow-sm">
                                     {isToday ? '今天' : datePart}
                                 </h1>
-                                <div className="mt-4 inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white/90 px-3 py-1 rounded-full text-base md:text-lg font-medium">
+                                <div className="mt-4 inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white/90 px-3 py-1 rounded-full text-base md:text-lg font-medium whitespace-nowrap">
                                     {isToday ? (
                                         <>
                                             <span>{datePart}</span>
@@ -217,9 +219,10 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedRepor
 
                             {/* Right: Time Slot Selector */}
                             {activeFilter?.type === 'date' && (
-                                <div className="flex-shrink-0 bg-white/10 backdrop-blur-md border border-white/20 p-1 rounded-xl flex gap-1 shadow-inner">
+                                <div className="mt-5 flex gap-4 md:mt-0 md:static md:bg-white/20 md:backdrop-blur-md md:rounded-full md:p-1 md:flex md:gap-1">
                                     {(['morning', 'afternoon', 'evening'] as const).map(slotOption => {
                                         const labelMap: Record<'morning' | 'afternoon' | 'evening', string> = { morning: '早上', afternoon: '中午', evening: '晚上' };
+                                        const mobileLabelMap: Record<'morning' | 'afternoon' | 'evening', string> = { morning: '早', afternoon: '中', evening: '晚' };
                                         const isSelected = timeSlot === slotOption || (timeSlot === null && autoSelectedSlot === slotOption);
 
                                         return (
@@ -227,14 +230,17 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedRepor
                                                 key={slotOption}
                                                 onClick={() => onTimeSlotChange(isSelected ? null : slotOption)}
                                                 className={`
-                                                    relative px-4 py-2 rounded-lg text-base font-bold transition-all duration-300 ease-out
+                                                    relative transition-all duration-300 ease-out flex-shrink-0
+                                                    w-10 h-10 rounded-full flex items-center justify-center text-lg font-serif font-bold
+                                                    md:w-auto md:h-auto md:px-6 md:py-2.5 md:rounded-full md:text-base md:font-sans
                                                     ${isSelected
-                                                        ? 'bg-white text-indigo-900 shadow-md scale-105 z-10'
-                                                        : 'text-white/80 hover:bg-white/10 hover:text-white'
+                                                        ? 'bg-white text-indigo-900 shadow-lg ring-2 ring-white/50 scale-105 z-10 md:shadow-sm md:ring-0 md:scale-100'
+                                                        : 'text-white/90 bg-white/10 border border-white/20 backdrop-blur-sm hover:bg-white/20 hover:text-white md:bg-transparent md:border-none md:backdrop-blur-none md:hover:bg-white/10'
                                                     }
                                                 `}
                                             >
-                                                {labelMap[slotOption]}
+                                                <span className="md:hidden">{mobileLabelMap[slotOption]}</span>
+                                                <span className="hidden md:inline">{labelMap[slotOption]}</span>
                                             </button>
                                         );
                                     })}
@@ -265,7 +271,11 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedRepor
             <div className="max-w-6xl mx-auto">
                 {renderHeader()}
 
-                {reports.length > 0 ? (
+                {isLoading ? (
+                    <div className="py-20 h-64">
+                        <LoadingSpinner />
+                    </div>
+                ) : reports.length > 0 ? (
                     <div className="space-y-10">
                         {reports.map(report => (
                             <ReportContent

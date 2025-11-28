@@ -49,7 +49,8 @@ export const MainContent: React.FC<MainContentProps> = ({
     onToggleSidebar,
     onOpenFromList
 }) => {
-    if (isLoading) {
+    // Only show global spinner if NOT in date view
+    if (isLoading && activeFilter?.type !== 'date') {
         return <LoadingSpinner />;
     }
 
@@ -79,6 +80,7 @@ export const MainContent: React.FC<MainContentProps> = ({
                 isSidebarCollapsed={isSidebarCollapsed}
                 onToggleSidebar={onToggleSidebar}
                 articleCount={briefingArticleIds?.length || 0}
+                isLoading={isLoading}
             />
         );
     }

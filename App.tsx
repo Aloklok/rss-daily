@@ -144,7 +144,7 @@ const App: React.FC = () => {
             isSidebarCollapsed={isSidebarCollapsed}
             setIsSidebarCollapsed={setIsSidebarCollapsed}
             isMdUp={isMdUp}
-            showToggleButtons={!modalArticleId && !(activeFilter?.type === 'date' && !isMdUp) && !sidebarArticle}
+            showToggleButtons={!modalArticleId && !sidebarArticle}
             sidebar={
                 <Sidebar
                     isInitialLoading={isInitialLoad}
