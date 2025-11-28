@@ -1,9 +1,13 @@
 // /api/search-articles.ts
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { apiHandler, getSupabaseClient } from './_utils.js';
+import { apiHandler, getSupabaseClient, verifyAdmin } from './_utils.js';
 
 async function searchArticles(req: VercelRequest, res: VercelResponse) {
+  if (!verifyAdmin(req)) {
+    return res.status(403).json({ message: 'Unauthorized: Admin access required' });
+  }
+
   const { query } = req.query;
 
   if (!query || typeof query !== 'string') {

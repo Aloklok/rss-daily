@@ -76,7 +76,12 @@ const Sidebar = React.memo<SidebarProps>(({
     return (
         <aside className="flex flex-col flex-shrink-0 bg-gray-50 border-r border-gray-200 w-full h-full md:w-80 p-4 space-y-4 relative">
             <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-gray-900 pr-1">Briefing Hub</h1>
+                <div className="flex items-center gap-3">
+                    <img src="/computer_cat.jpeg" alt="Logo" className="w-20 h-20 rounded-full object-cover" />
+                    <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 via-pink-500 to-orange-500 pr-1 leading-tight">
+                        Briefing<br />Hub
+                    </h1>
+                </div>
                 <button onClick={handleRefreshClick} disabled={isLoading} className="p-2 rounded-full hover:bg-gray-200 transition-colors disabled:cursor-wait">
                     <svg className={`h-5 w-5 text-gray-600 ${isLoading ? 'animate-spin' : ''}`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582A7.962 7.962 0 0112 4.062a8.002 8.002 0 018 8.002 8.002 8.002 0 01-8 8.002A7.962 7.962 0 014.582 15H4v5" />
@@ -84,11 +89,13 @@ const Sidebar = React.memo<SidebarProps>(({
                 </button>
             </div>
 
-            <SidebarSearch
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                onSearch={handleSearchSubmit}
-            />
+            {useUIStore(state => state.isAdmin) && (
+                <SidebarSearch
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    onSearch={handleSearchSubmit}
+                />
+            )}
 
             <div className="flex items-center gap-2 p-1 bg-gray-200 rounded-lg">
                 <button className={`flex-1 ${tabButtonClass(activeTab === 'filters')}`} onClick={() => setActiveTab('filters')}>
