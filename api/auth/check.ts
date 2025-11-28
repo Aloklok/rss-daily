@@ -1,5 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { apiHandler } from '../_utils';
+import { apiHandler } from '../_utils.js';
 
 const handler = async (req: VercelRequest, res: VercelResponse) => {
     const accessToken = process.env.ACCESS_TOKEN;
