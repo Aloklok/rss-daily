@@ -38,7 +38,7 @@ export function getFreshRssClient(): FreshRssClient {
         const request = async <T>(path: string, options: RequestInit = {}, params: Record<string, string> = {}): Promise<T> => {
             const url = new URL(`${apiUrl}/greader.php/reader/api/0${path}`);
             Object.entries(params).forEach(([key, value]) => url.searchParams.append(key, value));
-            
+
             const response = await fetch(url.toString(), { ...options, headers });
             if (!response.ok) {
                 const errorText = await response.text();
@@ -100,4 +100,20 @@ export function apiHandler(methods: HttpMethod[], logic: ApiLogic) {
             return res.status(500).json({ message: 'An unexpected error occurred', error: error.message });
         }
     };
+}
+// --- Admin Verification Helper ---
+export function verifyAdmin(req: VercelRequest): boolean {
+    const accessToken = process.env.ACCESS_TOKEN;
+    if (!accessToken) return false;
+
+    const cookieHeader = req.headers.cookie || '';
+    const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+        const [key, value] = cookie.split('=').map(c => c.trim());
+        if (key && value) acc[key] = value;
+        return acc;
+    }, {} as Record<string, string>);
+
+    const siteToken = cookies['site_token'];
+
+    return siteToken === accessToken;
 }

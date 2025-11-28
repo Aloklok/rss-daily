@@ -38,6 +38,10 @@ interface UIStoreState {
     openModal: (id: string | number, mode?: 'briefing' | 'reader') => void;
     closeModal: () => void;
     setModalArticleId: (id: string | number | null) => void; // Deprecated compatibility
+
+    // Admin State
+    isAdmin: boolean;
+    checkAdminStatus: () => Promise<void>;
 }
 
 export const useUIStore = create<UIStoreState>((set) => ({
@@ -79,4 +83,17 @@ export const useUIStore = create<UIStoreState>((set) => ({
     }),
 
     setModalArticleId: (id) => set({ modalArticleId: id, modalInitialMode: 'briefing' }),
+
+    // Admin State
+    isAdmin: false,
+    checkAdminStatus: async () => {
+        try {
+            const res = await fetch('/api/auth/check');
+            const data = await res.json();
+            set({ isAdmin: data.isAdmin });
+        } catch (error) {
+            console.error('Failed to check admin status:', error);
+            set({ isAdmin: false });
+        }
+    },
 }));

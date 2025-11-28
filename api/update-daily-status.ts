@@ -2,9 +2,13 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 // 【查】确保从 _utils.js 导入了正确的辅助函数
-import { apiHandler, getSupabaseClient } from './_utils.js';
+import { apiHandler, getSupabaseClient, verifyAdmin } from './_utils.js';
 
 async function updateDailyStatus(req: VercelRequest, res: VercelResponse) {
+    if (!verifyAdmin(req)) {
+        return res.status(403).json({ message: 'Unauthorized: Admin access required' });
+    }
+
     const { date, is_completed } = req.body;
 
     if (!date || typeof is_completed !== 'boolean') {

@@ -1,9 +1,13 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { apiHandler, getFreshRssClient } from './_utils.js';
+import { apiHandler, getFreshRssClient, verifyAdmin } from './_utils.js';
 import { STAR_TAG, READ_TAG } from './_constants.js';
 
 
 async function updateArticleState(req: VercelRequest, res: VercelResponse) {
+    if (!verifyAdmin(req)) {
+        return res.status(403).json({ message: 'Unauthorized: Admin access required' });
+    }
+
     const { articleId, articleIds, action, isAdding, tagsToAdd, tagsToRemove } = req.body;
 
     if ((!articleId && (!articleIds || !Array.isArray(articleIds))) || (!action && typeof isAdding === 'undefined' && (!tagsToAdd || !Array.isArray(tagsToAdd) || tagsToAdd.length === 0) && (!tagsToRemove || !Array.isArray(tagsToRemove) || tagsToRemove.length === 0))) {

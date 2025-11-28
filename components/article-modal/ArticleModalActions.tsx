@@ -11,7 +11,13 @@ interface ArticleModalActionsProps {
     setIsTagPopoverOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+import { useUIStore } from '../../store/uiStore';
+
 const ArticleModalActions: React.FC<ArticleModalActionsProps> = ({ article, isStarred, onStateChange, isTagPopoverOpen, setIsTagPopoverOpen }) => {
+    const isAdmin = useUIStore(state => state.isAdmin);
+
+    if (!isAdmin) return null;
+
     return (
         <div className="absolute bottom-8 right-8 z-50 flex flex-col-reverse items-center gap-y-3">
             <div className="relative" onClick={(e) => e.stopPropagation()}>

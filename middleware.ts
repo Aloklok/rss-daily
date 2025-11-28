@@ -5,56 +5,38 @@ export default function middleware(request: Request) {
     const accessToken = process.env.ACCESS_TOKEN;
 
     if (!accessToken) {
-        return new Response('Access token is not configured.', { status: 500 });
+        // If no access token is configured, allow access (or maybe block? assuming allow for now based on "public access")
+        // But strictly speaking, if it's not configured, maybe we should just proceed.
+        return;
     }
 
     const urlToken = url.searchParams.get('token');
 
-    // 1. URL Token 鉴权
+    // 1. URL Token 鉴权 (Admin Login)
     if (urlToken === accessToken) {
         const response = new Response(null, {
             status: 307,
             headers: {
-                'Location': url.origin, // 重定向到 /
+                'Location': url.origin, // Redirect to clean URL
                 'Set-Cookie': `site_token=${accessToken}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${60 * 60 * 24 * 90}`,
             },
         });
         return response;
     }
 
-    // 2. Cookie 鉴权
-    const cookieHeader = request.headers.get('cookie');
-    if (cookieHeader) {
-        const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
-            const parts = cookie.match(/(.*?)=(.*)$/);
-            if (parts) {
-                const key = parts[1].trim();
-                const value = parts[2].trim();
-                acc.set(key, value);
-            }
-            return acc;
-        }, new Map<string, string>());
+    // 2. Cookie 鉴权 (Check if already logged in as Admin)
+    // We don't strictly need to block if cookie is missing/invalid anymore, 
+    // because we want to allow public access.
+    // The API routes will handle the strict checks for write operations.
 
-        const cookieToken = cookies.get('site_token');
-        if (cookieToken === accessToken) {
-            return; // 鉴权通过，继续请求
-        }
-    }
-
-    // 3. 鉴权失败
-    return new Response(
-        '<h1>403 Forbidden</h1><p>有事儿吗？</p>',
-        {
-            status: 403,
-            headers: { 'Content-Type': 'text/html' },
-        }
-    );
+    // So, we just let the request proceed.
+    return;
 }
 
 // 高性能 + 高安全性的 Matcher
 // 它只匹配“页面路由”（不含 . ），而不匹配静态文件
 export const config = {
     matcher: [
-      '/((?!api/|_vercel/|.+\..+).*)',
+        '/((?!api/|_vercel/|.+\..+).*)',
     ],
 };

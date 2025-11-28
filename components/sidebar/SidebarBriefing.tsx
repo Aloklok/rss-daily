@@ -14,13 +14,19 @@ interface SidebarBriefingProps {
     selectedArticleId: string | number | null;
 }
 
+import { useUIStore } from '../../store/uiStore';
+
 const StatusIcon: React.FC<{ completed: boolean; onClick: (e: React.MouseEvent) => void }> = ({ completed, onClick }) => {
+    const isAdmin = useUIStore(state => state.isAdmin);
+
     const handleClick = (e: React.MouseEvent) => {
         e.stopPropagation();
-        onClick(e);
+        if (isAdmin) {
+            onClick(e);
+        }
     };
 
-    const baseClasses = "h-5 w-5 cursor-pointer transition-all duration-200 ease-in-out transform group-hover:scale-110";
+    const baseClasses = `h-5 w-5 transition-all duration-200 ease-in-out transform ${isAdmin ? 'cursor-pointer group-hover:scale-110' : 'cursor-default opacity-50'}`;
 
     if (completed) {
         return (

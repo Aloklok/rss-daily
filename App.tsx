@@ -37,6 +37,11 @@ const App: React.FC = () => {
     const selectedArticleId = useUIStore(state => state.selectedArticleId);
     const timeSlot = useUIStore(state => state.timeSlot);
     const setTimeSlot = useUIStore(state => state.setTimeSlot);
+    const checkAdminStatus = useUIStore(state => state.checkAdminStatus);
+
+    useEffect(() => {
+        checkAdminStatus();
+    }, [checkAdminStatus]);
 
     // Article Store State (Data State)
     const setSelectedArticleId = useUIStore(state => state.setSelectedArticleId);
