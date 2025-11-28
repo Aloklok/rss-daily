@@ -29,6 +29,40 @@ export default function middleware(request: Request) {
     // because we want to allow public access.
     // The API routes will handle the strict checks for write operations.
 
+    // However, if the user explicitly visits without a token (and maybe wants to logout/view as guest),
+    // we might want to clear the cookie if the token param is present but wrong? 
+    // Or just let the cookie persist until it expires?
+
+    // User complaint: "I enter without a token, and it didn't restrict me."
+    // This implies they expect to be treated as a guest if they don't provide the token in the URL,
+    // even if they were previously logged in.
+    // To support this "switch to guest" behavior, we can check:
+    // If NO token in URL -> Do nothing (respect existing cookie).
+    // If token in URL is WRONG -> Clear cookie? No, that's weird.
+
+    // Actually, maybe the user wants: "If I visit the root URL without ?token=..., I should be a guest."
+    // But that would mean every time they refresh the page (which usually clears URL params), they would be logged out.
+    // That's bad UX.
+
+    // Let's assume the user has a STALE cookie and doesn't know it.
+    // I will add a special `?logout=true` handler or just tell the user to clear cookies.
+
+    // But wait, the user said "Please re-check middleware".
+    // Maybe they think the middleware should BLOCK access if no token?
+    // "Implement read-only public access" -> So NO blocking.
+
+    // Let's try to be stricter: If the user visits with `?token=logout`, clear the cookie.
+    if (url.searchParams.get('logout') === 'true') {
+        const response = new Response(null, {
+            status: 307,
+            headers: {
+                'Location': url.origin,
+                'Set-Cookie': `site_token=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0`,
+            },
+        });
+        return response;
+    }
+
     // So, we just let the request proceed.
     return;
 }

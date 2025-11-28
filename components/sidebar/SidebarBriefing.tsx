@@ -19,6 +19,8 @@ import { useUIStore } from '../../store/uiStore';
 const StatusIcon: React.FC<{ completed: boolean; onClick: (e: React.MouseEvent) => void }> = ({ completed, onClick }) => {
     const isAdmin = useUIStore(state => state.isAdmin);
 
+    if (!isAdmin) return null;
+
     const handleClick = (e: React.MouseEvent) => {
         e.stopPropagation();
         if (isAdmin) {
