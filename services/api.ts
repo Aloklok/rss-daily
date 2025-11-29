@@ -239,8 +239,8 @@ export const getDailyStatuses = (startDate: string, endDate: string): Promise<Re
 };
 
 // 【增】更新每日简报完成状态
-export const updateDailyStatus = (date: string, isCompleted: boolean): Promise<{ success: boolean }> => {
-    return apiService.request<{ success: boolean }>('/api/update-daily-status', {
+export const updateDailyStatus = (date: string, isCompleted: boolean): Promise<{ success: boolean, date: string, is_completed: boolean }> => {
+    return apiService.request<{ success: boolean, date: string, is_completed: boolean }>('/api/update-daily-status', {
         method: 'POST',
         body: { date: date, is_completed: isCompleted },
     });
