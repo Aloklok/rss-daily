@@ -71,7 +71,7 @@ const Sidebar = React.memo<SidebarProps>(({
         await Promise.all([refreshFiltersPromise, refreshStarredPromise]);
     };
 
-    const tabButtonClass = (isActive: boolean) => `text-sm font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 rounded-md py-2 ${isActive ? 'bg-white shadow-sm text-gray-900 dark:bg-midnight-selected dark:text-white' : 'text-gray-500 hover:bg-gray-100 dark:text-midnight-text-secondary dark:hover:bg-midnight-card'}`;
+    const tabButtonClass = (isActive: boolean) => `text-sm font-semibold transition-colors duration-200 focus:outline-none rounded-md py-2 ${isActive ? 'bg-white shadow-sm text-gray-900 dark:bg-midnight-selected dark:text-white' : 'text-gray-500 hover:bg-gray-100 dark:text-midnight-text-secondary dark:hover:bg-midnight-card'}`;
 
     return (
         <aside className="flex flex-col flex-shrink-0 bg-gray-50 dark:bg-midnight-sidebar w-full h-full md:w-80 p-4 space-y-4 relative">
