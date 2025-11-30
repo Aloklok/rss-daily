@@ -31,15 +31,15 @@ const ArticleListItem: React.FC<{ articleId: string | number; onOpenArticle: (ar
 
   return (
     <div
-      className="bg-white p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer"
+      className="bg-white dark:bg-midnight-card p-4 rounded-lg shadow-sm hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 active:scale-[0.98] active:bg-gray-100 dark:active:bg-gray-600 transition-all duration-200 cursor-pointer"
       onClick={() => onOpenArticle(article)}
     >
-      <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-x-2">
+      <h3 className="text-lg font-semibold text-gray-800 dark:text-midnight-text-primary flex items-center gap-x-2">
         {isStarred && <span className="text-amber-400 text-xl" title="已收藏">⭐️</span>}
         <span>{article.title}</span>
       </h3>
-      <p className="text-sm text-gray-600">来源: {article.sourceName}</p>
-      <p className="text-xs text-gray-500">发布日期: {new Date(article.published).toLocaleDateString()}</p>
+      <p className="text-sm text-gray-600 dark:text-midnight-text-secondary">来源: {article.sourceName}</p>
+      <p className="text-xs text-gray-500 dark:text-gray-500">发布日期: {new Date(article.published).toLocaleDateString()}</p>
       {displayedUserTags.length > 0 && (
         <div className="flex flex-wrap gap-2 pt-1">
           {displayedUserTags.map(tagLabel => (tagLabel && <span key={tagLabel} className={`text-xs font-semibold inline-block py-1 px-2.5 rounded-full ${getRandomColorClass(tagLabel)}`}>{tagLabel}</span>))}
@@ -108,7 +108,7 @@ const ArticleList: React.FC<ArticleListProps> = ({
           <button
             onClick={() => fetchNextPage?.()}
             disabled={isFetchingNextPage}
-            className="px-6 py-2 bg-white border border-gray-300 rounded-full text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors shadow-sm"
+            className="px-6 py-2 bg-white dark:bg-midnight-card border border-gray-300 dark:border-midnight-border rounded-full text-gray-700 dark:text-midnight-text-secondary hover:bg-gray-50 dark:hover:bg-midnight-card/80 disabled:opacity-50 transition-colors shadow-sm"
           >
             {isFetchingNextPage ? '加载中...' : '加载更多'}
           </button>

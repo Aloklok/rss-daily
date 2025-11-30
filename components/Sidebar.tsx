@@ -117,7 +117,11 @@ const Sidebar = React.memo<SidebarProps>(({
                         starredCount={starredCount}
                         activeFilter={activeFilter}
                         selectedArticleId={selectedArticleId}
-                        onSelect={() => setActiveFilter({ type: 'starred', value: '' })}
+                        onSelect={() => {
+                            if (activeFilter?.type === 'trends') {
+                                setActiveFilter(null);
+                            }
+                        }}
                     />
                     <SidebarExplore
                         availableFilters={availableFilters}

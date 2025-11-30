@@ -68,6 +68,7 @@ const SidebarBriefing: React.FC<SidebarBriefingProps> = ({
     onDateSelect,
     selectedArticleId
 }) => {
+    const isAdmin = useUIStore(state => state.isAdmin);
     const isFilterActive = (type: string, value: string) => {
         return activeFilter?.type === type && activeFilter?.value === value && !selectedArticleId;
     };
@@ -91,8 +92,8 @@ const SidebarBriefing: React.FC<SidebarBriefingProps> = ({
                                 className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-200 flex justify-between items-center group
                             ${isActive
                                         ? 'bg-gray-800 text-white font-semibold dark:bg-midnight-selected'
-                                        : isCompleted
-                                            ? 'bg-gray-50 text-gray-500 hover:bg-gray-100 dark:bg-midnight-card dark:text-midnight-text-secondary dark:hover:bg-midnight-card'
+                                        : isCompleted && isAdmin
+                                            ? 'bg-gray-50 text-gray-500 hover:bg-gray-100 dark:bg-transparent dark:text-midnight-text-secondary dark:hover:bg-midnight-card'
                                             : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-midnight-card'
                                     }`
                                 }
@@ -104,7 +105,7 @@ const SidebarBriefing: React.FC<SidebarBriefingProps> = ({
                                     />
                                     <span>{displayDatePart}</span>
                                 </div>
-                                <span className={`text-xs ${isCompleted && !isActive ? 'text-gray-400' : ''} ${isActive ? 'text-white' : 'group-hover:text-gray-600'}`}>
+                                <span className={`text-xs ${isCompleted && !isActive && isAdmin ? 'text-gray-400' : ''} ${isActive ? 'text-white' : 'group-hover:text-gray-600'}`}>
                                     {displayDayOfWeekPart}
                                 </span>
                             </button>
