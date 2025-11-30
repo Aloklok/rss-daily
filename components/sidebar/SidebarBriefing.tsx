@@ -15,6 +15,7 @@ interface SidebarBriefingProps {
 }
 
 import { useUIStore } from '../../store/uiStore';
+import { getTodayInShanghai } from '../../services/api';
 
 const StatusIcon: React.FC<{ completed: boolean; onClick: (e: React.MouseEvent) => void }> = ({ completed, onClick }) => {
     const isAdmin = useUIStore(state => state.isAdmin);
@@ -73,10 +74,22 @@ const SidebarBriefing: React.FC<SidebarBriefingProps> = ({
         return activeFilter?.type === type && activeFilter?.value === value && !selectedArticleId;
     };
 
+    const currentMonth = getTodayInShanghai().substring(0, 7);
+    const allDisplayMonths = Array.from(new Set([...availableMonths, selectedMonth, currentMonth]))
+        .filter(Boolean)
+        .sort((a, b) => b.localeCompare(a));
+
     return (
         <div className="flex flex-col h-full">
             {isInitialLoading ? (
                 <div className="space-y-2">{[...Array(3)].map((_, i) => <div key={i} className="h-10 bg-gray-200 rounded-lg animate-pulse"></div>)}</div>
+            ) : datesForMonth.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-gray-400 dark:text-gray-500 pb-20">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    <span className="text-sm">本月暂未生成文章</span>
+                </div>
             ) : (
                 <nav className="flex flex-col gap-1.5 flex-grow">
                     {datesForMonth.map(date => {
@@ -116,11 +129,11 @@ const SidebarBriefing: React.FC<SidebarBriefingProps> = ({
             <div className="mt-auto pt-4">
                 <div className="relative">
                     <select value={selectedMonth} onChange={e => onMonthChange(e.target.value)} className="w-full appearance-none bg-transparent border-none text-gray-800 py-2 pl-3 pr-8 rounded-md focus:outline-none cursor-pointer absolute inset-0 z-10 opacity-0">
-                        {availableMonths.map(month => (<option key={month} value={month}>{formatMonthForDisplay(month)}</option>))}
+                        {allDisplayMonths.map(month => (<option key={month} value={month}>{formatMonthForDisplay(month)}</option>))}
                     </select>
-                    <div className="w-full flex items-center justify-between bg-gray-100 border border-gray-300 text-gray-800 py-2 px-3 rounded-md pointer-events-none">
-                        <span>{formatMonthForDisplay(selectedMonth)}</span>
-                        <svg className="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+                    <div className="w-full flex items-center justify-between bg-white dark:bg-midnight-card border border-gray-200 dark:border-midnight-border shadow-sm hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200 text-gray-700 dark:text-gray-200 py-2 px-3 rounded-md pointer-events-none">
+                        <span className="text-sm font-medium">{formatMonthForDisplay(selectedMonth)}</span>
+                        <svg className="h-4 w-4 text-gray-400 dark:text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
                     </div>
                 </div>
             </div>

@@ -41,7 +41,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             )}
 
             {/* Sidebar Container */}
-            <div className={`h-full bg-gray-50 z-50 transition-all duration-300 ease-in-out ${!isMdUp
+            <div className={`h-full bg-gray-50 dark:bg-midnight-sidebar z-50 transition-all duration-300 ease-in-out ${!isMdUp
                 ? `fixed top-0 left-0 w-64 ${isSidebarCollapsed ? '-translate-x-full' : 'translate-x-0'}`
                 : `md:fixed md:top-0 md:bottom-0 md:left-0 md:overflow-y-auto ${isSidebarCollapsed ? 'md:w-0 md:opacity-0 md:pointer-events-none' : 'md:w-80 md:opacity-100'}`
                 }`}>
