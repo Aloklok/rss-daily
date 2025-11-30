@@ -18,6 +18,7 @@ export const useDailyStatusesForMonth = (month: string) => {
             return getDailyStatuses(startDate, endDate);
         },
         enabled: !!month, // 只有当 month 有效时才执行查询
+        staleTime: 0, // 数据始终被视为过期，确保每次挂载或窗口聚焦时都重新获取
     });
 };
 

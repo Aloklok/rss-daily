@@ -11,6 +11,9 @@ async function getDailyStatuses(req: VercelRequest, res: VercelResponse) {
         return res.status(400).json({ message: 'start_date and end_date parameters are required.' });
     }
 
+    // Prevent Vercel/Browser caching for this endpoint
+    res.setHeader('Cache-Control', 'no-store, max-age=0');
+
     // 【改】使用 getSupabaseClient() 来获取 Supabase 实例
     const supabase = getSupabaseClient();
 
