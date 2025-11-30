@@ -149,7 +149,7 @@ const App: React.FC = () => {
             isSidebarCollapsed={isSidebarCollapsed}
             setIsSidebarCollapsed={setIsSidebarCollapsed}
             isMdUp={isMdUp}
-            showToggleButtons={!modalArticleId && !sidebarArticle}
+            showToggleButtons={!modalArticleId}
             sidebar={
                 <Sidebar
                     isInitialLoading={isInitialLoad}
