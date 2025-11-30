@@ -10,6 +10,7 @@ interface SidebarStarredProps {
     starredCount: number;
     activeFilter: Filter | null;
     selectedArticleId: string | number | null;
+    onSelect?: () => void;
 }
 
 const SidebarStarred: React.FC<SidebarStarredProps> = ({
@@ -20,18 +21,19 @@ const SidebarStarred: React.FC<SidebarStarredProps> = ({
     onArticleClick,
     starredCount,
     activeFilter,
-    selectedArticleId
+    selectedArticleId,
+    onSelect
 }) => {
     const isFilterActive = activeFilter?.type === 'starred';
-    const listItemButtonClass = (isActive: boolean) => `w-full text-left px-3 py-2 rounded-lg transition-colors duration-200 flex items-center gap-3 text-gray-700 ${isActive ? 'bg-gray-800 text-white font-semibold' : 'text-gray-600 hover:bg-gray-100'}`;
+    const listItemButtonClass = (isActive: boolean) => `w-full text-left px-3 py-2 rounded-lg transition-all duration-200 flex items-center gap-3 text-gray-700 ${isActive ? 'bg-gray-800 text-white font-semibold dark:bg-midnight-selected' : 'text-gray-600 dark:text-midnight-text-secondary hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-midnight-card'}`;
 
     return (
         <nav className="flex flex-col">
-            <button onClick={onToggle} className={listItemButtonClass(isFilterActive)}>
+            <button onClick={() => { onToggle(); onSelect?.(); }} className={listItemButtonClass(isFilterActive)}>
                 <span>⭐</span>
                 <span className="flex-1">我的收藏</span>
                 {starredCount > 0 && (
-                    <span className="text-xs font-medium bg-gray-200 text-gray-600 rounded-full h-5 w-5 flex items-center justify-center">
+                    <span className="text-xs font-medium bg-gray-200 text-gray-600 dark:bg-midnight-badge dark:text-gray-300 rounded-full h-5 w-5 flex items-center justify-center">
                         {starredCount}
                     </span>
                 )}

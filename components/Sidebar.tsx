@@ -71,10 +71,10 @@ const Sidebar = React.memo<SidebarProps>(({
         await Promise.all([refreshFiltersPromise, refreshStarredPromise]);
     };
 
-    const tabButtonClass = (isActive: boolean) => `text-sm font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 rounded-md py-2 ${isActive ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:bg-gray-100'}`;
+    const tabButtonClass = (isActive: boolean) => `text-sm font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 rounded-md py-2 ${isActive ? 'bg-white shadow-sm text-gray-900 dark:bg-midnight-selected dark:text-white' : 'text-gray-500 hover:bg-gray-100 dark:text-midnight-text-secondary dark:hover:bg-midnight-card'}`;
 
     return (
-        <aside className="flex flex-col flex-shrink-0 bg-gray-50 border-r border-gray-200 w-full h-full md:w-80 p-4 space-y-4 relative">
+        <aside className="flex flex-col flex-shrink-0 bg-gray-50/90 dark:bg-midnight-sidebar/95 backdrop-blur-md border-r border-gray-200 dark:border-midnight-border w-full h-full md:w-80 p-4 space-y-4 relative">
             <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
                     <img src="/computer_cat.jpeg" alt="Logo" className="w-20 h-20 rounded-full object-cover" />
@@ -97,7 +97,7 @@ const Sidebar = React.memo<SidebarProps>(({
                 />
             )}
 
-            <div className="flex items-center gap-2 p-1 bg-gray-200 rounded-lg">
+            <div className="flex items-center gap-2 p-1 bg-gray-200 dark:bg-midnight-card rounded-lg">
                 <button className={`flex-1 ${tabButtonClass(activeTab === 'filters')}`} onClick={() => setActiveTab('filters')}>
                     <div className="flex justify-center items-center gap-2"><span>🏷️</span><span>分类</span></div>
                 </button>
@@ -117,6 +117,7 @@ const Sidebar = React.memo<SidebarProps>(({
                         starredCount={starredCount}
                         activeFilter={activeFilter}
                         selectedArticleId={selectedArticleId}
+                        onSelect={() => setActiveFilter({ type: 'starred', value: '' })}
                     />
                     <SidebarExplore
                         availableFilters={availableFilters}
@@ -141,7 +142,7 @@ const Sidebar = React.memo<SidebarProps>(({
             </div>
 
             <SidebarTrends
-                isActive={activeFilter?.type === 'trends'}
+                isActive={activeFilter?.type === 'trends' && !selectedArticleId}
                 onClick={() => setActiveFilter({ type: 'trends', value: '' })}
             />
         </aside>

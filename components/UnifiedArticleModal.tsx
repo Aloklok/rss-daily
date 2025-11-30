@@ -37,9 +37,9 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({ article, onCl
 
     // 判断是否拥有简报数据
     const hasBriefingData = useMemo(() => {
-        return (article.summary && article.summary.length > 0) ||
+        return !!((article.summary && article.summary.length > 0) ||
             (article.verdict && article.verdict.score > 0) ||
-            (article.briefingSection && article.briefingSection !== '');
+            (article.briefingSection && article.briefingSection !== ''));
     }, [article]);
 
     // 2. 【新增】当文章 ID 变化时，重置尝试状态
@@ -116,7 +116,7 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({ article, onCl
     return (
         <>
             <div onClick={onClose} className="fixed inset-0 bg-black/60 z-30 transition-opacity duration-300 animate-fadeIn" />
-            <div className="fixed top-0 right-0 h-full w-full max-w-2xl bg-neutral-50 bg-paper-texture shadow-2xl z-40 transform transition-transform duration-300 animate-slideInRight flex flex-col">
+            <div className="fixed top-0 right-0 h-full w-full max-w-2xl bg-neutral-50 dark:bg-midnight-bg bg-paper-texture dark:bg-none shadow-2xl z-40 transform transition-transform duration-300 animate-slideInRight flex flex-col">
 
                 <ArticleModalHeader
                     viewMode={viewMode}
@@ -125,7 +125,7 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({ article, onCl
                 />
 
                 {/* Content Body */}
-                <div className="flex-grow overflow-y-auto bg-neutral-50">
+                <div className="flex-grow overflow-y-auto bg-neutral-50 dark:bg-midnight-bg">
                     {viewMode === 'briefing' ? (
                         <ArticleBriefingView
                             article={article}

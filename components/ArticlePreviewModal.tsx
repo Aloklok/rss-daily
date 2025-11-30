@@ -59,20 +59,20 @@ const ArticlePreviewModal: React.FC<ArticlePreviewModalProps> = ({ url, onClose 
     if (!url) return null;
 
     return (
-        <div 
+        <div
             className="fixed inset-0 bg-black/70 z-40 flex items-center justify-center p-4"
             onClick={onClose}
         >
-            <div 
+            <div
                 className="bg-white rounded-lg shadow-2xl w-full h-full max-w-6xl flex flex-col overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="flex items-center justify-between p-3 border-b bg-gray-50 rounded-t-lg">
                     <div className="text-sm text-gray-500 truncate">{url}</div>
                     <div className="flex items-center gap-2">
-                        <a 
-                            href={url} 
-                            target="_blank" 
+                        <a
+                            href={url}
+                            target="_blank"
                             rel="noopener noreferrer"
                             className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-100"
                         >
@@ -105,10 +105,47 @@ const ArticlePreviewModal: React.FC<ArticlePreviewModalProps> = ({ url, onClose 
                         </div>
                     ) : content ? (
                         <article className="p-6 md:p-8">
-                            <h1 className="text-2xl md:text-3xl font-bold font-serif text-gray-900 mb-2">{content.title}</h1>
-                            <p className="text-gray-500 mb-6 border-b pb-4">来源: {content.source}</p>
-                            <div 
-                                className="prose prose-lg max-w-none text-gray-800 leading-relaxed"
+                            <h1 className="text-2xl md:text-3xl font-bold font-serif text-gray-900 dark:text-gray-100 mb-2">{content.title}</h1>
+                            <p className="text-gray-500 dark:text-gray-400 mb-6 border-b pb-4">来源: {content.source}</p>
+                            <style>{`
+                                @media (prefers-color-scheme: dark) {
+                                    #article-preview-content {
+                                        color: #ffffff;
+                                    }
+                                    #article-preview-content p,
+                                    #article-preview-content li,
+                                    #article-preview-content span,
+                                    #article-preview-content div {
+                                        color: #ffffff !important;
+                                        background-color: transparent !important;
+                                    }
+                                    #article-preview-content h1,
+                                    #article-preview-content h2,
+                                    #article-preview-content h3,
+                                    #article-preview-content h4,
+                                    #article-preview-content h5,
+                                    #article-preview-content h6,
+                                    #article-preview-content strong,
+                                    #article-preview-content b {
+                                        color: #ffffff !important;
+                                    }
+                                    #article-preview-content a {
+                                        color: #60a5fa !important; /* blue-400 */
+                                    }
+                                    #article-preview-content pre,
+                                    #article-preview-content code {
+                                        background-color: #374151 !important; /* gray-700 */
+                                        color: #e5e7eb !important;
+                                    }
+                                    #article-preview-content blockquote {
+                                        border-left-color: #4b5563 !important; /* gray-600 */
+                                        color: #9ca3af !important; /* gray-400 */
+                                    }
+                                }
+                            `}</style>
+                            <div
+                                id="article-preview-content"
+                                className="prose prose-lg max-w-none text-gray-800 dark:text-gray-100 dark:prose-invert leading-relaxed"
                                 dangerouslySetInnerHTML={{ __html: content.content }}
                             />
                         </article>

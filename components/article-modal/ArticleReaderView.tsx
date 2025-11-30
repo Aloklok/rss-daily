@@ -53,17 +53,17 @@ const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({ article, readerCo
     if (isLoading) return <LoadingSpinner />;
 
     if (!readerContent) return (
-        <div className="p-8 text-center text-gray-500">
+        <div className="p-8 text-center text-gray-500 dark:text-gray-400">
             <p>无法加载文章内容。</p>
-            <a href={article.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 mt-2 inline-block">查看原文</a>
+            <a href={article.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 mt-2 inline-block">查看原文</a>
         </div>
     );
 
     return (
         <article className="p-6 md:p-8 select-none animate-fadeIn">
-            <h1 className="text-2xl md:text-3xl font-bold font-serif text-gray-900 mb-2">{readerContent.title}</h1>
-            <div className="mb-6 border-b pb-4">
-                <p className="text-gray-500">来源: {readerContent.source}</p>
+            <h1 className="text-2xl md:text-3xl font-bold font-serif text-gray-900 dark:text-gray-100 mb-2">{readerContent.title}</h1>
+            <div className="mb-6 border-b dark:border-gray-700 pb-4">
+                <p className="text-gray-500 dark:text-gray-400">来源: {readerContent.source}</p>
                 {userTagLabels.length > 0 && (
                     <div className="mt-4 flex flex-wrap gap-2">
                         {userTagLabels.map(label => (
@@ -74,13 +74,49 @@ const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({ article, readerCo
                     </div>
                 )}
                 <div className="mt-4 flex justify-end">
-                    <a href={article.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-stone-200 hover:bg-stone-300 text-stone-800 transition-colors">
+                    <a href={article.link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-stone-200 dark:bg-stone-700 hover:bg-stone-300 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-200 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" /><path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" /></svg>
                         <span>原文</span>
                     </a>
                 </div>
             </div>
-            <div ref={contentRef} className="prose prose-lg max-w-none text-gray-800 leading-relaxed select-text" dangerouslySetInnerHTML={{ __html: readerContent.content }} />
+            <style>{`
+                @media (prefers-color-scheme: dark) {
+                    #article-reader-content {
+                        color: #ffffff;
+                    }
+                    #article-reader-content p,
+                    #article-reader-content li,
+                    #article-reader-content span,
+                    #article-reader-content div {
+                        color: #ffffff !important;
+                        background-color: transparent !important;
+                    }
+                    #article-reader-content h1,
+                    #article-reader-content h2,
+                    #article-reader-content h3,
+                    #article-reader-content h4,
+                    #article-reader-content h5,
+                    #article-reader-content h6,
+                    #article-reader-content strong,
+                    #article-reader-content b {
+                        color: #ffffff !important;
+                    }
+                    #article-reader-content a {
+                        color: #60a5fa !important; /* blue-400 */
+                    }
+                    #article-reader-content pre,
+                    #article-reader-content code {
+                        background-color: #374151 !important; /* gray-700 */
+                        color: #e5e7eb !important;
+                    }
+                    #article-reader-content blockquote {
+                        border-left-color: #4b5563 !important; /* gray-600 */
+                        color: #9ca3af !important; /* gray-400 */
+                    }
+                }
+            `}</style>
+            <div id="article-reader-content" ref={contentRef} className="prose prose-lg dark:prose-invert max-w-none text-gray-800 dark:text-gray-100 leading-relaxed select-text" dangerouslySetInnerHTML={{ __html: readerContent.content }} />
         </article>
     );
 };

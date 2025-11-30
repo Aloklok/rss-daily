@@ -22,92 +22,92 @@ const THEME_STYLES: Record<LinkTheme, {
     bg: string;
 }> = {
     teal: {
-        text: 'text-teal-600',
-        icon: 'text-teal-700',
-        iconHover: 'group-hover:text-teal-500',
-        border1: 'border-teal-200',
-        border2: 'border-teal-300',
-        bg: 'bg-teal-50/50',
+        text: 'text-teal-600 dark:text-teal-400',
+        icon: 'text-teal-700 dark:text-teal-300',
+        iconHover: 'group-hover:text-teal-500 dark:group-hover:text-teal-200',
+        border1: 'border-teal-200 dark:border-teal-800',
+        border2: 'border-teal-300 dark:border-teal-700',
+        bg: 'bg-teal-50/50 dark:bg-teal-900/20',
     },
     indigo: {
-        text: 'text-indigo-600',
-        icon: 'text-indigo-700',
-        iconHover: 'group-hover:text-indigo-500',
-        border1: 'border-indigo-200',
-        border2: 'border-indigo-300',
-        bg: 'bg-indigo-50/50',
+        text: 'text-indigo-600 dark:text-indigo-400',
+        icon: 'text-indigo-700 dark:text-indigo-300',
+        iconHover: 'group-hover:text-indigo-500 dark:group-hover:text-indigo-200',
+        border1: 'border-indigo-200 dark:border-indigo-800',
+        border2: 'border-indigo-300 dark:border-indigo-700',
+        bg: 'bg-indigo-50/50 dark:bg-indigo-900/20',
     },
     slate: {
-        text: 'text-slate-700',
-        icon: 'text-slate-800',
-        iconHover: 'group-hover:text-slate-600',
-        border1: 'border-slate-200',
-        border2: 'border-slate-300',
-        bg: 'bg-slate-50/50',
+        text: 'text-slate-700 dark:text-slate-400',
+        icon: 'text-slate-800 dark:text-slate-300',
+        iconHover: 'group-hover:text-slate-600 dark:group-hover:text-slate-200',
+        border1: 'border-slate-200 dark:border-slate-700',
+        border2: 'border-slate-300 dark:border-slate-600',
+        bg: 'bg-slate-50/50 dark:bg-slate-800/30',
     },
     orange: {
-        text: 'text-orange-600',
-        icon: 'text-orange-700',
-        iconHover: 'group-hover:text-orange-500',
-        border1: 'border-orange-200',
-        border2: 'border-orange-300',
-        bg: 'bg-orange-50/50',
+        text: 'text-orange-600 dark:text-orange-400',
+        icon: 'text-orange-700 dark:text-orange-300',
+        iconHover: 'group-hover:text-orange-500 dark:group-hover:text-orange-200',
+        border1: 'border-orange-200 dark:border-orange-800',
+        border2: 'border-orange-300 dark:border-orange-700',
+        bg: 'bg-orange-50/50 dark:bg-orange-900/20',
     },
     blue: {
-        text: 'text-blue-600',
-        icon: 'text-blue-700',
-        iconHover: 'group-hover:text-blue-500',
-        border1: 'border-blue-200',
-        border2: 'border-blue-300',
-        bg: 'bg-blue-50/50',
+        text: 'text-blue-600 dark:text-blue-400',
+        icon: 'text-blue-700 dark:text-blue-300',
+        iconHover: 'group-hover:text-blue-500 dark:group-hover:text-blue-200',
+        border1: 'border-blue-200 dark:border-blue-800',
+        border2: 'border-blue-300 dark:border-blue-700',
+        bg: 'bg-blue-50/50 dark:bg-blue-900/20',
     },
     purple: {
-        text: 'text-purple-600',
-        icon: 'text-purple-700',
-        iconHover: 'group-hover:text-purple-500',
-        border1: 'border-purple-200',
-        border2: 'border-purple-300',
-        bg: 'bg-purple-50/50',
+        text: 'text-purple-600 dark:text-purple-400',
+        icon: 'text-purple-700 dark:text-purple-300',
+        iconHover: 'group-hover:text-purple-500 dark:group-hover:text-purple-200',
+        border1: 'border-purple-200 dark:border-purple-800',
+        border2: 'border-purple-300 dark:border-purple-700',
+        bg: 'bg-purple-50/50 dark:bg-purple-900/20',
     },
     yellow: {
-        text: 'text-yellow-600',
-        icon: 'text-yellow-700',
-        iconHover: 'group-hover:text-yellow-500',
-        border1: 'border-yellow-200',
-        border2: 'border-yellow-300',
-        bg: 'bg-yellow-50/50',
+        text: 'text-yellow-600 dark:text-yellow-400',
+        icon: 'text-yellow-700 dark:text-yellow-300',
+        iconHover: 'group-hover:text-yellow-500 dark:group-hover:text-yellow-200',
+        border1: 'border-yellow-200 dark:border-yellow-800',
+        border2: 'border-yellow-300 dark:border-yellow-700',
+        bg: 'bg-yellow-50/50 dark:bg-yellow-900/20',
     },
     red: {
-        text: 'text-red-600',
-        icon: 'text-red-700',
-        iconHover: 'group-hover:text-red-500',
-        border1: 'border-red-200',
-        border2: 'border-red-300',
-        bg: 'bg-red-50/50',
+        text: 'text-red-600 dark:text-red-400',
+        icon: 'text-red-700 dark:text-red-300',
+        iconHover: 'group-hover:text-red-500 dark:group-hover:text-red-200',
+        border1: 'border-red-200 dark:border-red-800',
+        border2: 'border-red-300 dark:border-red-700',
+        bg: 'bg-red-50/50 dark:bg-red-900/20',
     },
     pink: {
-        text: 'text-pink-600',
-        icon: 'text-pink-700',
-        iconHover: 'group-hover:text-pink-500',
-        border1: 'border-pink-200',
-        border2: 'border-pink-300',
-        bg: 'bg-pink-50/50',
+        text: 'text-pink-600 dark:text-pink-400',
+        icon: 'text-pink-700 dark:text-pink-300',
+        iconHover: 'group-hover:text-pink-500 dark:group-hover:text-pink-200',
+        border1: 'border-pink-200 dark:border-pink-800',
+        border2: 'border-pink-300 dark:border-pink-700',
+        bg: 'bg-pink-50/50 dark:bg-pink-900/20',
     },
     green: {
-        text: 'text-green-600',
-        icon: 'text-green-700',
-        iconHover: 'group-hover:text-green-500',
-        border1: 'border-green-200',
-        border2: 'border-green-300',
-        bg: 'bg-green-50/50',
+        text: 'text-green-600 dark:text-green-400',
+        icon: 'text-green-700 dark:text-green-300',
+        iconHover: 'group-hover:text-green-500 dark:group-hover:text-green-200',
+        border1: 'border-green-200 dark:border-green-800',
+        border2: 'border-green-300 dark:border-green-700',
+        bg: 'bg-green-50/50 dark:bg-green-900/20',
     },
     cyan: {
-        text: 'text-cyan-600',
-        icon: 'text-cyan-700',
-        iconHover: 'group-hover:text-cyan-500',
-        border1: 'border-cyan-200',
-        border2: 'border-cyan-300',
-        bg: 'bg-cyan-50/50',
+        text: 'text-cyan-600 dark:text-cyan-400',
+        icon: 'text-cyan-700 dark:text-cyan-300',
+        iconHover: 'group-hover:text-cyan-500 dark:group-hover:text-cyan-200',
+        border1: 'border-cyan-200 dark:border-cyan-800',
+        border2: 'border-cyan-300 dark:border-cyan-700',
+        bg: 'bg-cyan-50/50 dark:bg-cyan-900/20',
     }
 };
 
@@ -226,7 +226,7 @@ const LinkCard: React.FC<{ config: LinkConfig }> = ({ config }) => {
                 <div className={`absolute -right-3 -top-3 h-16 w-16 rounded-full border ${styles.border2} opacity-20 group-hover:scale-150 transition-transform duration-500 ease-out pointer-events-none`}></div>
 
                 {/* 图标区域 */}
-                <div className={`flex-none ${styles.icon} ${styles.iconHover} transition-colors p-1.5 bg-white/60 rounded-md group-hover:bg-white shadow-sm`}>
+                <div className={`flex-none ${styles.icon} ${styles.iconHover} transition-colors p-1.5 rounded-md`}>
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         {config.iconPath}
                     </svg>
@@ -240,7 +240,7 @@ const LinkCard: React.FC<{ config: LinkConfig }> = ({ config }) => {
                 </div>
 
                 {/* 外部链接箭头 */}
-                <div className={`flex-none text-gray-400 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300`}>
+                <div className={`flex-none text-gray-400 dark:text-gray-500 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300`}>
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                     </svg>
@@ -268,23 +268,23 @@ const TrendsView: React.FC = () => {
     const CATEGORY_CONFIG: Record<string, { accent: string; text: string }> = {
         '工具': {
             accent: 'bg-indigo-600',
-            text: 'text-gray-900'
+            text: 'text-gray-900 dark:text-midnight-text-primary'
         },
         '趋势': {
             accent: 'bg-orange-600',
-            text: 'text-gray-900'
+            text: 'text-gray-900 dark:text-midnight-text-primary'
         },
         '数据库': {
             accent: 'bg-blue-600',
-            text: 'text-gray-900'
+            text: 'text-gray-900 dark:text-midnight-text-primary'
         }
     };
 
     return (
         <div className="w-full max-w-5xl mx-auto py-8 px-4">
             <div className="mb-12">
-                <h2 className="text-3xl font-bold text-gray-900 tracking-tight">趋势工具</h2>
-                <p className="mt-2 text-gray-500">探索最新的技术趋势和行业动态</p>
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-midnight-text-primary tracking-tight">趋势工具</h2>
+                <p className="mt-2 text-gray-500 dark:text-midnight-text-secondary">探索最新的技术趋势和行业动态</p>
             </div>
 
             <div className="space-y-12">

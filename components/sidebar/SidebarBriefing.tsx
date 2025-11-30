@@ -90,10 +90,10 @@ const SidebarBriefing: React.FC<SidebarBriefingProps> = ({
                                 onClick={() => onDateSelect(date)}
                                 className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-200 flex justify-between items-center group
                             ${isActive
-                                        ? 'bg-gray-800 text-white font-semibold'
+                                        ? 'bg-gray-800 text-white font-semibold dark:bg-midnight-selected'
                                         : isCompleted
-                                            ? 'bg-gray-50 text-gray-500 hover:bg-gray-100'
-                                            : 'text-gray-700 hover:bg-gray-100'
+                                            ? 'bg-gray-50 text-gray-500 hover:bg-gray-100 dark:bg-midnight-card dark:text-midnight-text-secondary dark:hover:bg-midnight-card'
+                                            : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-midnight-card'
                                     }`
                                 }
                             >

@@ -10,10 +10,10 @@ import { STAR_TAG, READ_TAG } from '../constants';
 
 const CALLOUT_THEMES = { '一句话总结': { icon: '📝', color: 'pink' }, '技术洞察': { icon: '🔬', color: 'blue' }, '值得注意': { icon: '⚠️', color: 'brown' }, '市场观察': { icon: '📈', color: 'green' } } as const;
 const calloutCardClasses = {
-    pink: { bg: 'bg-pink-100', title: 'text-pink-950', body: 'text-pink-900', emphasis: 'font-bold text-violet-700' },
-    blue: { bg: 'bg-blue-100', title: 'text-blue-950', body: 'text-blue-900', emphasis: 'font-bold text-violet-700' },
-    brown: { bg: 'bg-orange-100', title: 'text-orange-950', body: 'text-orange-900', emphasis: 'font-bold text-violet-700' },
-    green: { bg: 'bg-green-100', title: 'text-green-950', body: 'text-green-900', emphasis: 'font-bold text-violet-700' }
+    pink: { bg: 'bg-pink-100 dark:bg-pink-900/30', title: 'text-pink-950 dark:text-pink-100', body: 'text-pink-900 dark:text-pink-200', emphasis: 'font-bold text-violet-700 dark:text-violet-300' },
+    blue: { bg: 'bg-blue-100 dark:bg-blue-900/30', title: 'text-blue-950 dark:text-blue-100', body: 'text-blue-900 dark:text-blue-200', emphasis: 'font-bold text-violet-700 dark:text-violet-300' },
+    brown: { bg: 'bg-orange-100 dark:bg-orange-900/30', title: 'text-orange-950 dark:text-orange-100', body: 'text-orange-900 dark:text-orange-200', emphasis: 'font-bold text-violet-700 dark:text-violet-300' },
+    green: { bg: 'bg-green-100 dark:bg-green-900/30', title: 'text-green-950 dark:text-green-100', body: 'text-green-900 dark:text-green-200', emphasis: 'font-bold text-violet-700 dark:text-violet-300' }
 };
 const parseBold = (text: string, emphasisClass: string = 'font-semibold text-current') => { if (!text) return ''; const parts = text.split(/\*\*(.*?)\*\*/g); return parts.map((part, i) => i % 2 === 1 ? <strong key={i} className={emphasisClass}>{part}</strong> : part); };
 
@@ -29,7 +29,7 @@ const IconCircle: React.FC = memo(() => (<svg xmlns="http://www.w3.org/2000/svg"
 IconCircle.displayName = 'IconCircle';
 
 interface CalloutProps { title: keyof typeof CALLOUT_THEMES; content: string; }
-const Callout: React.FC<CalloutProps> = memo(({ title, content }) => { const theme = CALLOUT_THEMES[title]; const colors = calloutCardClasses[theme.color]; return (<aside className={`rounded-2xl p-5 backdrop-blur-lg ring-1 ring-white/30 ${colors.bg}`}><div className="flex items-center gap-x-3 mb-3"><span className="text-2xl">{theme.icon}</span><h4 className={`text-lg font-bold ${colors.title}`}>{title}</h4></div><div className={`${colors.body} text-[15px] leading-relaxed font-medium`}>{parseBold(content, colors.emphasis)}</div></aside>); });
+const Callout: React.FC<CalloutProps> = memo(({ title, content }) => { const theme = CALLOUT_THEMES[title]; const colors = calloutCardClasses[theme.color]; return (<aside className={`rounded-2xl p-6 backdrop-blur-lg ring-1 ring-white/30 ${colors.bg}`}><div className="flex items-center gap-x-3 mb-3"><span className="text-2xl">{theme.icon}</span><h4 className={`text-lg font-bold ${colors.title}`}>{title}</h4></div><div className={`${colors.body} text-[15px] leading-relaxed font-medium`}>{parseBold(content, colors.emphasis)}</div></aside>); });
 Callout.displayName = 'Callout';
 
 interface ActionButtonsProps {
@@ -61,8 +61,8 @@ const ActionButtons: React.FC<ActionButtonsProps> = memo(({ article, onReaderMod
         }
     };
 
-    const actionButtonClass = "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 transform hover:scale-105 disabled:opacity-75";
-    const mobileActionButtonClass = "flex flex-col items-center justify-center h-16 w-16 text-xs font-medium rounded-full p-1 gap-1";
+    const actionButtonClass = "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 transform hover:scale-105 active:scale-95 disabled:opacity-75";
+    const mobileActionButtonClass = "flex flex-col items-center justify-center h-16 w-16 text-xs font-medium rounded-full p-1 gap-1 transition-transform active:scale-95";
 
     return (
         <div className={`relative mt-6 md:mt-8 ${className || ''}`}>
@@ -180,18 +180,18 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, onReaderModeRequest,
 
     return (
         <article className="py-2 transition-opacity duration-300">
-            <header className="mb-8">
-                <h3 className="text-2xl lg:text-2xl font-bold font-serif text-stone-900 mb-6 leading-tight flex items-center gap-x-3">
+            <header className="mb-10">
+                <h3 className="text-2xl lg:text-2xl font-bold font-serif text-stone-900 dark:text-stone-100 mb-6 leading-tight flex items-center gap-x-3">
                     {isStarred && <span className="text-amber-400 text-2xl" title="已收藏">⭐️</span>}
                     <span>{article.title}</span>
                 </h3>
-                <div className="bg-gray-100 p-4 rounded-lg border border-gray-200 space-y-3">
-                    <div className="text-sm text-black flex items-center flex-wrap gap-x-4">
+                <div className="bg-gray-100 dark:bg-midnight-card/50 p-6 rounded-lg border border-gray-200 dark:border-midnight-badge space-y-3">
+                    <div className="text-sm text-black dark:text-gray-200 flex items-center flex-wrap gap-x-4">
                         <span>{article.sourceName}</span>
                         <span>&bull;</span>
                         <span>发布于 {publishedDate}</span>
                     </div>
-                    <div className="text-sm text-stone-600 flex items-center flex-wrap">
+                    <div className="text-sm text-stone-600 dark:text-stone-400 flex items-center flex-wrap">
                         <span className="font-medium mr-2">{article.verdict.type}</span>
                         <span className="mr-2">&bull;</span>
                         <span className="font-medium mr-2">{article.category}</span>
@@ -212,7 +212,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, onReaderModeRequest,
                 </div>
             </header>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
                 <Callout title="一句话总结" content={article.summary || ''} />
                 <Callout title="技术洞察" content={article.highlights} />
                 <Callout title="值得注意" content={article.critiques} />

@@ -117,11 +117,11 @@ const ReaderView: React.FC<ReaderViewProps> = ({
                             <LoadingSpinner />
                         ) : content && article ? (
                             <article className="p-6 md:p-8 select-none">
-                                <h1 className="text-2xl md:text-3xl font-bold font-serif text-gray-900 mb-2">{content.title}</h1>
+                                <h1 className="text-2xl md:text-3xl font-bold font-serif text-gray-900 dark:text-gray-100 mb-2">{content.title}</h1>
                                 {/* 4. 【修改】元数据区域重构 */}
                                 <div className="mb-6 border-b pb-4">
                                     {/* 第一行：来源 */}
-                                    <p className="text-gray-500">来源: {content.source}</p>
+                                    <p className="text-gray-500 dark:text-gray-400">来源: {content.source}</p>
 
                                     {/* 第二行：用户标签 (仅当有标签时显示) */}
                                     {userTagLabels.length > 0 && (
@@ -147,8 +147,44 @@ const ReaderView: React.FC<ReaderViewProps> = ({
                                         </a>
                                     </div>
                                 </div>
-                                <div ref={contentRef}
-                                    className="prose prose-lg max-w-none text-gray-800 leading-relaxed select-text"
+                                <style>{`
+                                    @media (prefers-color-scheme: dark) {
+                                        #reader-view-content {
+                                            color: #ffffff;
+                                        }
+                                        #reader-view-content p,
+                                        #reader-view-content li,
+                                        #reader-view-content span,
+                                        #reader-view-content div {
+                                            color: #ffffff !important;
+                                            background-color: transparent !important;
+                                        }
+                                        #reader-view-content h1,
+                                        #reader-view-content h2,
+                                        #reader-view-content h3,
+                                        #reader-view-content h4,
+                                        #reader-view-content h5,
+                                        #reader-view-content h6,
+                                        #reader-view-content strong,
+                                        #reader-view-content b {
+                                            color: #ffffff !important;
+                                        }
+                                        #reader-view-content a {
+                                            color: #60a5fa !important; /* blue-400 */
+                                        }
+                                        #reader-view-content pre,
+                                        #reader-view-content code {
+                                            background-color: #374151 !important; /* gray-700 */
+                                            color: #e5e7eb !important;
+                                        }
+                                        #reader-view-content blockquote {
+                                            border-left-color: #4b5563 !important; /* gray-600 */
+                                            color: #9ca3af !important; /* gray-400 */
+                                        }
+                                    }
+                                `}</style>
+                                <div id="reader-view-content" ref={contentRef}
+                                    className="prose prose-lg max-w-none text-gray-800 dark:text-gray-100 dark:prose-invert leading-relaxed select-text"
                                     dangerouslySetInnerHTML={{ __html: content.content }}
                                 />
                             </article>

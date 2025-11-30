@@ -81,7 +81,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             </button>
 
             {/* Main Content Area */}
-            <div ref={mainContentRef} className={`flex-1 bg-neutral-50 bg-paper-texture ${!isSidebarCollapsed && isMdUp ? 'md:ml-80' : ''}`}>
+            <div ref={mainContentRef} className={`flex-1 bg-neutral-50 dark:bg-midnight-bg bg-paper-texture dark:bg-none ${!isSidebarCollapsed && isMdUp ? 'md:ml-80' : ''}`}>
                 <div className="w-full max-w-3xl mx-auto px-2 md:px-8">
                     {children}
                 </div>
