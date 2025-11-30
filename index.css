@@ -37,6 +37,12 @@
   }
 }
 
+/* Ensure root background matches theme to prevent white flashes in PWA */
+html,
+body {
+  @apply bg-gray-50 dark:bg-midnight-bg;
+}
+
 
 /* index.css */
 
