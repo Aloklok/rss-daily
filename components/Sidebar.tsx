@@ -74,7 +74,7 @@ const Sidebar = React.memo<SidebarProps>(({
     const tabButtonClass = (isActive: boolean) => `text-sm font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400 rounded-md py-2 ${isActive ? 'bg-white shadow-sm text-gray-900 dark:bg-midnight-selected dark:text-white' : 'text-gray-500 hover:bg-gray-100 dark:text-midnight-text-secondary dark:hover:bg-midnight-card'}`;
 
     return (
-        <aside className="flex flex-col flex-shrink-0 bg-gray-50/90 dark:bg-midnight-sidebar/95 backdrop-blur-md w-full h-full md:w-80 p-4 space-y-4 relative">
+        <aside className="flex flex-col flex-shrink-0 bg-gray-50 dark:bg-midnight-sidebar w-full h-full md:w-80 p-4 space-y-4 relative">
             <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
                     <img src="/computer_cat.jpeg" alt="Logo" className="w-20 h-20 rounded-full object-cover" />
