@@ -30,7 +30,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
     }, [isSidebarCollapsed, isMdUp]);
 
     return (
-        <div className="flex flex-col md:flex-row min-h-screen font-sans">
+        <div className="flex flex-col md:flex-row min-h-screen font-sans bg-gray-50 dark:bg-midnight-bg">
             {/* Mobile Overlay */}
             {!isSidebarCollapsed && !isMdUp && (
                 <div
