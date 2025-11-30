@@ -37,6 +37,12 @@ export default {
           'text-primary': '#ffffff',
           'text-secondary': '#9ca3af', // Gray-400
           badge: '#374151',     // Gray-700
+          callout: {
+            pink: { bg: '#291d24', title: '#eecddf', body: '#dcb5c9' },
+            blue: { bg: '#1d2229', title: '#cde1ee', body: '#b5cbdc' },
+            orange: { bg: '#29221d', title: '#eeddcd', body: '#dcc7b5' },
+            green: { bg: '#1d2922', title: '#cdeed6', body: '#b5dcb9' },
+          }
         },
       },
     },
