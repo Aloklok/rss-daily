@@ -176,6 +176,10 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedRepor
             const datePart = dateObj.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });
             const weekdayPart = dateObj.toLocaleDateString('zh-CN', { weekday: 'long' });
 
+            // Use the date string as a seed for the random image to ensure it stays the same for that date
+            const seed = activeFilter.value;
+            const bgImage = `https://picsum.photos/seed/${seed}/1200/600`;
+
             const now = new Date();
             const currentHour = now.getHours();
 
@@ -187,42 +191,43 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedRepor
             const autoSelectedSlot = isToday ? getCurrentTimeSlot() : null;
 
             return (
-                <header className={`relative mb-6 md:mb-10 overflow-hidden rounded-3xl shadow-2xl transition-all duration-500 hover:shadow-3xl group`}>
-                    {/* Background Gradient & Texture */}
-                    <div className={`absolute inset-0 bg-gradient-to-br ${randomGradient} opacity-95`}></div>
-                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+                <header className="relative mb-8 overflow-hidden rounded-2xl shadow-md transition-all duration-500 hover:shadow-xl group border border-gray-200 dark:border-midnight-border">
+                    {/* Background Image with Overlay */}
+                    <div className="absolute inset-0 z-0">
+                        <img
+                            src={bgImage}
+                            alt="Daily Background"
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        />
+                        {/* Dark Gradient Overlay for Text Readability */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30"></div>
+                    </div>
 
-                    {/* Glassmorphism Overlay */}
-                    <div className="absolute inset-0 bg-white/5 backdrop-blur-[1px]"></div>
-
-                    <div className="relative p-5 md:p-8 flex flex-col gap-6">
+                    <div className="relative z-10 p-6 md:p-8 flex flex-col gap-8">
 
                         {/* Top Row: Date & Time Slot Selector */}
-                        <div className="relative block md:flex md:justify-between items-start">
-                            {/* Left: Date */}
-                            <div>
-                                <h1 className="text-4xl md:text-6xl font-serif font-bold text-white tracking-tight drop-shadow-sm">
+                        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
+                            {/* Left: Date - Structured Layout (White Text) */}
+                            <div className="flex flex-col gap-2 text-white">
+                                <h1 className="text-5xl md:text-6xl font-serif font-medium tracking-tight leading-none drop-shadow-md mb-2">
                                     {isToday ? '今天' : datePart}
                                 </h1>
-                                <div className="mt-4 inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white/90 px-3 py-1 rounded-full text-base md:text-lg font-medium whitespace-nowrap">
-                                    {isToday ? (
+                                <div className="flex items-center gap-2 text-sm md:text-base text-white/95 drop-shadow-sm bg-white/20 px-4 py-1.5 rounded-full self-start">
+                                    {isToday && (
                                         <>
                                             <span>{datePart}</span>
                                             <span className="w-1 h-1 rounded-full bg-white/60"></span>
-                                            <span>{weekdayPart}</span>
                                         </>
-                                    ) : (
-                                        <span>{weekdayPart}</span>
                                     )}
+                                    <span>{weekdayPart}</span>
                                 </div>
                             </div>
 
-                            {/* Right: Time Slot Selector */}
+                            {/* Right: Time Slot Selector - More Visible */}
                             {activeFilter?.type === 'date' && (
-                                <div className="mt-5 flex gap-4 md:mt-0 md:static md:bg-white/20 md:backdrop-blur-md md:rounded-full md:p-1 md:flex md:gap-1">
+                                <div className="flex items-center gap-1 self-start bg-white/20 p-1 rounded-full">
                                     {(['morning', 'afternoon', 'evening'] as const).map(slotOption => {
                                         const labelMap: Record<'morning' | 'afternoon' | 'evening', string> = { morning: '早上', afternoon: '中午', evening: '晚上' };
-                                        const mobileLabelMap: Record<'morning' | 'afternoon' | 'evening', string> = { morning: '早', afternoon: '中', evening: '晚' };
                                         const isSelected = timeSlot === slotOption || (timeSlot === null && autoSelectedSlot === slotOption);
 
                                         return (
@@ -230,17 +235,14 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedRepor
                                                 key={slotOption}
                                                 onClick={() => onTimeSlotChange(isSelected ? null : slotOption)}
                                                 className={`
-                                                    relative transition-all duration-300 ease-out flex-shrink-0
-                                                    w-10 h-10 rounded-full flex items-center justify-center text-lg font-serif font-bold
-                                                    md:w-auto md:h-auto md:px-6 md:py-2.5 md:rounded-full md:text-base md:font-sans
+                                                    relative px-5 py-2 rounded-full text-xs transition-all duration-300
                                                     ${isSelected
-                                                        ? 'bg-white text-indigo-900 shadow-lg ring-2 ring-white/50 scale-105 z-10 md:shadow-sm md:ring-0 md:scale-100'
-                                                        : 'text-white/90 bg-white/10 border border-white/20 backdrop-blur-sm hover:bg-white/20 hover:text-white md:bg-transparent md:border-none md:backdrop-blur-none md:hover:bg-white/10'
+                                                        ? 'bg-white text-black font-bold shadow-sm'
+                                                        : 'text-white hover:bg-white/10 font-medium'
                                                     }
                                                 `}
                                             >
-                                                <span className="md:hidden">{mobileLabelMap[slotOption]}</span>
-                                                <span className="hidden md:inline">{labelMap[slotOption]}</span>
+                                                {labelMap[slotOption]}
                                             </button>
                                         );
                                     })}
@@ -248,15 +250,15 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedRepor
                             )}
                         </div>
 
-                        {/* Bottom Row: Greeting (Full Width) */}
-                        <div className="w-full pt-2 border-t border-white/10">
-                            <p className="text-base md:text-xl text-white/95 font-serif font-bold leading-relaxed">
+                        {/* Bottom Row: Greeting & Count - Unified (White Text) with Separator */}
+                        <div className="pt-4 border-t border-white/20">
+                            <p className="text-base md:text-lg text-white/95 leading-relaxed font-serif flex items-center gap-3 drop-shadow-sm">
                                 {isToday ? (
                                     <span>{getGreeting()}，欢迎阅读今日简报</span>
                                 ) : (
                                     <span>欢迎阅读本期简报</span>
                                 )}
-                                {articleCount > 0 && <span className="ml-1">，共 {articleCount} 篇文章。</span>}
+                                {articleCount > 0 && <span>，共 {articleCount} 篇文章。</span>}
                             </p>
                         </div>
                     </div>

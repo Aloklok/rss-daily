@@ -71,19 +71,19 @@ const Sidebar = React.memo<SidebarProps>(({
         await Promise.all([refreshFiltersPromise, refreshStarredPromise]);
     };
 
-    const tabButtonClass = (isActive: boolean) => `text-sm font-semibold transition-colors duration-200 focus:outline-none rounded-md py-2 ${isActive ? 'bg-white shadow-sm text-gray-900 dark:bg-midnight-selected dark:text-white' : 'text-gray-500 hover:bg-gray-100 dark:text-midnight-text-secondary dark:hover:bg-midnight-card'}`;
+    const tabButtonClass = (isActive: boolean) => `flex-1 text-sm font-medium transition-all duration-200 focus:outline-none rounded-md py-1.5 ${isActive ? 'bg-white shadow-sm text-gray-900 dark:bg-midnight-selected dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:text-midnight-text-secondary dark:hover:text-gray-300'}`;
 
     return (
-        <aside className="flex flex-col flex-shrink-0 bg-gray-50 dark:bg-midnight-sidebar w-full h-full md:w-80 p-4 space-y-4 relative">
-            <div className="flex justify-between items-center">
+        <aside className="flex flex-col flex-shrink-0 bg-gray-50 dark:bg-midnight-sidebar w-full h-full md:w-80 p-4 space-y-6 relative border-r border-gray-200 dark:border-midnight-border">
+            <div className="flex justify-between items-center px-1">
                 <div className="flex items-center gap-3">
-                    <img src="/computer_cat.jpeg" alt="Logo" className="w-20 h-20 rounded-full object-cover" />
-                    <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 via-pink-500 to-orange-500 pr-1 leading-tight">
+                    <img src="/computer_cat.jpeg" alt="Logo" className="w-12 h-12 rounded-full object-cover shadow-sm" />
+                    <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 via-pink-500 to-orange-500 leading-tight tracking-tight">
                         Briefing<br />Hub
                     </h1>
                 </div>
-                <button onClick={handleRefreshClick} disabled={isLoading} className="p-2 rounded-full hover:bg-gray-200 transition-colors disabled:cursor-wait">
-                    <svg className={`h-5 w-5 text-gray-600 ${isLoading ? 'animate-spin' : ''}`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <button onClick={handleRefreshClick} disabled={isLoading} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-midnight-card transition-colors disabled:cursor-wait text-gray-500 dark:text-gray-400">
+                    <svg className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582A7.962 7.962 0 0112 4.062a8.002 8.002 0 018 8.002 8.002 8.002 0 01-8 8.002A7.962 7.962 0 014.582 15H4v5" />
                     </svg>
                 </button>
@@ -97,11 +97,11 @@ const Sidebar = React.memo<SidebarProps>(({
                 />
             )}
 
-            <div className="flex items-center gap-2 p-1 bg-gray-200 dark:bg-midnight-card rounded-lg">
-                <button className={`flex-1 ${tabButtonClass(activeTab === 'filters')}`} onClick={() => setActiveTab('filters')}>
+            <div className="bg-gray-200/50 dark:bg-midnight-card/50 p-1 rounded-lg flex">
+                <button className={tabButtonClass(activeTab === 'filters')} onClick={() => setActiveTab('filters')}>
                     <div className="flex justify-center items-center gap-2"><span>🏷️</span><span>分类</span></div>
                 </button>
-                <button className={`flex-1 ${tabButtonClass(activeTab === 'calendar')}`} onClick={() => setActiveTab('calendar')}>
+                <button className={tabButtonClass(activeTab === 'calendar')} onClick={() => setActiveTab('calendar')}>
                     <div className="flex justify-center items-center gap-2"><span>📅</span><span>日历</span></div>
                 </button>
             </div>
@@ -127,6 +127,7 @@ const Sidebar = React.memo<SidebarProps>(({
                         availableFilters={availableFilters}
                         activeFilter={activeFilter}
                         onFilterSelect={setActiveFilter}
+                        selectedArticleId={selectedArticleId}
                     />
                 </div>
                 <div className={activeTab === 'calendar' ? 'block h-full' : 'hidden'}>
