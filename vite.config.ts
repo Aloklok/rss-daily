@@ -12,10 +12,13 @@ export default defineConfig({
       // 1. 基本 PWA 配置
       registerType: 'autoUpdate',
       injectRegister: 'auto',
+      devOptions: {
+        enabled: true
+      },
 
       // 2. Workbox 缓存策略 (保持不变)
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg}'],
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
@@ -29,7 +32,7 @@ export default defineConfig({
           },
         ],
       },
-      
+
       // 3. Web App Manifest (保持不变)
       manifest: {
         short_name: 'Briefing Hub',
@@ -58,7 +61,7 @@ export default defineConfig({
             purpose: 'any maskable'
           }
         ],
-        
+
       },
 
     }),
