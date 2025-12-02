@@ -42,15 +42,28 @@ export const useFilters = () => {
     useEffect(() => {
         const fetchInitialFilterData = async () => {
             const today = getTodayInShanghai();
-            if (today) {
-                const initialFilter = { type: 'date' as const, value: today };
-                // 【改】直接调用简单的 setActiveFilter，它会自动处理 timeSlot
-                setActiveFilter(initialFilter);
 
-                sessionStorage.setItem(CACHE_KEY_ACTIVE_FILTER, JSON.stringify(initialFilter));
-                const cachedMonth = sessionStorage.getItem(CACHE_KEY_SELECTED_MONTH);
-                const month = cachedMonth ? JSON.parse(cachedMonth) : today.substring(0, 7);
-                setSelectedMonth(month);
+            // Check if URL has a date
+            const dateMatch = window.location.pathname.match(/^\/date\/(\d{4}-\d{2}-\d{2})\/?$/);
+
+            if (dateMatch) {
+                const urlDate = dateMatch[1];
+                const dateFilter = { type: 'date' as const, value: urlDate };
+                setActiveFilter(dateFilter);
+                setSelectedMonth(urlDate.substring(0, 7));
+                sessionStorage.setItem(CACHE_KEY_ACTIVE_FILTER, JSON.stringify(dateFilter));
+                sessionStorage.setItem(CACHE_KEY_SELECTED_MONTH, JSON.stringify(urlDate.substring(0, 7)));
+            } else if (today) {
+                const initialFilter = { type: 'date' as const, value: today };
+
+                // Only set default filter if we are at root (homepage)
+                if (window.location.pathname === '/') {
+                    setActiveFilter(initialFilter);
+                    sessionStorage.setItem(CACHE_KEY_ACTIVE_FILTER, JSON.stringify(initialFilter));
+                    const cachedMonth = sessionStorage.getItem(CACHE_KEY_SELECTED_MONTH);
+                    const month = cachedMonth ? JSON.parse(cachedMonth) : today.substring(0, 7);
+                    setSelectedMonth(month);
+                }
             }
 
             try {

@@ -224,10 +224,11 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedRepor
                             </div>
 
                             {/* Right: Time Slot Selector - More Visible */}
+                            {/* Right: Time Slot Selector - Circular Design */}
                             {activeFilter?.type === 'date' && (
-                                <div className="flex items-center gap-1 self-start bg-white/20 p-1 rounded-full">
+                                <div className="flex items-center gap-3 self-start">
                                     {(['morning', 'afternoon', 'evening'] as const).map(slotOption => {
-                                        const labelMap: Record<'morning' | 'afternoon' | 'evening', string> = { morning: '早上', afternoon: '中午', evening: '晚上' };
+                                        const labelMap: Record<'morning' | 'afternoon' | 'evening', string> = { morning: '早', afternoon: '中', evening: '晚' };
                                         const isSelected = timeSlot === slotOption || (timeSlot === null && autoSelectedSlot === slotOption);
 
                                         return (
@@ -235,12 +236,13 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedRepor
                                                 key={slotOption}
                                                 onClick={() => onTimeSlotChange(isSelected ? null : slotOption)}
                                                 className={`
-                                                    relative px-5 py-2 rounded-full text-xs transition-all duration-300
+                                                    w-10 h-10 rounded-full flex items-center justify-center text-sm font-serif transition-all duration-300 border border-white/20
                                                     ${isSelected
-                                                        ? 'bg-white text-black font-bold shadow-sm'
-                                                        : 'text-white hover:bg-white/10 font-medium'
+                                                        ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)] scale-110 border-white'
+                                                        : 'bg-black/20 text-white/90 hover:bg-white/20 hover:border-white/40 backdrop-blur-md'
                                                     }
                                                 `}
+                                                title={slotOption === 'morning' ? '早上' : slotOption === 'afternoon' ? '中午' : '晚上'}
                                             >
                                                 {labelMap[slotOption]}
                                             </button>
@@ -252,7 +254,7 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedRepor
 
                         {/* Bottom Row: Greeting & Count - Unified (White Text) with Separator */}
                         <div className="pt-4 border-t border-white/20">
-                            <p className="text-base md:text-lg text-white/95 leading-relaxed font-serif flex items-center gap-3 drop-shadow-sm">
+                            <p className="text-base md:text-lg text-white/95 leading-relaxed font-serif drop-shadow-sm">
                                 {isToday ? (
                                     <span>{getGreeting()}，欢迎阅读今日简报</span>
                                 ) : (

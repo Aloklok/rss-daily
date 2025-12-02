@@ -50,6 +50,7 @@ export const MainContent: React.FC<MainContentProps> = ({
     onOpenFromList
 }) => {
     // Only show global spinner if NOT in date view
+    console.log('MainContent Debug:', { isLoading, activeFilter, sidebarArticle });
     if (isLoading && activeFilter?.type !== 'date') {
         return <LoadingSpinner />;
     }

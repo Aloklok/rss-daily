@@ -63,8 +63,9 @@ const App: React.FC = () => {
     const viewMode = searchParams.get('view') || 'modal'; // 'modal' (default) or 'page'
 
     // Date Routing
-    const dateMatch = useMatch('/date/:date');
-    const dateFromUrl = dateMatch?.params.date;
+    // Manual parsing to ensure reliability
+    const dateMatch = location.pathname.match(/^\/date\/(\d{4}-\d{2}-\d{2})\/?$/);
+    const dateFromUrl = dateMatch ? dateMatch[1] : undefined;
 
     // Decode first (in case of encoded chars), then convert to full ID
     const rawIdFromUrl = match?.params.id ? decodeURIComponent(match.params.id) : undefined;
@@ -86,6 +87,17 @@ const App: React.FC = () => {
         : (selectedArticleId ? articlesById[selectedArticleId] : null);
 
     const modalInitialMode = (searchParams.get('mode') as 'briefing' | 'reader') || 'briefing';
+
+    // Debug logging
+    useEffect(() => {
+        console.log('App Debug:', {
+            pathname: location.pathname,
+            dateFromUrl,
+            activeFilter,
+            sidebarArticle,
+            modalArticle
+        });
+    }, [location.pathname, dateFromUrl, activeFilter, sidebarArticle, modalArticle]);
 
     // Actions
     const {
