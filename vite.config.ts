@@ -30,6 +30,21 @@ export default defineConfig({
               },
             },
           },
+          {
+            // Cache daily photos from picsum
+            urlPattern: /^https:\/\/picsum\.photos\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'daily-photos-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 Days
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
         ],
       },
 

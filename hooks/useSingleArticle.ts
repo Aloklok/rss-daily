@@ -32,6 +32,10 @@ export const useSingleArticle = (articleId: string | undefined) => {
             } as Article;
         },
         enabled: !!articleId,
-        staleTime: 1000 * 60 * 5, // 5 minutes
+        // Article content (body, title) is immutable.
+        // Metadata (tags, state) is managed via optimistic updates in the store.
+        // Therefore, we can cache the fetch result indefinitely to avoid unnecessary network requests.
+        staleTime: Infinity,
     });
 };
+
