@@ -4,10 +4,10 @@ import { getSupabaseClient } from './_utils.js';
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     const supabase = getSupabaseClient();
 
-    // 1. Fetch all available dates with content
+    // 1. Fetch all available dates and article IDs
     const { data, error } = await supabase
         .from('articles')
-        .select('n8n_processing_date')
+        .select('id, n8n_processing_date')
         .order('n8n_processing_date', { ascending: false });
 
     if (error) {
@@ -15,8 +15,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(500).send('Error generating sitemap');
     }
 
-    // 2. Process dates (deduplicate and format)
+    // 2. Process data
     const dateSet = new Set<string>();
+    const articleIds: string[] = [];
+
     if (data) {
         const formatter = new Intl.DateTimeFormat('en-CA', { // YYYY-MM-DD
             year: 'numeric',
@@ -30,11 +32,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 const date = new Date(item.n8n_processing_date);
                 dateSet.add(formatter.format(date));
             }
+            if (item.id) {
+                articleIds.push(item.id);
+            }
         });
     }
 
     const dates = Array.from(dateSet);
-    const baseUrl = 'https://alok-rss.top'; // Hardcoded base URL as per existing sitemap
+    const baseUrl = 'https://alok-rss.top';
 
     // 3. Generate XML
     const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
@@ -50,11 +55,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>`).join('')}
+  ${articleIds.map(id => `
+  <url>
+    <loc>${baseUrl}/article/${id}</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>`).join('')}
 </urlset>`;
 
     // 4. Send response
     res.setHeader('Content-Type', 'application/xml');
-    // Cache for 1 hour (s-maxage=3600), stale-while-revalidate for 1 day
-    res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
+    // Cache for 24 hours (s-maxage=86400), stale-while-revalidate for 1 day
+    res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate=86400');
     return res.status(200).send(sitemap);
 }
