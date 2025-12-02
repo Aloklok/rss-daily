@@ -2,6 +2,25 @@
 export default function middleware(request: Request) {
 
     const url = new URL(request.url);
+    const userAgent = request.headers.get('user-agent') || '';
+
+    // 0. Anti-Scraping: Block specific AI bots and scrapers
+    const BLOCKED_AGENTS = [
+        'GPTBot',
+        'ChatGPT-User',
+        'CCBot',
+        'anthropic-ai',
+        'Claude-Web',
+        'Google-Extended'
+    ];
+
+    if (BLOCKED_AGENTS.some(agent => userAgent.includes(agent))) {
+        return new Response('Access Denied: Automated access is not permitted.', {
+            status: 403,
+            headers: { 'Content-Type': 'text/plain' }
+        });
+    }
+
     const accessToken = process.env.ACCESS_TOKEN;
 
     if (!accessToken) {
