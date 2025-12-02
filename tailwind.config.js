@@ -29,19 +29,21 @@ export default {
       },
       colors: {
         midnight: {
-          bg: '#1C2A2A',        // Slate-900 (Dark Blue)
+          bg: '#F2F0E4',        // Slate-900 (Dark Blue)
           sidebar: '#2A2A4A',   // Gray-900
           card: '#1f2937',      // Gray-800
           selected: '#db2777',  // Pink-600
           border: '#1f2937',    // Gray-800
-          'text-primary': '#ffffff',
+          'text-primary': '#000000',
           'text-secondary': '#9ca3af', // Gray-400
+          'text-title': '#000000',     // Stone-100
+          'metadata-bg': '#E8E8E0',    // White
           badge: '#374151',     // Gray-700
           callout: {
-            pink: { bg: '#291d24', title: '#eecddf', body: '#ffffff' },
-            blue: { bg: '#1d2229', title: '#cde1ee', body: '#ffffff' },
-            orange: { bg: '#29221d', title: '#eeddcd', body: '#ffffff' },
-            green: { bg: '#1d2922', title: '#cdeed6', body: '#ffffff' },
+            pink: { bg: '#fce7f3', title: '#500724', body: '#831843' },
+            blue: { bg: '#dbeafe', title: '#172554', body: '#1e3a8a' },
+            orange: { bg: '#ffedd5', title: '#431407', body: '#7c2d12' },
+            green: { bg: '#dcfce7', title: '#052e16', body: '#14532d' },
           }
         },
       },

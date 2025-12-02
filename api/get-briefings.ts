@@ -93,6 +93,6 @@ async function getBriefings(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json(groupedArticles);
 }
 
-import { withCache } from './_cache';
+import { withCache } from './_cache.js';
 
 export default apiHandler(['GET'], withCache(getBriefings));

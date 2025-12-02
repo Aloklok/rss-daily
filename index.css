@@ -30,17 +30,14 @@
 
 @media (prefers-color-scheme: dark) {
   body {
-    background-color: #111827;
-    /* gray-900 */
-    color: #e2e8f0;
-    /* slate-200 */
+    @apply bg-midnight-bg text-slate-200;
   }
 }
 
 /* Ensure root background matches theme to prevent white flashes in PWA */
 html,
 body {
-  @apply bg-gray-50 dark:bg-midnight-bg;
+  @apply bg-gray-50;
 }
 
 

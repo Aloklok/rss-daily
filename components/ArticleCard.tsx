@@ -10,10 +10,10 @@ import { STAR_TAG, READ_TAG } from '../constants';
 
 const CALLOUT_THEMES = { '一句话总结': { icon: '📝', color: 'pink' }, '技术洞察': { icon: '🔬', color: 'blue' }, '值得注意': { icon: '⚠️', color: 'brown' }, '市场观察': { icon: '📈', color: 'green' } } as const;
 const calloutCardClasses = {
-    pink: { bg: 'bg-pink-100 dark:bg-midnight-callout-pink-bg', title: 'text-pink-950 dark:text-midnight-callout-pink-title', body: 'text-pink-900 dark:text-midnight-callout-pink-body', emphasis: 'font-bold text-violet-700 dark:text-violet-400' },
-    blue: { bg: 'bg-blue-100 dark:bg-midnight-callout-blue-bg', title: 'text-blue-950 dark:text-midnight-callout-blue-title', body: 'text-blue-900 dark:text-midnight-callout-blue-body', emphasis: 'font-bold text-violet-700 dark:text-violet-400' },
-    brown: { bg: 'bg-orange-100 dark:bg-midnight-callout-orange-bg', title: 'text-orange-950 dark:text-midnight-callout-orange-title', body: 'text-orange-900 dark:text-midnight-callout-orange-body', emphasis: 'font-bold text-violet-700 dark:text-violet-400' },
-    green: { bg: 'bg-green-100 dark:bg-midnight-callout-green-bg', title: 'text-green-950 dark:text-midnight-callout-green-title', body: 'text-green-900 dark:text-midnight-callout-green-body', emphasis: 'font-bold text-violet-700 dark:text-violet-400' }
+    pink: { bg: 'bg-pink-100 dark:bg-midnight-callout-pink-bg', title: 'text-pink-950 dark:text-midnight-callout-pink-title', body: 'text-pink-900 dark:text-midnight-callout-pink-body', emphasis: 'font-bold text-violet-700' },
+    blue: { bg: 'bg-blue-100 dark:bg-midnight-callout-blue-bg', title: 'text-blue-950 dark:text-midnight-callout-blue-title', body: 'text-blue-900 dark:text-midnight-callout-blue-body', emphasis: 'font-bold text-violet-700' },
+    brown: { bg: 'bg-orange-100 dark:bg-midnight-callout-orange-bg', title: 'text-orange-950 dark:text-midnight-callout-orange-title', body: 'text-orange-900 dark:text-midnight-callout-orange-body', emphasis: 'font-bold text-violet-700' },
+    green: { bg: 'bg-green-100 dark:bg-midnight-callout-green-bg', title: 'text-green-950 dark:text-midnight-callout-green-title', body: 'text-green-900 dark:text-midnight-callout-green-body', emphasis: 'font-bold text-violet-700' }
 };
 const parseBold = (text: string, emphasisClass: string = 'font-semibold text-current') => { if (!text) return ''; const parts = text.split(/\*\*(.*?)\*\*/g); return parts.map((part, i) => i % 2 === 1 ? <strong key={i} className={emphasisClass}>{part}</strong> : part); };
 
@@ -29,7 +29,7 @@ const IconCircle: React.FC = memo(() => (<svg xmlns="http://www.w3.org/2000/svg"
 IconCircle.displayName = 'IconCircle';
 
 interface CalloutProps { title: keyof typeof CALLOUT_THEMES; content: string; }
-const Callout: React.FC<CalloutProps> = memo(({ title, content }) => { const theme = CALLOUT_THEMES[title]; const colors = calloutCardClasses[theme.color]; return (<aside className={`rounded-2xl p-6 backdrop-blur-lg ring-1 ring-white/30 ${colors.bg}`}><div className="flex items-center gap-x-3 mb-3"><span className="text-2xl">{theme.icon}</span><h4 className={`text-lg font-bold ${colors.title}`}>{title}</h4></div><div className={`${colors.body} text-[15px] leading-relaxed font-medium`}>{parseBold(content, colors.emphasis)}</div></aside>); });
+const Callout: React.FC<CalloutProps> = memo(({ title, content }) => { const theme = CALLOUT_THEMES[title]; const colors = calloutCardClasses[theme.color]; return (<aside className={`rounded-2xl p-6 ${colors.bg}`}><div className="flex items-center gap-x-3 mb-3"><span className="text-2xl">{theme.icon}</span><h4 className={`text-lg font-bold ${colors.title}`}>{title}</h4></div><div className={`${colors.body} text-[15px] leading-relaxed font-medium`}>{parseBold(content, colors.emphasis)}</div></aside>); });
 Callout.displayName = 'Callout';
 
 interface ActionButtonsProps {
@@ -181,17 +181,17 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, onReaderModeRequest,
     return (
         <article className="py-2 transition-opacity duration-300">
             <header className="mb-10">
-                <h3 className="text-2xl lg:text-2xl font-bold font-serif text-stone-900 dark:text-stone-100 mb-6 leading-tight flex items-center gap-x-3">
+                <h3 className="text-2xl lg:text-2xl font-bold font-serif text-stone-900 dark:text-midnight-text-title mb-6 leading-tight flex items-center gap-x-3">
                     {isStarred && <span className="text-amber-400 text-2xl" title="已收藏">⭐️</span>}
                     <span>{article.title}</span>
                 </h3>
-                <div className="bg-gray-100 dark:bg-midnight-card/50 p-6 rounded-lg border border-gray-200 dark:border-midnight-badge space-y-3">
-                    <div className="text-sm text-black dark:text-gray-200 flex items-center flex-wrap gap-x-4">
+                <div className="bg-gray-100 dark:bg-midnight-metadata-bg p-6 rounded-lg border border-gray-200 dark:border-midnight-badge space-y-3">
+                    <div className="text-sm text-black flex items-center flex-wrap gap-x-4">
                         <span>{article.sourceName}</span>
                         <span>&bull;</span>
                         <span>发布于 {publishedDate}</span>
                     </div>
-                    <div className="text-sm text-stone-600 dark:text-stone-400 flex items-center flex-wrap">
+                    <div className="text-sm text-stone-600 flex items-center flex-wrap">
                         <span className="font-medium mr-2">{article.verdict.type}</span>
                         <span className="mr-2">&bull;</span>
                         <span className="font-medium mr-2">{article.category}</span>

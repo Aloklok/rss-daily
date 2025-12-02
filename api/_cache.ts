@@ -5,12 +5,15 @@ import { VercelRequest, VercelResponse } from '@vercel/node';
 
 const CACHE_DIR = path.join(process.cwd(), '.cache');
 
+
+
 // Ensure cache directory exists
-if (process.env.NODE_ENV === 'development' && !fs.existsSync(CACHE_DIR)) {
+if (!fs.existsSync(CACHE_DIR)) {
     try {
+
         fs.mkdirSync(CACHE_DIR, { recursive: true });
     } catch (e) {
-        console.error('Failed to create cache directory:', e);
+        console.error('[DEV CACHE] Failed to create cache directory:', e);
     }
 }
 
@@ -18,16 +21,31 @@ export function withCache(
     handler: (req: VercelRequest, res: VercelResponse) => Promise<any>
 ) {
     return async (req: VercelRequest, res: VercelResponse) => {
-        // Only cache in development mode
-        if (process.env.NODE_ENV !== 'development') {
+
+
+        // Only cache in development mode (or if we force it for debugging)
+        // Relaxed check: allow if NODE_ENV is undefined (common in local) or 'development'
+        const isDev = !process.env.NODE_ENV || process.env.NODE_ENV === 'development';
+
+        if (!isDev) {
             return handler(req, res);
         }
 
-        // Generate cache key based on URL and query parameters
+        // Generate cache key based on URL path and query parameters (excluding _t)
+        const urlPath = (req.url || '').split('?')[0];
+        const queryParams = { ...req.query };
+        delete queryParams._t; // Remove timestamp to allow caching
+
+        // Sort keys to ensure consistent hash
+        const sortedQuery = Object.keys(queryParams).sort().reduce((acc, key) => {
+            acc[key] = queryParams[key];
+            return acc;
+        }, {} as Record<string, any>);
+
         const key = crypto
             .createHash('md5')
-            .update(req.url || '')
-            .update(JSON.stringify(req.query))
+            .update(urlPath)
+            .update(JSON.stringify(sortedQuery))
             .digest('hex');
 
         const cacheFile = path.join(CACHE_DIR, `${key}.json`);
@@ -38,7 +56,7 @@ export function withCache(
                 const cachedData = fs.readFileSync(cacheFile, 'utf-8');
                 const { body, headers } = JSON.parse(cachedData);
 
-                console.log(`[DEV CACHE] Hit: ${req.url}`);
+
 
                 // Restore headers
                 if (headers) {
@@ -53,22 +71,25 @@ export function withCache(
             }
         }
 
-        console.log(`[DEV CACHE] Miss: ${req.url}`);
+
 
         // Intercept response to cache it
         const originalJson = res.json;
 
         res.json = function (body: any) {
-            try {
-                // Save to cache
-                fs.writeFileSync(cacheFile, JSON.stringify({
-                    body,
-                    headers: res.getHeaders(),
-                    timestamp: Date.now()
-                }));
-                console.log(`[DEV CACHE] Saved: ${req.url}`);
-            } catch (e) {
-                console.error('[DEV CACHE] Error writing cache:', e);
+            // Only cache successful responses
+            if (res.statusCode === 200) {
+                try {
+                    // Save to cache
+                    fs.writeFileSync(cacheFile, JSON.stringify({
+                        body,
+                        headers: res.getHeaders(),
+                        timestamp: Date.now()
+                    }));
+
+                } catch (e) {
+                    console.error('[DEV CACHE] Error writing cache:', e);
+                }
             }
 
             return originalJson.call(this, body);

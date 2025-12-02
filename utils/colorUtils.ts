@@ -1,24 +1,28 @@
 // src/utils/colorUtils.ts
 
 const TAG_COLOR_CLASSES = [
-  'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200',
-  'bg-red-100 text-red-800 dark:bg-red-900/60 dark:text-red-200',
-  'bg-orange-100 text-orange-800 dark:bg-orange-900/60 dark:text-orange-200',
-  'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200',
-  'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/60 dark:text-yellow-200',
-  'bg-lime-100 text-lime-800 dark:bg-lime-900/60 dark:text-lime-200',
-  'bg-green-100 text-green-800 dark:bg-green-900/60 dark:text-green-200',
-  'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200',
-  'bg-teal-100 text-teal-800 dark:bg-teal-900/60 dark:text-teal-200',
-  'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/60 dark:text-cyan-200',
-  'bg-sky-100 text-sky-800 dark:bg-sky-900/60 dark:text-sky-200',
-  'bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-200',
-  'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/60 dark:text-indigo-200',
-  'bg-violet-100 text-violet-800 dark:bg-violet-900/60 dark:text-violet-200',
-  'bg-purple-100 text-purple-800 dark:bg-purple-900/60 dark:text-purple-200',
-  'bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-900/60 dark:text-fuchsia-200',
-  'bg-pink-100 text-pink-800 dark:bg-pink-900/60 dark:text-pink-200',
-  'bg-rose-100 text-rose-800 dark:bg-rose-900/60 dark:text-rose-200'
+  'bg-slate-100 text-slate-800 dark:bg-slate-200 dark:text-slate-900',
+  'bg-red-100 text-red-800 dark:bg-red-200 dark:text-red-900',
+  'bg-orange-100 text-orange-800 dark:bg-orange-200 dark:text-orange-900',
+  'bg-amber-100 text-amber-800 dark:bg-amber-200 dark:text-amber-900',
+  'bg-yellow-100 text-yellow-800 dark:bg-yellow-200 dark:text-yellow-900',
+  'bg-lime-100 text-lime-800 dark:bg-lime-200 dark:text-lime-900',
+  'bg-green-100 text-green-800 dark:bg-green-200 dark:text-green-900',
+  'bg-emerald-100 text-emerald-800 dark:bg-emerald-200 dark:text-emerald-900',
+  'bg-teal-100 text-teal-800 dark:bg-teal-200 dark:text-teal-900',
+  'bg-cyan-100 text-cyan-800 dark:bg-cyan-200 dark:text-cyan-900',
+  'bg-sky-100 text-sky-800 dark:bg-sky-200 dark:text-sky-900',
+  'bg-blue-100 text-blue-800 dark:bg-blue-200 dark:text-blue-900',
+  'bg-indigo-100 text-indigo-800 dark:bg-indigo-200 dark:text-indigo-900',
+  'bg-violet-100 text-violet-800 dark:bg-violet-200 dark:text-violet-900',
+  'bg-purple-100 text-purple-800 dark:bg-purple-200 dark:text-purple-900',
+  'bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-200 dark:text-fuchsia-900',
+  'bg-pink-100 text-pink-800 dark:bg-pink-200 dark:text-pink-900',
+  'bg-rose-100 text-rose-800 dark:bg-rose-200 dark:text-rose-900',
+  'bg-gray-100 text-gray-800 dark:bg-gray-200 dark:text-gray-900',
+  'bg-zinc-100 text-zinc-800 dark:bg-zinc-200 dark:text-zinc-900',
+  'bg-neutral-100 text-neutral-800 dark:bg-neutral-200 dark:text-neutral-900',
+  'bg-stone-100 text-stone-800 dark:bg-stone-200 dark:text-stone-900'
 ];
 
 const GRADIENTS = [
