@@ -1,6 +1,7 @@
 // components/Sidebar.tsx
 
 import React, { memo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Article, Filter } from '../types';
 import { useSidebar } from '../hooks/useSidebar';
 import { useArticleStore } from '../store/articleStore';
@@ -38,11 +39,13 @@ const Sidebar = React.memo<SidebarProps>(({
     onToggleDailyStatus,
     onOpenArticle
 }) => {
+    const navigate = useNavigate();
     const activeFilter = useUIStore(state => state.activeFilter);
     const availableFilters = useArticleStore(state => state.availableFilters);
     const setActiveFilter = useUIStore(state => state.setActiveFilter);
     const [searchQuery, setSearchQuery] = useState('');
     const selectedArticleId = useUIStore(state => state.selectedArticleId);
+    const setSelectedArticleId = useUIStore(state => state.setSelectedArticleId);
 
     const {
         activeTab,
@@ -60,6 +63,8 @@ const Sidebar = React.memo<SidebarProps>(({
         const trimmedQuery = searchQuery.trim();
         if (trimmedQuery) {
             setActiveFilter({ type: 'search', value: trimmedQuery });
+            setSelectedArticleId(null);
+            navigate('/');
         }
     };
 
@@ -69,6 +74,18 @@ const Sidebar = React.memo<SidebarProps>(({
         const refreshFiltersPromise = onRefresh ? onRefresh() : Promise.resolve();
         const refreshStarredPromise = refreshStarred();
         await Promise.all([refreshFiltersPromise, refreshStarredPromise]);
+    };
+
+    const handleFilterSelect = (filter: Filter) => {
+        setActiveFilter(filter);
+        setSelectedArticleId(null);
+        navigate('/');
+    };
+
+    const handleDateSelect = (date: string) => {
+        setActiveFilter({ type: 'date', value: date });
+        setSelectedArticleId(null);
+        navigate(`/date/${date}`);
     };
 
     const tabButtonClass = (isActive: boolean) => `flex-1 text-sm font-medium transition-all duration-200 focus:outline-none rounded-md py-1.5 ${isActive ? 'bg-white shadow-sm text-gray-900 dark:bg-midnight-selected dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:text-midnight-text-secondary dark:hover:text-gray-300'}`;
@@ -120,13 +137,15 @@ const Sidebar = React.memo<SidebarProps>(({
                         onSelect={() => {
                             if (activeFilter?.type === 'trends') {
                                 setActiveFilter(null);
+                                setSelectedArticleId(null);
+                                navigate('/');
                             }
                         }}
                     />
                     <SidebarExplore
                         availableFilters={availableFilters}
                         activeFilter={activeFilter}
-                        onFilterSelect={setActiveFilter}
+                        onFilterSelect={handleFilterSelect}
                         selectedArticleId={selectedArticleId}
                     />
                 </div>
@@ -140,7 +159,7 @@ const Sidebar = React.memo<SidebarProps>(({
                         dailyStatuses={dailyStatuses}
                         onToggleDailyStatus={onToggleDailyStatus}
                         activeFilter={activeFilter}
-                        onDateSelect={(date) => setActiveFilter({ type: 'date', value: date })}
+                        onDateSelect={handleDateSelect}
                         selectedArticleId={selectedArticleId}
                     />
                 </div>
@@ -148,7 +167,11 @@ const Sidebar = React.memo<SidebarProps>(({
 
             <SidebarTrends
                 isActive={activeFilter?.type === 'trends' && !selectedArticleId}
-                onClick={() => setActiveFilter({ type: 'trends', value: '' })}
+                onClick={() => {
+                    setActiveFilter({ type: 'trends', value: '' });
+                    setSelectedArticleId(null);
+                    navigate('/');
+                }}
             />
         </aside>
     );

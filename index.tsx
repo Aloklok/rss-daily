@@ -6,6 +6,8 @@ import './index.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'; // 【改】移除未使用的 QueryObserverOptions
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { BrowserRouter } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 
 // 创建一个 QueryClient 实例 (保持不变)
 const queryClient = new QueryClient({
@@ -37,9 +39,13 @@ const root = ReactDOM.createRoot(rootElement);
 // 将你的应用主体（包括所有 providers）封装在一个组件中，以便复用
 const AppWithProviders: React.FC = () => (
   <QueryClientProvider client={queryClient}>
-    <App />
-    <Analytics />
-    <SpeedInsights />
+    <HelmetProvider>
+      <BrowserRouter>
+        <App />
+        <Analytics />
+        <SpeedInsights />
+      </BrowserRouter>
+    </HelmetProvider>
   </QueryClientProvider>
 );
 

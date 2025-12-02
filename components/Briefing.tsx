@@ -178,7 +178,7 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedRepor
 
             // Use the date string as a seed for the random image to ensure it stays the same for that date
             const seed = activeFilter.value;
-            const bgImage = `https://picsum.photos/seed/${seed}/1200/600`;
+            const bgImage = `https://picsum.photos/seed/${seed}/600/300`;
 
             const now = new Date();
             const currentHour = now.getHours();

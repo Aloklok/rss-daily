@@ -1,0 +1,37 @@
+import { useQuery } from '@tanstack/react-query';
+import { Article } from '../types';
+import { getArticleStates, getArticlesDetails } from '../services/api';
+
+export const useSingleArticle = (articleId: string | undefined) => {
+    return useQuery({
+        queryKey: ['article', articleId],
+        queryFn: async (): Promise<Article | null> => {
+            if (!articleId) return null;
+
+            // 1. Fetch state (tags, etc.) from FreshRSS
+            // We use getArticleStates which takes an array of IDs
+            const statesMap = await getArticleStates([articleId]);
+            const tags = statesMap[articleId] || [];
+
+            // 2. Fetch details from Supabase
+            // We use getArticlesDetails which takes an array of IDs
+            const detailsMap = await getArticlesDetails([articleId]);
+            const details = detailsMap[articleId];
+
+            // 3. Construct the article object
+            // Even if Supabase has no data (details is undefined), we return a minimal object
+            // so the modal can at least try to render or show a "not found" state.
+            // However, without a title, it's hard.
+            // Let's assume if we have an ID, we can at least show the reader view if we fetch content later.
+
+            return {
+                id: articleId,
+                title: details?.title || 'Loading...', // Placeholder
+                tags: tags,
+                ...details, // Spread Supabase details if available
+            } as Article;
+        },
+        enabled: !!articleId,
+        staleTime: 1000 * 60 * 5, // 5 minutes
+    });
+};
