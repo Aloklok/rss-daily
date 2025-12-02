@@ -36,4 +36,6 @@ async function getDailyStatuses(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json(statuses);
 }
 
-export default apiHandler(['GET'], getDailyStatuses);
+import { withCache } from './_cache';
+
+export default apiHandler(['GET'], withCache(getDailyStatuses));

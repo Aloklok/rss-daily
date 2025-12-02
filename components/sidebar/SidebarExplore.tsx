@@ -67,7 +67,7 @@ const SidebarExplore: React.FC<SidebarExploreProps> = ({
                         // Use the utility for consistent colors ONLY when active
                         const colorClass = isActive
                             ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
-                            : `bg-transparent border border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-midnight-card dark:hover:text-gray-200`;
+                            : `bg-transparent border border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-midnight-card dark:hover:text-gray-100`;
 
                         return (
                             <button

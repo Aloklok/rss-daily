@@ -36,4 +36,6 @@ async function getAvailableDates(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json(dates);
 }
 
-export default apiHandler(['GET'], getAvailableDates);
+import { withCache } from './_cache';
+
+export default apiHandler(['GET'], withCache(getAvailableDates));

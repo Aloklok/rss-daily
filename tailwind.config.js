@@ -29,8 +29,8 @@ export default {
       },
       colors: {
         midnight: {
-          bg: '#191724',        // Deep Violet-Black
-          sidebar: '#111827',   // Gray-900
+          bg: '#1C2A2A',        // Slate-900 (Dark Blue)
+          sidebar: '#2A2A4A',   // Gray-900
           card: '#1f2937',      // Gray-800
           selected: '#db2777',  // Pink-600
           border: '#1f2937',    // Gray-800
@@ -38,10 +38,10 @@ export default {
           'text-secondary': '#9ca3af', // Gray-400
           badge: '#374151',     // Gray-700
           callout: {
-            pink: { bg: '#291d24', title: '#eecddf', body: '#dcb5c9' },
-            blue: { bg: '#1d2229', title: '#cde1ee', body: '#b5cbdc' },
-            orange: { bg: '#29221d', title: '#eeddcd', body: '#dcc7b5' },
-            green: { bg: '#1d2922', title: '#cdeed6', body: '#b5dcb9' },
+            pink: { bg: '#291d24', title: '#eecddf', body: '#ffffff' },
+            blue: { bg: '#1d2229', title: '#cde1ee', body: '#ffffff' },
+            orange: { bg: '#29221d', title: '#eeddcd', body: '#ffffff' },
+            green: { bg: '#1d2922', title: '#cdeed6', body: '#ffffff' },
           }
         },
       },

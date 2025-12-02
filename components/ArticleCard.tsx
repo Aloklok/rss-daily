@@ -10,10 +10,10 @@ import { STAR_TAG, READ_TAG } from '../constants';
 
 const CALLOUT_THEMES = { '一句话总结': { icon: '📝', color: 'pink' }, '技术洞察': { icon: '🔬', color: 'blue' }, '值得注意': { icon: '⚠️', color: 'brown' }, '市场观察': { icon: '📈', color: 'green' } } as const;
 const calloutCardClasses = {
-    pink: { bg: 'bg-pink-100 dark:bg-midnight-callout-pink-bg', title: 'text-pink-950 dark:text-midnight-callout-pink-title', body: 'text-pink-900 dark:text-midnight-callout-pink-body', emphasis: 'font-bold text-violet-700 dark:text-violet-300' },
-    blue: { bg: 'bg-blue-100 dark:bg-midnight-callout-blue-bg', title: 'text-blue-950 dark:text-midnight-callout-blue-title', body: 'text-blue-900 dark:text-midnight-callout-blue-body', emphasis: 'font-bold text-violet-700 dark:text-violet-300' },
-    brown: { bg: 'bg-orange-100 dark:bg-midnight-callout-orange-bg', title: 'text-orange-950 dark:text-midnight-callout-orange-title', body: 'text-orange-900 dark:text-midnight-callout-orange-body', emphasis: 'font-bold text-violet-700 dark:text-violet-300' },
-    green: { bg: 'bg-green-100 dark:bg-midnight-callout-green-bg', title: 'text-green-950 dark:text-midnight-callout-green-title', body: 'text-green-900 dark:text-midnight-callout-green-body', emphasis: 'font-bold text-violet-700 dark:text-violet-300' }
+    pink: { bg: 'bg-pink-100 dark:bg-midnight-callout-pink-bg', title: 'text-pink-950 dark:text-midnight-callout-pink-title', body: 'text-pink-900 dark:text-midnight-callout-pink-body', emphasis: 'font-bold text-violet-700 dark:text-violet-400' },
+    blue: { bg: 'bg-blue-100 dark:bg-midnight-callout-blue-bg', title: 'text-blue-950 dark:text-midnight-callout-blue-title', body: 'text-blue-900 dark:text-midnight-callout-blue-body', emphasis: 'font-bold text-violet-700 dark:text-violet-400' },
+    brown: { bg: 'bg-orange-100 dark:bg-midnight-callout-orange-bg', title: 'text-orange-950 dark:text-midnight-callout-orange-title', body: 'text-orange-900 dark:text-midnight-callout-orange-body', emphasis: 'font-bold text-violet-700 dark:text-violet-400' },
+    green: { bg: 'bg-green-100 dark:bg-midnight-callout-green-bg', title: 'text-green-950 dark:text-midnight-callout-green-title', body: 'text-green-900 dark:text-midnight-callout-green-body', emphasis: 'font-bold text-violet-700 dark:text-violet-400' }
 };
 const parseBold = (text: string, emphasisClass: string = 'font-semibold text-current') => { if (!text) return ''; const parts = text.split(/\*\*(.*?)\*\*/g); return parts.map((part, i) => i % 2 === 1 ? <strong key={i} className={emphasisClass}>{part}</strong> : part); };
 

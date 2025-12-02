@@ -13,7 +13,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
       devOptions: {
-        enabled: true
+        enabled: false
       },
 
       // 2. Workbox 缓存策略 (保持不变)
