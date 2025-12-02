@@ -154,6 +154,16 @@ CREATE TABLE public.articles (
 - **职责**: `App.tsx` 现在主要负责应用的整体布局和顶层协调。它从 `uiStore` 订阅必要的全局状态，并根据这些状态决定渲染哪个主视图组件。
 - **解耦**: 各个子组件（如 `Sidebar`, `UnifiedArticleModal`）**直接从对应的 Store 订阅它们所需的数据和 actions**。例如，`Sidebar` 不再需要通过 props 接收回调，而是直接调用 `uiStore` 的 `setSelectedArticleId` action。这种模式最大限度地减少了 props-drilling，实现了组件间的彻底解耦和高效渲染。
 
+- **SEO 与搜索引擎优化**：
+  - **动态元数据**：使用 `react-helmet-async` 为每个页面（文章、日期、分类）生成动态的 Title 和 Meta Description，提升搜索引擎可见性。
+  - **智能路由**：支持 `/date/:date` 和 `/article/:id` 等语义化路由，方便分享和索引。
+  - **反爬虫机制**：通过 `middleware.ts` 在边缘层拦截常见的 AI 爬虫和恶意 Scraper，保护内容安全。
+  - **Sitemap 自动生成**：`public/sitemap.xml` 自动映射所有静态路由。
+- **性能优化**：
+  - **图片缓存**：针对每日背景图 (`picsum.photos`) 配置了 Service Worker 的 `CacheFirst` 策略（30天缓存），确保二次访问秒开。
+  - **文章缓存**：针对单篇文章内容设置了 `Infinity` 的 `staleTime`，避免重复请求不可变数据。
+  - **短链接系统**：自动去除文章 ID 中的冗余前缀，生成更短、更友好的 URL。
+
 ## 后端 API (Vercel Serverless Functions)
 
 后端 API 位于 `api/` 目录下，作为 Vercel Serverless Functions 部署。
