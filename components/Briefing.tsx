@@ -191,7 +191,7 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedRepor
             const autoSelectedSlot = isToday ? getCurrentTimeSlot() : null;
 
             return (
-                <header className="relative mb-8 overflow-hidden rounded-2xl shadow-md transition-all duration-500 hover:shadow-xl group border border-gray-200 dark:border-midnight-border">
+                <header className="relative mb-8 overflow-hidden rounded-2xl shadow-md transition-all duration-500 hover:shadow-xl group">
                     {/* Background Image with Overlay */}
                     <div className="absolute inset-0 z-0">
                         <img

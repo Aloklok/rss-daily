@@ -82,7 +82,7 @@ const SidebarBriefing: React.FC<SidebarBriefingProps> = ({
     return (
         <div className="flex flex-col h-full space-y-4">
             {isInitialLoading ? (
-                <div className="space-y-3 px-1">{[...Array(5)].map((_, i) => <div key={i} className="h-12 bg-gray-100 dark:bg-midnight-card rounded-lg animate-pulse"></div>)}</div>
+                <div className="space-y-3 px-1 flex-grow">{[...Array(5)].map((_, i) => <div key={i} className="h-12 bg-gray-100 dark:bg-midnight-card rounded-lg animate-pulse"></div>)}</div>
             ) : datesForMonth.length === 0 ? (
                 <div className="flex flex-col items-center justify-center flex-grow text-gray-400 dark:text-gray-500">
                     <div className="w-16 h-16 bg-gray-100 dark:bg-midnight-card rounded-full flex items-center justify-center mb-3">
