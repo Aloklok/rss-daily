@@ -88,7 +88,7 @@ const Sidebar = React.memo<SidebarProps>(({
         navigate(`/date/${date}`);
     };
 
-    const tabButtonClass = (isActive: boolean) => `flex-1 text-sm font-medium transition-all duration-200 focus:outline-none rounded-md py-1.5 ${isActive ? 'bg-white shadow-sm text-gray-900 dark:bg-midnight-selected dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:text-midnight-text-secondary dark:hover:text-gray-300'}`;
+    const tabButtonClass = (isActive: boolean) => `flex-1 text-sm font-medium transition-all duration-200 focus:outline-none rounded-md py-2.5 ${isActive ? 'bg-white shadow-sm text-gray-900 dark:bg-midnight-selected dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:text-midnight-text-secondary dark:hover:text-gray-300'}`;
 
     return (
         <aside className="flex flex-col flex-shrink-0 bg-gray-50 dark:bg-midnight-sidebar w-full h-full md:w-80 p-4 space-y-6 relative border-r border-gray-200 dark:border-midnight-border">
@@ -114,7 +114,7 @@ const Sidebar = React.memo<SidebarProps>(({
                 />
             )}
 
-            <div className="bg-gray-200/50 dark:bg-midnight-card/50 p-1 rounded-lg flex">
+            <div className="bg-gradient-to-r from-blue-100/80 to-indigo-100/80 dark:bg-midnight-card/50 p-1 rounded-lg flex">
                 <button className={tabButtonClass(activeTab === 'filters')} onClick={() => setActiveTab('filters')}>
                     <div className="flex justify-center items-center gap-2"><span>🏷️</span><span>分类</span></div>
                 </button>
