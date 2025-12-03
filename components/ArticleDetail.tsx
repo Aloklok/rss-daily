@@ -143,7 +143,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({ article, onClose }) => {
       ) : content ? (
         <article className="select-none">
           <header className="mb-6 border-b pb-6">
-            <h1 className="text-3xl md:text-4xl font-bold font-serif text-gray-900 dark:text-gray-100 mb-2">{content.title || article.title}</h1>
+            <h1 className="text-3xl md:text-4xl font-bold font-serif text-gray-900 dark:text-midnight-text-reader mb-2">{content.title || article.title}</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">来源: {content.source || article.sourceName}</p>
 
             {/* 【核心修改】在这里渲染标签 */}
@@ -181,43 +181,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({ article, onClose }) => {
               </button>
             </div>
           </header>
-          <style>{`
-            @media (prefers-color-scheme: dark) {
-                #article-detail-content {
-                    color: #ffffff;
-                }
-                #article-detail-content p,
-                #article-detail-content li,
-                #article-detail-content span,
-                #article-detail-content div {
-                    color: #ffffff !important;
-                    background-color: transparent !important;
-                }
-                #article-detail-content h1,
-                #article-detail-content h2,
-                #article-detail-content h3,
-                #article-detail-content h4,
-                #article-detail-content h5,
-                #article-detail-content h6,
-                #article-detail-content strong,
-                #article-detail-content b {
-                    color: #ffffff !important;
-                }
-                #article-detail-content a {
-                    color: #60a5fa !important; /* blue-400 */
-                }
-                #article-detail-content pre,
-                #article-detail-content code {
-                    background-color: #374151 !important; /* gray-700 */
-                    color: #e5e7eb !important;
-                }
-                #article-detail-content blockquote {
-                    border-left-color: #4b5563 !important; /* gray-600 */
-                    color: #9ca3af !important; /* gray-400 */
-                }
-            }
-          `}</style>
-          <div id="article-detail-content" ref={contentRef} className="prose prose-lg max-w-none text-gray-800 dark:text-gray-100 dark:prose-invert leading-relaxed mt-6 select-text" dangerouslySetInnerHTML={{ __html: content.content }} />
+          <div id="article-detail-content" ref={contentRef} className="prose prose-lg max-w-none text-gray-800 dark:text-midnight-text-reader dark:prose-invert leading-relaxed mt-6 select-text" dangerouslySetInnerHTML={{ __html: content.content }} />
         </article>
       ) : (
         <div className="text-gray-500">无内容可显示</div>

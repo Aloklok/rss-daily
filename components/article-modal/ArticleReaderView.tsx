@@ -76,7 +76,7 @@ const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({ article, readerCo
 
     return (
         <article className="p-6 md:p-8 select-none animate-fadeIn">
-            <h1 className="text-2xl md:text-3xl font-bold font-serif text-gray-900 dark:text-gray-100 mb-2">{readerContent.title}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold font-serif text-gray-900 dark:text-midnight-text-reader mb-2">{readerContent.title}</h1>
             <div className="mb-6 border-b dark:border-gray-700 pb-4">
                 <p className="text-gray-500 dark:text-gray-400">来源: {readerContent.source}</p>
                 {userTagLabels.length > 0 && (
@@ -117,43 +117,7 @@ const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({ article, readerCo
                     </a>
                 </div>
             </div>
-            <style>{`
-                @media (prefers-color-scheme: dark) {
-                    #article-reader-content {
-                        color: #ffffff;
-                    }
-                    #article-reader-content p,
-                    #article-reader-content li,
-                    #article-reader-content span,
-                    #article-reader-content div {
-                        color: #ffffff !important;
-                        background-color: transparent !important;
-                    }
-                    #article-reader-content h1,
-                    #article-reader-content h2,
-                    #article-reader-content h3,
-                    #article-reader-content h4,
-                    #article-reader-content h5,
-                    #article-reader-content h6,
-                    #article-reader-content strong,
-                    #article-reader-content b {
-                        color: #ffffff !important;
-                    }
-                    #article-reader-content a {
-                        color: #60a5fa !important; /* blue-400 */
-                    }
-                    #article-reader-content pre,
-                    #article-reader-content code {
-                        background-color: #374151 !important; /* gray-700 */
-                        color: #e5e7eb !important;
-                    }
-                    #article-reader-content blockquote {
-                        border-left-color: #4b5563 !important; /* gray-600 */
-                        color: #9ca3af !important; /* gray-400 */
-                    }
-                }
-            `}</style>
-            <div id="article-reader-content" ref={contentRef} className="prose prose-lg dark:prose-invert max-w-none text-gray-800 dark:text-gray-100 leading-relaxed select-text" dangerouslySetInnerHTML={{ __html: readerContent.content }} />
+            <div id="article-reader-content" ref={contentRef} className="prose prose-lg dark:prose-invert max-w-none text-gray-800 dark:text-midnight-text-reader leading-relaxed select-text" dangerouslySetInnerHTML={{ __html: readerContent.content }} />
         </article>
     );
 };

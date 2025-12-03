@@ -12,7 +12,19 @@ const CACHE_KEY_SELECTED_MONTH = 'cachedSelectedMonth';
 
 export const useFilters = () => {
     const [dates, setDates] = useState<string[]>([]);
-    const [selectedMonth, setSelectedMonth] = useState<string>('');
+    const [selectedMonth, setSelectedMonth] = useState<string>(() => {
+        if (typeof window !== 'undefined') {
+            const cached = sessionStorage.getItem(CACHE_KEY_SELECTED_MONTH);
+            if (cached) {
+                try {
+                    return JSON.parse(cached);
+                } catch (e) {
+                    console.error('Failed to parse cached selected month', e);
+                }
+            }
+        }
+        return getTodayInShanghai().substring(0, 7);
+    });
     const [isInitialLoad, setIsInitialLoad] = useState(true);
 
     const activeFilter = useUIStore(state => state.activeFilter);
@@ -60,9 +72,7 @@ export const useFilters = () => {
                 if (window.location.pathname === '/') {
                     setActiveFilter(initialFilter);
                     sessionStorage.setItem(CACHE_KEY_ACTIVE_FILTER, JSON.stringify(initialFilter));
-                    const cachedMonth = sessionStorage.getItem(CACHE_KEY_SELECTED_MONTH);
-                    const month = cachedMonth ? JSON.parse(cachedMonth) : today.substring(0, 7);
-                    setSelectedMonth(month);
+                    // selectedMonth is already initialized correctly via useState lazy init
                 }
             }
 

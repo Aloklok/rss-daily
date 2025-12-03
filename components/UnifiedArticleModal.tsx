@@ -120,7 +120,7 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({ article, onCl
     return (
         <>
             <Helmet>
-                <title>{article.title} - Briefing Hub</title>
+                <title>{article.title} - RSS Briefing Hub</title>
             </Helmet>
             <div onClick={onClose} className="fixed inset-0 bg-black/60 z-30 transition-opacity duration-300 animate-fadeIn" />
             <div className="fixed top-0 right-0 h-full w-full max-w-2xl bg-neutral-50 dark:bg-midnight-bg bg-paper-texture dark:bg-none shadow-2xl z-40 transform transition-transform duration-300 animate-slideInRight flex flex-col">

@@ -201,6 +201,8 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedRepor
                         />
                         {/* Dark Gradient Overlay for Text Readability */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30"></div>
+
+
                     </div>
 
                     <div className="relative z-10 p-6 md:p-8 flex flex-col gap-8">
@@ -238,7 +240,7 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedRepor
                                                 className={`
                                                     w-10 h-10 rounded-full flex items-center justify-center text-sm font-serif transition-all duration-300 border border-white/20
                                                     ${isSelected
-                                                        ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)] scale-110 border-white'
+                                                        ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)] scale-110 border-white dark:bg-amber-100 dark:text-amber-900 dark:shadow-[0_0_15px_rgba(251,191,36,0.6)] dark:border-amber-100'
                                                         : 'bg-black/20 text-white/90 hover:bg-white/20 hover:border-white/40 backdrop-blur-md'
                                                     }
                                                 `}
