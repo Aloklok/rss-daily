@@ -4,8 +4,9 @@ import { STAR_TAG } from '../constants';
 
 
 // --- Centralized API Service ---
-interface RequestOptions extends RequestInit {
+interface RequestOptions extends Omit<RequestInit, 'body'> {
     params?: Record<string, string>;
+    body?: any;
 }
 
 const apiService = {
@@ -29,6 +30,9 @@ const apiService = {
         if (options.body) {
             config.body = JSON.stringify(options.body);
         }
+        // ... (rest of the file)
+        // ...
+
 
         try {
             const response = await fetch(url.toString(), config);
@@ -232,17 +236,16 @@ export const getTags = async (): Promise<Tag[]> => {
 
 
 // 【增】获取每日简报完成状态
-export const getDailyStatuses = (startDate: string, endDate: string): Promise<Record<string, boolean>> => {
-    return apiService.request<Record<string, boolean>>('/api/get-daily-statuses', {
+export const getDailyStatuses = async (startDate: string, endDate: string) => {
+    return apiService.request<Record<string, boolean>>('/api/daily-statuses', {
         params: { start_date: startDate, end_date: endDate },
-    }).catch(() => ({})); // 出错时返回空对象
+    });
 };
 
-// 【增】更新每日简报完成状态
-export const updateDailyStatus = (date: string, isCompleted: boolean): Promise<{ success: boolean, date: string, is_completed: boolean }> => {
-    return apiService.request<{ success: boolean, date: string, is_completed: boolean }>('/api/update-daily-status', {
+export const updateDailyStatus = async (date: string, isCompleted: boolean) => {
+    return apiService.request<{ success: boolean, date: string, is_completed: boolean }>('/api/daily-statuses', {
         method: 'POST',
-        body: { date: date, is_completed: isCompleted },
+        body: { date, is_completed: isCompleted },
     });
 };
 

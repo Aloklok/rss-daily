@@ -183,8 +183,7 @@ CREATE TABLE public.articles (
 - **`api/update-state.ts`**: 通用的文章状态更新接口，处理所有“写”操作。
 - **`api/articles.ts`**: 获取单篇文章的“干净”内容，用于阅读器模式。
 - **`api/get-available-dates.ts`**: 获取有文章的可用日期列表。
-- **`api/get-daily-statuses.ts`**: 批量获取每日简报的完成状态。
-- **`api/update-daily-status.ts`**: 更新某一天的简报完成状态。
+- **`api/daily-statuses.ts`**: 批量获取每日简报的完成状态 (GET) 和更新某一天的简报完成状态 (POST)。
 - **`api/search-articles.ts`**: 基于 Supabase 的关键词搜索接口。
 
 ## 环境变量
@@ -211,7 +210,7 @@ CREATE TABLE public.articles (
   - **默认**: 公共只读访问。
   - **管理员**: 访问 `/?token=YOUR_SECRET_TOKEN` 即可激活管理员权限。系统会自动设置一个有效期为 90 天的 `site_token` Cookie。
   - **登出**: 访问 `/?logout=true` 可清除管理员 Cookie，恢复到公共只读模式。
-  - **API 保护**: 所有写操作 API (`update-state`, `update-daily-status`) 和搜索 API (`search-articles`) 均会在服务端验证 `site_token` Cookie，确保只有管理员可以执行敏感操作。
+  - **API 保护**: 所有写操作 API (`update-state`, `daily-statuses`) 和搜索 API (`search-articles`) 均会在服务端验证 `site_token` Cookie，确保只有管理员可以执行敏感操作。
 - 部署流程保持不变，推荐部署在 Vercel 平台。
 - `npm install -g vercel`
 - `vercel login`
