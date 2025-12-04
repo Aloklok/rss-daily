@@ -23,7 +23,7 @@ const parseFormattedText = (text: string, emphasisClass: string = 'font-semibold
             if (part.startsWith('**') && part.endsWith('**')) {
                 return <strong key={i} className={emphasisClass}>{part.slice(2, -2)}</strong>;
             } else if (part.startsWith('`') && part.endsWith('`')) {
-                return <code key={i} className="text-orange-900 bg-orange-100 dark:text-orange-200 dark:bg-orange-900/50 px-1.5 py-0.5 rounded font-semibold font-mono text-[0.9em] mx-0.5">{part.slice(1, -1)}</code>;
+                return <code key={i} className="text-orange-900 bg-orange-100 px-1.5 py-0.5 rounded font-semibold font-mono text-[0.9em] mx-0.5">{part.slice(1, -1)}</code>;
             }
         }
         return part;
