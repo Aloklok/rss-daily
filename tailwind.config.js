@@ -51,101 +51,182 @@ export default {
       typography: (theme) => ({
         DEFAULT: {
           css: {
-            code: {
-              color: theme('colors.rose.600'),
-              backgroundColor: theme('colors.rose.100'),
-              padding: '2px 4px',
-              borderRadius: '0.25rem',
-              fontWeight: '600',
+            // --- 1. 全局基调 ---
+            '--tw-prose-body': '#292524',      // Stone-800
+            '--tw-prose-headings': '#0c0a09',  // Stone-950
+            '--tw-prose-links': '#c2410c',     // Orange-700
+            '--tw-prose-bold': '#0c0a09',
+            '--tw-prose-counters': '#57534e',
+            '--tw-prose-bullets': '#a8a29e',   // Stone-400
+            '--tw-prose-hr': '#e7e5e4',        // Stone-200
+            '--tw-prose-quotes': '#44403c',
+            '--tw-prose-quote-borders': '#f97316', // Orange-500
+
+            // --- 2. 标题样式 ---
+            'h1, h2, h3, h4': {
+              fontFamily: theme('fontFamily.sans'),
+              color: '#0c0a09',
+              fontWeight: '800',
+              letterSpacing: '-0.025em',
             },
-            'code::before': {
-              content: '""',
-            },
-            'code::after': {
-              content: '""',
-            },
-            blockquote: {
-              borderLeftColor: theme('colors.blue.500'),
-              borderLeftWidth: '4px',
-              backgroundColor: theme('colors.blue.50'),
-              padding: '0.5rem 0.75rem', // Reduced padding
-              fontSize: '0.9em',          // Reduced font size
-              fontStyle: 'italic',
-              borderRadius: '0.25rem',
-              quotes: '"\\201C""\\201D""\\2018""\\2019"',
-            },
-            'blockquote p:first-of-type::before': {
-              content: 'open-quote',
-            },
-            'blockquote p:last-of-type::after': {
-              content: 'close-quote',
-            },
-            a: {
-              color: theme('colors.blue.600'),
-              textDecoration: 'none',
-              borderBottom: `1px solid ${theme('colors.blue.200')}`,
-              transition: 'all 0.2s ease',
-              '&:hover': {
-                color: theme('colors.blue.800'),
-                borderBottomColor: theme('colors.blue.600'),
-                backgroundColor: theme('colors.blue.50'),
-              },
-            },
-            img: {
-              borderRadius: '0.5rem',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-            },
-            hr: {
-              borderColor: theme('colors.gray.200'),
-              borderTopWidth: '2px',
-              marginTop: '2rem',
-              marginBottom: '2rem',
-            },
-            'ul > li::marker': {
-              color: theme('colors.blue.500'),
-            },
-            'ol > li::marker': {
-              color: theme('colors.blue.500'),
-              fontWeight: '600',
-            },
+
             h2: {
-              fontSize: '1.4em',
-              color: theme('colors.rose.800'),
-              borderBottom: `1px solid ${theme('colors.rose.200')}`,
-              paddingBottom: '0.2em',
+              position: 'relative',
+              fontSize: '1.6em',
+              marginTop: '2em',
+              marginBottom: '0.8em',
+              paddingLeft: '0.75em',
+              border: 'none',
+              lineHeight: '1.3',
+            },
+            'h2::before': {
+              content: '""',
+              position: 'absolute',
+              left: '0',
+              top: '0.2em',
+              bottom: '0.2em',
+              width: '6px',
+              borderRadius: '99px',
+              backgroundColor: '#ea580c', // Orange-600
+            },
+
+            h3: {
+              position: 'relative',
+              fontSize: '1.25em',
+              marginTop: '1.5em',
+              marginBottom: '0.6em',
+              fontWeight: '700',
+              paddingLeft: '0.75em',
+            },
+            'h3::before': {
+              content: '""',
+              position: 'absolute',
+              left: '0',
+              top: '0.25em',
+              bottom: '0.25em',
+              width: '5px',
+              borderRadius: '99px',
+              backgroundColor: '#a8a29e', // Stone-400
+            },
+
+            // --- 3. 正文与列表 (紧凑模式) ---
+            p: {
+              marginTop: '0.2em',
+              marginBottom: '0.6em',
+              lineHeight: '1.6',
+            },
+
+            // 【新增】核心修复：隐藏所有空的 P 标签，解决莫名其妙的占高
+            'p:empty': {
+              display: 'none',
+            },
+
+            'ul, ol': {
+              marginTop: '0.2em',
               marginBottom: '0.6em',
             },
-            h3: {
-              fontSize: '1.15em',
+            li: {
+              marginTop: '0.2em',
+              marginBottom: '0.2em',
             },
+
+            // --- 4. 代码块 ---
+            pre: {
+              backgroundColor: '#0f172a', // Slate-900
+              color: '#e2e8f0',           // Slate-200
+              borderRadius: '0.5rem',
+              padding: '1rem 1.25rem',
+              border: '1px solid rgba(255,255,255,0.1)',
+              marginTop: '1rem',
+              marginBottom: '1rem',
+              maxHeight: 'none',
+              overflowY: 'visible',
+            },
+            'pre code': {
+              backgroundColor: 'transparent',
+              color: 'inherit',
+              fontSize: '0.875em',
+              fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+              fontWeight: '500',
+            },
+
+            // --- 5. 行内代码 ---
+            code: {
+              color: '#9a3412', // Orange-900
+              backgroundColor: '#ffedd5', // Orange-100
+              padding: '0.2em 0.4em',
+              borderRadius: '0.25rem',
+              fontWeight: '600',
+              fontFamily: 'monospace',
+            },
+            'code::before': { content: '""' },
+            'code::after': { content: '""' },
+
+            // --- 6. 表格：【修改重点】 ---
             table: {
               width: '100%',
-              marginTop: '2rem',
-              marginBottom: '2rem',
-              borderCollapse: 'separate',
-              borderSpacing: '0',
-              borderRadius: '0.5rem',
-              overflow: 'hidden',
-              boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+              marginTop: '1.5rem',
+              marginBottom: '1.5rem',
+              borderCollapse: 'collapse',
+              fontSize: '0.95em',
+              backgroundColor: 'transparent', // 【修改】确保表格整体透明
+              paddingLeft: '1rem',
             },
             thead: {
-              backgroundColor: theme('colors.gray.100'),
+              backgroundColor: '#1b2a53a1', // 【修改】去掉原来的灰色背景，让底纹透出来
+              borderBottom: '1px solid #1b2a53a1',
             },
             'thead th': {
-              color: theme('colors.gray.900'),
-              fontWeight: '600',
-              padding: '0.75rem 1rem',
-              textAlign: 'left',
-              borderBottom: `1px solid ${theme('colors.gray.200')}`,
+              color: '#0c0a09',
+              fontWeight: '700',
+              padding: '0.75rem',
+              paddingBottom: '0.4rem !important',
+              textAlign: 'center !important',
+              // 可以稍微把表头文字调大一点点，如果不喜欢可删掉这行
+              fontSize: '1.05em',
             },
             'tbody tr': {
-              borderBottom: `1px solid ${theme('colors.gray.100')}`,
+              borderBottom: '1px solid #e7e5e4',
             },
             'tbody td': {
-              padding: '0.75rem 1rem',
+              textAlign: 'center !important',
+              padding: '0.75rem',
+              color: '#44403c',
+              verticalAlign: 'top', // 【建议】长文本顶部对齐更好看
             },
-            'tbody tr:nth-child(even)': {
-              backgroundColor: theme('colors.gray.50'),
+
+            // 【新增】核心修复：强制去掉表格内 P 标签的间距
+            // 这里的优先级比上面的全局 p 更高，能完美解决表格被撑开的问题
+            'tbody td p': {
+              marginTop: '0',
+              marginBottom: '0',
+            },
+
+            // --- 7. 引用块 ---
+            blockquote: {
+              fontStyle: 'normal',
+              borderLeftColor: '#f97316', // Orange-500
+              borderLeftWidth: '4px',
+              backgroundColor: 'transparent',
+              color: '#57534e',
+              paddingLeft: '1.25rem',
+              marginTop: '1rem',
+              marginBottom: '1rem',
+            },
+
+            // --- 8. 斜体 ---
+            'i, em': {
+              fontStyle: 'italic',
+            },
+
+            a: {
+              textDecoration: 'none',
+              color: '#c2410c',
+              borderBottom: '1px solid rgba(194, 65, 12, 0.3)',
+              transition: 'border-color 0.2s',
+              '&:hover': {
+                borderBottomColor: '#c2410c',
+              },
             },
           },
         },
