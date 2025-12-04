@@ -48,29 +48,29 @@ export default {
           }
         },
       },
-    },
-    typography: (theme) => ({
-      invert: {
-        css: {
-          '--tw-prose-body': theme('colors.midnight.text-reader'),
-          '--tw-prose-headings': theme('colors.midnight.text-reader'),
-          '--tw-prose-lead': theme('colors.midnight.text-reader'),
-          '--tw-prose-links': theme('colors.blue.400'),
-          '--tw-prose-bold': theme('colors.midnight.text-reader'),
-          '--tw-prose-counters': theme('colors.midnight.text-reader'),
-          '--tw-prose-bullets': theme('colors.midnight.text-reader'),
-          '--tw-prose-hr': theme('colors.midnight.text-reader'),
-          '--tw-prose-quotes': theme('colors.midnight.text-reader'),
-          '--tw-prose-quote-borders': theme('colors.midnight.text-reader'),
-          '--tw-prose-captions': theme('colors.midnight.text-reader'),
-          '--tw-prose-code': theme('colors.midnight.text-reader'),
-          '--tw-prose-pre-code': theme('colors.midnight.text-reader'),
-          '--tw-prose-pre-bg': theme('colors.gray.800'),
-          '--tw-prose-th-borders': theme('colors.midnight.text-reader'),
-          '--tw-prose-td-borders': theme('colors.midnight.text-reader'),
+      typography: (theme) => ({
+        invert: {
+          css: {
+            '--tw-prose-body': theme('colors.midnight.text-reader'),
+            '--tw-prose-headings': theme('colors.midnight.text-reader'),
+            '--tw-prose-lead': theme('colors.midnight.text-reader'),
+            '--tw-prose-links': theme('colors.blue.400'),
+            '--tw-prose-bold': theme('colors.midnight.text-reader'),
+            '--tw-prose-counters': theme('colors.midnight.text-reader'),
+            '--tw-prose-bullets': theme('colors.midnight.text-reader'),
+            '--tw-prose-hr': theme('colors.midnight.text-reader'),
+            '--tw-prose-quotes': theme('colors.midnight.text-reader'),
+            '--tw-prose-quote-borders': theme('colors.midnight.text-reader'),
+            '--tw-prose-captions': theme('colors.midnight.text-reader'),
+            '--tw-prose-code': theme('colors.midnight.text-reader'),
+            '--tw-prose-pre-code': theme('colors.midnight.text-reader'),
+            '--tw-prose-pre-bg': theme('colors.gray.800'),
+            '--tw-prose-th-borders': theme('colors.midnight.text-reader'),
+            '--tw-prose-td-borders': theme('colors.midnight.text-reader'),
+          },
         },
-      },
-    }),
+      }),
+    },
   },
 
   plugins: [
