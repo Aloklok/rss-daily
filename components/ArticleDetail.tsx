@@ -13,8 +13,27 @@ interface ArticleDetailProps {
 
 
 
-import { processContentHtml, stripLeadingTitle } from '../utils/contentUtils';
 
+function stripLeadingTitle(contentHtml: string, title: string): string {
+  if (!contentHtml || !title) return contentHtml;
+  try {
+    const h1Match = contentHtml.match(/^\s*<h1[^>]*>([\s\S]*?)<\/h1>/i);
+    if (h1Match && h1Match[1]) {
+      const h1Text = h1Match[1].replace(/<[^>]+>/g, '').toLowerCase().trim();
+      const titleLower = title.toLowerCase().trim();
+      if (h1Text && (h1Text === titleLower || h1Text.includes(titleLower) || titleLower.includes(h1Text))) {
+        return contentHtml.replace(h1Match[0], '');
+      }
+    }
+    const textStart = contentHtml.replace(/^\s+/, '');
+    if (textStart.toLowerCase().startsWith(title.toLowerCase().trim())) {
+      return contentHtml.replace(new RegExp('^\\s*' + title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), '');
+    }
+  } catch (e) {
+    console.error('stripLeadingTitle error', e);
+  }
+  return contentHtml;
+}
 
 const ArticleDetail: React.FC<ArticleDetailProps> = ({ article, onClose }) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -96,8 +115,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({ article, onClose }) => {
           }
         }
 
-        const processedHtml = processContentHtml(contentHtml);
-        const cleanedHtml = stripLeadingTitle(processedHtml, (data && data.title) || article.title || '');
+        const cleanedHtml = stripLeadingTitle(contentHtml, (data && data.title) || article.title || '');
         setContent({ title: (data && data.title) || article.title, source: (data && data.source) || article.sourceName, content: cleanedHtml });
       } catch (e: any) {
         console.error('ArticleDetail fetch error', e);

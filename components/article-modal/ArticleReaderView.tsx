@@ -2,7 +2,6 @@ import React, { useRef, useEffect, useState } from 'react';
 import { CleanArticleContent, Article } from '../../types';
 import LoadingSpinner from '../LoadingSpinner';
 import { getRandomColorClass } from '../../utils/colorUtils';
-import { processContentHtml } from '../../utils/contentUtils';
 
 interface ArticleReaderViewProps {
     article: Article;
@@ -118,7 +117,7 @@ const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({ article, readerCo
                     </a>
                 </div>
             </div>
-            <div id="article-reader-content" ref={contentRef} className="prose prose-lg dark:prose-invert max-w-none text-gray-800 dark:text-midnight-text-reader leading-relaxed select-text" dangerouslySetInnerHTML={{ __html: processContentHtml(readerContent.content) }} />
+            <div id="article-reader-content" ref={contentRef} className="prose prose-lg dark:prose-invert max-w-none text-gray-800 dark:text-midnight-text-reader leading-relaxed select-text" dangerouslySetInnerHTML={{ __html: readerContent.content }} />
         </article>
     );
 };

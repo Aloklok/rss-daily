@@ -49,20 +49,73 @@ export default {
         },
       },
       typography: (theme) => ({
+        DEFAULT: {
+          css: {
+            code: {
+              color: theme('colors.rose.600'),
+              backgroundColor: theme('colors.rose.100'),
+              padding: '2px 4px',
+              borderRadius: '0.25rem',
+              fontWeight: '600',
+            },
+            'code::before': {
+              content: '""',
+            },
+            'code::after': {
+              content: '""',
+            },
+            blockquote: {
+              borderLeftColor: theme('colors.blue.500'),
+              borderLeftWidth: '4px',
+              backgroundColor: theme('colors.blue.50'),
+              padding: '1rem',
+              fontStyle: 'italic',
+              borderRadius: '0.25rem',
+              quotes: '"\\201C""\\201D""\\2018""\\2019"',
+            },
+            'blockquote p:first-of-type::before': {
+              content: 'open-quote',
+            },
+            'blockquote p:last-of-type::after': {
+              content: 'close-quote',
+            },
+            a: {
+              color: theme('colors.blue.600'),
+              textDecoration: 'none',
+              borderBottom: `1px solid ${theme('colors.blue.200')}`,
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                color: theme('colors.blue.800'),
+                borderBottomColor: theme('colors.blue.600'),
+                backgroundColor: theme('colors.blue.50'),
+              },
+            },
+            img: {
+              borderRadius: '0.5rem',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+            },
+            hr: {
+              borderColor: theme('colors.gray.200'),
+              borderTopWidth: '2px',
+              marginTop: '2rem',
+              marginBottom: '2rem',
+            },
+          },
+        },
         invert: {
           css: {
             '--tw-prose-body': theme('colors.midnight.text-reader'),
             '--tw-prose-headings': theme('colors.midnight.text-reader'),
             '--tw-prose-lead': theme('colors.midnight.text-reader'),
-            '--tw-prose-links': theme('colors.blue.400'),
+            '--tw-prose-links': theme('colors.blue.600'), // Use slightly darker blue for better contrast on paper
             '--tw-prose-bold': theme('colors.midnight.text-reader'),
             '--tw-prose-counters': theme('colors.midnight.text-reader'),
             '--tw-prose-bullets': theme('colors.midnight.text-reader'),
-            '--tw-prose-hr': theme('colors.midnight.text-reader'),
+            '--tw-prose-hr': theme('colors.gray.300'),
             '--tw-prose-quotes': theme('colors.midnight.text-reader'),
             '--tw-prose-quote-borders': theme('colors.midnight.text-reader'),
             '--tw-prose-captions': theme('colors.midnight.text-reader'),
-            '--tw-prose-code': theme('colors.midnight.text-reader'),
+            '--tw-prose-code': theme('colors.rose.600'),
             '--tw-prose-pre-code': theme('colors.midnight.text-reader'),
             '--tw-prose-pre-bg': theme('colors.gray.800'),
             '--tw-prose-th-borders': theme('colors.midnight.text-reader'),
