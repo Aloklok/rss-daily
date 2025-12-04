@@ -15,7 +15,20 @@ const calloutCardClasses = {
     brown: { bg: 'bg-orange-100 dark:bg-midnight-callout-orange-bg', title: 'text-orange-950 dark:text-midnight-callout-orange-title', body: 'text-orange-900 dark:text-midnight-callout-orange-body', emphasis: 'font-bold text-violet-700' },
     green: { bg: 'bg-green-100 dark:bg-midnight-callout-green-bg', title: 'text-green-950 dark:text-midnight-callout-green-title', body: 'text-green-900 dark:text-midnight-callout-green-body', emphasis: 'font-bold text-violet-700' }
 };
-const parseBold = (text: string, emphasisClass: string = 'font-semibold text-current') => { if (!text) return ''; const parts = text.split(/\*\*(.*?)\*\*/g); return parts.map((part, i) => i % 2 === 1 ? <strong key={i} className={emphasisClass}>{part}</strong> : part); };
+const parseFormattedText = (text: string, emphasisClass: string = 'font-semibold text-current') => {
+    if (!text) return '';
+    const parts = text.split(/(\*\*.*?\*\*|`.*?`)/g);
+    return parts.map((part, i) => {
+        if (i % 2 === 1) {
+            if (part.startsWith('**') && part.endsWith('**')) {
+                return <strong key={i} className={emphasisClass}>{part.slice(2, -2)}</strong>;
+            } else if (part.startsWith('`') && part.endsWith('`')) {
+                return <code key={i} className="text-orange-900 bg-orange-100 dark:text-orange-200 dark:bg-orange-900/50 px-1.5 py-0.5 rounded font-semibold font-mono text-[0.9em] mx-0.5">{part.slice(1, -1)}</code>;
+            }
+        }
+        return part;
+    });
+};
 
 // --- 外部化的组件定义 ---
 
@@ -29,7 +42,7 @@ const IconCircle: React.FC = memo(() => (<svg xmlns="http://www.w3.org/2000/svg"
 IconCircle.displayName = 'IconCircle';
 
 interface CalloutProps { title: keyof typeof CALLOUT_THEMES; content: string; }
-const Callout: React.FC<CalloutProps> = memo(({ title, content }) => { const theme = CALLOUT_THEMES[title]; const colors = calloutCardClasses[theme.color]; return (<aside className={`rounded-2xl p-6 ${colors.bg}`}><div className="flex items-center gap-x-3 mb-3"><span className="text-2xl">{theme.icon}</span><h4 className={`text-lg font-bold ${colors.title}`}>{title}</h4></div><div className={`${colors.body} text-[15px] leading-relaxed font-medium`}>{parseBold(content, colors.emphasis)}</div></aside>); });
+const Callout: React.FC<CalloutProps> = memo(({ title, content }) => { const theme = CALLOUT_THEMES[title]; const colors = calloutCardClasses[theme.color]; return (<aside className={`rounded-2xl p-6 ${colors.bg}`}><div className="flex items-center gap-x-3 mb-3"><span className="text-2xl">{theme.icon}</span><h4 className={`text-lg font-bold ${colors.title}`}>{title}</h4></div><div className={`${colors.body} text-[15px] leading-relaxed font-medium`}>{parseFormattedText(content, colors.emphasis)}</div></aside>); });
 Callout.displayName = 'Callout';
 
 interface ActionButtonsProps {
