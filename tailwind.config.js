@@ -68,7 +68,8 @@ export default {
               borderLeftColor: theme('colors.blue.500'),
               borderLeftWidth: '4px',
               backgroundColor: theme('colors.blue.50'),
-              padding: '1rem',
+              padding: '0.5rem 0.75rem', // Reduced padding
+              fontSize: '0.9em',          // Reduced font size
               fontStyle: 'italic',
               borderRadius: '0.25rem',
               quotes: '"\\201C""\\201D""\\2018""\\2019"',
@@ -99,6 +100,52 @@ export default {
               borderTopWidth: '2px',
               marginTop: '2rem',
               marginBottom: '2rem',
+            },
+            'ul > li::marker': {
+              color: theme('colors.blue.500'),
+            },
+            'ol > li::marker': {
+              color: theme('colors.blue.500'),
+              fontWeight: '600',
+            },
+            h2: {
+              fontSize: '1.4em',
+              color: theme('colors.rose.800'),
+              borderBottom: `1px solid ${theme('colors.rose.200')}`,
+              paddingBottom: '0.2em',
+              marginBottom: '0.6em',
+            },
+            h3: {
+              fontSize: '1.15em',
+            },
+            table: {
+              width: '100%',
+              marginTop: '2rem',
+              marginBottom: '2rem',
+              borderCollapse: 'separate',
+              borderSpacing: '0',
+              borderRadius: '0.5rem',
+              overflow: 'hidden',
+              boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+            },
+            thead: {
+              backgroundColor: theme('colors.gray.100'),
+            },
+            'thead th': {
+              color: theme('colors.gray.900'),
+              fontWeight: '600',
+              padding: '0.75rem 1rem',
+              textAlign: 'left',
+              borderBottom: `1px solid ${theme('colors.gray.200')}`,
+            },
+            'tbody tr': {
+              borderBottom: `1px solid ${theme('colors.gray.100')}`,
+            },
+            'tbody td': {
+              padding: '0.75rem 1rem',
+            },
+            'tbody tr:nth-child(even)': {
+              backgroundColor: theme('colors.gray.50'),
             },
           },
         },
