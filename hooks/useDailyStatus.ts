@@ -18,7 +18,14 @@ export const useDailyStatusesForMonth = (month: string) => {
             return getDailyStatuses(startDate, endDate);
         },
         enabled: !!month, // 只有当 month 有效时才执行查询
-        staleTime: 0, // 数据始终被视为过期，确保每次挂载或窗口聚焦时都重新获取
+        // 策略调整: 
+        // 1. 每次打开 APP (冷启动/刷新) -> 内存缓存为空 -> 发起请求
+        // 2. 切换标签/最小化 (热启动) -> 内存缓存存在且未过期 (Infinity) -> 不发起请求
+        // 3. 组件重渲染 -> 不发起请求
+        staleTime: Infinity,
+        refetchOnWindowFocus: false,
+        refetchOnMount: false,
+        refetchOnReconnect: false,
     });
 };
 
