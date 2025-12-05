@@ -11,7 +11,8 @@ export default {
     "!./.vercel/**",      // 排除 Vercel 的本地缓存
 
     // 3. (推荐) 你的 API 目录也不包含 Tailwind 样式，一并排除
-    "!./api/**"
+    "!./api/**",
+    "./app/**/*.{js,ts,jsx,tsx}", // 确保这一行存
   ],
   theme: {
     extend: {
@@ -20,12 +21,12 @@ export default {
       },
       fontFamily: {
         sans: [
-          'Inter',
+          'var(--font-inter)',
           'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto',
           '"Helvetica Neue"', 'Arial', '"Noto Sans"', '"PingFang SC"', '"Hiragino Sans GB"',
           '"Microsoft YaHei"', '"Noto Sans CJK SC"', 'sans-serif'
         ],
-        serif: ['"Playfair Display"', 'ui-serif', 'Georgia', 'Cambria', '"Times New Roman"', 'Times', 'serif']
+        serif: ['var(--font-playfair)', '"Playfair Display"', 'ui-serif', 'Georgia', 'Cambria', '"Times New Roman"', 'Times', 'serif']
       },
       colors: {
         midnight: {

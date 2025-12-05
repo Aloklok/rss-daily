@@ -1,7 +1,8 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// --- Supabase Client ---
+// --- Supabase Client (Server-Side Only) ---
+// This client uses the SERVICE_ROLE_KEY and should NEVER be used on the client side.
 let supabase: SupabaseClient;
 export function getSupabaseClient(): SupabaseClient {
     if (!supabase) {

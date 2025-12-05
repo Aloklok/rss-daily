@@ -191,8 +191,8 @@ CREATE TABLE public.articles (
 - **`api/search-articles.ts`**: 基于 Supabase 的关键词搜索接口。
 
 ## 环境变量
-- `VITE_SUPABASE_URL` - Supabase 项目 URL (用于前端客户端)
-- `VITE_SUPABASE_ANON_KEY` - Supabase 匿名密钥 (用于前端客户端)
+- `NEXT_PUBLIC_SUPABASE_URL` - Supabase 项目 URL (用于前端客户端)
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase 匿名密钥 (用于前端客户端)
 - `SUPABASE_URL` - Supabase 项目 URL (用于 Vercel Serverless Functions 后端)
 - `SUPABASE_SERVICE_ROLE_KEY` - Supabase 服务角色密钥 (用于 Vercel Serverless Functions 后端)
 - `FRESHRSS_API_URL` - FreshRSS API 基础 URL (用于 Vercel Serverless Functions 后端)

@@ -44,7 +44,7 @@ export const useBriefingArticles = (date: string | null, slot: string | null) =>
     });
 };
 
-export const useFilteredArticles = (filterValue: string | null) => {
+export const useFilteredArticles = (filterValue: string | null, initialData?: any) => {
     const addArticles = useArticleStore(state => state.addArticles);
 
     return useInfiniteQuery({
@@ -67,6 +67,7 @@ export const useFilteredArticles = (filterValue: string | null) => {
         initialPageParam: undefined as string | undefined,
         getNextPageParam: (lastPage) => lastPage.continuation, // Use the continuation token for the next page
         enabled: !!filterValue,
+        initialData: initialData,
     });
 };
 
