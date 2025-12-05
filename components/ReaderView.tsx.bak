@@ -17,7 +17,7 @@ interface ReaderViewProps {
     content: CleanArticleContent | null;
     article: Article | null;
     onClose: () => void;
-    onStateChange: (articleId: string | number, tagsToAdd: string[], tagsToRemove: string[]) => void; // 新增：状态变更回调
+    onStateChange: (articleId: string | number, tagsToAdd: string[], tagsToRemove: string[]) => Promise<any>; // Updated to return Promise
     onGoHome: () => void; // 新增：返回首页回调
 }
 
