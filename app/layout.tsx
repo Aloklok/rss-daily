@@ -44,8 +44,10 @@ export default function RootLayout({
     return (
         <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
             <body className="font-sans">
-                <Providers>{children}</Providers>
-                <GlobalUI />
+                <Providers>
+                    {children}
+                    <GlobalUI />
+                </Providers>
                 <SpeedInsights />
                 <Analytics />
             </body>
