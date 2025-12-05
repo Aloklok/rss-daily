@@ -1,6 +1,6 @@
 import React from 'react';
-import { fetchFilteredArticles } from '../../services/articleLoader';
-import StreamList from '../../components/StreamList';
+import { fetchFilteredArticles } from '@/services/articleLoader';
+import StreamList from '@/app/components/StreamList';
 
 export default async function StreamPage({ params }: { params: { id: string } }) {
     const { id } = params;
