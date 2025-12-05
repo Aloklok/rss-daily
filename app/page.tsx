@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation';
 import { fetchAvailableDates } from './lib/data';
 
+export const dynamic = 'force-dynamic';
+
 export default async function Home() {
     const dates = await fetchAvailableDates();
     if (dates.length > 0) {

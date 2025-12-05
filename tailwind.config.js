@@ -12,7 +12,8 @@ export default {
 
     // 3. (推荐) 你的 API 目录也不包含 Tailwind 样式，一并排除
     "!./api/**",
-    "./app/**/*.{js,ts,jsx,tsx}", // 确保这一行存
+    "./app/**/*.{js,ts,jsx,tsx}",
+    "./components/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
