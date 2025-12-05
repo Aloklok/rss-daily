@@ -1,7 +1,9 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getSupabaseClient } from './_utils.js';
+import { NextResponse } from 'next/server';
+import { getSupabaseClient } from '../../lib/api-utils';
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export const dynamic = 'force-dynamic';
+
+export async function GET() {
     const supabase = getSupabaseClient();
 
     // 1. Fetch all available dates and article IDs
@@ -12,7 +14,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (error) {
         console.error('Supabase error in sitemap:', error);
-        return res.status(500).send('Error generating sitemap');
+        return new NextResponse('Error generating sitemap', { status: 500 });
     }
 
     // 2. Process data
@@ -27,7 +29,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             timeZone: 'Asia/Shanghai',
         });
 
-        data.forEach(item => {
+        data.forEach((item: { n8n_processing_date: string | null; id: string | null }) => {
             if (item.n8n_processing_date) {
                 const date = new Date(item.n8n_processing_date);
                 dateSet.add(formatter.format(date));
@@ -64,8 +66,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 </urlset>`;
 
     // 4. Send response
-    res.setHeader('Content-Type', 'application/xml');
-    // Cache for 24 hours (s-maxage=86400), stale-while-revalidate for 1 day
-    res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate=86400');
-    return res.status(200).send(sitemap);
+    return new NextResponse(sitemap, {
+        headers: {
+            'Content-Type': 'application/xml',
+            'Cache-Control': 's-maxage=86400, stale-while-revalidate=86400',
+        },
+    });
 }

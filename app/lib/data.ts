@@ -1,4 +1,4 @@
-import { getSupabaseClient } from '../../api/_utils';
+import { getSupabaseClient } from './api-utils';
 import { Article } from '../../types';
 
 export async function fetchAvailableDates(): Promise<string[]> {

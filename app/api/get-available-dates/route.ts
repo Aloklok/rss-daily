@@ -1,7 +1,9 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { apiHandler, getSupabaseClient } from './_utils.js';
+import { NextResponse } from 'next/server';
+import { getSupabaseClient } from '../../lib/api-utils';
 
-async function getAvailableDates(req: VercelRequest, res: VercelResponse) {
+export const dynamic = 'force-dynamic';
+
+export async function GET() {
     const supabase = getSupabaseClient();
 
     const { data, error } = await supabase
@@ -11,7 +13,7 @@ async function getAvailableDates(req: VercelRequest, res: VercelResponse) {
 
     if (error) {
         console.error('Supabase error in get-available-dates:', error);
-        return res.status(500).json({ message: 'Error fetching available dates', error: error.message });
+        return NextResponse.json({ message: 'Error fetching available dates', error: error.message }, { status: 500 });
     }
 
     // Process the data to get unique dates based on the Asia/Shanghai timezone
@@ -33,9 +35,5 @@ async function getAvailableDates(req: VercelRequest, res: VercelResponse) {
     }
 
     const dates = Array.from(dateSet);
-    return res.status(200).json(dates);
+    return NextResponse.json(dates);
 }
-
-import { withCache } from './_cache.js';
-
-export default apiHandler(['GET'], withCache(getAvailableDates));
