@@ -4,6 +4,7 @@ import { fetchBriefingData, fetchAvailableDates, getTodayInShanghai } from '../.
 import ArticleCard from '../../components/ArticleCard';
 import BriefingClient from './BriefingClient';
 import { unstable_noStore as noStore } from 'next/cache';
+import { resolveBriefingImage } from '../../../services/articleLoader';
 
 // Revalidate every hour for past dates (ISR).
 // For "Today", we will use noStore() to opt out of caching.
@@ -39,10 +40,14 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
     // Check if empty
     const hasArticles = allArticles.length > 0;
 
+    // Prefetch header image
+    const headerImageUrl = await resolveBriefingImage(date);
+
     return (
         <BriefingClient
             articles={allArticles}
             date={date}
+            headerImageUrl={headerImageUrl}
         />
     );
 }

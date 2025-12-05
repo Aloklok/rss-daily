@@ -76,3 +76,7 @@ export interface FreshRSSItem {
   summary?: { content: string };
   content?: { content: string };
 }
+
+// Module Declarations
+declare module '@sparticuz/chromium';
+declare module 'puppeteer-core';

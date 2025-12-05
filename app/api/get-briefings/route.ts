@@ -18,9 +18,8 @@ export async function GET(request: NextRequest) {
         // But the original code might expect 'id1,id2' or repeated params.
         // Let's support both: getAll and comma split.
         let ids: string[] = searchParams.getAll('articleIds');
-        if (ids.length === 1 && ids[0].includes(',')) {
-            ids = ids[0].split(',');
-        }
+        // Removed comma splitting because some IDs (e.g. FreshRSS tag IDs) contain commas.
+        // The client sends multiple 'articleIds' params which getAll handles correctly.
 
         // If still empty, check if it was passed as 'articleIds[]'
         if (ids.length === 0) {

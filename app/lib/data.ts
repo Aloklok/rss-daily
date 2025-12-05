@@ -100,15 +100,34 @@ export async function fetchBriefingData(date: string): Promise<{ [key: string]: 
     return groupedArticles;
 }
 
+import { toFullId } from '../../utils/idHelpers';
+
 export async function fetchArticleById(id: string): Promise<Article | null> {
     const supabase = getSupabaseClient();
+
+    // Try to convert to full ID if it looks like a short ID
+    // This handles cases where the URL provides a short ID (e.g. from routing)
+    const fullId = toFullId(id);
+
     const { data, error } = await supabase
         .from('articles')
         .select('*')
-        .eq('id', id)
+        .eq('id', fullId)
         .single();
 
     if (error) {
+        // If searching by full ID fails, try searching by the raw ID just in case
+        // (though toFullId handles already-full IDs gracefully)
+        if (fullId !== id) {
+            const { data: retryData, error: retryError } = await supabase
+                .from('articles')
+                .select('*')
+                .eq('id', id)
+                .single();
+
+            if (!retryError) return retryData;
+        }
+
         console.error('Error fetching article by ID:', error);
         return null;
     }

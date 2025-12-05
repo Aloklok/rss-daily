@@ -33,7 +33,7 @@ const ArticleListItem: React.FC<{ articleId: string | number; onOpenArticle: (ar
 
   return (
     <div
-      className="group relative bg-white dark:bg-midnight-card border border-stone-100 dark:border-midnight-border rounded-xl p-5 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer overflow-hidden"
+      className="group relative bg-white border border-stone-100 rounded-xl p-5 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer overflow-hidden"
       onClick={() => onOpenArticle(article)}
     >
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-stone-50/50 dark:to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />

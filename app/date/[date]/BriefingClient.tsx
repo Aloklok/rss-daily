@@ -5,14 +5,15 @@ import Briefing from '../../../components/Briefing';
 import { Article } from '../../../types';
 import { useArticleStore } from '../../../store/articleStore';
 import { useUIStore } from '../../../store/uiStore';
-import { useUpdateArticleState } from '../../../hooks/useArticles';
+import { useUpdateArticleState, useBriefingArticles } from '../../../hooks/useArticles';
 
 interface BriefingClientProps {
     articles: Article[];
     date: string;
+    headerImageUrl?: string;
 }
 
-export default function BriefingClient({ articles, date }: BriefingClientProps) {
+export default function BriefingClient({ articles, date, headerImageUrl }: BriefingClientProps) {
     const addArticles = useArticleStore(state => state.addArticles);
     const setActiveFilter = useUIStore(state => state.setActiveFilter);
     const activeFilter = useUIStore(state => state.activeFilter);
@@ -41,13 +42,26 @@ export default function BriefingClient({ articles, date }: BriefingClientProps) 
         if (activeFilter?.type !== 'date' || activeFilter.value !== date) {
             setActiveFilter({ type: 'date', value: date });
         }
-    }, [date, activeFilter, setActiveFilter]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [date, setActiveFilter]);
 
-    const articleIds = articles.map(a => a.id);
+    // Use hook to get filtered articles based on timeSlot
+    // We use props.articles as initial data if timeSlot is null (All Day)
+    // But actually, useBriefingArticles handles fetching.
+    // Since we hydrated the store, we just need the IDs.
+    const { data: briefingArticleIds, isLoading } = useBriefingArticles(date, timeSlot);
+
+    // Fallback to props.articles if hook returns nothing (e.g. initial load before effect)
+    // But since we hydrated, maybe we can just use the hook result?
+    // If timeSlot is null, the hook returns all articles (if configured correctly).
+    // Let's rely on the hook for consistency.
+    const articleIds = briefingArticleIds || [];
 
     return (
         <Briefing
             articleIds={articleIds}
+            date={date}
+            headerImageUrl={headerImageUrl}
             timeSlot={timeSlot}
             selectedReportId={1} // Default to 1 as Briefing.tsx hardcodes a single report with ID 1
             onReportSelect={() => { }} // No-op for now
@@ -56,8 +70,9 @@ export default function BriefingClient({ articles, date }: BriefingClientProps) 
             onTimeSlotChange={setTimeSlot}
             isSidebarCollapsed={isSidebarCollapsed}
             onToggleSidebar={() => { }} // No-op or implement if needed
-            articleCount={articles.length}
-            isLoading={false}
+            articleCount={articleIds.length}
+            isLoading={isLoading}
+            articles={articles}
         />
     );
 }

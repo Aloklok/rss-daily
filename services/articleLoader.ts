@@ -37,6 +37,7 @@ async function mergeWithSupabaseDetails(freshArticles: Article[]): Promise<Artic
 // 1. 加载简报文章（已融合）
 // 简报必须融合，因为需要 verdict.importance 进行分组
 export async function fetchBriefingArticles(date: string, slot: string | null): Promise<Article[]> {
+    console.log(`[Loader] Fetching briefing for date: ${date}, slot: ${slot}`);
     const fetchedReports = await getBriefingReportsByDate(date, slot as any);
     const supaArticles = fetchedReports.flatMap(report => Object.values(report.articles).flat());
     if (supaArticles.length === 0) return [];
@@ -94,4 +95,31 @@ export async function fetchSearchResults(query: string): Promise<Article[]> {
         ...supaArticle,
         tags: statesById[supaArticle.id] || [],
     }));
+}
+
+// 6. 预解析简报头图 URL
+export async function resolveBriefingImage(date: string): Promise<string> {
+    const seedUrl = `https://picsum.photos/seed/${date}/800/300`;
+    try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1500); // 1.5s timeout to protect TTFB
+
+        const response = await fetch(seedUrl, {
+            method: 'HEAD',
+            redirect: 'manual', // Don't follow, just get the redirect header
+            signal: controller.signal,
+            next: { revalidate: 86400 }
+        });
+        clearTimeout(timeoutId);
+
+        if (response.status >= 300 && response.status < 400) {
+            const location = response.headers.get('location');
+            if (location) return location;
+        }
+
+        return seedUrl;
+    } catch (error) {
+        console.warn('Failed to resolve briefing image (timeout or error), falling back to seed URL:', error);
+        return seedUrl;
+    }
 }

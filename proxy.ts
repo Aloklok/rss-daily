@@ -1,5 +1,7 @@
+import { NextResponse } from 'next/server';
+
 // @ts-ignore Vercel 会在边缘环境中自动提供全局类型
-export default function proxy(request: Request) {
+export function proxy(request: Request) {
 
     const url = new URL(request.url);
     const userAgent = request.headers.get('user-agent') || '';
@@ -33,12 +35,19 @@ export default function proxy(request: Request) {
 
     // 1. URL Token 鉴权 (Admin Login)
     if (urlToken === accessToken) {
-        const response = new Response(null, {
-            status: 307,
-            headers: {
-                'Location': url.origin, // Redirect to clean URL
-                'Set-Cookie': `site_token=${accessToken}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${60 * 60 * 24 * 90}`,
-            },
+        // Remove token from URL but keep path and other params
+        url.searchParams.delete('token');
+        const redirectUrl = url.toString();
+
+        const isSecure = url.protocol === 'https:';
+
+        const response = NextResponse.redirect(redirectUrl);
+        response.cookies.set('site_token', accessToken, {
+            path: '/',
+            httpOnly: true,
+            secure: isSecure,
+            sameSite: 'lax',
+            maxAge: 60 * 60 * 24 * 90
         });
         return response;
     }

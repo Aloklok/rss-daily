@@ -39,8 +39,10 @@ export const useBriefingArticles = (date: string | null, slot: string | null) =>
             // 如果查询的是历史日期，我们告诉 react-query 这个数据是“永不过期”的。
             // Infinity 意味着只要缓存存在，就永远不要认为它是 stale 的，
             // 也就永远不会自动去 refetch。
+            // 也就永远不会自动去 refetch。
             return Infinity;
         })(),
+        placeholderData: (previousData: any) => previousData,
     });
 };
 

@@ -37,17 +37,17 @@ const ReportContent: React.FC<ReportContentProps> = memo(({ report, onReaderMode
     return (
         <div>
             {/* Table of Contents & Summary Section */}
-            <div className="bg-white/70 backdrop-blur-md px-2 py-2 rounded-2xl border border-stone-200/80 shadow-sm mb-10">
+            <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl p-6 rounded-3xl border border-stone-100 dark:border-white/10 shadow-lg shadow-stone-200/50 dark:shadow-none mb-10 transition-all hover:shadow-xl hover:shadow-stone-200/60 duration-500">
                 <div className="md:hidden">
-                    <h3 className="text-2xl font-bold font-serif text-stone-800 flex items-center">
+                    <h3 className="text-2xl font-bold font-serif text-stone-800 dark:text-white flex items-center">
                         <span>📚 目录</span>
                         <span className="text-stone-400 mx-2 font-light">/</span>
                         <span>📝 摘要</span>
                     </h3>
                 </div>
                 <div className="hidden md:grid grid-cols-2 gap-x-6">
-                    <h3 className="text-2xl font-bold font-serif text-stone-800">📚 目录</h3>
-                    <h3 className="text-2xl font-bold font-serif text-stone-800">📝 摘要</h3>
+                    <h3 className="text-2xl font-bold font-serif text-stone-800 dark:text-white">📚 目录</h3>
+                    <h3 className="text-2xl font-bold font-serif text-stone-800 dark:text-white">📝 摘要</h3>
                 </div>
 
                 <div className="mt-3">
@@ -57,9 +57,9 @@ const ReportContent: React.FC<ReportContentProps> = memo(({ report, onReaderMode
                         const sectionId = `importance-${importance.replace(/\s+/g, '-')}`;
                         return (
                             <div key={importance}>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 border-b-2 border-stone-200 my-0 pb-0.5">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 border-b border-stone-200 dark:border-white/10 my-0 pb-0.5">
                                     <div className="py-0.5">
-                                        <a href={`#${sectionId}`} onClick={(e) => handleJump(e, sectionId)} className="font-semibold text-base text-rose-800 hover:underline">
+                                        <a href={`#${sectionId}`} onClick={(e) => handleJump(e, sectionId)} className="font-semibold text-base text-rose-800 dark:text-rose-400 hover:underline">
                                             <span className="mr-2"></span>
                                             {importance}
                                         </a>
@@ -69,18 +69,18 @@ const ReportContent: React.FC<ReportContentProps> = memo(({ report, onReaderMode
                                 {articles.map(article => (
                                     <div key={article.id}>
                                         <div className="md:hidden py-3">
-                                            <a href={`#article-${article.id}`} onClick={(e) => handleJump(e, `article-${article.id}`)} className="text-sky-600 hover:text-sky-800 font-medium leading-tight">
+                                            <a href={`#article-${article.id}`} onClick={(e) => handleJump(e, `article-${article.id}`)} className="text-sky-600 dark:text-blue-400 hover:text-blue-300 dark:hover:text-sky-200 font-medium leading-tight">
                                                 {article.title}
                                             </a>
-                                            <p className="mt-2 text-base text-stone-600 leading-relaxed">{article.tldr}</p>
+                                            <p className="mt-2 text-base text-stone-600 dark:text-gray-50 leading-tight">{article.tldr}</p>
                                         </div>
                                         <div className="hidden md:grid grid-cols-2 gap-x-6">
                                             <div className="py-2 flex items-start">
-                                                <a href={`#article-${article.id}`} onClick={(e) => handleJump(e, `article-${article.id}`)} className="text-sky-600 hover:text-sky-800 hover:underline font-medium leading-tight decoration-sky-300 decoration-2">
+                                                <a href={`#article-${article.id}`} onClick={(e) => handleJump(e, `article-${article.id}`)} className="text-sky-600 dark:text-blue-400 hover:text-blue-300 dark:hover:text-sky-200 hover:underline font-medium leading-tight decoration-sky-300 decoration-2">
                                                     {article.title}
                                                 </a>
                                             </div>
-                                            <div className="py-2 text-base text-stone-600 leading-relaxed flex items-start">{article.tldr}</div>
+                                            <div className="py-2 text-base text-stone-600 dark:text-gray-50 leading-tight flex items-start">{article.tldr}</div>
                                         </div>
                                     </div>
                                 ))}
@@ -108,7 +108,8 @@ const ReportContent: React.FC<ReportContentProps> = memo(({ report, onReaderMode
 ReportContent.displayName = 'ReportContent';
 
 interface BriefingProps {
-    articleIds: (string | number)[]; // 【修改】只接收 IDs
+    articleIds: (string | number)[];
+    date: string; // 【新增】接收日期
     timeSlot: 'morning' | 'afternoon' | 'evening' | null;
     selectedReportId: number | null;
     onReportSelect: (id: number) => void;
@@ -119,19 +120,21 @@ interface BriefingProps {
     onToggleSidebar: () => void;
     articleCount: number;
     isLoading?: boolean;
+    headerImageUrl?: string; // 【新增】接收预解析的图片 URL
+    articles?: Article[]; // 【新增】用于 SSR/Hydration 的初始文章数据
 }
 
 import { getRandomGradient } from '../utils/colorUtils';
 
-const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedReportId, onReportSelect, onReaderModeRequest, onStateChange, onTimeSlotChange, isSidebarCollapsed, onToggleSidebar, articleCount, isLoading }) => {
+const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selectedReportId, onReportSelect, onReaderModeRequest, onStateChange, onTimeSlotChange, isSidebarCollapsed, onToggleSidebar, articleCount, isLoading, headerImageUrl, articles }) => {
     // 1. 【新增】内部订阅文章数据
     const articlesById = useArticleStore(state => state.articlesById);
-    const activeFilter = useUIStore(state => state.activeFilter);
+    // const activeFilter = useUIStore(state => state.activeFilter); // No longer needed for date logic
 
     // 2. 【新增】内部生成 reports
     const reports: BriefingReport[] = useMemo(() => {
         if (!articleIds || articleIds.length === 0) return [];
-        const articlesForReport = articleIds.map(id => articlesById[id]).filter(Boolean) as Article[];
+        const articlesForReport = articleIds.map(id => articlesById[id] || articles?.find(a => a.id === id)).filter(Boolean) as Article[];
         const groupedArticles = articlesForReport.reduce((acc, article) => {
             const group = article.briefingSection || '常规更新';
             if (!acc[group]) acc[group] = [];
@@ -144,21 +147,19 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedRepor
     const selectedReport = reports.find(r => r.id === selectedReportId);
 
     const randomGradient = useMemo(() => {
-        if (activeFilter?.type !== 'date') return getRandomGradient('default');
-        // Use the full date string as the key to ensure different gradients for different days
-        // but consistent for the same day
-        return getRandomGradient(activeFilter.value);
-    }, [activeFilter]);
+        // Use the date string as the key
+        return getRandomGradient(date);
+    }, [date]);
 
     const isToday = useMemo(() => {
-        if (activeFilter?.type !== 'date') return false;
+        if (!date) return false;
         const now = new Date();
         const y = now.getFullYear();
         const m = String(now.getMonth() + 1).padStart(2, '0');
         const d = String(now.getDate()).padStart(2, '0');
         const todayLocal = `${y}-${m}-${d}`;
-        return activeFilter.value === todayLocal;
-    }, [activeFilter]);
+        return date === todayLocal;
+    }, [date]);
 
     const getGreeting = () => {
         const hour = new Date().getHours();
@@ -171,14 +172,14 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedRepor
     }
 
     const renderHeader = () => {
-        if (activeFilter?.type === 'date') {
-            const dateObj = new Date(activeFilter.value + 'T00:00:00');
+        if (date) {
+            const dateObj = new Date(date + 'T00:00:00');
             const datePart = dateObj.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });
             const weekdayPart = dateObj.toLocaleDateString('zh-CN', { weekday: 'long' });
 
             // Use the date string as a seed for the random image to ensure it stays the same for that date
-            const seed = activeFilter.value;
-            const bgImage = `https://picsum.photos/seed/${seed}/800/400`;
+            const seed = date;
+            const bgImage = `https://picsum.photos/seed/${seed}/800/300`;
 
             const now = new Date();
             const currentHour = now.getHours();
@@ -200,12 +201,12 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedRepor
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                         />
                         {/* Dark Gradient Overlay for Text Readability */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30"></div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/20"></div>
 
 
                     </div>
 
-                    <div className="relative z-10 p-6 md:p-8 flex flex-col gap-8">
+                    <div className="relative z-10 px-6 py-8 md:px-8 md:py-11 flex flex-col gap-8">
 
                         {/* Top Row: Date & Time Slot Selector */}
                         <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
@@ -227,7 +228,7 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedRepor
 
                             {/* Right: Time Slot Selector - More Visible */}
                             {/* Right: Time Slot Selector - Circular Design */}
-                            {activeFilter?.type === 'date' && (
+                            {date && (
                                 <div className="flex items-center gap-3 self-start">
                                     {(['morning', 'afternoon', 'evening'] as const).map(slotOption => {
                                         const labelMap: Record<'morning' | 'afternoon' | 'evening', string> = { morning: '早', afternoon: '中', evening: '晚' };
@@ -256,13 +257,17 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedRepor
 
                         {/* Bottom Row: Greeting & Count - Unified (White Text) with Separator */}
                         <div className="pt-4 border-t border-white/20">
-                            <p className="text-base md:text-lg text-white/95 leading-relaxed font-serif drop-shadow-sm">
+                            <p className="text-base md:text-lg text-white/95 leading-relaxed font-serif drop-shadow-sm" suppressHydrationWarning>
                                 {isToday ? (
                                     <span>{getGreeting()}，欢迎阅读今日简报</span>
                                 ) : (
                                     <span>欢迎阅读本期简报</span>
                                 )}
-                                {articleCount > 0 && <span>，共 {articleCount} 篇文章。</span>}
+                                {reports.length > 0 && (
+                                    <span>
+                                        ，共 <span className="font-variant-numeric tabular-nums">{reports.reduce((acc, r) => acc + Object.values(r.articles).flat().length, 0)}</span> 篇文章。
+                                    </span>
+                                )}
                             </p>
                         </div>
                     </div>
@@ -273,7 +278,7 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, timeSlot, selectedRepor
     }
 
     return (
-        <main className="flex-1 px-2 py-2 md:p-8 lg:p-10">
+        <main className="flex-1 px-2 pt-0 md:px-8 md:pt-0 md:pb-10 lg:px-10 lg:pt-2">
             <div className="max-w-6xl mx-auto">
                 {renderHeader()}
 

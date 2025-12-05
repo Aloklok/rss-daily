@@ -18,7 +18,6 @@ export async function GET() {
             output: 'json',
             with_counts: '1'
         });
-
         const categories: Tag[] = [];
         const tags: Tag[] = [];
 

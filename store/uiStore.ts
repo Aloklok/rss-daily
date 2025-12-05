@@ -42,6 +42,19 @@ interface UIStoreState {
     // Admin State
     isAdmin: boolean;
     checkAdminStatus: () => Promise<void>;
+
+    // Sidebar State
+    isSidebarCollapsed: boolean;
+    toggleSidebar: () => void;
+    setSidebarCollapsed: (collapsed: boolean) => void;
+
+    // Settings State
+    theme: 'light' | 'dark';
+    fontSize: number;
+    lineHeight: number;
+    setTheme: (theme: 'light' | 'dark') => void;
+    setFontSize: (size: number) => void;
+    setLineHeight: (height: number) => void;
 }
 
 export const useUIStore = create<UIStoreState>((set) => ({
@@ -96,4 +109,27 @@ export const useUIStore = create<UIStoreState>((set) => ({
             set({ isAdmin: false });
         }
     },
+
+    // Sidebar State
+    isSidebarCollapsed: false,
+    toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
+    setSidebarCollapsed: (collapsed) => set({ isSidebarCollapsed: collapsed }),
+
+    // Settings State
+    theme: 'light', // Default, will be updated by effect in layout/provider
+    fontSize: 16,
+    lineHeight: 1.7,
+    setTheme: (theme) => {
+        set({ theme });
+        if (typeof window !== 'undefined') {
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            localStorage.setItem('theme', theme);
+        }
+    },
+    setFontSize: (size) => set({ fontSize: size }),
+    setLineHeight: (height) => set({ lineHeight: height }),
 }));
