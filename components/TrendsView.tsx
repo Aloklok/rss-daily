@@ -1,4 +1,5 @@
 import React from 'react';
+import ReloadPWAButton from './sidebar/ReloadPWAButton';
 
 // 1. 定义配置类型
 type LinkTheme = 'teal' | 'indigo' | 'slate' | 'orange' | 'blue' | 'purple' | 'yellow' | 'red' | 'pink' | 'green' | 'cyan';
@@ -321,6 +322,9 @@ const TrendsView: React.FC = () => {
                         </div>
                     );
                 })}
+                <div className="mt-12 flex justify-center pb-8">
+                    <ReloadPWAButton />
+                </div>
             </div>
         </div>
     );

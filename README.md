@@ -17,7 +17,9 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 - **双模访问控制**：
   - **公共只读模式**：默认允许公众访问，可以浏览所有简报和文章，但无法进行任何修改。
   - **管理员模式**：通过 URL Token (`?token=...`) 激活，系统会自动设置持久化 Cookie (`site_token`)，无需每次访问都携带 Token。拥有完整权限（如标记已读、收藏、查看原始 RSS）。
-- **SEO 优化**：基于 Next.js Metadata API 的动态元数据生成，支持 Open Graph 和 Twitter Card，显著提升搜索引擎和社交分享体验。
+- **SEO 优化**：
+  - **动态元数据**：基于 Next.js Metadata API 生成 Open Graph 和 Twitter Card，提升社交分享体验。
+  - **自动 Sitemap**：动态生成 `/sitemap.xml`，实时收录最新文章和日期页，确保搜索引擎友好。
 
 ## 用户界面 (UI) 交互
 
@@ -25,7 +27,10 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 - **全局侧边栏切换**：
   - **品牌标识**：侧边栏顶部新增了品牌 Logo 和彩虹渐变风格的 "Briefing Hub" 标题。
   - **搜索功能**：提供全文搜索能力（**仅管理员可见**）。
-  - **响应式设计**: 移动端支持侧边栏折叠。
+  - **响应式设计**: 完美适配移动端。
+    - **侧边栏**：移动端支持折叠与自动手势交互。
+    - **PWA 工具**：“趋势”页面底部集成 **“重载应用”** 按钮（仅移动端可见），用于一键清理缓存和 Service Worker，解决 PWA 更新问题。
+    - **阅读体验**：优化了移动端模态框的按钮布局，防止被遮挡。
 - **沉浸式简报头图 (Immersive Briefing Header)**：
   - **动态日期卡片**: 顶部展示大字号日期和问候语，背景采用每日随机生成的风景图（带遮罩）。
   - **时段切换器**: 集成早/中/晚时段切换功能，支持点击切换简报内容。
@@ -47,6 +52,8 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
   - **服务器状态**: TanStack Query (React Query) - 负责客户端数据交互。
   - **客户端状态**: Zustand - 管理 UI 状态和乐观更新。
 - **边缘计算**: Next.js Proxy (原 Middleware) - 用于在网络边缘层实现安全访问控制。
+- **性能优化**: 
+  - **图片优化**: 全面采用 `next/image` 组件，支持 `picsum.photos` 源的自动格式转换 (WebP/AVIF) 和按需缩放，显著降低 LCP。
 - **后端服务**:
   - **Supabase**: 提供文章的核心内容和自定义元数据。
     ```sql
