@@ -3,6 +3,7 @@ import Providers from './providers';
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
 import GlobalUI from './components/GlobalUI';
+import SidebarClient from './components/SidebarClient';
 import { Inter, Playfair_Display } from 'next/font/google';
 
 const inter = Inter({
@@ -45,8 +46,13 @@ export default function RootLayout({
         <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
             <body className="font-sans">
                 <Providers>
-                    {children}
-                    <GlobalUI />
+                    <div className="flex min-h-screen bg-gray-50 dark:bg-midnight-bg">
+                        <SidebarClient />
+                        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+                            {children}
+                        </div>
+                        <GlobalUI />
+                    </div>
                 </Providers>
                 <SpeedInsights />
                 <Analytics />
