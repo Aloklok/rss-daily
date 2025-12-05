@@ -6,6 +6,7 @@ import ArticleGroup from './ArticleGroup';
 import { useArticleStore } from '../store/articleStore';
 import { useUIStore } from '../store/uiStore';
 import LoadingSpinner from './LoadingSpinner';
+import Image from 'next/image';
 
 interface ReportContentProps {
     report: BriefingReport;
@@ -195,10 +196,12 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
                 <header className="relative mb-8 overflow-hidden rounded-2xl shadow-md transition-all duration-500 hover:shadow-xl group">
                     {/* Background Image with Overlay */}
                     <div className="absolute inset-0 z-0">
-                        <img
+                        <Image
                             src={bgImage}
                             alt="Daily Background"
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            fill
+                            priority
+                            className="object-cover transition-transform duration-700 group-hover:scale-105"
                         />
                         {/* Dark Gradient Overlay for Text Readability */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/20"></div>
