@@ -44,7 +44,7 @@ export default function SidebarClient() {
     };
 
     return (
-        <div className="hidden md:block h-screen sticky top-0">
+        <div className="h-screen sticky top-0">
             <Sidebar
                 // @ts-ignore
                 isInitialLoading={isInitialLoad}
