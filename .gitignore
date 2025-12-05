@@ -31,3 +31,4 @@ dev-dist
 # Local cache
 .cache
 .next
+next-env.d.ts
