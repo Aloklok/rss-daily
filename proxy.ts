@@ -1,5 +1,5 @@
 // @ts-ignore Vercel 会在边缘环境中自动提供全局类型
-export default function middleware(request: Request) {
+export default function proxy(request: Request) {
 
     const url = new URL(request.url);
     const userAgent = request.headers.get('user-agent') || '';

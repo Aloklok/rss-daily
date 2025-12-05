@@ -25,10 +25,10 @@ export const useSingleArticle = (articleId: string | undefined) => {
             // Let's assume if we have an ID, we can at least show the reader view if we fetch content later.
 
             return {
+                ...details, // Spread Supabase details first
                 id: articleId,
                 title: details?.title || 'Loading...', // Placeholder
                 tags: tags,
-                ...details, // Spread Supabase details if available
             } as Article;
         },
         enabled: !!articleId,

@@ -3,8 +3,11 @@ import { fetchArticleById } from '../../lib/data';
 import ArticleCard from '../../components/ArticleCard';
 import { notFound } from 'next/navigation';
 
-export default async function ArticlePage({ params }: { params: { id: string } }) {
-    const article = await fetchArticleById(params.id);
+export const revalidate = false;
+
+export default async function ArticlePage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+    const article = await fetchArticleById(id);
     if (!article) notFound();
 
     return (

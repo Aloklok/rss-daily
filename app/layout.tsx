@@ -21,7 +21,6 @@ export const metadata = {
     title: 'Briefing Hub',
     description: 'Personal RSS Briefing Hub',
     manifest: '/manifest.json',
-    themeColor: '#ffffff',
     appleWebApp: {
         capable: true,
         statusBarStyle: 'default',
@@ -31,6 +30,10 @@ export const metadata = {
         icon: '/favicon.ico',
         apple: '/computer_cat_180.jpeg',
     },
+};
+
+export const viewport = {
+    themeColor: '#ffffff',
 };
 
 export default function RootLayout({

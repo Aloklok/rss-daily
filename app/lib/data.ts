@@ -46,8 +46,19 @@ export function getTodayInShanghai(): string {
 export async function fetchBriefingData(date: string): Promise<{ [key: string]: Article[] }> {
     const supabase = getSupabaseClient();
 
-    const startDate = new Date(`${date}T00:00:00.000+08:00`);
-    const endDate = new Date(`${date}T23:59:59.999+08:00`);
+    // Validate date format YYYY-MM-DD
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        console.error('Invalid date format in fetchBriefingData:', date);
+        return {};
+    }
+
+    const [year, month, day] = date.split('-').map(Number);
+
+    // Shanghai is UTC+8.
+    // We construct the UTC time corresponding to Shanghai's 00:00:00 and 23:59:59.999
+    // 00:00:00 Shanghai = 16:00:00 UTC (previous day) -> handled by -8 hours
+    const startDate = new Date(Date.UTC(year, month - 1, day, 0 - 8, 0, 0, 0));
+    const endDate = new Date(Date.UTC(year, month - 1, day, 23 - 8, 59, 59, 999));
 
     const { data: articles, error } = await supabase
         .from('articles')

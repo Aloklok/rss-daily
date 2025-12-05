@@ -2,8 +2,8 @@ import React from 'react';
 import { fetchFilteredArticles } from '@/services/articleLoader';
 import StreamList from '@/app/components/StreamList';
 
-export default async function StreamPage({ params }: { params: { id: string } }) {
-    const { id } = params;
+export default async function StreamPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
     const decodedId = decodeURIComponent(id);
 
     // Fetch initial data on server

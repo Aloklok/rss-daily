@@ -6,7 +6,7 @@ import { unstable_noStore as noStore } from 'next/cache';
 
 // Revalidate every hour for past dates (ISR).
 // For "Today", we will use noStore() to opt out of caching.
-export const revalidate = 3600;
+export const revalidate = 604800;
 
 export async function generateStaticParams() {
     const dates = await fetchAvailableDates();
@@ -21,8 +21,8 @@ export async function generateStaticParams() {
         }));
 }
 
-export default async function BriefingPage({ params }: { params: { date: string } }) {
-    const { date } = params;
+export default async function BriefingPage({ params }: { params: Promise<{ date: string }> }) {
+    const { date } = await params;
     const today = getTodayInShanghai();
 
     // If it's today, opt out of caching to ensure real-time updates (SSR)
