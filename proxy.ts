@@ -16,6 +16,14 @@ export function proxy(request: Request) {
         'Google-Extended'
     ];
 
+    // Priority 0: Explicitly ALLOW Search Engine Bots (Whitelist)
+    // This ensures sitemap and verify requests always get through our logic.
+    // Note: If Vercel Protection is on, this won't bypass it, but it prevents *our* code from blocking.
+    const ALLOWED_BOTS = ['Bingbot', 'Googlebot', 'Baiduspider', 'bingbot', 'googlebot', 'baiduspider'];
+    if (ALLOWED_BOTS.some(bot => userAgent.includes(bot))) {
+        return NextResponse.next();
+    }
+
     if (BLOCKED_AGENTS.some(agent => userAgent.includes(agent))) {
         return new Response('Access Denied: Automated access is not permitted.', {
             status: 403,
@@ -99,6 +107,6 @@ export function proxy(request: Request) {
 // 它只匹配“页面路由”（不含 . ），而不匹配静态文件
 export const config = {
     matcher: [
-        '/((?!api/|_vercel/|.+\..+).*)',
+        '/((?!api/|_vercel/|sitemap.xml|robots.txt|.+\..+).*)',
     ],
 };
