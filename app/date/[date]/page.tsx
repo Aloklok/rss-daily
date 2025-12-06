@@ -79,8 +79,12 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
         '@context': 'https://schema.org',
         '@type': 'NewsArticle',
         headline: `${date} Briefing | 每日简报`,
+        image: {
+            '@type': 'ImageObject',
+            'url': headerImageUrl || 'https://alok-rss.top/computer_cat.jpeg' // Fallback image
+        },
         description: description,
-        datePublished: date,
+        datePublished: `${date}T08:00:00+08:00`, // ISO 8601 with +08:00 timezone (assuming 8 AM Shanghai)
         author: [{
             '@type': 'Organization',
             name: 'Briefing Hub',
