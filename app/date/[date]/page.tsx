@@ -1,4 +1,5 @@
 import React from 'react';
+import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { fetchBriefingData, fetchAvailableDates, getTodayInShanghai } from '../../lib/data';
 import ArticleCard from '../../components/ArticleCard';
@@ -23,6 +24,32 @@ export async function generateStaticParams() {
         }));
 }
 
+export async function generateMetadata({ params }: { params: Promise<{ date: string }> }): Promise<Metadata> {
+    const { date } = await params;
+
+    // Fetch data for dynamic description
+    const groupedArticles = await fetchBriefingData(date);
+    const allArticles = Object.values(groupedArticles).flat();
+    const topArticles = allArticles.slice(0, 5).map(a => a.title).join(', ');
+    const description = topArticles
+        ? `Briefing for ${date}. Featuring: ${topArticles}... | ${date} 每日简报。精选内容：${topArticles}...`
+        : `Daily AI-curated briefing for ${date}. Highlights and summaries from tech news and RSS feeds. | ${date} 每日 AI 精选简报。汇聚科技新闻与 RSS 订阅精华。`;
+
+    return {
+        title: `${date} Briefing | 每日简报`,
+        description: description,
+        alternates: {
+            canonical: `/date/${date}`,
+        },
+        openGraph: {
+            title: `${date} Briefing | 每日简报`,
+            description: description,
+            type: 'article',
+            publishedTime: date,
+        },
+    };
+}
+
 export default async function BriefingPage({ params }: { params: Promise<{ date: string }> }) {
     const { date } = await params;
     const today = getTodayInShanghai();
@@ -43,11 +70,44 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
     // Prefetch header image
     const headerImageUrl = await resolveBriefingImage(date);
 
+    const topArticles = allArticles.slice(0, 5).map(a => a.title).join(', ');
+    const description = topArticles
+        ? `Briefing for ${date}. Featuring: ${topArticles}... | ${date} 每日简报。精选内容：${topArticles}...`
+        : `Daily AI-curated briefing for ${date}. Highlights and summaries from tech news and RSS feeds. | ${date} 每日 AI 精选简报。汇聚科技新闻与 RSS 订阅精华。`;
+
+    const jsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'NewsArticle',
+        headline: `${date} Briefing | 每日简报`,
+        description: description,
+        datePublished: date,
+        author: [{
+            '@type': 'Organization',
+            name: 'Briefing Hub',
+            url: 'https://alok-rss.top'
+        }],
+        mainEntity: {
+            '@type': 'ItemList',
+            itemListElement: allArticles.map((article, index) => ({
+                '@type': 'ListItem',
+                position: index + 1,
+                url: `https://alok-rss.top/article/${article.id}`,
+                name: article.title
+            }))
+        }
+    };
+
     return (
-        <BriefingClient
-            articles={allArticles}
-            date={date}
-            headerImageUrl={headerImageUrl}
-        />
+        <>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
+            <BriefingClient
+                articles={allArticles}
+                date={date}
+                headerImageUrl={headerImageUrl}
+            />
+        </>
     );
 }

@@ -136,7 +136,7 @@ const Sidebar = React.memo<SidebarProps>(({
             </div>
 
             <div className="flex-grow overflow-hidden">
-                <div className={activeTab === 'filters' ? 'block h-full space-y-4 overflow-y-auto' : 'hidden'}>
+                <div className={activeTab === 'filters' ? 'block h-full space-y-2 overflow-y-auto' : 'hidden'}>
                     <SidebarStarred
                         isExpanded={starredExpanded}
                         onToggle={toggleStarred}

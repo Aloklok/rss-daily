@@ -23,10 +23,10 @@ const SidebarExplore: React.FC<SidebarExploreProps> = ({
     const listItemButtonClass = (isActive: boolean) => `w-full text-left px-3 py-2 rounded-md transition-all duration-200 flex items-center gap-3 text-sm font-medium ${isActive ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-midnight-text-secondary dark:hover:bg-midnight-card dark:hover:text-gray-200'}`;
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-2">
             {/* 分类 */}
             <nav className="flex flex-col">
-                <button onClick={() => setCategoriesExpanded(prev => !prev)} className="w-full text-left px-2 py-1 flex items-center justify-between text-base font-bold text-gray-600 dark:text-gray-300 mb-2 hover:text-gray-900 dark:hover:text-white transition-colors">
+                <button onClick={() => setCategoriesExpanded(prev => !prev)} className="w-full text-left px-2 py-1 flex items-center justify-between text-base font-bold text-gray-600 dark:text-gray-300 mb-1 hover:text-gray-900 dark:hover:text-white transition-colors">
                     <div className="flex items-center gap-2">
                         <span>📂 分类</span>
                     </div>
@@ -58,7 +58,7 @@ const SidebarExplore: React.FC<SidebarExploreProps> = ({
 
             {/* 标签 */}
             <div className="flex flex-col">
-                <div className="w-full text-left px-2 py-1 flex items-center gap-2 text-base font-bold text-gray-600 dark:text-gray-300 mb-2">
+                <div className="w-full text-left px-2 py-1 flex items-center gap-2 text-base font-bold text-gray-600 dark:text-gray-300 mb-1">
                     <span>🏷️ 标签</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 px-1">

@@ -29,7 +29,7 @@ const SidebarStarred: React.FC<SidebarStarredProps> = ({
 
     return (
         <nav className="flex flex-col">
-            <button onClick={() => { onToggle(); onSelect?.(); }} className="w-full text-left px-2 py-1 flex items-center justify-between text-base font-bold text-gray-600 dark:text-gray-300 mb-2 hover:text-gray-900 dark:hover:text-white transition-colors">
+            <button onClick={() => { onToggle(); onSelect?.(); }} className="w-full text-left px-2 py-1 flex items-center justify-between text-base font-bold text-gray-600 dark:text-gray-300 mb-1 hover:text-gray-900 dark:hover:text-white transition-colors">
                 <div className="flex items-center gap-2">
                     <span>⭐ 我的收藏</span>
                 </div>

@@ -1,5 +1,7 @@
 import './globals.css';
+import { cookies } from 'next/headers';
 import Providers from './providers';
+import { Metadata } from 'next';
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
 import GlobalUI from './components/GlobalUI';
@@ -19,18 +21,37 @@ const playfair = Playfair_Display({
     display: 'swap',
 });
 
-export const metadata = {
-    title: 'Briefing Hub',
-    description: 'Personal RSS Briefing Hub',
+export const metadata: Metadata = {
+    metadataBase: new URL('https://alok-rss.top'),
+    title: {
+        default: 'Briefing Hub | 每日简报',
+        template: '%s | Briefing Hub',
+    },
+    description: 'Personal RSS Briefing Hub & Daily AI Summaries | 个人 RSS 简报中心与每日 AI 精选',
+    keywords: ['RSS', 'Briefing', 'AI', 'Daily Updates', 'Technology', 'News', '简报', '每日更新', '科技', '新闻'],
     manifest: '/manifest.json',
+    icons: {
+        icon: '/favicon.ico',
+        apple: '/computer_cat_180.jpeg',
+    },
     appleWebApp: {
         capable: true,
         statusBarStyle: 'default',
         title: 'Briefing',
     },
-    icons: {
-        icon: '/favicon.ico',
-        apple: '/computer_cat_180.jpeg',
+    openGraph: {
+        type: 'website',
+        locale: 'zh_CN',
+        url: 'https://alok-rss.top',
+        siteName: 'RSS Briefing Hub | 每日简报',
+        title: 'RSS Briefing Hub | 每日简报',
+        description: 'Your personal AI-curated daily briefing. | 您的个人 AI 每日简报。',
+    },
+    verification: {
+        other: {
+            'baidu-site-verification': 'odeva-7lgkDNRxbE',
+            'msvalidate.01': 'F748D268BBC7001EA01E6B1ECF6BD15B',
+        },
     },
 };
 
@@ -38,7 +59,7 @@ export const viewport = {
     themeColor: '#ffffff',
 };
 
-import { cookies } from 'next/headers';
+
 
 export default async function RootLayout({
     children,
@@ -50,7 +71,7 @@ export default async function RootLayout({
     const isAdmin = token?.value === process.env.ACCESS_TOKEN;
 
     return (
-        <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
+        <html lang="zh-CN" className={`${inter.variable} ${playfair.variable}`}>
             <body className="font-sans antialiased">
                 <Providers>
                     <MainLayoutClient>
