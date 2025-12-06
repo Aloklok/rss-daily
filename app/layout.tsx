@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     },
     verification: {
         other: {
-            'baidu-site-verification': 'odeva-7lgkDNRxbE',
+            'baidu-site-verification': 'codeva-7lgkDNRxbE',
             'msvalidate.01': 'F748D268BBC7001EA01E6B1ECF6BD15B',
         },
     },
