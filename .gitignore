@@ -34,3 +34,6 @@ dev-dist
 next-env.d.ts
 .env*.local
 next-env.d.ts
+
+# Unused Assets
+public/computer_cat.jpeg

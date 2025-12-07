@@ -81,7 +81,7 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
         headline: `${date} Briefing | 每日简报`,
         image: {
             '@type': 'ImageObject',
-            'url': headerImageUrl || 'https://alok-rss.top/computer_cat.jpeg' // Fallback image
+            'url': headerImageUrl || 'https://alok-rss.top/computer_cat_180.jpeg' // Fallback image
         },
         description: description,
         datePublished: `${date}T08:00:00+08:00`, // ISO 8601 with +08:00 timezone (assuming 8 AM Shanghai)
@@ -111,6 +111,7 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
                 articles={allArticles}
                 date={date}
                 headerImageUrl={headerImageUrl}
+                isToday={date === today}
             />
         </>
     );

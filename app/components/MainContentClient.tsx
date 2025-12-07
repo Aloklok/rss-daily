@@ -132,6 +132,7 @@ export default function MainContentClient({ initialDate, initialHeaderImageUrl }
                 onToggleSidebar={toggleSidebar}
                 articleCount={briefingArticleIds?.length || 0}
                 isLoading={isBriefingLoading}
+                isToday={dateToUse === today}
             />
         );
     }

@@ -7,8 +7,8 @@
     "theme_color": "#000000",
     "icons": [
         {
-            "src": "/computer_cat.jpeg",
-            "sizes": "192x192",
+            "src": "/computer_cat_180.jpeg",
+            "sizes": "180x180",
             "type": "image/jpeg"
         }
     ]

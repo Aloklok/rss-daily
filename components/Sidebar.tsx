@@ -1,6 +1,7 @@
 // components/Sidebar.tsx
 
 import React, { memo, useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Article, Filter } from '../types';
 import { useSidebar } from '../hooks/useSidebar';
@@ -104,7 +105,7 @@ const Sidebar = React.memo<SidebarProps>(({
             <Fireflies />
             <div className="flex justify-between items-center px-1">
                 <div className="flex items-center gap-3">
-                    <img src="/computer_cat.jpeg" alt="Logo" className="w-12 h-12 rounded-full object-cover shadow-sm" />
+                    <Image src="/computer_cat_180.jpeg" alt="Logo" width={48} height={48} className="w-12 h-12 rounded-full object-cover shadow-sm" priority />
                     <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 via-pink-500 to-orange-500 leading-tight tracking-tight">
                         RSS Briefing<br />Hub
                     </h1>

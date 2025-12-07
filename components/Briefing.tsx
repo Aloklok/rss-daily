@@ -121,13 +121,15 @@ interface BriefingProps {
     onToggleSidebar: () => void;
     articleCount: number;
     isLoading?: boolean;
+
     headerImageUrl?: string; // 【新增】接收预解析的图片 URL
     articles?: Article[]; // 【新增】用于 SSR/Hydration 的初始文章数据
+    isToday: boolean;
 }
 
 import { getRandomGradient } from '../utils/colorUtils';
 
-const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selectedReportId, onReportSelect, onReaderModeRequest, onStateChange, onTimeSlotChange, isSidebarCollapsed, onToggleSidebar, articleCount, isLoading, headerImageUrl, articles }) => {
+const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selectedReportId, onReportSelect, onReaderModeRequest, onStateChange, onTimeSlotChange, isSidebarCollapsed, onToggleSidebar, articleCount, isLoading, headerImageUrl, articles, isToday }) => {
     // 1. 【新增】内部订阅文章数据
     const articlesById = useArticleStore(state => state.articlesById);
     // const activeFilter = useUIStore(state => state.activeFilter); // No longer needed for date logic
@@ -152,15 +154,8 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
         return getRandomGradient(date);
     }, [date]);
 
-    const isToday = useMemo(() => {
-        if (!date) return false;
-        const now = new Date();
-        const y = now.getFullYear();
-        const m = String(now.getMonth() + 1).padStart(2, '0');
-        const d = String(now.getDate()).padStart(2, '0');
-        const todayLocal = `${y}-${m}-${d}`;
-        return date === todayLocal;
-    }, [date]);
+
+
 
     const getGreeting = () => {
         const hour = new Date().getHours();
@@ -180,7 +175,7 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
 
             // Use the date string as a seed for the random image to ensure it stays the same for that date
             const seed = date;
-            const bgImage = `https://picsum.photos/seed/${seed}/800/300`;
+            const bgImage = headerImageUrl || `https://picsum.photos/seed/${seed}/800/300`;
 
             const now = new Date();
             const currentHour = now.getHours();
@@ -260,9 +255,9 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
 
                         {/* Bottom Row: Greeting & Count - Unified (White Text) with Separator */}
                         <div className="pt-4 border-t border-white/20">
-                            <p className="text-base md:text-lg text-white/95 leading-relaxed font-serif drop-shadow-sm" suppressHydrationWarning>
+                            <p className="text-base md:text-lg text-white/95 leading-relaxed font-serif drop-shadow-sm">
                                 {isToday ? (
-                                    <span>{getGreeting()}，欢迎阅读今日简报</span>
+                                    <span suppressHydrationWarning>{getGreeting()}，欢迎阅读今日简报</span>
                                 ) : (
                                     <span>欢迎阅读本期简报</span>
                                 )}

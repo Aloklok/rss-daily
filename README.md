@@ -17,9 +17,13 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 - **双模访问控制**：
   - **公共只读模式**：默认允许公众访问，可以浏览所有简报和文章，但无法进行任何修改。
   - **管理员模式**：通过 URL Token (`?token=...`) 激活，系统会自动设置持久化 Cookie (`site_token`)，无需每次访问都携带 Token。拥有完整权限（如标记已读、收藏、查看原始 RSS）。
-- **SEO 优化**：
-  - **动态元数据**：基于 Next.js Metadata API 生成 Open Graph 和 Twitter Card，提升社交分享体验。
-  - **自动 Sitemap**：动态生成 `/sitemap.xml`，实时收录最新文章和日期页，确保搜索引擎友好。
+- **SEO 优化**:
+  - **混合 SEO (Hybrid SEO)**: 全面支持中英双语 Metadata，针对 Baidu/Bing 和 Google 进行差异化优化，包含验证标签 (Verification Tags)。
+  - **高级结构化数据 (JSON-LD)**: 
+      - **首页**: `CollectionPage` Schema，构建简报归档索引。
+      - **简报页**: `NewsArticle` Schema，采用 ISO 8601 标准时间和 ImageObject，支持富媒体搜索结果。
+  - **动态元数据**: 基于 Next.js Metadata API 生成 Open Graph 和 Twitter Card。
+  - **自动 Sitemap**: 动态生成 `/sitemap.xml`，实时收录最新文章和日期页。
 
 ## 用户界面 (UI) 交互
 
@@ -46,7 +50,7 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 
 ## 技术栈
 
-- **核心框架**: Next.js 16 (App Router), React, TypeScript
+- **核心框架**: Next.js 16.0.7 (App Router), React 18.3.1, TypeScript
 - **样式**: Tailwind CSS
 - **状态管理**:
   - **服务器状态**: TanStack Query (React Query) - 负责客户端数据交互。

@@ -11,9 +11,10 @@ interface BriefingClientProps {
     articles: Article[];
     date: string;
     headerImageUrl?: string;
+    isToday: boolean;
 }
 
-export default function BriefingClient({ articles, date, headerImageUrl }: BriefingClientProps) {
+export default function BriefingClient({ articles, date, headerImageUrl, isToday }: BriefingClientProps) {
     const addArticles = useArticleStore(state => state.addArticles);
     const setActiveFilter = useUIStore(state => state.setActiveFilter);
     const activeFilter = useUIStore(state => state.activeFilter);
@@ -73,6 +74,7 @@ export default function BriefingClient({ articles, date, headerImageUrl }: Brief
             articleCount={articleIds.length}
             isLoading={isLoading}
             articles={articles}
+            isToday={isToday}
         />
     );
 }
