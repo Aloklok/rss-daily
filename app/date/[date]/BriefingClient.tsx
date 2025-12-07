@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import Briefing from '../../../components/Briefing';
 import { Article } from '../../../types';
 import { useArticleStore } from '../../../store/articleStore';
@@ -56,7 +56,9 @@ export default function BriefingClient({ articles, date, headerImageUrl, isToday
     // But since we hydrated, maybe we can just use the hook result?
     // If timeSlot is null, the hook returns all articles (if configured correctly).
     // Let's rely on the hook for consistency.
-    const articleIds = briefingArticleIds || [];
+    // Use initial articles for SSR/first render if hook data is not yet available
+    const initialArticleIds = useMemo(() => articles.map(a => a.id), [articles]);
+    const articleIds = briefingArticleIds || initialArticleIds;
 
     return (
         <Briefing

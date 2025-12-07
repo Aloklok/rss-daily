@@ -99,27 +99,8 @@ export async function fetchSearchResults(query: string): Promise<Article[]> {
 
 // 6. 预解析简报头图 URL
 export async function resolveBriefingImage(date: string): Promise<string> {
-    const seedUrl = `https://picsum.photos/seed/${date}/800/300`;
-    try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 1500); // 1.5s timeout to protect TTFB
-
-        const response = await fetch(seedUrl, {
-            method: 'HEAD',
-            redirect: 'manual', // Don't follow, just get the redirect header
-            signal: controller.signal,
-            next: { revalidate: 86400 }
-        });
-        clearTimeout(timeoutId);
-
-        if (response.status >= 300 && response.status < 400) {
-            const location = response.headers.get('location');
-            if (location) return location;
-        }
-
-        return seedUrl;
-    } catch (error) {
-        console.warn('Failed to resolve briefing image (timeout or error), falling back to seed URL:', error);
-        return seedUrl;
-    }
+    // 【优化】恢复使用 Picsum，但不再进行服务端 Fetch 探测。
+    // 直接返回 Seed URL 既能保留每日一图的特性，又消除了 1.5s 的 TTFB 阻塞。
+    // Next.js Image 组件会自动处理 URL 及其重定向。
+    return `https://picsum.photos/seed/${date}/800/300`;
 }
