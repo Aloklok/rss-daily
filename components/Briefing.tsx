@@ -175,7 +175,7 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
 
             // Use the date string as a seed for the random image to ensure it stays the same for that date
             const seed = date;
-            const bgImage = headerImageUrl || `https://picsum.photos/seed/${seed}/800/300`;
+            const bgImage = headerImageUrl || `https://picsum.photos/seed/${seed}/1600/600`;
 
             const now = new Date();
             const currentHour = now.getHours();
@@ -196,6 +196,7 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
                             alt="Daily Background"
                             fill
                             priority
+                            sizes="(max-width: 768px) 100vw, (max-width: 1536px) 80vw, 1152px"
                             className="object-cover transition-transform duration-700 group-hover:scale-105"
                         />
                         {/* Dark Gradient Overlay for Text Readability */}
