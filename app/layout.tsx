@@ -73,7 +73,7 @@ export default async function RootLayout({
         <html lang="zh-CN" className={`${inter.variable} ${playfair.variable}`}>
             <body className="font-sans antialiased">
                 <Providers>
-                    <MainLayoutClient>
+                    <MainLayoutClient isAdmin={isAdmin}>
                         {children}
                     </MainLayoutClient>
                     <GlobalUI />

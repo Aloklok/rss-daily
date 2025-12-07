@@ -17,6 +17,7 @@ interface FloatingActionButtonsProps {
     onArticleStateChange: (articleId: string | number, tagsToAdd: string[], tagsToRemove: string[]) => Promise<void>;
     onMarkAllClick: () => void;
     onRefreshToHome: () => void;
+    isAdmin: boolean;
 }
 
 import { useUIStore } from '../store/uiStore';
@@ -32,9 +33,10 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({
     onArticleStateChange,
     onMarkAllClick,
     onRefreshToHome,
+    isAdmin,
 }) => {
     const [isTagPopoverOpen, setIsTagPopoverOpen] = useState(false);
-    const isAdmin = useUIStore(state => state.isAdmin);
+    // const isAdmin = useUIStore(state => state.isAdmin); // Removed in favor of prop
 
     // 1. 【新增】内部订阅：获取选中的文章对象
     const selectedArticle = useArticleStore(state =>

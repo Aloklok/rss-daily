@@ -11,8 +11,11 @@
     "vercel": "NODE_OPTIONS='--dns-result-order=ipv4first' vercel dev"
   },
   "browserslist": [
-    "defaults",
-    "not IE 11"
+    "last 2 versions",
+    "> 0.5%",
+    "not dead",
+    "not IE 11",
+    "not op_mini all"
   ],
   "dependencies": {
     "@supabase/supabase-js": "^2.43.4",

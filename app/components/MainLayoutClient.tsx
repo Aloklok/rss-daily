@@ -1,23 +1,32 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import { useUIStore } from '../../store/uiStore';
 import SidebarClient from './SidebarClient';
 import FloatingButtonsClient from './FloatingButtonsClient';
 
 interface MainLayoutClientProps {
     children: React.ReactNode;
+    isAdmin: boolean;
 }
 
-export default function MainLayoutClient({ children }: MainLayoutClientProps) {
+export default function MainLayoutClient({ children, isAdmin }: MainLayoutClientProps) {
     const isSidebarCollapsed = useUIStore(state => state.isSidebarCollapsed);
     const toggleSidebar = useUIStore(state => state.toggleSidebar);
     const setSidebarCollapsed = useUIStore(state => state.setSidebarCollapsed);
-    const checkAdminStatus = useUIStore(state => state.checkAdminStatus);
+    const setAdminStatus = useUIStore(state => state.setAdminStatus);
+
+    // Initialize admin status immediately
+    const initialized = useRef(false);
+    if (!initialized.current) {
+        useUIStore.setState({ isAdmin });
+        initialized.current = true;
+    }
 
     useEffect(() => {
-        checkAdminStatus();
-    }, [checkAdminStatus]);
+        setAdminStatus(isAdmin);
+    }, [isAdmin, setAdminStatus]);
 
     const [isMdUp, setIsMdUp] = useState<boolean>(false);
     const mainContentRef = useRef<HTMLDivElement | null>(null);
@@ -102,11 +111,24 @@ export default function MainLayoutClient({ children }: MainLayoutClientProps) {
             </button>
 
             {/* Main Content Area */}
-            <div ref={mainContentRef} className={`flex-1 flex flex-col min-w-0 bg-neutral-50 dark:bg-midnight-bg bg-paper-texture dark:bg-none transition-all duration-300 ${!isSidebarCollapsed && isMdUp ? 'md:ml-80' : ''}`}>
-                <div className="w-full max-w-3xl mx-auto px-2 md:px-8 pt-4">
+            <div ref={mainContentRef} className={`relative flex-1 flex flex-col min-w-0 bg-neutral-50 dark:bg-midnight-bg dark:bg-none transition-all duration-300 ${!isSidebarCollapsed && isMdUp ? 'md:ml-80' : ''}`}>
+
+                {/* Background Texture (Light Mode Only, Optimized) */}
+                <div className="absolute inset-0 z-0 pointer-events-none select-none dark:hidden">
+                    <Image
+                        src="/paper-texture.png"
+                        alt=""
+                        fill
+                        className="object-cover opacity-100"
+                        quality={75}
+                        priority
+                    />
+                </div>
+
+                <div className="relative z-10 w-full max-w-3xl mx-auto px-2 md:px-8 pt-4">
                     {children}
                 </div>
-                <FloatingButtonsClient />
+                <FloatingButtonsClient isAdmin={isAdmin} />
             </div>
         </div>
     );

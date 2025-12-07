@@ -11,7 +11,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useFilters } from '../../hooks/useFilters';
 import { getCurrentTimeSlotInShanghai } from '../../services/api';
 
-export default function FloatingButtonsClient() {
+export default function FloatingButtonsClient({ isAdmin }: { isAdmin: boolean }) {
     const router = useRouter();
     const queryClient = useQueryClient();
 
@@ -85,6 +85,7 @@ export default function FloatingButtonsClient() {
             onArticleStateChange={handleArticleStateChange}
             onMarkAllClick={() => handleMarkAllClick(articleIdsInView)}
             onRefreshToHome={handleRefreshToHome}
+            isAdmin={isAdmin}
         />
     );
 }

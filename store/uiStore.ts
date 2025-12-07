@@ -41,6 +41,7 @@ interface UIStoreState {
 
     // Admin State
     isAdmin: boolean;
+    setAdminStatus: (isAdmin: boolean) => void;
     checkAdminStatus: () => Promise<void>;
 
     // Sidebar State
@@ -99,6 +100,7 @@ export const useUIStore = create<UIStoreState>((set) => ({
 
     // Admin State
     isAdmin: false,
+    setAdminStatus: (isAdmin) => set({ isAdmin }),
     checkAdminStatus: async () => {
         try {
             const res = await fetch('/api/auth/check');
