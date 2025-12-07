@@ -18,7 +18,7 @@ export default {
   theme: {
     extend: {
       backgroundImage: {
-        'paper-texture': "url('/paper-texture.png')",
+        'paper-texture': "url('/paper-texture.webp')",
       },
       fontFamily: {
         sans: [

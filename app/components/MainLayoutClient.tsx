@@ -58,6 +58,15 @@ export default function MainLayoutClient({ children, isAdmin }: MainLayoutClient
         return () => { document.body.style.overflow = ''; };
     }, [isSidebarCollapsed, isMdUp]);
 
+    const [transitionsEnabled, setTransitionsEnabled] = useState(false);
+
+    const handleToggle = () => {
+        setTransitionsEnabled(true);
+        toggleSidebar();
+    };
+
+    const transitionClass = transitionsEnabled ? 'transition-all duration-300 ease-in-out' : '';
+
     return (
         <div className="flex flex-col md:flex-row min-h-screen font-sans bg-gray-50 dark:bg-midnight-bg">
             {/* Mobile Overlay */}
@@ -70,7 +79,7 @@ export default function MainLayoutClient({ children, isAdmin }: MainLayoutClient
             )}
 
             {/* Sidebar Container */}
-            <div className={`h-full bg-gray-50 dark:bg-midnight-sidebar border-r border-transparent dark:border-midnight-sidebar z-50 transition-all duration-300 ease-in-out ${!isMdUp
+            <div className={`h-full bg-gray-50 dark:bg-midnight-sidebar border-r border-transparent dark:border-midnight-sidebar z-50 ${transitionClass} ${!isMdUp
                 ? `fixed top-0 left-0 w-64 ${isSidebarCollapsed ? '-translate-x-full' : 'translate-x-0'}`
                 : `md:fixed md:top-0 md:bottom-0 md:left-0 md:overflow-y-auto ${isSidebarCollapsed ? 'md:w-0 md:opacity-0 md:pointer-events-none' : 'md:w-80 md:opacity-100'}`
                 }`}>
@@ -79,10 +88,10 @@ export default function MainLayoutClient({ children, isAdmin }: MainLayoutClient
 
             {/* Desktop Toggle Button */}
             <button
-                onClick={toggleSidebar}
-                className={`fixed top-5 p-2 bg-white dark:bg-midnight-card rounded-full shadow-lg hover:shadow-xl duration-300 ease-in-out border border-gray-200 dark:border-midnight-border z-50
+                onClick={handleToggle}
+                className={`fixed top-5 p-2 bg-white dark:bg-midnight-card rounded-full shadow-lg hover:shadow-xl ${transitionClass} border border-gray-200 dark:border-midnight-border z-50
                     hidden md:block
-                    md:left-5 md:transition-all md:duration-300 ${isSidebarCollapsed ? 'md:left-5' : 'md:left-[304px]'}
+                    md:left-5 ${transitionsEnabled ? 'md:transition-all md:duration-300' : ''} ${isSidebarCollapsed ? 'md:left-5' : 'md:left-[304px]'}
                     right-5 md:right-auto 
                 `}
                 aria-label="Toggle Sidebar"
@@ -96,8 +105,8 @@ export default function MainLayoutClient({ children, isAdmin }: MainLayoutClient
 
             {/* Mobile Toggle Button */}
             <button
-                onClick={toggleSidebar}
-                className={`md:hidden fixed top-3 right-5 z-50 p-2 rounded-full transition-all duration-300 ease-in-out
+                onClick={handleToggle}
+                className={`md:hidden fixed top-3 right-5 z-50 p-2 rounded-full ${transitionClass}
                     ${isSidebarCollapsed ? 'bg-gray-800 text-white' : 'bg-white/20 text-white'}
                 `}
                 aria-label="Toggle Sidebar"
@@ -110,7 +119,7 @@ export default function MainLayoutClient({ children, isAdmin }: MainLayoutClient
             </button>
 
             {/* Main Content Area */}
-            <div ref={mainContentRef} className={`flex-1 flex flex-col min-w-0 bg-neutral-50 dark:bg-midnight-bg bg-paper-texture dark:bg-none transition-all duration-300 ${!isSidebarCollapsed && isMdUp ? 'md:ml-80' : ''}`}>
+            <div ref={mainContentRef} className={`flex-1 flex flex-col min-w-0 bg-neutral-50 dark:bg-midnight-bg bg-paper-texture dark:bg-none ${transitionClass} ${!isSidebarCollapsed ? 'md:ml-80' : ''}`}>
                 <div className="w-full max-w-3xl mx-auto px-2 md:px-8 pt-4">
                     {children}
                 </div>
