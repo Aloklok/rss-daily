@@ -154,11 +154,16 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
         return getRandomGradient(date);
     }, [date]);
 
+    // Fix: Use state to track client-side hour to avoid Hydration Mismatch (Server UTC vs Client Local)
+    const [currentHour, setCurrentHour] = React.useState<number | null>(null);
 
-
+    React.useEffect(() => {
+        setCurrentHour(new Date().getHours());
+    }, []);
 
     const getGreeting = () => {
-        const hour = new Date().getHours();
+        if (currentHour === null) return '你好'; // Default during SSR
+        const hour = currentHour;
         if (hour >= 0 && hour < 5) return '凌晨好';
         if (hour >= 5 && hour < 12) return '早上好';
         if (hour >= 12 && hour < 14) return '中午好';
@@ -177,15 +182,15 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
             const seed = date;
             const bgImage = headerImageUrl || `https://picsum.photos/seed/${seed}/1600/1200`;
 
-            const now = new Date();
-            const currentHour = now.getHours();
-
             const getCurrentTimeSlot = () => {
+                if (currentHour === null) return null; // No auto-select during SSR
                 if (currentHour >= 0 && currentHour < 12) return 'morning';
                 if (currentHour >= 12 && currentHour < 19) return 'afternoon';
                 return 'evening';
             };
-            const autoSelectedSlot = isToday ? getCurrentTimeSlot() : null;
+
+            // Auto-select slot only if today and we have user's local time (client-side)
+            const autoSelectedSlot = (isToday && currentHour !== null) ? getCurrentTimeSlot() : null;
 
             return (
                 <header className="relative mb-8 overflow-hidden rounded-2xl shadow-md transition-all duration-500 hover:shadow-xl group">
@@ -232,17 +237,13 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
                                     {(['morning', 'afternoon', 'evening'] as const).map(slotOption => {
                                         const labelMap: Record<'morning' | 'afternoon' | 'evening', string> = { morning: '早', afternoon: '中', evening: '晚' };
 
-                                        // Highlight logic:
-                                        // 1. If user manually selected a slot (timeSlot !== null), highlight matched slot.
-                                        // 2. If NO manual selection (timeSlot === null) AND it's auto-selected (autoSelectedSlot === slotOption), highlight it.
-                                        // This ensures clean SSR (no highlight) -> Client (highlight auto).
+                                        // Toggle logic: Use manual timeSlot if available, otherwise fallback to autoSelectedSlot
                                         const isSelected = timeSlot === slotOption || (timeSlot === null && autoSelectedSlot === slotOption);
 
                                         return (
                                             <button
                                                 key={slotOption}
                                                 onClick={() => onTimeSlotChange(isSelected ? null : slotOption)}
-                                                suppressHydrationWarning={true}
                                                 className={`
                                                     w-10 h-10 rounded-full flex items-center justify-center text-sm font-serif transition-all duration-300 border border-white/20
                                                     ${isSelected
@@ -264,7 +265,7 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
                         <div className="pt-4 border-t border-white/20">
                             <p className="text-base md:text-lg text-white/95 leading-relaxed font-serif drop-shadow-sm">
                                 {isToday ? (
-                                    <span suppressHydrationWarning={true}>{getGreeting()}，欢迎阅读今日简报</span>
+                                    <span>{getGreeting()}，欢迎阅读今日简报</span>
                                 ) : (
                                     <span>欢迎阅读本期简报</span>
                                 )}
