@@ -74,7 +74,9 @@ export default function BriefingClient({ articles, date, headerImageUrl, isToday
             isSidebarCollapsed={isSidebarCollapsed}
             onToggleSidebar={() => { }} // No-op or implement if needed
             articleCount={articleIds.length}
-            isLoading={isLoading}
+            // Only show loading if we are fetching AND we have no articles to show.
+            // This ensures SSR content (articles passed via props) is rendered immediately.
+            isLoading={isLoading && articleIds.length === 0}
             articles={articles}
             isToday={isToday}
         />
