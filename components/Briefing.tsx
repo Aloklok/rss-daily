@@ -231,12 +231,18 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
                                 <div className="flex items-center gap-3 self-start">
                                     {(['morning', 'afternoon', 'evening'] as const).map(slotOption => {
                                         const labelMap: Record<'morning' | 'afternoon' | 'evening', string> = { morning: '早', afternoon: '中', evening: '晚' };
+
+                                        // Highlight logic:
+                                        // 1. If user manually selected a slot (timeSlot !== null), highlight matched slot.
+                                        // 2. If NO manual selection (timeSlot === null) AND it's auto-selected (autoSelectedSlot === slotOption), highlight it.
+                                        // This ensures clean SSR (no highlight) -> Client (highlight auto).
                                         const isSelected = timeSlot === slotOption || (timeSlot === null && autoSelectedSlot === slotOption);
 
                                         return (
                                             <button
                                                 key={slotOption}
                                                 onClick={() => onTimeSlotChange(isSelected ? null : slotOption)}
+                                                suppressHydrationWarning={true}
                                                 className={`
                                                     w-10 h-10 rounded-full flex items-center justify-center text-sm font-serif transition-all duration-300 border border-white/20
                                                     ${isSelected
@@ -258,7 +264,7 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
                         <div className="pt-4 border-t border-white/20">
                             <p className="text-base md:text-lg text-white/95 leading-relaxed font-serif drop-shadow-sm">
                                 {isToday ? (
-                                    <span suppressHydrationWarning>{getGreeting()}，欢迎阅读今日简报</span>
+                                    <span suppressHydrationWarning={true}>{getGreeting()}，欢迎阅读今日简报</span>
                                 ) : (
                                     <span>欢迎阅读本期简报</span>
                                 )}

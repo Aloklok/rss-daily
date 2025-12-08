@@ -140,6 +140,8 @@ const SidebarBriefing: React.FC<SidebarBriefingProps> = ({
                         value={selectedMonth}
                         onChange={e => onMonthChange(e.target.value)}
                         className="w-full appearance-none bg-transparent border-none text-gray-800 py-2 pl-3 pr-8 rounded-md focus:outline-none cursor-pointer absolute inset-0 z-10 opacity-0"
+                        aria-label="选择月份"
+                        title="选择月份"
                     >
                         {allDisplayMonths.map(month => (<option key={month} value={month}>{formatMonthForDisplay(month)}</option>))}
                     </select>

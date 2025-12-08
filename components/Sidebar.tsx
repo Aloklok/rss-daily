@@ -111,7 +111,13 @@ const Sidebar = React.memo<SidebarProps>(({
                     </h1>
                 </div>
                 <div className="flex items-center gap-1 relative">
-                    <button onClick={handleRefreshClick} disabled={isLoading} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-midnight-card transition-colors disabled:cursor-wait text-gray-500 dark:text-gray-400">
+                    <button
+                        onClick={handleRefreshClick}
+                        disabled={isLoading}
+                        className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-midnight-card transition-colors disabled:cursor-wait text-gray-500 dark:text-gray-400"
+                        title="刷新内容"
+                        aria-label="刷新内容"
+                    >
                         <svg className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582A7.962 7.962 0 0112 4.062a8.002 8.002 0 018 8.002 8.002 8.002 0 01-8 8.002A7.962 7.962 0 014.582 15H4v5" />
                         </svg>
