@@ -50,14 +50,21 @@ export default function BriefingClient({ articles, date, headerImageUrl, isToday
     // We use props.articles as initial data if timeSlot is null (All Day)
     // But actually, useBriefingArticles handles fetching.
     // Since we hydrated the store, we just need the IDs.
-    const { data: briefingArticleIds, isLoading } = useBriefingArticles(date, timeSlot);
+    // Use hook to get filtered articles based on timeSlot
+    // We use props.articles as initial data if timeSlot is null (All Day)
+    // But actually, useBriefingArticles handles fetching.
+    // Since we hydrated the store, we just need the IDs.
+    const initialArticleIds = useMemo(() => articles.map(a => a.id), [articles]);
+
+    // Pass initialData to hook to prevent loading state on SSR even if empty
+    const { data: briefingArticleIds, isLoading } = useBriefingArticles(date, timeSlot, initialArticleIds);
 
     // Fallback to props.articles if hook returns nothing (e.g. initial load before effect)
     // But since we hydrated, maybe we can just use the hook result?
     // If timeSlot is null, the hook returns all articles (if configured correctly).
     // Let's rely on the hook for consistency.
     // Use initial articles for SSR/first render if hook data is not yet available
-    const initialArticleIds = useMemo(() => articles.map(a => a.id), [articles]);
+
     const articleIds = briefingArticleIds || initialArticleIds;
 
     return (
@@ -76,7 +83,7 @@ export default function BriefingClient({ articles, date, headerImageUrl, isToday
             articleCount={articleIds.length}
             // Only show loading if we are fetching AND we have no articles to show.
             // This ensures SSR content (articles passed via props) is rendered immediately.
-            isLoading={isLoading && articleIds.length === 0}
+            isLoading={isLoading}
             articles={articles}
             isToday={isToday}
         />

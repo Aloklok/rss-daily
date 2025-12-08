@@ -12,7 +12,7 @@ import { useArticleStore } from '../store/articleStore';
 import { getTodayInShanghai } from '../services/api';
 // --- Query Hooks (现在变得非常简洁) ---
 
-export const useBriefingArticles = (date: string | null, slot: string | null) => {
+export const useBriefingArticles = (date: string | null, slot: string | null, initialData?: (string | number)[]) => {
     const today = getTodayInShanghai();
     const addArticles = useArticleStore(state => state.addArticles);
     return useQuery({
@@ -28,6 +28,7 @@ export const useBriefingArticles = (date: string | null, slot: string | null) =>
             return completeArticles.map(a => a.id);
         },
         enabled: !!date,
+        initialData: initialData,
         // --- 【核心优化】 ---
         // 动态设置 staleTime
         staleTime: (() => {
