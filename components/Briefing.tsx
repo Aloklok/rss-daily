@@ -40,15 +40,15 @@ const ReportContent: React.FC<ReportContentProps> = memo(({ report, onReaderMode
             {/* Table of Contents & Summary Section */}
             <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl p-6 rounded-3xl border border-stone-100 dark:border-white/10 shadow-lg shadow-stone-200/50 dark:shadow-none mb-10 transition-all hover:shadow-xl hover:shadow-stone-200/60 duration-500">
                 <div className="md:hidden">
-                    <h3 className="text-2xl font-bold font-serif text-stone-800 dark:text-white flex items-center">
+                    <h2 className="text-2xl font-bold font-serif text-stone-800 dark:text-white flex items-center">
                         <span>📚 目录</span>
                         <span className="text-stone-400 mx-2 font-light">/</span>
                         <span>📝 摘要</span>
-                    </h3>
+                    </h2>
                 </div>
                 <div className="hidden md:grid grid-cols-2 gap-x-6">
-                    <h3 className="text-2xl font-bold font-serif text-stone-800 dark:text-white">📚 目录</h3>
-                    <h3 className="text-2xl font-bold font-serif text-stone-800 dark:text-white">📝 摘要</h3>
+                    <h2 className="text-2xl font-bold font-serif text-stone-800 dark:text-white">📚 目录</h2>
+                    <h2 className="text-2xl font-bold font-serif text-stone-800 dark:text-white">📝 摘要</h2>
                 </div>
 
                 <div className="mt-3">
