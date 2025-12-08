@@ -9,6 +9,7 @@ import { getRandomColorClass } from '../utils/colorUtils';
 interface ArticleDetailProps {
   article: Article;
   onClose?: () => void;
+  initialContent?: CleanArticleContent | null;
 }
 
 
@@ -36,9 +37,9 @@ function stripLeadingTitle(contentHtml: string, title: string): string {
   return contentHtml;
 }
 
-const ArticleDetail: React.FC<ArticleDetailProps> = ({ article, onClose }) => {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [content, setContent] = useState<CleanArticleContent | null>(null);
+const ArticleDetail: React.FC<ArticleDetailProps> = ({ article, onClose, initialContent }) => {
+  const [isLoading, setIsLoading] = useState<boolean>(!initialContent);
+  const [content, setContent] = useState<CleanArticleContent | null>(initialContent || null);
   const [error, setError] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
@@ -97,6 +98,17 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({ article, onClose }) => {
         return;
       }
 
+      // 【核心修改】如果由服务端（或父组件）传入了 initialContent，直接使用，不再 Fetch
+      // 注意：这里假设 initialContent 确实是当前 article 的内容。
+      // 在 ArticlePage (Server) -> ArticleDetailClient 流程中，这是保证的。
+      if (initialContent) {
+        if (!mounted) return;
+        setContent(initialContent);
+        setIsLoading(false);
+        setError(null);
+        return;
+      }
+
       setIsLoading(true);
       setError(null);
       setContent(null);
@@ -128,7 +140,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({ article, onClose }) => {
     };
     load();
     return () => { mounted = false; };
-  }, [article, isSentinel]);
+  }, [article, isSentinel, initialContent]);
 
   // Determine display data: prefer fetched content, fallback to prop article
   const displayTitle = (content && content.title) || article.title;

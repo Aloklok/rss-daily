@@ -1,5 +1,7 @@
-import { getSupabaseClient } from './api-utils';
-import { Article } from '../../types';
+import { getSupabaseClient, getFreshRssClient } from './api-utils';
+import { Article, FreshRSSItem, CleanArticleContent } from '../../types';
+import { removeEmptyParagraphs } from '../../utils/contentUtils';
+import { toFullId } from '../../utils/idHelpers';
 
 export async function fetchAvailableDates(): Promise<string[]> {
     const supabase = getSupabaseClient();
@@ -122,7 +124,64 @@ export async function fetchBriefingData(date: string): Promise<{ [key: string]: 
     return groupedArticles;
 }
 
-import { toFullId } from '../../utils/idHelpers';
+// End of imports clean up
+
+
+
+// 【新增】服务端直接获取文章内容 (用于 SSR / No-JS)
+
+// Helper to strip title - duplicated from ArticleDetail.tsx but needed here for SSR clean
+function stripLeadingTitle(contentHtml: string, title: string): string {
+    if (!contentHtml || !title) return contentHtml;
+    try {
+        const h1Match = contentHtml.match(/^\s*<h1[^>]*>([\s\S]*?)<\/h1>/i);
+        if (h1Match && h1Match[1]) {
+            const h1Text = h1Match[1].replace(/<[^>]+>/g, '').toLowerCase().trim();
+            const titleLower = title.toLowerCase().trim();
+            if (h1Text && (h1Text === titleLower || h1Text.includes(titleLower) || titleLower.includes(h1Text))) {
+                return contentHtml.replace(h1Match[0], '');
+            }
+        }
+        const textStart = contentHtml.replace(/^\s+/, '');
+        if (textStart.toLowerCase().startsWith(title.toLowerCase().trim())) {
+            return contentHtml.replace(new RegExp('^\\s*' + title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), '');
+        }
+    } catch (e) {
+        console.error('stripLeadingTitle error', e);
+    }
+    return contentHtml;
+}
+
+export const fetchArticleContentServer = async (id: string | number): Promise<CleanArticleContent | null> => {
+    try {
+        const freshRss = getFreshRssClient();
+        const apiBody = new URLSearchParams({ i: String(id) });
+        // Use endpoint to get JSON content
+        const data = await freshRss.post<{ items: FreshRSSItem[] }>('/stream/items/contents?output=json', apiBody);
+
+        if (!data.items || data.items.length === 0) {
+            return null;
+        }
+
+        const item = data.items[0];
+        let contentHtml = item.summary?.content || item.content?.content || '';
+        const source = item.origin?.title || (item.canonical?.[0]?.href ? new URL(item.canonical[0].href).hostname : '');
+        const title = item.title;
+
+        // Apply same cleaning as client-side
+        const cleanedHtml = stripLeadingTitle(contentHtml, title || '');
+        const finalHtml = removeEmptyParagraphs(cleanedHtml);
+
+        return {
+            title: title,
+            content: finalHtml,
+            source: source,
+        };
+    } catch (error) {
+        console.error('fetchArticleContentServer error:', error);
+        return null;
+    }
+};
 
 export async function fetchArticleById(id: string): Promise<Article | null> {
     const supabase = getSupabaseClient();

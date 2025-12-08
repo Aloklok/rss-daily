@@ -7,23 +7,27 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 ## 核心特性
 
 - **混合渲染架构 (Hybrid Rendering)**：
-  - **每日简报 (SSR/ISR)**：今日简报采用服务器端渲染 (SSR) 确保实时性；历史简报采用增量静态再生 (ISR, 1周缓存)，兼顾速度与资源效率。
-  - **文章详情 (Static)**：单篇文章页面采用永久静态缓存，极大提升加载速度。
+  - **每日简报 (Blocking SSR)**：采用阻塞式服务器端渲染，确保在首屏 HTML 中直接返回完整内容（含正文），彻底解决 No-JS 环境下的 SEO 和加载问题。
+  - **文章详情 (SSR with Server Fetch)**：文章正文由服务端直接拉取 (Server-Side Fetching)，不再依赖客户端 JS，实现“服务端直出”的完美阅读体验。
   - **趋势页面 (SSG)**：趋势工具页面采用静态站点生成 (SSG)，构建时生成，访问速度极快。
 - **统一数据视图**：无论是浏览每日简报、分类、标签还是收藏夹，所有文章数据都经过融合处理，确保信息完整一致。
 - **响应式状态管理**：应用状态在所有组件间实时同步，在一个地方收藏文章，侧边栏的收藏列表和标签数量会立即更新，无需重新加载。
 - **高性能数据获取**：利用 Next.js 的扩展 `fetch` API 和 React Query，实现智能缓存和去重。
+- **高可用性设计**：
+  - **超时熔断**：数据库查询内置 10s 超时保护，防止冷启动或网络波动导致页面无限挂起。
+  - **错误边界 (Error Boundary)**：页面级错误捕获，确保即使后端故障也能向用户展示友好的重试界面。
 - **渐进式 Web 应用 (PWA)**：支持离线访问和快速加载，提供接近原生应用的体验。
 - **双模访问控制**：
   - **公共只读模式**：默认允许公众访问，可以浏览所有简报和文章，但无法进行任何修改。
   - **管理员模式**：通过 URL Token (`?token=...`) 激活，系统会自动设置持久化 Cookie (`site_token`)，无需每次访问都携带 Token。拥有完整权限（如标记已读、收藏、查看原始 RSS）。
-- **SEO 优化**:
-  - **混合 SEO (Hybrid SEO)**: 全面支持中英双语 Metadata，针对 Baidu/Bing 和 Google 进行差异化优化，包含验证标签 (Verification Tags)。
+- **SEO 深度优化 (Anti-Content Farm Strategy)**:
+  - **Canonical 保护**: 所有文章页面的 `canonical` 标签均指向**原文链接**，向搜索引擎声明版权，彻底规避“重复内容/采集站”惩罚。
+  - **精细化 Sitemap**: `/sitemap.xml` 仅收录**首页**和**简报页**，主动排除文章页，引导搜索引擎将权重集中在核心的高质量聚合页面上。
+  - **No-JS 友好**: 移除全局 Loading 遮罩，确保爬虫和无 JS 客户端能直接看到完整内容。
   - **高级结构化数据 (JSON-LD)**: 
       - **首页**: `CollectionPage` Schema，构建简报归档索引。
       - **简报页**: `NewsArticle` Schema，采用 ISO 8601 标准时间和 ImageObject，支持富媒体搜索结果。
   - **动态元数据**: 基于 Next.js Metadata API 生成 Open Graph 和 Twitter Card。
-  - **自动 Sitemap**: 动态生成 `/sitemap.xml`，实时收录最新文章和日期页。
 
 ## 用户界面 (UI) 交互
 
@@ -96,10 +100,10 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 ### 核心目录结构
 - **`app/`**: 应用路由和页面 (App Router)。
   - **`layout.tsx`**: 根布局，包含全局 Providers (`QueryClientProvider`) 和全局 UI (`GlobalUI`)。
-  - **`loading.tsx`**: 全局加载状态 (React Suspense fallback)。
+  - **`error.tsx`**: 全局错误边界 (Error Boundary)。
   - **`page.tsx`**: 首页（负责重定向到最新日期的简报）。
-  - **`date/[date]/page.tsx`**: **每日简报页面 (SSR/ISR)**。核心页面，负责预取数据并渲染 `Briefing` 组件。
-  - **`article/[id]/page.tsx`**: **文章详情页面 (Static)**。用于 SEO 和直接访问，内容静态生成。
+  - **`date/[date]/page.tsx`**: **每日简报页面 (Blocking SSR)**。核心页面，负责预取数据并渲染 `Briefing` 组件。
+  - **`article/[id]/page.tsx`**: **文章详情页面 (SSR)**。用于 SEO 和直接访问，服务端直出正文。
   - **`trends/page.tsx`**: **趋势工具页面 (SSG)**。构建时生成的静态页面。
   - **`components/`**: **路由相关组件** (Client Components)。
     - **`MainLayoutClient.tsx`**: 负责侧边栏与主内容的布局结构，处理移动端响应式逻辑。

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Metadata } from 'next';
-import { fetchArticleById } from '../../lib/data';
+import { fetchArticleById, fetchArticleContentServer } from '../../lib/data';
 import ArticleDetailClient from '../../components/ArticleDetailClient';
 import { notFound } from 'next/navigation';
 
@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         title: article.title,
         description: description,
         alternates: {
-            canonical: `/article/${id}`,
+            canonical: article.link, // Point to original source for SEO protection
         },
         openGraph: {
             title: article.title,
@@ -38,8 +38,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function ArticlePage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
+
+    // 1. Fetch metadata (Supabase)
     const article = await fetchArticleById(id);
     if (!article) notFound();
+
+    // 2. Fetch full content (FreshRSS) - Server Side
+    const content = await fetchArticleContentServer(article.id);
 
     const jsonLd = {
         '@context': 'https://schema.org',
@@ -58,7 +63,8 @@ export default async function ArticlePage({ params }: { params: Promise<{ id: st
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
-            <ArticleDetailClient article={article} />
+            {/* Pass initialContent to Client Component for immediate rendering */}
+            <ArticleDetailClient article={article} initialContent={content} />
         </div>
     );
 }

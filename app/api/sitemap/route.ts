@@ -9,7 +9,7 @@ export async function GET() {
     // 1. Fetch all available dates and article IDs
     const { data, error } = await supabase
         .from('articles')
-        .select('id, n8n_processing_date')
+        .select('n8n_processing_date')
         .order('n8n_processing_date', { ascending: false });
 
     if (error) {
@@ -19,7 +19,6 @@ export async function GET() {
 
     // 2. Process data
     const dateSet = new Set<string>();
-    const articleIds: string[] = [];
 
     if (data) {
         const formatter = new Intl.DateTimeFormat('en-CA', { // YYYY-MM-DD
@@ -29,13 +28,10 @@ export async function GET() {
             timeZone: 'Asia/Shanghai',
         });
 
-        data.forEach((item: { n8n_processing_date: string | null; id: string | null }) => {
+        data.forEach((item: { n8n_processing_date: string | null }) => {
             if (item.n8n_processing_date) {
                 const date = new Date(item.n8n_processing_date);
                 dateSet.add(formatter.format(date));
-            }
-            if (item.id) {
-                articleIds.push(item.id);
             }
         });
     }
@@ -56,12 +52,6 @@ export async function GET() {
     <loc>${baseUrl}/date/${date}</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
-  </url>`).join('')}
-  ${articleIds.map(id => `
-  <url>
-    <loc>${baseUrl}/article/${id}</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
   </url>`).join('')}
 </urlset>`;
 

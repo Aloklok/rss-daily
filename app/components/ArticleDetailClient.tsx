@@ -3,13 +3,14 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import ArticleDetail from '../../components/ArticleDetail';
-import { Article } from '../../types';
+import { Article, CleanArticleContent } from '../../types';
 
 interface ArticleDetailClientProps {
     article: Article;
+    initialContent?: CleanArticleContent | null;
 }
 
-export default function ArticleDetailClient({ article }: ArticleDetailClientProps) {
+export default function ArticleDetailClient({ article, initialContent }: ArticleDetailClientProps) {
     const router = useRouter();
 
     const handleClose = () => {
@@ -21,6 +22,7 @@ export default function ArticleDetailClient({ article }: ArticleDetailClientProp
         <ArticleDetail
             article={article}
             onClose={handleClose}
+            initialContent={initialContent}
         />
     );
 }
