@@ -108,15 +108,18 @@ const ReportContent: React.FC<ReportContentProps> = memo(({ report, onReaderMode
 });
 ReportContent.displayName = 'ReportContent';
 
+import { getRandomGradient } from '../utils/colorUtils';
+import { TimeSlot } from '../types';
+
 interface BriefingProps {
     articleIds: (string | number)[];
     date: string; // 【新增】接收日期
-    timeSlot: 'morning' | 'afternoon' | 'evening' | null;
+    timeSlot: TimeSlot | null;
     selectedReportId: number | null;
     onReportSelect: (id: number) => void;
     onReaderModeRequest: (article: Article) => void;
     onStateChange: (articleId: string | number, tagsToAdd: string[], tagsToRemove: string[]) => Promise<void>;
-    onTimeSlotChange: (slot: 'morning' | 'afternoon' | 'evening' | null) => void;
+    onTimeSlotChange: (slot: TimeSlot | null) => void;
     isSidebarCollapsed: boolean;
     onToggleSidebar: () => void;
     articleCount: number;
@@ -126,8 +129,6 @@ interface BriefingProps {
     articles?: Article[]; // 【新增】用于 SSR/Hydration 的初始文章数据
     isToday: boolean;
 }
-
-import { getRandomGradient } from '../utils/colorUtils';
 
 const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selectedReportId, onReportSelect, onReaderModeRequest, onStateChange, onTimeSlotChange, isSidebarCollapsed, onToggleSidebar, articleCount, isLoading, headerImageUrl, articles, isToday }) => {
     // 1. 【新增】内部订阅文章数据
@@ -145,7 +146,7 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
             return acc;
         }, {} as GroupedArticles);
         return [{ id: 1, title: "Daily Briefing", articles: groupedArticles }];
-    }, [articleIds, articlesById]);
+    }, [articleIds, articlesById, articles]);
 
     const selectedReport = reports.find(r => r.id === selectedReportId);
 
@@ -154,23 +155,36 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
         return getRandomGradient(date);
     }, [date]);
 
-    // Fix: Use state to track client-side hour to avoid Hydration Mismatch (Server UTC vs Client Local)
-    const [currentHour, setCurrentHour] = React.useState<number | null>(null);
+    // Strategy: Initialize with Shanghai time (likely match) to prevent specific "Flash" for main users.
+    // Then use useEffect to update to local time for global users.
+    const getShanghaiHour = () => {
+        const dateString = new Date().toLocaleString('en-US', { timeZone: 'Asia/Shanghai', hour12: false });
+        const hourString = dateString.split(', ')[1].split(':')[0];
+        return parseInt(hourString, 10);
+    };
+
+    // Initialize state with Shanghai hour to match Server SSR
+    const [currentHour, setCurrentHour] = React.useState<number | null>(getShanghaiHour());
 
     React.useEffect(() => {
-        setCurrentHour(new Date().getHours());
+        // After mount, check local time
+        const localHour = new Date().getHours();
+        // Only update (trigger re-render) if local time differs from Shanghai assumption
+        if (localHour !== currentHour) {
+            setCurrentHour(localHour);
+        }
     }, []);
 
     const getGreeting = () => {
-        if (currentHour === null) return '你好'; // Default during SSR
-        const hour = currentHour;
-        if (hour >= 0 && hour < 5) return '凌晨好';
-        if (hour >= 5 && hour < 12) return '早上好';
-        if (hour >= 12 && hour < 14) return '中午好';
-        if (hour >= 14 && hour < 18) return '下午好';
-        if (hour >= 18 && hour < 22) return '傍晚好';
-        return '晚上好';
-    }
+        const hour = currentHour ?? getShanghaiHour();
+        if (hour >= 0 && hour < 5) return '夜深了，注意休息';
+        if (hour >= 5 && hour < 9) return '早上好，开启活力满满的一天';
+        if (hour >= 9 && hour < 11) return '上午好，愿工作顺利';
+        if (hour >= 11 && hour < 14) return '中午好，别忘了午休';
+        if (hour >= 14 && hour < 17) return '下午好，喝杯茶提提神';
+        if (hour >= 17 && hour < 19) return '傍晚好，通过阅读放松一下';
+        return '晚上好，享受属于你的夜晚';
+    };
 
     const renderHeader = () => {
         if (date) {
@@ -182,15 +196,16 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
             const seed = date;
             const bgImage = headerImageUrl || `https://picsum.photos/seed/${seed}/1600/1200`;
 
-            const getCurrentTimeSlot = () => {
-                if (currentHour === null) return null; // No auto-select during SSR
-                if (currentHour >= 0 && currentHour < 12) return 'morning';
-                if (currentHour >= 12 && currentHour < 19) return 'afternoon';
+            const getCurrentTimeSlot = (): TimeSlot => {
+                const hour = currentHour ?? getShanghaiHour();
+                if (hour >= 0 && hour < 12) return 'morning';
+                if (hour >= 12 && hour < 19) return 'afternoon';
                 return 'evening';
             };
 
-            // Auto-select slot only if today and we have user's local time (client-side)
-            const autoSelectedSlot = (isToday && currentHour !== null) ? getCurrentTimeSlot() : null;
+            // Auto-select slot if today. Since we align to Shanghai time, this is consistent during SSR.
+            // We verify isToday first (which relies on props, usually calculated via Shanghai time globally).
+            const autoSelectedSlot = isToday ? getCurrentTimeSlot() : null;
 
             return (
                 <header className="relative mb-8 overflow-hidden rounded-2xl shadow-md transition-all duration-500 hover:shadow-xl group">
@@ -206,12 +221,9 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
                         />
                         {/* Dark Gradient Overlay for Text Readability */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/20"></div>
-
-
                     </div>
 
                     <div className="relative z-10 px-6 py-8 md:px-8 md:py-11 flex flex-col gap-8">
-
                         {/* Top Row: Date & Time Slot Selector */}
                         <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
                             {/* Left: Date - Structured Layout (White Text) */}
@@ -231,15 +243,15 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
                             </div>
 
                             {/* Right: Time Slot Selector - More Visible */}
-                            {/* Right: Time Slot Selector - Circular Design */}
+                            {/* Right: Time Slot Selector */}
                             {date && (
                                 <div className="flex items-center gap-3 self-start">
                                     {(['morning', 'afternoon', 'evening'] as const).map(slotOption => {
-                                        const labelMap: Record<'morning' | 'afternoon' | 'evening', string> = { morning: '早', afternoon: '中', evening: '晚' };
+                                        const labelMap: Record<TimeSlot, string> = { morning: '早', afternoon: '中', evening: '晚' };
+                                        const titleMap: Record<TimeSlot, string> = { morning: '早上', afternoon: '中午', evening: '晚上' };
 
                                         // Toggle logic: Use manual timeSlot if available, otherwise fallback to autoSelectedSlot
                                         const isSelected = timeSlot === slotOption || (timeSlot === null && autoSelectedSlot === slotOption);
-
                                         return (
                                             <button
                                                 key={slotOption}
@@ -251,7 +263,7 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
                                                         : 'bg-black/20 text-white/90 hover:bg-white/20 hover:border-white/40 backdrop-blur-md'
                                                     }
                                                 `}
-                                                title={slotOption === 'morning' ? '早上' : slotOption === 'afternoon' ? '中午' : '晚上'}
+                                                title={titleMap[slotOption]}
                                             >
                                                 {labelMap[slotOption]}
                                             </button>
@@ -281,7 +293,7 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
             );
         }
         return null;
-    }
+    };
 
     return (
         <main className="flex-1 px-2 pt-0 md:px-8 md:pt-0 md:pb-10 lg:px-10 lg:pt-2">

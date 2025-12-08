@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Filter } from '../types';
+import { Filter, TimeSlot } from '../types';
 
 // Helper for Shanghai Timezone
 const getTodayInShanghai = (): string => {
@@ -9,7 +9,7 @@ const getTodayInShanghai = (): string => {
     return formatter.format(new Date());
 };
 
-const getCurrentTimeSlotInShanghai = (): 'morning' | 'afternoon' | 'evening' => {
+const getCurrentTimeSlotInShanghai = (): TimeSlot => {
     const now = new Date();
     const hour = parseInt(new Intl.DateTimeFormat('en-US', {
         hour: '2-digit',
@@ -24,7 +24,7 @@ const getCurrentTimeSlotInShanghai = (): 'morning' | 'afternoon' | 'evening' => 
 
 interface UIStoreState {
     activeFilter: Filter | null;
-    timeSlot: 'morning' | 'afternoon' | 'evening' | null;
+    timeSlot: TimeSlot | null;
     selectedArticleId: string | number | null;
 
     // Modal State
@@ -33,7 +33,7 @@ interface UIStoreState {
 
     // Actions
     setActiveFilter: (filter: Filter | null) => void;
-    setTimeSlot: (slot: 'morning' | 'afternoon' | 'evening' | null) => void;
+    setTimeSlot: (slot: TimeSlot | null) => void;
     setSelectedArticleId: (id: string | number | null) => void;
     openModal: (id: string | number, mode?: 'briefing' | 'reader') => void;
     closeModal: () => void;
@@ -66,7 +66,7 @@ export const useUIStore = create<UIStoreState>((set) => ({
     modalInitialMode: 'briefing',
 
     setActiveFilter: (filter) => {
-        let newTimeSlot: 'morning' | 'afternoon' | 'evening' | null = null;
+        let newTimeSlot: TimeSlot | null = null;
 
         // Calculate timeSlot based on filter
         if (filter?.type === 'date') {

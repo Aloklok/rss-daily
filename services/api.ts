@@ -1,4 +1,4 @@
-import { Article, BriefingReport, Tag, CleanArticleContent, AvailableFilters, Filter, GroupedArticles } from '../types';
+import { Article, BriefingReport, Tag, CleanArticleContent, AvailableFilters, Filter, GroupedArticles, TimeSlot } from '../types';
 import { STAR_TAG } from '../constants';
 
 
@@ -37,13 +37,13 @@ const apiService = {
         try {
             const response = await fetch(url.toString(), config);
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ message: `API request failed with status ${response.status}` }));
+                const errorData = await response.json().catch(() => ({ message: `API request failed with status ${response.status} ` }));
                 throw new Error(errorData.message);
             }
             const result = await response.json();
             return result;
         } catch (error) {
-            console.error(`API request to ${endpoint} failed:`, error);
+            console.error(`API request to ${endpoint} failed: `, error);
             showToast(error instanceof Error ? error.message : 'An unknown error occurred.', 'error');
             throw error;
         }
@@ -100,7 +100,7 @@ export const getAvailableDates = (): Promise<string[]> => {
     }).catch(() => []);
 };
 
-export const getBriefingReportsByDate = async (date: string, slot?: 'morning' | 'afternoon' | 'evening'): Promise<BriefingReport[]> => {
+export const getBriefingReportsByDate = async (date: string, slot?: TimeSlot): Promise<BriefingReport[]> => {
     const params: Record<string, string> = { date };
     if (slot) params.slot = slot;
 
@@ -108,7 +108,7 @@ export const getBriefingReportsByDate = async (date: string, slot?: 'morning' | 
         const data = await apiService.request<GroupedArticles>('/api/get-briefings', { params });
         if (!data || Object.values(data).every(arr => arr.length === 0)) return [];
 
-        const reportTitle = `${new Date(date).toLocaleString('zh-CN', { month: 'long', day: 'numeric' })}简报`;
+        const reportTitle = `${new Date(date).toLocaleString('zh-CN', { month: 'long', day: 'numeric' })} 简报`;
         return [{ id: 1, title: reportTitle, articles: data }];
     } catch {
         return [];
@@ -124,7 +124,7 @@ export const getArticlesDetails = (articleIds: (string | number)[]): Promise<Rec
     articleIds.forEach(id => params.append('articleIds', String(id)));
 
     // 调用我们刚刚修改的 get-briefings 端点
-    return apiService.request<Record<string, Article>>(`/api/get-briefings?${params.toString()}`);
+    return apiService.request<Record<string, Article>>(`/ api / get - briefings ? ${params.toString()} `);
 };
 
 export const markAllAsRead = (articleIds: (string | number)[]): Promise<(string | number)[]> => {
@@ -157,7 +157,7 @@ export const getCleanArticleContent = async (article: Article): Promise<CleanArt
         return {
             title: article.title,
             source: article.sourceName,
-            content: `<h3>无法加载文章内容</h3><p>获取文章内容时出错。请尝试直接访问原文链接。</p><p><a href="${article.link}" target="_blank" rel="noopener noreferrer">点击此处查看原文</a></p>`,
+            content: `< h3 > 无法加载文章内容 < /h3><p>获取文章内容时出错。请尝试直接访问原文链接。</p > <p><a href="${article.link}" target = "_blank" rel = "noopener noreferrer" > 点击此处查看原文 < /a></p > `,
         };
     }
 };
@@ -198,8 +198,8 @@ export const editArticleTag = async (articleId: string | number, tagsToAdd: stri
         const added = tagsToAdd.map(extractLabel).join(', ');
         const removed = tagsToRemove.map(extractLabel).join(', ');
         let message = '';
-        if (added) message += `成功添加标签: ${added}`;
-        if (removed) message += `${added ? ' ' : ''}成功移除标签: ${removed}`;
+        if (added) message += `成功添加标签: ${added} `;
+        if (removed) message += `${added ? ' ' : ''} 成功移除标签: ${removed} `;
         showToast(message.trim(), 'success');
     }
 };

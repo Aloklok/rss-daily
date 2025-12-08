@@ -3,6 +3,8 @@
 // --- 在这里新增品牌类型定义 ---
 type BrandedString<T extends string> = string & { __brand: T };
 
+export type TimeSlot = 'morning' | 'afternoon' | 'evening';
+
 export type StateTag = BrandedString<'StateTag'>;
 export type FreshRssTag = BrandedString<'FreshRssTag'>;
 export type SourceCategory = string;
