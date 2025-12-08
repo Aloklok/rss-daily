@@ -102,5 +102,5 @@ export async function resolveBriefingImage(date: string): Promise<string> {
     // 【优化】恢复使用 Picsum，但不再进行服务端 Fetch 探测。
     // 直接返回 Seed URL 既能保留每日一图的特性，又消除了 1.5s 的 TTFB 阻塞。
     // Next.js Image 组件会自动处理 URL 及其重定向。
-    return `https://picsum.photos/seed/${date}/1600/600`;
+    return `https://picsum.photos/seed/${date}/1600/1200`;
 }

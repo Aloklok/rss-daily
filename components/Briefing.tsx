@@ -175,7 +175,7 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
 
             // Use the date string as a seed for the random image to ensure it stays the same for that date
             const seed = date;
-            const bgImage = headerImageUrl || `https://picsum.photos/seed/${seed}/1600/600`;
+            const bgImage = headerImageUrl || `https://picsum.photos/seed/${seed}/1600/1200`;
 
             const now = new Date();
             const currentHour = now.getHours();
