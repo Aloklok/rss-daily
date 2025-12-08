@@ -177,13 +177,14 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
 
     const getGreeting = () => {
         const hour = currentHour ?? getShanghaiHour();
-        if (hour >= 0 && hour < 5) return '夜深了，注意休息';
-        if (hour >= 5 && hour < 9) return '早上好，开启活力满满的一天';
-        if (hour >= 9 && hour < 11) return '上午好，愿工作顺利';
-        if (hour >= 11 && hour < 14) return '中午好，别忘了午休';
-        if (hour >= 14 && hour < 17) return '下午好，喝杯茶提提神';
-        if (hour >= 17 && hour < 19) return '傍晚好，通过阅读放松一下';
-        return '晚上好，享受属于你的夜晚';
+        if (hour >= 23 || hour < 3) return '深夜好';
+        if (hour >= 3 && hour < 5) return '凌晨好';
+        if (hour >= 5 && hour < 9) return '早上好';
+        if (hour >= 9 && hour < 11) return '上午好';
+        if (hour >= 11 && hour < 14) return '中午好';
+        if (hour >= 14 && hour < 17) return '下午好';
+        if (hour >= 17 && hour < 19) return '傍晚好';
+        return '晚上好';
     };
 
     const renderHeader = () => {

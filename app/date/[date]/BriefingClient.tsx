@@ -42,10 +42,12 @@ export default function BriefingClient({ articles, date, headerImageUrl, isToday
             addArticles(articles);
 
             // 2. Update React Query Cache (ID List)
-            // We use standard setQueryData to ensure the hook sees this as the latest "success" data.
-            queryClient.setQueryData(['briefing', date, timeSlot || 'all'], articles.map(a => a.id));
+            // We force hydrate the 'all' key because SSR data defaults to All Day.
+            // We MUST NOT use 'timeSlot' here, otherwise switching slots (Morning) would 
+            // overwrite the Morning cache with All Day data from props.
+            queryClient.setQueryData(['briefing', date, 'all'], articles.map(a => a.id));
         }
-    }, [articles, addArticles, queryClient, date, timeSlot]);
+    }, [articles, addArticles, queryClient, date]);
 
     // Set active filter to date
     useEffect(() => {
