@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Article } from '../types';
 import { getArticleStates, getArticlesDetails } from '../services/api';
 
-export const useSingleArticle = (articleId: string | undefined) => {
+export const useSingleArticle = (articleId: string | undefined, initialData?: Article) => {
     return useQuery({
         queryKey: ['article', articleId],
         queryFn: async (): Promise<Article | null> => {
@@ -32,6 +32,7 @@ export const useSingleArticle = (articleId: string | undefined) => {
             } as Article;
         },
         enabled: !!articleId,
+        initialData: initialData,
         // Article content (body, title) is immutable.
         // Metadata (tags, state) is managed via optimistic updates in the store.
         // Therefore, we can cache the fetch result indefinitely to avoid unnecessary network requests.

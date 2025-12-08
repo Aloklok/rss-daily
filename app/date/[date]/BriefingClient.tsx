@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import Briefing from '../../../components/Briefing';
 import { Article } from '../../../types';
 import { useArticleStore } from '../../../store/articleStore';
@@ -31,11 +32,20 @@ export default function BriefingClient({ articles, date, headerImageUrl, isToday
     };
 
     // Hydrate store with server-fetched articles
+    // AND sync React Query cache with server-fetched IDs.
+    // This is crucial for "Today" (SSR/Real-time) to ensure that if the server sent fresh data,
+    // we use it immediately, updating the cache even if it wasn't strictly "stale" by client timer.
+    const queryClient = useQueryClient();
     useEffect(() => {
         if (articles.length > 0) {
+            // 1. Update Zustand (Detailed objects)
             addArticles(articles);
+
+            // 2. Update React Query Cache (ID List)
+            // We use standard setQueryData to ensure the hook sees this as the latest "success" data.
+            queryClient.setQueryData(['briefing', date, timeSlot || 'all'], articles.map(a => a.id));
         }
-    }, [articles, addArticles]);
+    }, [articles, addArticles, queryClient, date, timeSlot]);
 
     // Set active filter to date
     useEffect(() => {
