@@ -7,6 +7,7 @@ import { Article } from '../../../types';
 import { useArticleStore } from '../../../store/articleStore';
 import { useUIStore } from '../../../store/uiStore';
 import { useUpdateArticleState, useBriefingArticles } from '../../../hooks/useArticles';
+import { getArticleTimeSlot } from '../../../utils/dateUtils';
 
 interface BriefingClientProps {
     articles: Article[];
@@ -62,22 +63,36 @@ export default function BriefingClient({ articles, date, headerImageUrl, isToday
     // We use props.articles as initial data if timeSlot is null (All Day)
     // But actually, useBriefingArticles handles fetching.
     // Since we hydrated the store, we just need the IDs.
-    // Use hook to get filtered articles based on timeSlot
-    // We use props.articles as initial data if timeSlot is null (All Day)
-    // But actually, useBriefingArticles handles fetching.
-    // Since we hydrated the store, we just need the IDs.
     const initialArticleIds = useMemo(() => articles.map(a => a.id), [articles]);
 
-    // Pass initialData to hook to prevent loading state on SSR even if empty
-    const { data: briefingArticleIds, isLoading } = useBriefingArticles(date, timeSlot, initialArticleIds);
+    // 1. Always get the "All Day" dataset (Server Cache or Initial Props)
+    // We ignore the `timeSlot` param here effectively (by passing 'all' or relying on logic below).
+    // Actually, we use 'all' to ensure we hydrate/fetch the master list.
+    const { data: allDayArticleIds, isLoading } = useBriefingArticles(date, 'all', initialArticleIds);
 
-    // Fallback to props.articles if hook returns nothing (e.g. initial load before effect)
-    // But since we hydrated, maybe we can just use the hook result?
-    // If timeSlot is null, the hook returns all articles (if configured correctly).
-    // Let's rely on the hook for consistency.
-    // Use initial articles for SSR/first render if hook data is not yet available
+    // 2. Client-Side Filtering
+    // We derive the specific slot's IDs from the master list.
+    const articlesById = useArticleStore(state => state.articlesById);
 
-    const articleIds = briefingArticleIds || initialArticleIds;
+    const displayedArticleIds = useMemo(() => {
+        // Safe fallback
+        const masterIds = allDayArticleIds || initialArticleIds;
+
+        if (!timeSlot) {
+            return masterIds;
+        }
+
+        // Filter based on the article's n8n_processing_date or published date
+        return masterIds.filter((id: string | number) => {
+            const article = articles.find(a => a.id === id) || articlesById[id];
+            if (!article) return false;
+            // Use processing date for alignment with server logic, fallback to published
+            const dateStr = article.n8n_processing_date || article.published;
+            return getArticleTimeSlot(dateStr) === timeSlot;
+        });
+    }, [timeSlot, allDayArticleIds, initialArticleIds, articles, articlesById]);
+
+    const articleIds = displayedArticleIds;
 
     return (
         <Briefing

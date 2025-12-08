@@ -28,7 +28,13 @@ export const useBriefingArticles = (date: string | null, slot: string | null, in
             return completeArticles.map(a => a.id);
         },
         enabled: !!date,
-        initialData: initialData,
+        // 【核心修复 #3】
+        // initialData (SSR 数据) 通常是全天的数据。
+        // 如果我们正在请求特定的 slot (例如 'morning')，我们需要忽略 initialData，
+        // 强制 react-query 去获取该 slot 的特定数据。
+        // 否则，我们会把全天的数据误作为 'morning' 的数据展示。
+        initialData: (!slot || slot === 'all') ? initialData : undefined,
+
         // --- 【核心优化】 ---
         // 动态设置 staleTime
         staleTime: (() => {
@@ -39,7 +45,6 @@ export const useBriefingArticles = (date: string | null, slot: string | null, in
             }
             // 如果查询的是历史日期，我们告诉 react-query 这个数据是“永不过期”的。
             // Infinity 意味着只要缓存存在，就永远不要认为它是 stale 的，
-            // 也就永远不会自动去 refetch。
             // 也就永远不会自动去 refetch。
             return Infinity;
         })(),
