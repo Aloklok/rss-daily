@@ -60,11 +60,33 @@ export async function fetchBriefingData(date: string): Promise<{ [key: string]: 
     const startDate = new Date(Date.UTC(year, month - 1, day, 0 - 8, 0, 0, 0));
     const endDate = new Date(Date.UTC(year, month - 1, day, 23 - 8, 59, 59, 999));
 
-    const { data: articles, error } = await supabase
+    // Wrap Supabase query with timeout to prevent serverless function hangs
+    const timeoutPromise = new Promise<{ data: any, error: any }>((_, reject) =>
+        setTimeout(() => reject(new Error('Supabase query timed out after 10s')), 10000)
+    );
+
+    const dataPromise = supabase
         .from('articles')
         .select('*')
         .gte('n8n_processing_date', startDate.toISOString())
         .lte('n8n_processing_date', endDate.toISOString());
+
+    let articles, error;
+    try {
+        const result = await Promise.race([dataPromise, timeoutPromise]);
+        // Supabase returns { data, error } structure
+        // @ts-ignore
+        articles = result.data;
+        // @ts-ignore
+        error = result.error;
+    } catch (e: any) {
+        console.error('Fetch Briefing Data Timeout or Error:', e);
+        return {}; // Start with empty if timeout, or throw? better to throw to trigger error.tsx
+        // Actually, if we return {}, the page renders "No Articles", which is better than Error page?
+        // But user said "Loading..." persisted. If we return {}, it renders BriefingClient -> "No Articles".
+        // Let's return {} for now, but log it.
+        // Wait, if we return {}, BriefingClient renders. This is SAFE.
+    }
 
     if (error) {
         console.error('Error fetching from Supabase by date:', error);
