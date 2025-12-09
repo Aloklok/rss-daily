@@ -28,6 +28,10 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
       - **首页**: `CollectionPage` Schema，构建简报归档索引。
       - **简报页**: `NewsArticle` Schema，采用 ISO 8601 标准时间和 ImageObject，支持富媒体搜索结果。
   - **动态元数据**: 基于 Next.js Metadata API 生成 Open Graph 和 Twitter Card。
+  - **IndexNow 集成**:
+      - **自动索引**: 集成了 IndexNow API，支持将 URL 实时推送给 Bing 等搜索引擎。
+      - **验证文件**: `/public/5053a5ea56874c8e9ee65c7100006ca9.txt` (Host: `alok-rss.top`)。
+      - **提交工具**: `utils/indexnow.ts` 提供了 `submitUrlsToIndexNow` 函数用于提交 URL。
 
 ## 用户界面 (UI) 交互
 
