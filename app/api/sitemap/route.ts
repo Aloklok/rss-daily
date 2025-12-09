@@ -1,61 +1,21 @@
 import { NextResponse } from 'next/server';
-import { getSupabaseClient } from '../../lib/api-utils';
+import { getSitemapUrls } from '../../lib/sitemap-helper';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-    const supabase = getSupabaseClient();
+    const urls = await getSitemapUrls();
+    const baseUrl = 'https://alok-rss.top'; // Keep for safety or redundancy if needed, though urls has full path
 
-    // 1. Fetch all available dates and article IDs
-    const { data, error } = await supabase
-        .from('articles')
-        .select('n8n_processing_date')
-        .order('n8n_processing_date', { ascending: false });
-
-    if (error) {
-        console.error('Supabase error in sitemap:', error);
-        return new NextResponse('Error generating sitemap', { status: 500 });
-    }
-
-    // 2. Process data
-    const dateSet = new Set<string>();
-
-    if (data) {
-        const formatter = new Intl.DateTimeFormat('en-CA', { // YYYY-MM-DD
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            timeZone: 'Asia/Shanghai',
-        });
-
-        data.forEach((item: { n8n_processing_date: string | null }) => {
-            if (item.n8n_processing_date) {
-                const date = new Date(item.n8n_processing_date);
-                dateSet.add(formatter.format(date));
-            }
-        });
-    }
-
-    const dates = Array.from(dateSet);
-    const baseUrl = 'https://alok-rss.top';
-
-    // 3. Generate XML
     const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>${baseUrl}/</loc>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>
-  ${dates.map(date => `
-  <url>
-    <loc>${baseUrl}/date/${date}</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>`).join('')}
+${urls.map(url => `  <url>
+    <loc>${url}</loc>
+    <changefreq>${url === baseUrl + '/' ? 'daily' : 'weekly'}</changefreq>
+    <priority>${url === baseUrl + '/' ? '1.0' : '0.8'}</priority>
+  </url>`).join('\n')}
 </urlset>`;
 
-    // 4. Send response
     return new NextResponse(sitemap, {
         headers: {
             'Content-Type': 'application/xml',

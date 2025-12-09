@@ -32,6 +32,9 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
       - **自动索引**: 集成了 IndexNow API，支持将 URL 实时推送给 Bing 等搜索引擎。
       - **验证文件**: `/public/5053a5ea56874c8e9ee65c7100006ca9.txt` (Host: `alok-rss.top`)。
       - **提交工具**: `utils/indexnow.ts` 提供了 `submitUrlsToIndexNow` 函数用于提交 URL。
+      - **API 接口**: `/api/indexnow`
+        - **一键全量提交**: 直接访问 (无需参数)，自动提交所有 Sitemap URL。
+        - **手动单条提交**: `?url=https://...`
 
 ## 用户界面 (UI) 交互
 
