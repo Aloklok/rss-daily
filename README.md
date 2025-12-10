@@ -71,26 +71,13 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
   - **图片优化**: 全面采用 `next/image` 组件，支持 `picsum.photos` 源的自动格式转换 (WebP/AVIF) 和按需缩放，显著降低 LCP。
 - **后端服务**:
   - **Supabase**: 提供文章的核心内容和自定义元数据。
-    ```sql
-    CREATE TABLE public.articles (
-      id text NOT NULL PRIMARY KEY, -- 文章ID，与 FreshRSS 中的 ID 对应
-      title text,
-      link text,
-      sourceName text,
-      published timestamptz,
-      category text,                
-      keywords jsonb,
-      verdict jsonb,
-      summary text,
-      highlights text,
-      critiques text,
-      marketTake text,
-      tldr text,
-      n8n_processing_date timestamptz -- 用于按日期筛选简报
-    );
-    ```
+    > 详细字段定义请查看 [types/supabase.ts](types/supabase.ts)。
+    >
+    > **注意**：该文件系自动生成，目前仅作参考，暂未正式引入代码中使用。
   - **FreshRSS**: 提供 RSS 订阅管理、文章状态和标签。
-    - **数据来源**: 包含 `annotations` (状态), `categories` (分类/标签ID), `tags` (标签文本) 等字段。
+    > 详细 API 定义请查看 [types/freshrss-greader.ts](types/freshrss-greader.ts)。
+    >
+    > **注意**：该文件系自动生成，目前仅作参考，暂未正式引入代码中使用。
 
 ### 统一数据模型 (Data Fusion)
 
