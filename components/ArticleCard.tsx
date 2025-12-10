@@ -30,10 +30,40 @@ const parseFormattedText = (text: string, emphasisClass: string = 'font-semibold
     });
 };
 
+const formatArticleForClipboard = (article: Article): string => {
+    const publishedDate = new Date(article.published).toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });
+    const keywords = article.keywords.join('\n');
+
+    return [
+        article.title,
+        `${article.sourceName} • 发布于 ${publishedDate}`,
+        `${article.verdict.type} • ${article.category} • 评分: ${article.verdict.score}/10`,
+        keywords,
+        '',
+        '【一句话总结】',
+        article.summary || '',
+        '',
+        '【技术洞察】',
+        article.highlights,
+        '',
+        '【值得注意】',
+        article.critiques,
+        '',
+        '【市场观察】',
+        article.marketTake
+    ].join('\n');
+};
+
 // --- 外部化的组件定义 ---
 
 const SpinnerIcon: React.FC = memo(() => (<svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>));
 SpinnerIcon.displayName = 'SpinnerIcon';
+
+const IconCopy: React.FC = memo(() => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>));
+IconCopy.displayName = 'IconCopy';
+
+const IconCheck: React.FC = memo(() => (<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>));
+IconCheck.displayName = 'IconCheck';
 
 const IconCheckCircle: React.FC = memo(() => (<svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>));
 IconCheckCircle.displayName = 'IconCheckCircle';
@@ -190,6 +220,18 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, onReaderModeRequest,
     const { isStarred } = useArticleMetadata(article);
     const publishedDate = new Date(article.published).toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });
     const allKeywords = [...article.keywords];
+    const [isCopied, setIsCopied] = useState(false);
+
+    const handleCopy = async () => {
+        const text = formatArticleForClipboard(article);
+        try {
+            await navigator.clipboard.writeText(text);
+            setIsCopied(true);
+            setTimeout(() => setIsCopied(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy:', err);
+        }
+    };
 
     return (
         <article className="py-2 transition-opacity duration-300">
@@ -197,6 +239,13 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, onReaderModeRequest,
                 <h3 className="text-2xl lg:text-2xl font-bold font-serif text-stone-900 dark:text-midnight-text-title mb-6 leading-tight flex items-center gap-x-3">
                     {isStarred && <span className="text-amber-400 text-2xl" title="已收藏">⭐️</span>}
                     <span>{article.title}</span>
+                    <button
+                        onClick={handleCopy}
+                        className={`transition-all duration-200 p-1 rounded ${isCopied ? 'text-green-500' : 'text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5'}`}
+                        title={isCopied ? "复制成功" : "复制文章内容"}
+                    >
+                        {isCopied ? <IconCheck /> : <IconCopy />}
+                    </button>
                 </h3>
                 <div className="bg-gray-100 dark:bg-midnight-metadata-bg p-6 rounded-lg border border-gray-200 dark:border-midnight-badge space-y-3">
                     <div className="text-sm text-black flex items-center flex-wrap gap-x-4">
