@@ -34,26 +34,26 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 - **高性能数据获取**：利用 Next.js 的扩展 `fetch` API 和 React Query，实现智能缓存和去重。
 - **高可用性设计**：
   - **超时熔断**：数据库查询内置 10s 超时保护，防止冷启动或网络波动导致页面无限挂起。
-  - **错误边界 (Error Boundary)**：页面级错误捕获，确保即使后端故障也能向用户展示友好的重试界面。
+  - **错误边界**：页面级错误捕获，确保即使后端故障也能向用户展示友好的重试界面。
 - **渐进式 Web 应用 (PWA)**：支持离线访问和快速加载，提供接近原生应用的体验。
 - **双模访问控制**：
   - **公共只读模式**：默认允许公众访问，可以浏览所有简报和文章，但无法进行任何修改。
   - **管理员模式**：通过 URL Token (`?token=...`) 激活，系统会自动设置持久化 Cookie (`site_token`)，无需每次访问都携带 Token。拥有完整权限（如标记已读、收藏、查看原始 RSS）。
 - **SEO 深度优化**:
   - **全站 SSR覆盖**: 不仅包括每日简报，**标签/分类页面 (`/stream/[id]`)** 全面升级为 SSR 服务端渲染，将 FreshRSS 文章列表与 Supabase AI 数据融合，打造高质量内容聚合页。
-  - **Auto-SEO (自动关键词注入)**: 
+  - **自动关键词注入**: 
       - **自动关键词提取**: 服务器自动分析页面内所有文章，提取高频关键词（如 "GPT-4", "Transformer"）。
       - **智能注入**: 将关键词注入 Metadata (`keywords`, `description`)。
       - **可视化增强**: 重构了 **Stream 列表页头**。智能区分 "分类" (无计数) 与 "标签" (含计数) 的展示逻辑；"Related Topics" 采用清爽的纯文本列表设计，提升阅读体验。
-  - **Rich Snippets (富文本摘要)**:
-      - **JSON-LD 增强**: 每日简报页面的 `NewsArticle` Schema 中，每条新闻都包含了 AI 生成的 **"一句话精华摘要" (TLDR)**。
+  - **富文本摘要**:
+      - **JSON-LD 增强**: 每日简报页面的 `NewsArticle` Schema 中，每条新闻都包含了 AI 生成的 **"一句话精华摘要"**。
       - **效果**: Google 搜索结果可直接展示新闻详情，大幅提升点击率。
   - **结构化内链**:
       - **时光机导航**: 日历页底部增加 "上一篇 / 下一篇" 导航，确保爬虫能顺着时间线遍历所有历史内容，防止孤岛页面。
   - **增长引擎**:
       - **AI RSS Feed**: `/feed.xml` 自动分发经过 AI 清洗和点评的内容（非原文），吸引自然反向链接。
-      - **自动化 Sitemap**: 自动将 **所有分类 (Categories)** 和最活跃的 TOP 50 标签页推送到 `sitemap.xml`。针对分类页，配置了 **Daily 更新频率** (免 Lastmod)，确保高频更新内容被搜索引擎及时抓取。配合 IndexNow 实现秒级收录。
-  - **Canonical 保护**: 全站统一采用 **WWW 域名** (`https://www.alok-rss.top`) 作为唯一规范地址 (Canonical URL)，彻底消灭重复内容风险。
+      - **自动化 Sitemap**: 自动将 **所有分类** 和最活跃的 TOP 50 标签页推送到 `sitemap.xml`。针对分类页，配置了 **Daily 更新频率** (免 Lastmod)，确保高频更新内容被搜索引擎及时抓取。配合 IndexNow 实现秒级收录。
+  - **Canonical 保护**: 全站统一采用 **WWW 域名** (`https://www.alok-rss.top`) 作为唯一规范地址，彻底消灭重复内容风险。
       - **自动重定向**: 依赖 Vercel/Cloudflare 边缘层自动将 Root 请求重定向到 WWW。
       - **验证集成**: 首页集成 **Baidu** (`baidu-site-verification`) 和 **Bing** (`msvalidate.01`) 的 HTML 验证标签，无需上传文件。
       - **自动提交**: 集成了 IndexNow API (`api.indexnow.org`)。
@@ -61,9 +61,9 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
       - **API 接口**: `/api/indexnow`
         - 一键全量提交 (自动提交 Sitemap 所有 URL)。
         - 单条提交 `?url=...`。
-  - **高密度信息策略 (MAX-Density SEO)**:
+  - **高密度信息策略**:
       - **Meta Description**: 摒弃传统的简短摘要，采用 **"序号列表 + TLDR"** 模式（例如：`1. AI辅助... 2. Memori...`），在 SERP 中直接展示当期 10+ 条核心观点，极大提升信息密度。
-      - **Deep Content Rich Snippets**: 在 JSON-LD 的 `ListItem` 中注入 **全量 AI 摘要 (Summary)**，而非简单的标题，让搜索引擎“读懂”每篇文章的深度内容。
+      - **Deep Content Rich Snippets**: 在 JSON-LD 的 `ListItem` 中注入 **全量 AI 摘要**，而非简单的标题，让搜索引擎“读懂”每篇文章的深度内容。
       - **Crawler-Friendly Links**: 完美支持编码后的复杂标签 URL（如 `/stream/user%2F-%2Flabel%2F%E5%90%8E%E7%AB%AF`），确保爬虫能顺畅索引所有标签聚合页。
       - **Homepage Dual-Schema**: 首页采用 **NewsArticle (今日内容)** + **CollectionPage (历史归档)** 双重结构化数据，兼顾内容时效性排名与历史页面索引。
   - **SSR 服务端直连**:
