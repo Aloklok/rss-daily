@@ -1,5 +1,7 @@
+import { fetchFilteredArticlesSSR } from '../../lib/server/ssr-helpers';
+// import { fetchFilteredArticles } from '@/services/articleLoader'; // No longer needed for initial SSR load
+
 import React from 'react';
-import { fetchFilteredArticles } from '@/services/articleLoader';
 import StreamList from '@/app/components/StreamList';
 
 // Helper to extract top keywords from a list of articles
@@ -31,7 +33,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     // Fetch data for metadata generation (SSR cache will help avoid double hit if configured, 
     // but here we might hit API twice. Given 1hr cache control on FreshRSS, it's acceptable for SEO value).
     // Note: In an ideal world we'd use a shared fetch cache, but simplistic approach works for now.
-    const { articles } = await fetchFilteredArticles(decodedId, undefined, 20, true);
+    const { articles } = await fetchFilteredArticlesSSR(decodedId, 20, true);
     const topKeywords = getTopKeywords(articles, 8);
 
     return {
@@ -46,7 +48,7 @@ export default async function StreamPage({ params }: { params: Promise<{ id: str
     const decodedId = decodeURIComponent(id);
     const tagName = decodedId.split('/').pop() || decodedId;
 
-    const { articles, continuation } = await fetchFilteredArticles(decodedId, undefined, 20, true);
+    const { articles, continuation } = await fetchFilteredArticlesSSR(decodedId, 20, true);
 
     // Extract keywords for UI
     const relatedTopics = getTopKeywords(articles, 12);

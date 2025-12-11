@@ -52,12 +52,17 @@ export async function generateMetadata({ params }: { params: Promise<{ date: str
 
     // Auto-SEO: Extract keywords
     const topKeywords = getTopKeywords(allArticles, 10);
-    const topArticles = allArticles.slice(0, 5).map(a => a.title).join(', ');
 
-    // Enhanced description with keywords
-    const description = topArticles
-        ? `Briefing for ${date}. Focus: ${topKeywords.join(', ')}. Featuring: ${topArticles}...`
-        : `Daily AI-curated briefing for ${date}. Highlights: ${topKeywords.join(', ')}.`;
+    // Construct description from Article TLDRs (User Preference: Numbered list of TLDRs)
+    // Example: 1. AI辅助... 2. Memori...
+    const tldrList = allArticles
+        .slice(0, 10) // Limit to top 10 to avoid excessive length
+        .map((a, i) => `${i + 1}. ${a.tldr || a.title}`)
+        .join(' ');
+
+    const description = tldrList
+        ? `${date} 每日简报。本期要点：${tldrList}`
+        : `${date} 每日 AI 精选简报。汇聚科技新闻与 RSS 订阅精华。`;
 
     return {
         title: `${date} Briefing | 每日简报`,
@@ -95,10 +100,15 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
     // Prefetch header image
     const headerImageUrl = await resolveBriefingImage(date);
 
-    const topArticles = allArticles.slice(0, 5).map(a => a.title).join(', ');
-    const description = topArticles
-        ? `Briefing for ${date}. Featuring: ${topArticles}... | ${date} 每日简报。精选内容：${topArticles}...`
-        : `Daily AI-curated briefing for ${date}. Highlights and summaries from tech news and RSS feeds. | ${date} 每日 AI 精选简报。汇聚科技新闻与 RSS 订阅精华。`;
+    // Construct consistent description for JSON-LD (Same as Metadata)
+    const tldrList = allArticles
+        .slice(0, 10)
+        .map((a, i) => `${i + 1}. ${a.tldr || a.title}`)
+        .join(' ');
+
+    const description = tldrList
+        ? `${date} 每日简报。本期要点：${tldrList}`
+        : `${date} 每日 AI 精选简报。汇聚科技新闻与 RSS 订阅精华。`;
 
     const jsonLd = {
         '@context': 'https://schema.org',
@@ -122,7 +132,8 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
                 position: index + 1,
                 url: `https://alok-rss.top/article/${article.id}`,
                 name: article.title,
-                description: article.tldr || article.summary || '' // Inject AI Summary/TLDR for Rich Snippets
+                // Enhanced Rich Snippet: Use the full AI summary for deep content understanding
+                description: article.summary || article.tldr || ''
             }))
         }
     };
