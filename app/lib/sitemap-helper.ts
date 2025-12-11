@@ -1,6 +1,6 @@
 import { getSupabaseClient, getFreshRssClient } from './api-utils';
 
-export async function getSitemapUrls(): Promise<string[]> {
+export async function getSitemapUrls(): Promise<SitemapURL[]> {
     const supabase = getSupabaseClient();
 
     // 1. Fetch all available dates
@@ -60,11 +60,34 @@ export async function getSitemapUrls(): Promise<string[]> {
         console.error('Failed to fetch tags for sitemap:', e);
     }
 
+    // 3. Construct URLs with lastmod
     const urls = [
-        `${baseUrl}/`, // Home
-        ...dates.map(date => `${baseUrl}/date/${date}`), // Daily Briefings
-        ...tagUrls // Top 50 Topic Hubs
+        {
+            url: `${baseUrl}/`,
+            lastmod: dates.length > 0 ? dates[0] : undefined, // Homepage updates with latest briefing
+            changefreq: 'daily',
+            priority: '1.0'
+        },
+        ...dates.map(date => ({
+            url: `${baseUrl}/date/${date}`,
+            lastmod: date, // Daily briefings are static archives, lastmod is the date itself
+            changefreq: 'weekly', // Historical dates don't change often
+            priority: '0.8'
+        })),
+        ...tagUrls.map(url => ({
+            url: url,
+            lastmod: dates.length > 0 ? dates[0] : undefined, // Tags update with new content, use latest daily date
+            changefreq: 'daily',
+            priority: '0.6'
+        }))
     ];
 
     return urls;
+}
+
+export interface SitemapURL {
+    url: string;
+    lastmod?: string;
+    changefreq: string;
+    priority: string;
 }

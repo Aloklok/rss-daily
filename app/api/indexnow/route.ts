@@ -37,7 +37,8 @@ export async function GET(request: Request) {
     } else {
         // Auto-submit all sitemap URLs if no specific URL provided
         console.log('[IndexNow] No URL provided, fetching entire sitemap...');
-        urlsToSubmit = await getSitemapUrls();
+        const sitemapItems = await getSitemapUrls();
+        urlsToSubmit = sitemapItems.map(item => item.url);
     }
 
     if (urlsToSubmit.length === 0) {
@@ -75,7 +76,8 @@ export async function POST(request: Request) {
 
         if (urls.length === 0) {
             console.log('[IndexNow] POST with empty URLs, fetching entire sitemap...');
-            urls = await getSitemapUrls();
+            const sitemapItems = await getSitemapUrls();
+            urls = sitemapItems.map(item => item.url);
         }
 
         if (urls.length === 0) {

@@ -5,7 +5,7 @@ import React from 'react';
 import StreamList from '@/app/components/StreamList';
 
 // Enable ISR (Incremental Static Regeneration)
-// Revalidate every week (604800 seconds)
+// Revalidate every 7 days (604800 seconds), relying on on-demand revalidation for updates
 export const revalidate = 604800;
 export const dynamicParams = true; // Allow generating pages for new tags on demand
 

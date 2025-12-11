@@ -138,7 +138,11 @@ export default async function Home() {
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(renderSchemas) }}
             />
-            <MainContentClient initialDate={initialDate} initialHeaderImageUrl={headerImageUrl} />
+            <MainContentClient
+                initialDate={initialDate}
+                initialHeaderImageUrl={headerImageUrl}
+                initialArticles={articles}
+            />
         </>
     );
 }

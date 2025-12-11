@@ -40,13 +40,21 @@ export default function StreamList({ filterValue, initialArticles, initialContin
 
     const articlesById = useArticleStore(state => state.articlesById);
 
+    // Memoize initial articles map for SSR fallback
+    const initialArticlesMap = React.useMemo(() => {
+        return initialArticles.reduce((acc, article) => {
+            acc[article.id] = article;
+            return acc;
+        }, {} as Record<string, Article>);
+    }, [initialArticles]);
+
     // Flatten all pages of article IDs
     const allArticleIds = data?.pages.flatMap(page => page.articles) || [];
 
     return (
         <div className="space-y-8">
             {allArticleIds.map(id => {
-                const article = articlesById[id];
+                const article = articlesById[id] || initialArticlesMap[id];
                 if (!article) return null;
                 return <ArticleCard key={id} article={article} />;
             })}

@@ -164,8 +164,19 @@ export const useUpdateArticleState = () => {
             tagsToRemove.forEach(tag => finalTagsSet.delete(tag));
             return { ...articleToUpdate, tags: Array.from(finalTagsSet) };
         },
-        onSuccess: (updatedArticle) => {
+        onSuccess: (updatedArticle, variables) => {
             updateArticle(updatedArticle);
+
+            // 【Active Revalidation】
+            // When tags change, immediately trigger revalidation for those tag streams.
+            // This ensures SEO pages are fresh without waiting for ISR cycle.
+            const touchedTags = new Set([...variables.tagsToAdd, ...variables.tagsToRemove]);
+            touchedTags.forEach(tag => {
+                // Don't block UI updates, fire and forget
+                fetch(`/api/revalidate?tag=${encodeURIComponent(tag)}`).catch(err =>
+                    console.warn(`[Revalidate] Failed to trigger for ${tag}`, err)
+                );
+            });
         },
         onError: (err) => {
             console.error("Failed to update article state:", err);

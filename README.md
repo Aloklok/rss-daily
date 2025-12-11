@@ -33,10 +33,11 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
       - **时光机导航**: 日历页底部增加 "上一篇 / 下一篇" 导航，确保爬虫能顺着时间线遍历所有历史内容，防止孤岛页面。
   - **增长引擎**:
       - **AI RSS Feed**: `/feed.xml` 自动分发经过 AI 清洗和点评的内容（非原文），吸引自然反向链接。
-      - **自动化 Sitemap**: 自动将最活跃的 TOP 50 标签页推送到 `sitemap.xml`。
-  - **Canonical 保护**: 所有文章页面的 `canonical` 标签均指向**原文链接**，向搜索引擎声明版权，彻底规避“重复内容/采集站”惩罚。
+      - **自动化 Sitemap**: 自动将最活跃的 TOP 50 标签页推送到 `sitemap.xml`，并配置 **Daily 更新频率** 与 **Lastmod** 时间戳，配合 IndexNow 实现秒级收录。
+  - **Canonical 保护**: 全站统一采用 **WWW 域名** (`https://www.alok-rss.top`) 作为唯一规范地址 (Canonical URL)，彻底消灭重复内容风险。
+      - **自动重定向**: 依赖 Vercel/Cloudflare 边缘层自动将 Root 请求重定向到 WWW。
+      - **验证集成**: 首页集成 **Baidu** (`baidu-site-verification`) 和 **Bing** (`msvalidate.01`) 的 HTML 验证标签，无需上传文件。
       - **自动提交**: 集成了 IndexNow API (`api.indexnow.org`)。
-      - **验证文件**: `/public/5053a5ea56874c8e9ee65c7100006ca9.txt`。
       - **提交工具**: `utils/indexnow.ts` 提供了 `submitUrlsToIndexNow` 函数。
       - **API 接口**: `/api/indexnow`
         - 一键全量提交 (自动提交 Sitemap 所有 URL)。
@@ -50,9 +51,11 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
       - **架构升级**: 为了解决 Vercel 环境下 "Loopback Request" (请求自身 API)导致的 401/500 错误，重构了 SSR 数据获取层。
       - **机制**: 服务端组件 (`stream/[id]`) 不再走 HTTP API 层，而是通过 `ssr-helpers.ts` 直接调用 FreshRSS/Supabase SDK。
       - **收益**: 彻底根除鉴权与网络回路问题，首屏性能提升 30% 以上。
-  - **Tag Page ISR Strategy (标签页静态化)**:
-      - **策略**: 针对 `/stream/[id]` 标签聚合页，启用 **7天长效 ISR 缓存** (`revalidate = 604,800`)。
-      - **机制**: 结合客户端“按需补全”逻辑——缓存页秒开可见；若缓存中缺乏最新 AI 简报，用户点击时才即时获取补充数据。兼顾了极致的加载速度 (CDN) 与数据的完整性。
+  - **Next-Gen ISR Strategy (主动式 ISR)**:
+      - **策略**: 针对 `/stream/[id]` 标签页，启用 **7天长效 ISR 缓存**。
+      - **机制**: 摒弃传统的“被动等待过期”，采用 **“修改即刷新” (Revalidate-on-Tagging)** 策略。管理员在前端打标签时，会自动触发 `/api/revalidate`，瞬间更新边缘节点缓存。既享受了静态页面的极致性能，又实现了动态内容的实时性。
+  - **Homepage Zero-Layout-Shift (首页零偏移)**:
+      - **SSR Hydration**: 首页采用“SSR 直出 + 状态水合”双重保障。即使在禁用 JavaScript 的环境下，也能完美渲染首屏简报内容，杜绝 "Loading Spinner" 闪烁，大幅提升 Core Web Vitals 分数。
 
 ## 用户界面 (UI) 交互
 
