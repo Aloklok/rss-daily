@@ -45,6 +45,7 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
       - **Meta Description**: 摒弃传统的简短摘要，采用 **"序号列表 + TLDR"** 模式（例如：`1. AI辅助... 2. Memori...`），在 SERP 中直接展示当期 10+ 条核心观点，极大提升信息密度。
       - **Deep Content Rich Snippets**: 在 JSON-LD 的 `ListItem` 中注入 **全量 AI 摘要 (Summary)**，而非简单的标题，让搜索引擎“读懂”每篇文章的深度内容。
       - **Crawler-Friendly Links**: 完美支持编码后的复杂标签 URL（如 `/stream/user%2F-%2Flabel%2F%E5%90%8E%E7%AB%AF`），确保爬虫能顺畅索引所有标签聚合页。
+      - **Homepage Dual-Schema**: 首页采用 **NewsArticle (今日内容)** + **CollectionPage (历史归档)** 双重结构化数据，兼顾内容时效性排名与历史页面索引。
   - **SSR Direct Connection (服务端直连)**:
       - **架构升级**: 为了解决 Vercel 环境下 "Loopback Request" (请求自身 API)导致的 401/500 错误，重构了 SSR 数据获取层。
       - **机制**: 服务端组件 (`stream/[id]`) 不再走 HTTP API 层，而是通过 `ssr-helpers.ts` 直接调用 FreshRSS/Supabase SDK。

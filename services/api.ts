@@ -132,7 +132,7 @@ export const getArticlesDetails = (articleIds: (string | number)[]): Promise<Rec
     articleIds.forEach(id => params.append('articleIds', String(id)));
 
     // 调用我们刚刚修改的 get-briefings 端点
-    return apiService.request<Record<string, Article>>(`/ api / get - briefings ? ${params.toString()} `);
+    return apiService.request<Record<string, Article>>(`/api/get-briefings?${params.toString()}`);
 };
 
 export const markAllAsRead = (articleIds: (string | number)[]): Promise<(string | number)[]> => {
