@@ -246,8 +246,9 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, onReaderModeRequest,
                     <Link
                         href={`/article/${toShortId(String(article.id))}`}
                         onClick={(e) => e.preventDefault()}
+                        onDragStart={(e) => e.preventDefault()}
                         draggable={false}
-                        className="align-middle cursor-text hover:no-underline transition-colors"
+                        className="align-middle cursor-text hover:no-underline transition-colors select-text"
                     >
                         {article.title}
                     </Link>

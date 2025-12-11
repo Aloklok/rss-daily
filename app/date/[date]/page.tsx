@@ -53,6 +53,9 @@ export async function generateMetadata({ params }: { params: Promise<{ date: str
     // Auto-SEO: Extract keywords
     const topKeywords = getTopKeywords(allArticles, 10);
 
+    // Fetch header image for metadata
+    const headerImageUrl = await resolveBriefingImage(date);
+
     // Construct description from Article TLDRs (User Preference: Numbered list of TLDRs)
     // Example: 1. AI辅助... 2. Memori...
     const tldrList = allArticles
@@ -76,6 +79,14 @@ export async function generateMetadata({ params }: { params: Promise<{ date: str
             description: description,
             type: 'article',
             publishedTime: date,
+            images: [
+                {
+                    url: headerImageUrl || 'https://www.alok-rss.top/computer_cat_180.jpeg',
+                    width: 1600,
+                    height: 1200,
+                    alt: `${date} Briefing Cover`,
+                }
+            ],
         },
     };
 }

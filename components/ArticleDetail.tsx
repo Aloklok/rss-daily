@@ -150,7 +150,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({ article, onClose, initial
 
   return (
     <div className="p-2 md:p-8">
-      <article className="select-none">
+      <article>
         <header className="mb-6 border-b pb-6">
 
           <h1 className="text-3xl md:text-4xl font-bold font-serif text-gray-900 dark:text-midnight-text-reader mb-2">

@@ -38,7 +38,7 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
     }
 
     // Default Briefing Metadata
-    const { initialDate, articles } = await getLatestBriefingData();
+    const { initialDate, articles, headerImageUrl } = await getLatestBriefingData();
 
     if (!initialDate || articles.length === 0) {
         return {
@@ -68,6 +68,14 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
             type: 'website',
             url: 'https://www.alok-rss.top',
             siteName: 'Briefing Hub',
+            images: [
+                {
+                    url: headerImageUrl || 'https://www.alok-rss.top/computer_cat_180.jpeg',
+                    width: 1600,
+                    height: 1200,
+                    alt: `${initialDate} Briefing Cover`,
+                }
+            ],
         },
     };
 }

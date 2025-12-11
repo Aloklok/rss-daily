@@ -77,7 +77,7 @@ const ReaderView: React.FC<ReaderViewProps> = ({ article, readerContent, isLoadi
                     </svg>
                 </button>
 
-                <article className="mt-8 select-none">
+                <article className="mt-8">
                     <h1 className="text-3xl md:text-4xl font-bold font-serif text-gray-900 dark:text-midnight-text-reader mb-4">{readerContent.title}</h1>
                     <div className="mb-8 border-b dark:border-gray-700 pb-4">
                         <p className="text-gray-500 dark:text-gray-400">来源: {readerContent.source}</p>
