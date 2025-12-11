@@ -42,13 +42,13 @@ export async function generateMetadata(): Promise<Metadata> {
         title: `${initialDate} Briefing | 每日简报`,
         description: description,
         alternates: {
-            canonical: 'https://alok-rss.top',
+            canonical: 'https://www.alok-rss.top',
         },
         openGraph: {
             title: `${initialDate} Briefing | 每日简报`,
             description: description,
             type: 'website',
-            url: 'https://alok-rss.top',
+            url: 'https://www.alok-rss.top',
             siteName: 'Briefing Hub',
         },
     };
@@ -77,21 +77,21 @@ export default async function Home() {
             headline: `${initialDate} Briefing | 每日简报`,
             image: {
                 '@type': 'ImageObject',
-                'url': headerImageUrl || 'https://alok-rss.top/computer_cat_180.jpeg'
+                'url': headerImageUrl || 'https://www.alok-rss.top/computer_cat_180.jpeg'
             },
             description: description,
             datePublished: `${initialDate}T08:00:00+08:00`,
             author: [{
                 '@type': 'Organization',
                 name: 'Briefing Hub',
-                url: 'https://alok-rss.top'
+                url: 'https://www.alok-rss.top'
             }],
             mainEntity: {
                 '@type': 'ItemList',
                 itemListElement: articles.map((article, index) => ({
                     '@type': 'ListItem',
                     position: index + 1,
-                    url: `https://alok-rss.top/article/${article.id}`,
+                    url: `https://www.alok-rss.top/article/${article.id}`,
                     name: article.title,
                     description: article.summary || article.tldr || ''
                 }))
@@ -108,13 +108,13 @@ export default async function Home() {
             '@type': 'CollectionPage',
             headline: 'Briefing Archive | 往期简报',
             description: 'Index of daily AI-curated technology briefings. | 每日 AI 科技简报索引。',
-            url: 'https://alok-rss.top',
+            url: 'https://www.alok-rss.top',
             mainEntity: {
                 '@type': 'ItemList',
                 itemListElement: recentDates.map((date, index) => ({
                     '@type': 'ListItem',
                     position: index + 1,
-                    url: `https://alok-rss.top/date/${date}`,
+                    url: `https://www.alok-rss.top/date/${date}`,
                     name: `${date} Briefing | 每日简报`
                 }))
             }
@@ -127,7 +127,7 @@ export default async function Home() {
             '@context': 'https://schema.org',
             '@type': 'WebSite',
             name: 'Briefing Hub',
-            url: 'https://alok-rss.top',
+            url: 'https://www.alok-rss.top',
             description: 'Daily AI-curated technology briefings.'
         });
     }

@@ -22,7 +22,7 @@ export async function GET() {
         const feedParams = {
             title: "RSS Briefing Hub | Daily AI Insights",
             description: "Your personal daily briefing with AI-curated summaries, critiques, and market takes.",
-            link: "https://alok-rss.top",
+            link: "https://www.alok-rss.top",
             lastBuildDate: new Date().toUTCString(),
         };
 
@@ -34,13 +34,13 @@ export async function GET() {
                 <p><strong>Market Take:</strong> ${article.marketTake || 'N/A'}</p>
                 <p><strong>Critique:</strong> ${article.critiques || 'N/A'}</p>
                 <hr/>
-                <p><a href="https://alok-rss.top/date/${latestDate}">Read full briefing on the Hub</a></p>
+                <p><a href="https://www.alok-rss.top/date/${latestDate}">Read full briefing on the Hub</a></p>
             `.trim();
 
             return `
             <item>
                 <title><![CDATA[${article.title}]]></title>
-                <link>https://alok-rss.top/date/${latestDate}#article-${article.id}</link>
+                <link>https://www.alok-rss.top/date/${latestDate}#article-${article.id}</link>
                 <guid isPermaLink="false">${article.id}</guid>
                 <pubDate>${new Date(article.published).toUTCString()}</pubDate>
                 <description><![CDATA[${description}]]></description>
@@ -57,7 +57,7 @@ export async function GET() {
         <description>${feedParams.description}</description>
         <language>zh-cn</language>
         <lastBuildDate>${feedParams.lastBuildDate}</lastBuildDate>
-        <atom:link href="https://alok-rss.top/feed.xml" rel="self" type="application/rss+xml" />
+        <atom:link href="https://www.alok-rss.top/feed.xml" rel="self" type="application/rss+xml" />
         ${itemXmls}
     </channel>
 </rss>`;

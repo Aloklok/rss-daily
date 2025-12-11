@@ -21,4 +21,4 @@ Disallow: /
 User-agent: Google-Extended
 Disallow: /
 
-Sitemap: https://alok-rss.top/sitemap.xml
+Sitemap: https://www.alok-rss.top/sitemap.xml

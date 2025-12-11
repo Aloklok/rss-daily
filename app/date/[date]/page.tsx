@@ -116,21 +116,21 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
         headline: `${date} Briefing | 每日简报`,
         image: {
             '@type': 'ImageObject',
-            'url': headerImageUrl || 'https://alok-rss.top/computer_cat_180.jpeg' // Fallback image
+            'url': headerImageUrl || 'https://www.alok-rss.top/computer_cat_180.jpeg' // Fallback image
         },
         description: description,
         datePublished: `${date}T08:00:00+08:00`, // ISO 8601 with +08:00 timezone (assuming 8 AM Shanghai)
         author: [{
             '@type': 'Organization',
             name: 'Briefing Hub',
-            url: 'https://alok-rss.top'
+            url: 'https://www.alok-rss.top'
         }],
         mainEntity: {
             '@type': 'ItemList',
             itemListElement: allArticles.map((article, index) => ({
                 '@type': 'ListItem',
                 position: index + 1,
-                url: `https://alok-rss.top/article/${article.id}`,
+                url: `https://www.alok-rss.top/article/${article.id}`,
                 name: article.title,
                 // Enhanced Rich Snippet: Use the full AI summary for deep content understanding
                 description: article.summary || article.tldr || ''

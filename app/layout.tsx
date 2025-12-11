@@ -22,7 +22,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-    metadataBase: new URL('https://alok-rss.top'),
+    metadataBase: new URL('https://www.alok-rss.top'),
     title: {
         default: 'Briefing Hub | 每日简报',
         template: '%s | Briefing Hub',
@@ -42,14 +42,15 @@ export const metadata: Metadata = {
     openGraph: {
         type: 'website',
         locale: 'zh_CN',
-        url: 'https://alok-rss.top',
+        url: 'https://www.alok-rss.top',
         siteName: 'RSS Briefing Hub | 每日简报',
         title: 'RSS Briefing Hub | 每日简报',
         description: 'Your personal AI-curated daily briefing. | 您的个人 AI 每日简报。',
     },
     verification: {
         other: {
-            // 'baidu-site-verification': 'codeva-vIrMBcZFVR', // Removed in favor of File Verification
+            'baidu-site-verification': 'codeva-GgB4Vw1uYR',
+            'msvalidate.01': 'F748D268BBC7001EA01E6B1ECF6BD15B',
         },
     },
 };

@@ -33,7 +33,7 @@ export async function getSitemapUrls(): Promise<string[]> {
     }
 
     const dates = Array.from(dateSet);
-    const baseUrl = 'https://alok-rss.top';
+    const baseUrl = 'https://www.alok-rss.top';
 
     // 2. Fetch active Tags from FreshRSS
     let tagUrls: string[] = [];
