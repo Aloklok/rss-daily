@@ -24,20 +24,45 @@ export async function generateStaticParams() {
         }));
 }
 
+// Helper to extract top keywords from articles
+function getTopKeywords(articles: any[], limit = 10): string[] {
+    const frequency: Record<string, number> = {};
+    articles.forEach(article => {
+        if (Array.isArray(article.keywords)) {
+            article.keywords.forEach((k: string) => {
+                const cleanKey = k.trim();
+                if (cleanKey) {
+                    frequency[cleanKey] = (frequency[cleanKey] || 0) + 1;
+                }
+            });
+        }
+    });
+    return Object.entries(frequency)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, limit)
+        .map(([key]) => key);
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ date: string }> }): Promise<Metadata> {
     const { date } = await params;
 
     // Fetch data for dynamic description
     const groupedArticles = await fetchBriefingData(date);
     const allArticles = Object.values(groupedArticles).flat();
+
+    // Auto-SEO: Extract keywords
+    const topKeywords = getTopKeywords(allArticles, 10);
     const topArticles = allArticles.slice(0, 5).map(a => a.title).join(', ');
+
+    // Enhanced description with keywords
     const description = topArticles
-        ? `Briefing for ${date}. Featuring: ${topArticles}... | ${date} 每日简报。精选内容：${topArticles}...`
-        : `Daily AI-curated briefing for ${date}. Highlights and summaries from tech news and RSS feeds. | ${date} 每日 AI 精选简报。汇聚科技新闻与 RSS 订阅精华。`;
+        ? `Briefing for ${date}. Focus: ${topKeywords.join(', ')}. Featuring: ${topArticles}...`
+        : `Daily AI-curated briefing for ${date}. Highlights: ${topKeywords.join(', ')}.`;
 
     return {
         title: `${date} Briefing | 每日简报`,
         description: description,
+        keywords: topKeywords, // Inject explicit keywords tag
         alternates: {
             canonical: `/date/${date}`,
         },
@@ -96,10 +121,20 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
                 '@type': 'ListItem',
                 position: index + 1,
                 url: `https://alok-rss.top/article/${article.id}`,
-                name: article.title
+                name: article.title,
+                description: article.tldr || article.summary || '' // Inject AI Summary/TLDR for Rich Snippets
             }))
         }
     };
+
+    // Calculate Previous and Next dates for Internal Linking (SEO)
+    const dates = await fetchAvailableDates();
+    const currentIndex = dates.indexOf(date);
+    // dates are sorted desc (newest first). 
+    // Next date (chronologically tomorrow) is at index - 1. 
+    // Prev date (chronologically yesterday) is at index + 1.
+    const nextDate = currentIndex > 0 ? dates[currentIndex - 1] : null;
+    const prevDate = currentIndex < dates.length - 1 ? dates[currentIndex + 1] : null;
 
     return (
         <>
@@ -112,6 +147,8 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
                 date={date}
                 headerImageUrl={headerImageUrl}
                 isToday={date === today}
+                prevDate={prevDate}
+                nextDate={nextDate}
             />
         </>
     );

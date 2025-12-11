@@ -7,6 +7,7 @@ import { useArticleStore } from '../store/articleStore';
 import { useUIStore } from '../store/uiStore';
 import LoadingSpinner from './LoadingSpinner';
 import Image from 'next/image';
+import Link from 'next/link';
 
 interface ReportContentProps {
     report: BriefingReport;
@@ -21,7 +22,15 @@ const ReportContent: React.FC<ReportContentProps> = memo(({ report, onReaderMode
         e.preventDefault();
         const element = document.getElementById(targetId);
         if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Buffer for sticky headers (Importance Header + potentially Navbar)
+            const headerOffset = 50;
+            const elementPosition = element.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.scrollY - headerOffset;
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
         }
     };
 
@@ -128,9 +137,11 @@ interface BriefingProps {
     headerImageUrl?: string; // 【新增】接收预解析的图片 URL
     articles?: Article[]; // 【新增】用于 SSR/Hydration 的初始文章数据
     isToday: boolean;
+    prevDate?: string | null;
+    nextDate?: string | null;
 }
 
-const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selectedReportId, onReportSelect, onReaderModeRequest, onStateChange, onTimeSlotChange, isSidebarCollapsed, onToggleSidebar, articleCount, isLoading, headerImageUrl, articles, isToday }) => {
+const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selectedReportId, onReportSelect, onReaderModeRequest, onStateChange, onTimeSlotChange, isSidebarCollapsed, onToggleSidebar, articleCount, isLoading, headerImageUrl, articles, isToday, prevDate, nextDate }) => {
     // 1. 【新增】内部订阅文章数据
     const articlesById = useArticleStore(state => state.articlesById);
     // const activeFilter = useUIStore(state => state.activeFilter); // No longer needed for date logic
@@ -326,6 +337,33 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
                         </p>
                     </div>
                 )}
+
+                {/* Internal Linking Navigation (SEO & UX) */}
+                <div className="mt-16 pt-8 border-t border-stone-200 dark:border-white/10 flex justify-between items-center text-sm font-serif">
+                    {prevDate ? (
+                        <Link href={`/date/${prevDate}`} className="group flex items-center text-stone-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                            <span className="mr-2 transform transition-transform group-hover:-translate-x-1">←</span>
+                            <div>
+                                <span className="block text-xs uppercase tracking-wider opacity-60">上一篇</span>
+                                <span className="font-semibold">{prevDate}</span>
+                            </div>
+                        </Link>
+                    ) : (
+                        <div></div> // Spacer
+                    )}
+
+                    {nextDate ? (
+                        <Link href={`/date/${nextDate}`} className="group flex items-center text-right text-stone-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                            <div>
+                                <span className="block text-xs uppercase tracking-wider opacity-60">下一篇</span>
+                                <span className="font-semibold">{nextDate}</span>
+                            </div>
+                            <span className="ml-2 transform transition-transform group-hover:translate-x-1">→</span>
+                        </Link>
+                    ) : (
+                        <div></div> // Spacer
+                    )}
+                </div>
             </div>
         </main>
     );

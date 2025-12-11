@@ -20,14 +20,21 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 - **双模访问控制**：
   - **公共只读模式**：默认允许公众访问，可以浏览所有简报和文章，但无法进行任何修改。
   - **管理员模式**：通过 URL Token (`?token=...`) 激活，系统会自动设置持久化 Cookie (`site_token`)，无需每次访问都携带 Token。拥有完整权限（如标记已读、收藏、查看原始 RSS）。
-- **SEO 深度优化 (Anti-Content Farm Strategy)**:
+- **SEO 深度优化 (Hyper-Optimization)**:
+  - **全站 SSR覆盖**: 不仅包括每日简报，**标签/分类页面 (`/stream/[id]`)** 全面升级为 SSR 服务端渲染，将 FreshRSS 文章列表与 Supabase AI 数据融合，打造高质量内容聚合页。
+  - **Auto-SEO (Keyword Injection)**: 
+      - **自动关键词提取**: 服务器自动分析页面内所有文章，提取高频关键词（如 "GPT-4", "Transformer"）。
+      - **智能注入**: 将关键词注入 Metadata (`keywords`, `description`)。
+      - **可视化增强**: 在标签页顶部展示 "Related Topics" 词云，提升长尾词排名。
+  - **Rich Snippets (富文本摘要)**:
+      - **JSON-LD 增强**: 每日简报页面的 `NewsArticle` Schema 中，每条新闻都包含了 AI 生成的 **"一句话精华摘要" (TLDR)**。
+      - **效果**: Google 搜索结果可直接展示新闻详情，大幅提升点击率。
+  - **结构化内链 (Time Machine)**:
+      - **时光机导航**: 日历页底部增加 "上一篇 / 下一篇" 导航，确保爬虫能顺着时间线遍历所有历史内容，防止孤岛页面。
+  - **增长引擎**:
+      - **AI RSS Feed**: `/feed.xml` 自动分发经过 AI 清洗和点评的内容（非原文），吸引自然反向链接。
+      - **自动化 Sitemap**: 自动将最活跃的 TOP 50 标签页推送到 `sitemap.xml`。
   - **Canonical 保护**: 所有文章页面的 `canonical` 标签均指向**原文链接**，向搜索引擎声明版权，彻底规避“重复内容/采集站”惩罚。
-  - **精细化 Sitemap**: `/sitemap.xml` 仅收录**首页**和**简报页**，主动排除文章页，引导搜索引擎将权重集中在核心的高质量聚合页面上。
-  - **No-JS 友好**: 移除全局 Loading 遮罩，确保爬虫和无 JS 客户端能直接看到完整内容。
-  - **高级结构化数据 (JSON-LD)**: 
-      - **首页**: `CollectionPage` Schema，构建简报归档索引。
-      - **简报页**: `NewsArticle` Schema，采用 ISO 8601 标准时间和 ImageObject，支持富媒体搜索结果。
-  - **动态元数据**: 基于 Next.js Metadata API 生成 Open Graph 和 Twitter Card。
   - **IndexNow 集成**:
       - **自动索引**: 集成了 IndexNow API，支持将 URL 实时推送给 Bing 等搜索引擎。
       - **验证文件**: `/public/5053a5ea56874c8e9ee65c7100006ca9.txt` (Host: `alok-rss.top`)。

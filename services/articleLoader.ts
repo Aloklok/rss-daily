@@ -53,15 +53,26 @@ export async function fetchBriefingArticles(date: string, slot: string | null): 
 }
 
 // 2. 加载分类/标签文章（【核心修改】不再融合）
-export async function fetchFilteredArticles(filterValue: string, continuation?: string, n: number = 20): Promise<{ articles: Article[], continuation?: string }> {
-    console.log(`[Loader] Requesting articles for: ${filterValue}, continuation: ${continuation}`); // 🔍 Debug 1
+// 2. 加载分类/标签文章
+export async function fetchFilteredArticles(
+    filterValue: string,
+    continuation?: string,
+    n: number = 20,
+    merge: boolean = false // 【新增】默认为 false，保持向后兼容。SSR 页面会传入 true。
+): Promise<{ articles: Article[], continuation?: string }> {
+    console.log(`[Loader] Requesting articles for: ${filterValue}, continuation: ${continuation}, merge: ${merge}`);
 
     // 1. 获取 FreshRSS 数据
     const response = await getArticlesByLabel({ value: filterValue } as any, continuation, n);
 
-    // 2. 【重要】直接返回，不要调用 mergeWithSupabaseDetails
-    // 既然 UnifiedArticleModal 已经支持按需加载详情，这里就不需要预加载了。
-    // 这避免了因 ID 过长导致的请求失败。
+    // 2. 根据 merge 参数决定是否融合 Supabase 详情
+    if (merge) {
+        console.log('[Loader] Merging with Supabase details for Tag Page SSR...');
+        const mergedArticles = await mergeWithSupabaseDetails(response.articles);
+        return { ...response, articles: mergedArticles };
+    }
+
+    // 默认情况：直接返回，不预加载详情（客户端点击弹窗时再加载）
     return response;
 }
 
