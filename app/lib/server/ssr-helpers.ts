@@ -94,7 +94,8 @@ export async function fetchFilteredArticlesSSR(
 
         freshArticles = freshArticles.map(freshArticle => {
             const supaDetails = supaDetailsMap[freshArticle.id];
-            return supaDetails ? { ...supaDetails, ...freshArticle } : freshArticle;
+            // Supabase details (AI summary, etc.) must overwrite FreshRSS placeholders
+            return supaDetails ? { ...freshArticle, ...supaDetails } : freshArticle;
         });
     }
 

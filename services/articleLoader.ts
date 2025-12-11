@@ -22,8 +22,9 @@ async function mergeWithSupabaseDetails(freshArticles: Article[]): Promise<Artic
         const supaDetailsById = await getArticlesDetails(articleIds);
         return freshArticles.map(freshArticle => {
             const supaDetails = supaDetailsById[freshArticle.id];
-            // 合并时，以 FreshRSS 的数据为基础，用 Supabase 的数据覆盖默认值
-            return supaDetails ? { ...supaDetails, ...freshArticle } : freshArticle;
+            // 合并时，以 FreshRSS 的数据为基础，用 Supabase 的详情（AI字段）覆盖它
+            // 之前的错误顺序导致空字符串覆盖了有价值的内容
+            return supaDetails ? { ...freshArticle, ...supaDetails } : freshArticle;
         });
     } catch (error) {
         console.warn('Failed to merge Supabase details, returning fresh articles only:', error);
@@ -58,7 +59,7 @@ export async function fetchFilteredArticles(
     filterValue: string,
     continuation?: string,
     n: number = 20,
-    merge: boolean = false // 【新增】默认为 false，保持向后兼容。SSR 页面会传入 true。
+    merge: boolean = true // Changed back to true to ensure Client loads AI data by default
 ): Promise<{ articles: Article[], continuation?: string }> {
     console.log(`[Loader] Requesting articles for: ${filterValue}, continuation: ${continuation}, merge: ${merge}`);
 
