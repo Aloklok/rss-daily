@@ -7,19 +7,22 @@ import { useUIStore } from '../store/uiStore';
 import { useArticleMetadata } from '../hooks/useArticleMetadata';
 import { getRandomColorClass } from '../utils/colorUtils';
 import ArticleTitleStar from '../app/components/ArticleTitleStar';
+import StreamArticleListItem from './StreamArticleListItem';
 
 import ArticleListHeader from './ArticleListHeader';
 
-// ... (props interface) ...
-
-const ArticleListItem: React.FC<{ articleId: string | number; onOpenArticle: (article: Article) => void }> = memo(({ articleId, onOpenArticle }) => {
-  // ... (item logic) ...
-});
-ArticleListItem.displayName = 'ArticleListItem';
+interface ArticleListProps {
+  articleIds: (string | number)[];
+  onOpenArticle?: (article: Article) => void;
+  isLoading: boolean;
+  fetchNextPage?: () => void;
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
+}
 
 const ArticleList: React.FC<ArticleListProps> = ({
   articleIds,
-  onOpenArticle,
+  onOpenArticle, // kept for compatibility but unused
   isLoading,
   fetchNextPage,
   hasNextPage,
@@ -36,11 +39,11 @@ const ArticleList: React.FC<ArticleListProps> = ({
   }, [activeFilter]);
 
   if (isLoading) {
-    // ...
+    return <div className="p-8 text-center">加载中...</div>;
   }
 
   if (articleIds.length === 0) {
-    // ...
+    return <div className="p-8 text-center text-gray-500">暂无文章</div>;
   }
 
   return (
@@ -49,7 +52,7 @@ const ArticleList: React.FC<ArticleListProps> = ({
 
       <div className="space-y-4">
         {articleIds.map((id) => (
-          <ArticleListItem key={id} articleId={id} onOpenArticle={onOpenArticle} />
+          <StreamArticleListItem key={id} articleId={id} />
         ))}
       </div>
 // ... load more ...
