@@ -59,6 +59,17 @@ export const useArticleStore = create<ArticleStoreState>((set, get) => ({
       let newAvailableTags = [...state.availableFilters.tags];
 
       if (tagsToAdd.length > 0 || tagsToRemove.length > 0) {
+        // 1. Identify which tags are TRULY new to the available list
+        const existingTagIds = new Set(newAvailableTags.map(t => t.id));
+        const brandNewTags = tagsToAdd.filter(id => !existingTagIds.has(id));
+
+        // 2. Append brand new tags to the list with initial count 0 (count will be incremented below)
+        brandNewTags.forEach(id => {
+          const label = decodeURIComponent(id.split('/').pop() || id);
+          newAvailableTags.push({ id, label, count: 0 });
+        });
+
+        // 3. Update counts for all affected tags
         newAvailableTags = newAvailableTags.map(tag => {
           const newTag = { ...tag };
           if (tagsToAdd.includes(newTag.id)) {

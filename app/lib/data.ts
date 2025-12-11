@@ -214,3 +214,82 @@ export async function fetchArticleById(id: string): Promise<Article | null> {
     }
     return data;
 }
+
+// --- New SSR Data Fetchers ---
+
+import { STAR_TAG } from '../../constants';
+
+// Define Interface locally or import if possible. Let's define safely.
+interface FreshRssTag {
+    id: string;
+    type: string;
+    count?: number;
+}
+
+export async function getAvailableFilters(): Promise<{ tags: any[], categories: any[] }> {
+    try {
+        const freshRss = getFreshRssClient();
+
+        // Use the proven endpoint from app/api/list-categories-tags/route.ts
+        const data = await freshRss.get<{ tags: FreshRssTag[] }>('/tag/list', {
+            output: 'json',
+            with_counts: '1'
+        });
+
+        const categories: any[] = [];
+        const tags: any[] = [];
+
+        if (data.tags) {
+            data.tags.forEach((item) => {
+                const label = decodeURIComponent(item.id.split('/').pop() || '');
+
+                if (item.id.includes('/state/com.google/') || item.id.includes('/state/org.freshrss/')) {
+                    return;
+                }
+
+                if (item.type === 'folder') {
+                    categories.push({ id: item.id, label, count: item.count });
+                } else {
+                    tags.push({ id: item.id, label, count: item.count });
+                }
+            });
+        }
+
+        const sortByName = (a: { label: string }, b: { label: string }) => a.label.localeCompare(b.label, 'zh-Hans-CN');
+
+        return {
+            categories: categories.sort(sortByName),
+            tags: tags.sort(sortByName),
+        };
+    } catch (e) {
+        console.error('SERVER Error fetching filters:', e);
+        return { tags: [], categories: [] };
+    }
+}
+
+export async function fetchStarredArticleHeaders(): Promise<{ id: string | number; title: string; tags: string[] }[]> {
+    try {
+        const freshRss = getFreshRssClient();
+        const params = {
+            n: '50',
+            output: 'json',
+            excludeContent: 'true'
+        };
+
+        // Use the correct endpoint: /stream/contents/{streamId}
+        const safeStreamId = encodeURIComponent(STAR_TAG);
+        const data = await freshRss.get<{ items: FreshRSSItem[] }>(`/stream/contents/${safeStreamId}`, params);
+
+        if (!data.items) return [];
+
+        return data.items.map(item => ({
+            id: item.id,
+            title: item.title || 'Untitled',
+            // Ensure STAR_TAG is present since we fetched from the starred stream
+            tags: Array.from(new Set([...(item.categories || []), STAR_TAG]))
+        }));
+    } catch (e) {
+        console.error('SERVER Error fetching starred headers:', e);
+        return [];
+    }
+}

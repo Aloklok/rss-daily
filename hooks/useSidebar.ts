@@ -8,7 +8,12 @@ import { useUIStore } from '../store/uiStore';
 
 export type ActiveTab = 'filters' | 'calendar';
 
-export const useSidebar = () => {
+// Update useSidebar signature
+interface UseSidebarProps {
+    initialStarredHeaders?: { id: string | number; title: string; tags: string[] }[];
+}
+
+export const useSidebar = ({ initialStarredHeaders }: UseSidebarProps = {}) => {
     const [activeTab, setActiveTab] = useState<ActiveTab>('filters');
     const [starredExpanded, setStarredExpanded] = useState<boolean>(false);
     const activeFilter = useUIStore(state => state.activeFilter);
@@ -22,8 +27,8 @@ export const useSidebar = () => {
         }
     }, [activeFilter]);
 
-    // 1. 【核心修改】从 useStarredArticles 中解构 isFetching
-    const { data: starredArticlesData, isLoading, isFetching, refetch: refreshStarred } = useStarredArticles();
+    // 1. 【核心修改】从 useStarredArticles 中解构 isFetching，传入 initialStarredHeaders
+    const { data: starredArticlesData, isLoading, isFetching, refetch: refreshStarred } = useStarredArticles(initialStarredHeaders);
 
     // 2. 【核心修改】isLoadingStarred 现在应该同时考虑 isLoading 和 isFetching
     // isLoading 用于初始加载的骨架屏，isFetching 用于刷新按钮的旋转动画

@@ -5,12 +5,23 @@ import { useUIStore } from '../../store/uiStore';
 import SidebarClient from './SidebarClient';
 import FloatingButtonsClient from './FloatingButtonsClient';
 
+import { AvailableFilters, Article } from '../../types';
+
 interface MainLayoutClientProps {
     children: React.ReactNode;
     isAdmin: boolean;
+    initialDates: string[];
+    initialAvailableFilters: { tags: any[]; categories: any[] };
+    initialStarredHeaders: { id: string | number; title: string; tags: string[] }[]; // Update type
 }
 
-export default function MainLayoutClient({ children, isAdmin }: MainLayoutClientProps) {
+export default function MainLayoutClient({
+    children,
+    isAdmin,
+    initialDates,
+    initialAvailableFilters,
+    initialStarredHeaders
+}: MainLayoutClientProps) {
     const isSidebarCollapsed = useUIStore(state => state.isSidebarCollapsed);
     const toggleSidebar = useUIStore(state => state.toggleSidebar);
     const setSidebarCollapsed = useUIStore(state => state.setSidebarCollapsed);
@@ -83,7 +94,11 @@ export default function MainLayoutClient({ children, isAdmin }: MainLayoutClient
                 ? `fixed top-0 left-0 w-64 ${isSidebarCollapsed ? '-translate-x-full' : 'translate-x-0'}`
                 : `md:fixed md:top-0 md:bottom-0 md:left-0 md:overflow-y-auto ${isSidebarCollapsed ? 'md:w-0 md:opacity-0 md:pointer-events-none' : 'md:w-80 md:opacity-100'}`
                 }`}>
-                <SidebarClient />
+                <SidebarClient
+                    initialDates={initialDates}
+                    initialAvailableFilters={initialAvailableFilters}
+                    initialStarredHeaders={initialStarredHeaders}
+                />
             </div>
 
             {/* Desktop Toggle Button */}

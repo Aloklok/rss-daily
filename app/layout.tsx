@@ -61,6 +61,8 @@ export const viewport = {
 
 
 
+import { fetchAvailableDates, getAvailableFilters, fetchStarredArticleHeaders } from './lib/data';
+
 export default async function RootLayout({
     children,
 }: {
@@ -70,11 +72,23 @@ export default async function RootLayout({
     const token = cookieStore.get('site_token');
     const isAdmin = token?.value === process.env.ACCESS_TOKEN;
 
+    // Parallel Data Fetching for Sidebar SSR
+    const [dates, availableFilters, starredHeaders] = await Promise.all([
+        fetchAvailableDates().catch(() => []),
+        getAvailableFilters().catch(() => ({ tags: [], categories: [] })),
+        fetchStarredArticleHeaders().catch(() => [])
+    ]);
+
     return (
         <html lang="zh-CN" className={`${inter.variable} ${playfair.variable}`}>
             <body className="font-sans antialiased">
                 <Providers>
-                    <MainLayoutClient isAdmin={isAdmin}>
+                    <MainLayoutClient
+                        isAdmin={isAdmin}
+                        initialDates={dates}
+                        initialAvailableFilters={availableFilters}
+                        initialStarredHeaders={starredHeaders}
+                    >
                         {children}
                     </MainLayoutClient>
                     <GlobalUI />

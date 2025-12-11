@@ -107,7 +107,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, showActions = true }
             ) : (
                 <div className="mt-6 p-8 bg-gray-50 dark:bg-midnight-card border border-dashed border-gray-300 dark:border-gray-700 rounded-2xl text-center">
                     <p className="text-gray-500 dark:text-gray-400 text-lg">
-                        🤖 AI 简报内容尚未生成
+                        简报内容尚未生成
                     </p>
                     <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">
                         你可以先阅读原文，或者稍后再来看看。

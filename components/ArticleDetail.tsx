@@ -5,6 +5,7 @@ import { Article, CleanArticleContent, Tag } from '../types'; // 导入 Tag
 import { getCleanArticleContent } from '../services/api';
 import { useArticleMetadata } from '../hooks/useArticleMetadata';
 import { getRandomColorClass } from '../utils/colorUtils';
+import ArticleTitleStar from '../app/components/ArticleTitleStar';
 
 interface ArticleDetailProps {
   article: Article;
@@ -151,7 +152,11 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({ article, onClose, initial
     <div className="p-2 md:p-8">
       <article className="select-none">
         <header className="mb-6 border-b pb-6">
-          <h1 className="text-3xl md:text-4xl font-bold font-serif text-gray-900 dark:text-midnight-text-reader mb-2">{displayTitle}</h1>
+
+          <h1 className="text-3xl md:text-4xl font-bold font-serif text-gray-900 dark:text-midnight-text-reader mb-2">
+            <ArticleTitleStar article={article} className="inline-block w-8 h-8 mr-2 relative top-[3px]" />
+            <span className="align-middle">{displayTitle}</span>
+          </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">来源: {displaySource}</p>
 
           {/* 【核心修改】在这里渲染标签 */}

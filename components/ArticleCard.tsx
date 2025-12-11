@@ -6,6 +6,8 @@ import TagPopover from './TagPopover';
 import { useArticleMetadata } from '../hooks/useArticleMetadata';
 import { getRandomColorClass } from '../utils/colorUtils';
 import { STAR_TAG, READ_TAG } from '../constants';
+import ArticleTitleStar from '../app/components/ArticleTitleStar';
+
 // 1. 【修改】将所有辅助组件和常量移至文件顶层，使其不随 ArticleCard 的渲染而重新创建
 
 const CALLOUT_THEMES = { '一句话总结': { icon: '📝', color: 'pink' }, '技术洞察': { icon: '🔬', color: 'blue' }, '值得注意': { icon: '⚠️', color: 'brown' }, '市场观察': { icon: '📈', color: 'green' } } as const;
@@ -236,12 +238,12 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, onReaderModeRequest,
     return (
         <article className="py-2 transition-opacity duration-300">
             <header className="mb-10">
-                <h3 className="text-2xl lg:text-2xl font-bold font-serif text-stone-900 dark:text-midnight-text-title mb-6 leading-tight flex items-center gap-x-3">
-                    {isStarred && <span className="text-amber-400 text-2xl" title="已收藏">⭐️</span>}
-                    <span>{article.title}</span>
+                <h3 className="text-2xl lg:text-2xl font-bold font-serif text-stone-900 dark:text-midnight-text-title mb-6 leading-tight">
+                    <ArticleTitleStar article={article} className="inline-block w-6 h-6 mr-2 relative top-[3px]" />
+                    <span className="align-middle">{article.title}</span>
                     <button
                         onClick={handleCopy}
-                        className={`transition-all duration-200 p-1 rounded ${isCopied ? 'text-green-500' : 'text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5'}`}
+                        className={`inline-block ml-3 align-middle transition-all duration-200 p-1 rounded ${isCopied ? 'text-green-500' : 'text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5'}`}
                         title={isCopied ? "复制成功" : "复制文章内容"}
                     >
                         {isCopied ? <IconCheck /> : <IconCopy />}

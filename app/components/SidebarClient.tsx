@@ -6,10 +6,20 @@ import Sidebar from '../../components/Sidebar';
 import { useFilters } from '../../hooks/useFilters';
 import { useUIStore } from '../../store/uiStore';
 import { useArticleStore } from '../../store/articleStore';
-import { Article } from '../../types';
+import { Article, AvailableFilters } from '../../types';
 import { toShortId } from '../../utils/idHelpers';
 
-export default function SidebarClient() {
+interface SidebarClientProps {
+    initialDates: string[];
+    initialAvailableFilters: { tags: any[]; categories: any[] };
+    initialStarredHeaders: { id: string | number; title: string; tags: string[] }[]; // Update type
+}
+
+export default function SidebarClient({
+    initialDates,
+    initialAvailableFilters,
+    initialStarredHeaders
+}: SidebarClientProps) {
     const router = useRouter();
     const pathname = usePathname();
     const setActiveFilter = useUIStore(state => state.setActiveFilter);
@@ -26,7 +36,7 @@ export default function SidebarClient() {
         refreshFilters,
         dailyStatuses,
         handleToggleDailyStatus,
-    } = useFilters();
+    } = useFilters({ initialDates, initialAvailableFilters });
 
     const onMonthChange = useCallback((month: string) => {
         setSelectedMonth(month);
@@ -57,6 +67,7 @@ export default function SidebarClient() {
                 datesForMonth={datesForMonth}
                 dailyStatuses={dailyStatuses}
                 onToggleDailyStatus={handleToggleDailyStatusWrapper}
+                initialStarredHeaders={initialStarredHeaders}
             />
         </div>
     );

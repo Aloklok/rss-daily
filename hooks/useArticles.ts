@@ -79,7 +79,8 @@ export const useFilteredArticles = (filterValue: string | null, initialData?: an
     });
 };
 
-export const useStarredArticles = () => {
+// Update useStarredArticles signature
+export const useStarredArticles = (initialData?: { id: string | number; title: string; tags: string[] }[]) => {
     const setStarredArticleIds = useArticleStore(state => state.setStarredArticleIds);
     return useQuery({
         queryKey: ['starredHeaders'],
@@ -112,6 +113,12 @@ export const useStarredArticles = () => {
                 n8n_processing_date: undefined
             }));
         },
+        // Hydrate with initial data if provided. 
+        // Note: initialData from SSR might be partial (id, title), so we cast or adapt if needed.
+        // Actually, SidebarStarred only strictly needs id and title for the list, 
+        // but it might access other props safely or default them.
+        // Let's assume initialData is sufficient for hydration to avoid "Loading...".
+        initialData: initialData as any,
     });
 };
 

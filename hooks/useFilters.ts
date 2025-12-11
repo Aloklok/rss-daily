@@ -10,8 +10,14 @@ import { useDailyStatusesForMonth, useUpdateDailyStatus } from './useDailyStatus
 const CACHE_KEY_ACTIVE_FILTER = 'cachedActiveFilter';
 const CACHE_KEY_SELECTED_MONTH = 'cachedSelectedMonth';
 
-export const useFilters = () => {
-    const [dates, setDates] = useState<string[]>([]);
+interface UseFiltersProps {
+    initialDates?: string[];
+    initialAvailableFilters?: AvailableFilters;
+}
+
+export const useFilters = ({ initialDates, initialAvailableFilters }: UseFiltersProps = {}) => {
+    const [dates, setDates] = useState<string[]>(initialDates || []);
+    // Initializing selectedMonth with initialDates if available
     const [selectedMonth, setSelectedMonth] = useState<string>(() => {
         if (typeof window !== 'undefined') {
             const cached = sessionStorage.getItem(CACHE_KEY_SELECTED_MONTH);
@@ -23,9 +29,14 @@ export const useFilters = () => {
                 }
             }
         }
+        // Improve default month logic: if initialDates has data, use the latest month from there
+        if (initialDates && initialDates.length > 0) {
+            return initialDates[0].substring(0, 7);
+        }
         return getTodayInShanghai().substring(0, 7);
     });
-    const [isInitialLoad, setIsInitialLoad] = useState(true);
+    // If we have initial data, we are not loading initially.
+    const [isInitialLoad, setIsInitialLoad] = useState(!initialDates || initialDates.length === 0);
 
     const activeFilter = useUIStore(state => state.activeFilter);
     const setActiveFilter = useUIStore(state => state.setActiveFilter);
@@ -33,6 +44,12 @@ export const useFilters = () => {
     const setAvailableFilters = useArticleStore(state => state.setAvailableFilters);
     const [isRefreshing, setIsRefreshing] = useState(false);
 
+    // Initialize store with initial filters if provided and store is empty
+    useEffect(() => {
+        if (initialAvailableFilters && availableFilters.tags.length === 0) {
+            setAvailableFilters(initialAvailableFilters);
+        }
+    }, [initialAvailableFilters, setAvailableFilters, availableFilters.tags.length]);
 
 
     // --- 【核心集成】 ---
@@ -52,6 +69,13 @@ export const useFilters = () => {
 
     // 在 useEffect 中，我们只负责设置 filter，不再需要自己计算 timeSlot
     useEffect(() => {
+        // If we have initial data (both dates and tags), we skip the initial fetch.
+        // If only dates are present but tags are missing (e.g. SSR error), we should proceed to fetch to self-heal.
+        const hasDates = initialDates && initialDates.length > 0;
+        const hasTags = initialAvailableFilters && initialAvailableFilters.tags.length > 0;
+
+        if (hasDates && hasTags) return;
+
         const fetchInitialFilterData = async () => {
             const today = getTodayInShanghai();
 
@@ -90,7 +114,7 @@ export const useFilters = () => {
             }
         };
         fetchInitialFilterData();
-    }, [setAvailableFilters, setActiveFilter]);
+    }, [setAvailableFilters, setActiveFilter, initialDates]);
 
     const refreshFilters = useCallback(async () => {
         setIsRefreshing(true); // 开始刷新

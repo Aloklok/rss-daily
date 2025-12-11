@@ -11,7 +11,9 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
   - **文章详情 (SSR with Server Fetch)**：文章正文由服务端直接拉取 (Server-Side Fetching)，不再依赖客户端 JS，实现“服务端直出”的完美阅读体验。
   - **趋势页面 (SSG)**：趋势工具页面采用静态站点生成 (SSG)，构建时生成，访问速度极快。
 - **统一数据视图**：无论是浏览每日简报、分类、标签还是收藏夹，所有文章数据都经过融合处理，确保信息完整一致。
-- **响应式状态管理**：应用状态在所有组件间实时同步，在一个地方收藏文章，侧边栏的收藏列表和标签数量会立即更新，无需重新加载。
+- **响应式状态管理**：应用状态在所有组件间实时同步。
+  - **实时反馈**: 收藏、标记已读等操作在服务端确认后立即更新全局状态，确保数据严格一致。
+  - **混合数据源**: "我的收藏" 列表采用服务端预取 (SSR) + 客户端实时状态 (Zustand) 的混合模式，既保证首屏速度，又确保状态实时一致。
 - **高性能数据获取**：利用 Next.js 的扩展 `fetch` API 和 React Query，实现智能缓存和去重。
 - **高可用性设计**：
   - **超时熔断**：数据库查询内置 10s 超时保护，防止冷启动或网络波动导致页面无限挂起。
@@ -76,6 +78,9 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 - **统一阅读体验 (Unified Modal)**：
   - **双模式切换**：支持 **“📊 智能简报”**（AI 摘要）和 **“📄 原文阅读”**（全文）。
   - **按需加载**：智能拉取 AI 分析数据。
+- **视觉与交互升级 (Visual Polish)**:
+  - **矢量化图标 (Vector Icons)**: 关键交互元素（如收藏星标）全面升级为高精度 SVG，确保在 Retina 屏幕上的锐利显示与像素级对齐。
+  - **高对比度导航**: 简报底部集成大字号、高对比度的 "Time Machine" 导航，提供清晰的上一篇/下一篇跳转体验。
 - **趋势工具集成**: 
   - 独立的 `/trends` 页面，采用极简主义设计，展示前沿 AI 榜单和技术趋势。
   - **SSG 构建**：页面内容静态生成，访问零延迟。
@@ -149,14 +154,14 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 
 #### 2. `services/articleLoader.ts` - 数据加载与融合层
 - **职责**: **核心业务逻辑层**。它封装了所有复杂的数据融合与转换过程。
-  - **数据融合**: 例如，`fetchStarredArticles` 函数会先从 `api.ts` 调用 `getStarredArticles` 获取 FreshRSS 数据，再调用 `getArticlesDetails` 获取 Supabase 数据，然后将两者合并成一个完整的 `Article` 对象数组。
+  - **数据融合**: 例如，`fetchFilteredArticles` 函数会先从 `api.ts` 调用 `getArticlesByLabel` 获取 FreshRSS 文章列表，再调用 `getArticlesDetails` 获取 Supabase 详情，最后将两者合并成完整的 `Article` 对象。
   - **数据转换**: 例如，`fetchBriefingArticles` 函数会将从 Supabase 返回的 `verdict.importance` 字段（如 "重要新闻"）映射到前端 `Article` 模型中统一的 `briefingSection` 字段，确保文章可以在 UI 中被正确分组。
 - **优点**: 将业务逻辑与 React Hooks 解耦，使其变得可独立测试和复用。
 
 #### 3. `hooks/useArticles.ts` - 服务器状态连接层 (React Query)
 - **职责**: 作为连接“数据加载器”与 React 世界的桥梁。
 - **`use...Query` Hooks**: 调用 `articleLoader.ts` 中的函数，通过 `react-query` 管理缓存、加载状态，并将成功获取的数据存入 Zustand Store。
-- **`use...Mutation` Hooks**: 负责处理所有“写”操作（如更新文章状态、标记每日进度），并内置了乐观更新/非乐观更新、状态回滚和用户反馈逻辑。
+- **`use...Mutation` Hooks**: 负责处理所有“写”操作（如更新文章状态、标记每日进度），采用了**安全更新策略**（等待服务端确认后更新），确保数据的一致性与可靠性。
 - **`useFilters.ts`**: 作为核心业务逻辑 Hook，它负责计算和触发 `activeFilter` 和 `timeSlot` 的原子化更新，确保数据请求的准确性并消除冗余调用。
 
 #### 4. `store/` - 客户端状态中心 (Zustand)
@@ -185,6 +190,7 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 - `pnpm run build` - 构建生产版本
 - `pnpm run start` - 启动生产服务器
 - `pnpm run lint` - 代码检查
+- `pnpm run gen:types` - 自动生成 Supabase 数据库类型定义
 
 ## 部署
 

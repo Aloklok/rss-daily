@@ -12,3 +12,5 @@ export function removeEmptyParagraphs(html: string): string {
     // gi : Global and case-insensitive flags
     return html.replace(/<p[^>]*>(?:&nbsp;|\s|<br\s*\/?>)*<\/p>/gi, '');
 }
+
+

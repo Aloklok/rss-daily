@@ -27,6 +27,7 @@ interface SidebarProps {
     datesForMonth: string[];
     dailyStatuses: Record<string, boolean>;
     onToggleDailyStatus: (date: string, currentStatus: boolean) => void;
+    initialStarredHeaders?: { id: string | number; title: string; tags: string[] }[]; // Update type
 }
 
 const Sidebar = React.memo<SidebarProps>(({
@@ -39,7 +40,8 @@ const Sidebar = React.memo<SidebarProps>(({
     datesForMonth,
     dailyStatuses,
     onToggleDailyStatus,
-    onOpenArticle
+    onOpenArticle,
+    initialStarredHeaders // Destructure prop
 }) => {
     const router = useRouter();
     const activeFilter = useUIStore(state => state.activeFilter);
@@ -58,7 +60,7 @@ const Sidebar = React.memo<SidebarProps>(({
         isLoadingStarred,
         refreshStarred,
         starredCount,
-    } = useSidebar();
+    } = useSidebar({ initialStarredHeaders }); // Pass to hook
 
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
