@@ -1,16 +1,8 @@
 {
-    "redirects": [
+    "rewrites": [
         {
-            "source": "/",
-            "has": [
-                {
-                    "type": "header",
-                    "key": "user-agent",
-                    "value": ".*Baidu.*"
-                }
-            ],
-            "destination": "/",
-            "permanent": false
+            "source": "/baidu_verify_codeva-vIrMBcZFVR.html",
+            "destination": "/baidu_verify_codeva-vIrMBcZFVR.html"
         }
     ]
 }

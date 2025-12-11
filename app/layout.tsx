@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     },
     verification: {
         other: {
-            'baidu-site-verification': 'codeva-vIrMBcZFVR',
+            // 'baidu-site-verification': 'codeva-vIrMBcZFVR', // Removed in favor of File Verification
         },
     },
 };
