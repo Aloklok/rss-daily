@@ -9,7 +9,7 @@ import ArticleList from '../../components/ArticleList';
 import TrendsView from '../../components/TrendsView';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { useBriefingArticles, useFilteredArticles, useSearchResults, useUpdateArticleState } from '../../hooks/useArticles';
-import { Article } from '../../types';
+import { Filter, Article } from '../../types';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -17,10 +17,28 @@ interface MainContentClientProps {
     initialDate?: string;
     initialHeaderImageUrl?: string;
     initialArticles?: Article[];
+    initialActiveFilter?: Filter | null;
+    initialContinuation?: string | null;
 }
 
-export default function MainContentClient({ initialDate, initialHeaderImageUrl, initialArticles = [] }: MainContentClientProps) {
-    const activeFilter = useUIStore(state => state.activeFilter);
+export default function MainContentClient({
+    initialDate,
+    initialHeaderImageUrl,
+    initialArticles = [],
+    initialActiveFilter,
+    initialContinuation
+}: MainContentClientProps) {
+    const storeActiveFilter = useUIStore(state => state.activeFilter);
+    // Use initial props for SSR/Hydration if store is empty
+    const activeFilter = storeActiveFilter || initialActiveFilter;
+
+    // Sync prop to store after mount
+    useEffect(() => {
+        if (initialActiveFilter && !storeActiveFilter) {
+            useUIStore.getState().setActiveFilter(initialActiveFilter);
+        }
+    }, [initialActiveFilter, storeActiveFilter]);
+
     const selectedArticleId = useUIStore(state => state.selectedArticleId);
     const timeSlot = useUIStore(state => state.timeSlot);
     const setTimeSlot = useUIStore(state => state.setTimeSlot);
@@ -58,11 +76,26 @@ export default function MainContentClient({ initialDate, initialHeaderImageUrl, 
             addArticles(initialArticles);
 
             // 2. Update React Query Cache (ID List)
-            if (initialDate) {
-                queryClient.setQueryData(['briefing', initialDate, 'all'], initialArticles.map(a => a.id));
+            if (activeFilter?.type === 'date' && dateToUse) {
+                queryClient.setQueryData(['briefing', dateToUse, 'all'], initialArticles.map(a => a.id));
+            } else if (activeFilter?.type === 'category' || activeFilter?.type === 'tag') {
+                // Pre-populate useFilteredArticles cache?
+                // React Query key needed.
+                // Key: ['filteredArticles', filterValue]
+                if (activeFilter.value) {
+                    // We need to match the structure expected by useFilteredArticles
+                    // It expects InfiniteData<{ articles: number[], continuation: string | null }>
+                    queryClient.setQueryData(['filteredArticles', activeFilter.value], {
+                        pages: [{
+                            articles: initialArticles.map(a => a.id),
+                            continuation: initialContinuation
+                        }],
+                        pageParams: [null]
+                    });
+                }
             }
         }
-    }, [initialArticles, addArticles, queryClient, initialDate]);
+    }, [initialArticles, addArticles, queryClient, dateToUse, activeFilter, initialContinuation]);
 
     // Memoize initial IDs for hook
     const initialArticleIds = useMemo(() => initialArticles.map(a => a.id), [initialArticles]);
@@ -154,8 +187,9 @@ export default function MainContentClient({ initialDate, initialHeaderImageUrl, 
                 isSidebarCollapsed={isSidebarCollapsed}
                 onToggleSidebar={toggleSidebar}
                 articleCount={effectiveArticleIds.length}
-                // Only show loading if we really have no content AND are fetching
-                isLoading={isBriefingLoading && effectiveArticleIds.length === 0}
+                // Only show loading if we really have no content AND are fetching (and client is mounted)
+                // This prevents infinite spinner in No-JS if SSR failed
+                isLoading={effectiveArticleIds.length === 0 && isBriefingLoading && typeof window !== 'undefined'}
                 articles={initialArticles} // Pass initial objects for fallback lookup
                 isToday={dateToUse === today}
             />

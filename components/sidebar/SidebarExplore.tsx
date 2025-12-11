@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { AvailableFilters, Filter } from '../../types';
 
 interface SidebarExploreProps {
@@ -34,26 +35,25 @@ const SidebarExplore: React.FC<SidebarExploreProps> = ({
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
                 </button>
-                {categoriesExpanded && (
-                    <div className="space-y-0.5 ml-3 pl-3 border-l-2 border-gray-100 dark:border-gray-800">
-                        {availableFilters.categories
-                            .filter(category => category.label !== '未分类')
-                            .map(category => (
-                                <button
-                                    key={category.id}
-                                    onClick={() => onFilterSelect({ type: 'category', value: category.id })}
-                                    className={listItemButtonClass(isFilterActive('category', category.id))}
-                                >
-                                    <span className="flex-1 truncate">{category.label}</span>
-                                    {category.count !== undefined && category.count > 0 && (
-                                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${isFilterActive('category', category.id) ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500 dark:bg-midnight-badge dark:text-gray-400'}`}>
-                                            {category.count}
-                                        </span>
-                                    )}
-                                </button>
-                            ))}
-                    </div>
-                )}
+                <div className={`space-y-0.5 ml-3 pl-3 border-l-2 border-gray-100 dark:border-gray-800 ${categoriesExpanded ? 'block' : 'hidden'}`}>
+                    {availableFilters.categories
+                        .filter(category => category.label !== '未分类')
+                        .map(category => (
+                            <Link
+                                key={category.id}
+                                href={`/stream/${encodeURIComponent(category.id)}`}
+                                onClick={() => onFilterSelect({ type: 'category', value: category.id })}
+                                className={listItemButtonClass(isFilterActive('category', category.id))}
+                            >
+                                <span className="flex-1 truncate">{category.label}</span>
+                                {category.count !== undefined && category.count > 0 && (
+                                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${isFilterActive('category', category.id) ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500 dark:bg-midnight-badge dark:text-gray-400'}`}>
+                                        {category.count}
+                                    </span>
+                                )}
+                            </Link>
+                        ))}
+                </div>
             </nav>
 
             {/* 标签 */}
@@ -70,8 +70,9 @@ const SidebarExplore: React.FC<SidebarExploreProps> = ({
                             : `bg-transparent border border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-midnight-card dark:hover:text-gray-100`;
 
                         return (
-                            <button
+                            <Link
                                 key={tag.id}
+                                href={`/stream/${encodeURIComponent(tag.id)}`}
                                 onClick={() => onFilterSelect({ type: 'tag', value: tag.id })}
                                 className={`w-full text-left px-2.5 py-1.5 rounded-md transition-all duration-200 flex items-center justify-between text-sm font-medium border ${colorClass}`}
                             >
@@ -81,7 +82,7 @@ const SidebarExplore: React.FC<SidebarExploreProps> = ({
                                         {tag.count}
                                     </span>
                                 )}
-                            </button>
+                            </Link>
                         );
                     })}
                 </div>

@@ -1,5 +1,7 @@
 import React from 'react';
+import Link from 'next/link';
 import { Article, Filter } from '../../types';
+import { toShortId } from '../../utils/idHelpers';
 
 interface SidebarStarredProps {
     isExpanded: boolean;
@@ -44,24 +46,29 @@ const SidebarStarred: React.FC<SidebarStarredProps> = ({
                     </svg>
                 </div>
             </button>
-            {isExpanded && (
-                <div className="space-y-0.5 ml-3 pl-3 border-l-2 border-gray-100 dark:border-gray-800">
-                    {isLoading && articles.length === 0 ? (
-                        <div className="space-y-2 px-2">{[...Array(3)].map((_, i) => <div key={i} className="h-8 bg-gray-100 dark:bg-midnight-card rounded animate-pulse"></div>)}</div>
+            <div className={`space-y-0.5 ml-3 pl-3 border-l-2 border-gray-100 dark:border-gray-800 ${isExpanded ? 'block' : 'hidden'}`}>
+                {isLoading && articles.length === 0 ? (
+                    <div className="space-y-2 px-2">{[...Array(3)].map((_, i) => <div key={i} className="h-8 bg-gray-100 dark:bg-midnight-card rounded animate-pulse"></div>)}</div>
+                ) : (
+                    articles.length === 0 ? (
+                        <div className="px-2 py-2 text-xs text-gray-400 italic">No favorites yet</div>
                     ) : (
-                        articles.length === 0 ? (
-                            <div className="px-2 py-2 text-xs text-gray-400 italic">No favorites yet</div>
-                        ) : (
-                            articles.map(article => (
-                                <button key={article.id} onClick={() => onArticleClick(article)}
-                                    className={listItemButtonClass(selectedArticleId === article.id)}>
-                                    <span className="truncate">{article.title}</span>
-                                </button>
-                            ))
-                        )
-                    )}
-                </div>
-            )}
+                        articles.map(article => (
+                            <Link
+                                key={article.id}
+                                href={`/article/${toShortId(String(article.id))}?view=page`}
+                                onClick={(e) => {
+                                    // Optional: update store but let Link handle nav
+                                    onArticleClick(article);
+                                }}
+                                className={listItemButtonClass(selectedArticleId === article.id)}
+                            >
+                                <span className="truncate">{article.title}</span>
+                            </Link>
+                        ))
+                    )
+                )}
+            </div>
         </nav>
     );
 };

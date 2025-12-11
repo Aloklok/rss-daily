@@ -1,5 +1,6 @@
 // hooks/useSidebar.ts
 
+import { usePathname } from 'next/navigation';
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { Article } from '../types';
 import { getArticlesDetails, getStarredArticles } from '../services/api'; // getStarredArticles might be needed if you keep the old structure.
@@ -14,7 +15,13 @@ interface UseSidebarProps {
 }
 
 export const useSidebar = ({ initialStarredHeaders }: UseSidebarProps = {}) => {
-    const [activeTab, setActiveTab] = useState<ActiveTab>('filters');
+    const pathname = usePathname();
+    const [activeTab, setActiveTab] = useState<ActiveTab>(() => {
+        if (pathname?.includes('/stream/') || pathname?.includes('/search/') || pathname === '/trends') {
+            return 'filters';
+        }
+        return 'calendar';
+    });
     const [starredExpanded, setStarredExpanded] = useState<boolean>(false);
     const activeFilter = useUIStore(state => state.activeFilter);
 

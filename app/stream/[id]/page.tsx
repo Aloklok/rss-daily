@@ -1,8 +1,8 @@
-import { fetchFilteredArticlesSSR } from '../../lib/server/ssr-helpers';
-// import { fetchFilteredArticles } from '@/services/articleLoader'; // No longer needed for initial SSR load
-
 import React from 'react';
+import ArticleListHeader from '@/components/ArticleListHeader';
 import StreamList from '@/app/components/StreamList';
+import { fetchFilteredArticlesSSR } from '../../lib/server/ssr-helpers';
+import { getAvailableFilters } from '../../lib/data';
 
 // Enable ISR (Incremental Static Regeneration)
 // Revalidate every 7 days (604800 seconds), relying on on-demand revalidation for updates
@@ -35,9 +35,6 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     const decodedId = decodeURIComponent(id);
     const tagName = decodedId.split('/').pop() || decodedId;
 
-    // Fetch data for metadata generation (SSR cache will help avoid double hit if configured, 
-    // but here we might hit API twice. Given 1hr cache control on FreshRSS, it's acceptable for SEO value).
-    // Note: In an ideal world we'd use a shared fetch cache, but simplistic approach works for now.
     const { articles } = await fetchFilteredArticlesSSR(decodedId, 20, true);
     const topKeywords = getTopKeywords(articles, 8);
 
@@ -53,35 +50,30 @@ export default async function StreamPage({ params }: { params: Promise<{ id: str
     const decodedId = decodeURIComponent(id);
     const tagName = decodedId.split('/').pop() || decodedId;
 
-    const { articles, continuation } = await fetchFilteredArticlesSSR(decodedId, 20, true);
+    // Parallel fetch for efficiency
+    const [articlesData, filtersData] = await Promise.all([
+        fetchFilteredArticlesSSR(decodedId, 20, true),
+        getAvailableFilters()
+    ]);
+
+    const { articles, continuation } = articlesData;
+    const { categories } = filtersData;
 
     // Extract keywords for UI
-    const relatedTopics = getTopKeywords(articles, 12);
+    const relatedTopics = getTopKeywords(articles, 8); // Reduced to 8 for cleaner header
+
+    // Determine if this is a Category by checking the API source of truth
+    // Categories are defined as folders in FreshRSS
+    const isCategory = categories.some(cat => cat.id === decodedId);
 
     return (
         <div className="max-w-4xl mx-auto px-4 py-8">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold break-words flex items-center gap-3 mb-3">
-                    <span className="text-indigo-600">#</span>
-                    {tagName}
-                    <span className="text-lg font-normal text-gray-500 ml-2">Topic Hub</span>
-                </h1>
-
-                {/* Related Topics Cloud */}
-                {relatedTopics.length > 0 && (
-                    <div className="flex flex-wrap gap-2 items-center">
-                        <span className="text-sm font-medium text-gray-500 dark:text-gray-400 mr-1">Related:</span>
-                        {relatedTopics.map(topic => (
-                            <span
-                                key={topic}
-                                className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-midnight-card dark:text-gray-300 border border-gray-200 dark:border-gray-700"
-                            >
-                                {topic}
-                            </span>
-                        ))}
-                    </div>
-                )}
-            </div>
+            <ArticleListHeader
+                title={tagName}
+                count={articles.length}
+                showCount={!isCategory}
+                description={relatedTopics.length > 0 ? relatedTopics.join(', ') : undefined}
+            />
 
             <StreamList
                 filterValue={decodedId}

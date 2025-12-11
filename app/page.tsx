@@ -1,7 +1,9 @@
 import { fetchAvailableDates, fetchBriefingData } from './lib/data';
+import { fetchFilteredArticlesSSR } from './lib/server/ssr-helpers';
 import MainContentClient from './components/MainContentClient';
 import { resolveBriefingImage } from '../services/articleLoader';
 import { Metadata } from 'next';
+import { Filter } from '../types';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +21,23 @@ async function getLatestBriefingData() {
     return { initialDate, articles, headerImageUrl, dates };
 }
 
-export async function generateMetadata(): Promise<Metadata> {
+export async function generateMetadata({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }): Promise<Metadata> {
+    const params = await searchParams;
+    const filterType = typeof params.filter === 'string' ? params.filter : undefined;
+    const filterValue = typeof params.value === 'string' ? params.value : undefined;
+
+    // Handle Category/Tag/Search Metadata
+    if (filterType && filterValue) {
+        // Simple SSR fetch for metadata titles (optional, or just use value)
+        // For performance, we might skip full fetch if we trust value.
+        // But let's be accurate.
+        return {
+            title: `${decodeURIComponent(filterValue)} - Article List`,
+            description: `Articles filtered by ${filterType}: ${decodeURIComponent(filterValue)}`,
+        };
+    }
+
+    // Default Briefing Metadata
     const { initialDate, articles } = await getLatestBriefingData();
 
     if (!initialDate || articles.length === 0) {
@@ -54,94 +72,83 @@ export async function generateMetadata(): Promise<Metadata> {
     };
 }
 
-export default async function Home() {
-    const { initialDate, articles, headerImageUrl, dates } = await getLatestBriefingData();
+export default async function Home(props: { searchParams?: Promise<{ [key: string]: string | string[] | undefined }> }) {
+    const params = await props.searchParams;
+    const filterType = typeof params?.filter === 'string' ? params.filter : undefined;
+    const filterValue = typeof params?.value === 'string' ? params.value : undefined;
 
-    // Use a multi-schema approach: NewsArticle (Content) + CollectionPage (Navigation)
+    let initialData: any = {};
+    let initialFilter: Filter | null = null;
+    let briefingDates: string[] = [];
+
+    if (filterType && filterValue) {
+        // Category / Tag / Search View
+        const { articles, continuation } = await fetchFilteredArticlesSSR(filterValue, 20, true);
+        initialData = {
+            initialArticles: articles,
+            initialContinuation: continuation
+        };
+        initialFilter = { type: filterType as any, value: filterValue };
+
+        // Use empty dates or fetch distinct dates if needed for UI? MainContentClient handles dates via Sidebar.
+        // Sidebar dates are fetched in MainLayout -> SidebarClient.
+    } else {
+        // Default Briefing View
+        const { initialDate, articles, headerImageUrl, dates } = await getLatestBriefingData();
+        initialData = {
+            initialDate,
+            initialHeaderImageUrl: headerImageUrl,
+            initialArticles: articles,
+            initialContinuation: null
+        };
+        // If initialDate exists, activeFilter should be 'date'
+        if (initialDate) {
+            initialFilter = { type: 'date', value: initialDate };
+        }
+        briefingDates = dates || []; // Use default empty array for dates if undefined
+    }
+
     const renderSchemas = [];
-
-    // 1. NewsArticle Schema (Latest Briefing)
-    if (initialDate && articles.length > 0) {
-        const tldrList = articles
-            .slice(0, 10)
-            .map((a, i) => `${i + 1}. ${a.tldr || a.title}`)
-            .join(' ');
-
-        const description = tldrList
-            ? `${initialDate} 每日简报。本期要点：${tldrList}`
-            : `${initialDate} 每日 AI 精选简报。汇聚科技新闻与 RSS 订阅精华。`;
-
+    if (initialData.initialDate && initialData.initialArticles?.length > 0) {
+        const date = initialData.initialDate;
+        const articles = initialData.initialArticles;
         renderSchemas.push({
             '@context': 'https://schema.org',
             '@type': 'NewsArticle',
-            headline: `${initialDate} Briefing | 每日简报`,
+            headline: `${date} Briefing | 每日简报`,
             image: {
                 '@type': 'ImageObject',
-                'url': headerImageUrl || 'https://www.alok-rss.top/computer_cat_180.jpeg'
+                'url': initialData.initialHeaderImageUrl || 'https://www.alok-rss.top/computer_cat_180.jpeg'
             },
-            description: description,
-            datePublished: `${initialDate}T08:00:00+08:00`,
-            author: [{
-                '@type': 'Organization',
-                name: 'Briefing Hub',
-                url: 'https://www.alok-rss.top'
-            }],
+            description: `Daily Briefing for ${date}`,
+            datePublished: `${date}T08:00:00+08:00`,
             mainEntity: {
                 '@type': 'ItemList',
-                itemListElement: articles.map((article, index) => ({
+                itemListElement: articles.map((article: any, index: number) => ({
                     '@type': 'ListItem',
                     position: index + 1,
                     url: `https://www.alok-rss.top/article/${article.id}`,
-                    name: article.title,
-                    description: article.summary || article.tldr || ''
+                    name: article.title
                 }))
             }
-        });
-    }
-
-    // 2. CollectionPage Schema (Archive/Navigation)
-    // Always include valid recent dates to ensure crawlers find history
-    const recentDates = dates ? dates.slice(0, 10) : [];
-    if (recentDates.length > 0) {
-        renderSchemas.push({
-            '@context': 'https://schema.org',
-            '@type': 'CollectionPage',
-            headline: 'Briefing Archive | 往期简报',
-            description: 'Index of daily AI-curated technology briefings. | 每日 AI 科技简报索引。',
-            url: 'https://www.alok-rss.top',
-            mainEntity: {
-                '@type': 'ItemList',
-                itemListElement: recentDates.map((date, index) => ({
-                    '@type': 'ListItem',
-                    position: index + 1,
-                    url: `https://www.alok-rss.top/date/${date}`,
-                    name: `${date} Briefing | 每日简报`
-                }))
-            }
-        });
-    }
-
-    // Fallback if truly nothing exists (unlikely)
-    if (renderSchemas.length === 0) {
-        renderSchemas.push({
-            '@context': 'https://schema.org',
-            '@type': 'WebSite',
-            name: 'Briefing Hub',
-            url: 'https://www.alok-rss.top',
-            description: 'Daily AI-curated technology briefings.'
         });
     }
 
     return (
         <>
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(renderSchemas) }}
-            />
+            {renderSchemas.length > 0 && (
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(renderSchemas) }}
+                />
+            )}
             <MainContentClient
-                initialDate={initialDate}
-                initialHeaderImageUrl={headerImageUrl}
-                initialArticles={articles}
+                initialDate={initialData.initialDate}
+                initialHeaderImageUrl={initialData.initialHeaderImageUrl}
+                initialArticles={initialData.initialArticles}
+                // New Props
+                initialActiveFilter={initialFilter}
+                initialContinuation={initialData.initialContinuation}
             />
         </>
     );

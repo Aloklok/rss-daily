@@ -3,7 +3,7 @@
 import React, { memo, useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Article, Filter } from '../types';
+import { Article, Filter, AvailableFilters } from '../types';
 import { useSidebar } from '../hooks/useSidebar';
 import { useArticleStore } from '../store/articleStore';
 import { useUIStore } from '../store/uiStore';
@@ -27,7 +27,8 @@ interface SidebarProps {
     datesForMonth: string[];
     dailyStatuses: Record<string, boolean>;
     onToggleDailyStatus: (date: string, currentStatus: boolean) => void;
-    initialStarredHeaders?: { id: string | number; title: string; tags: string[] }[]; // Update type
+    initialStarredHeaders?: { id: string | number; title: string; tags: string[] }[];
+    availableFilters: AvailableFilters; // Add prop
 }
 
 const Sidebar = React.memo<SidebarProps>(({
@@ -41,11 +42,12 @@ const Sidebar = React.memo<SidebarProps>(({
     dailyStatuses,
     onToggleDailyStatus,
     onOpenArticle,
-    initialStarredHeaders // Destructure prop
+    initialStarredHeaders,
+    availableFilters // Destructure
 }) => {
     const router = useRouter();
     const activeFilter = useUIStore(state => state.activeFilter);
-    const availableFilters = useArticleStore(state => state.availableFilters);
+    // Removed internal store subscription
     const setActiveFilter = useUIStore(state => state.setActiveFilter);
     const [searchQuery, setSearchQuery] = useState('');
     const selectedArticleId = useUIStore(state => state.selectedArticleId);
@@ -103,7 +105,7 @@ const Sidebar = React.memo<SidebarProps>(({
     const setLineHeight = useUIStore(state => state.setLineHeight);
 
     return (
-        <aside className="flex flex-col flex-shrink-0 bg-gray-50 dark:bg-midnight-sidebar w-full h-full md:w-80 p-4 space-y-6 relative border-r border-gray-200 dark:border-midnight-border">
+        <aside className="flex flex-col flex-shrink-0 bg-gray-50 dark:bg-midnight-sidebar w-full h-full md:w-80 px-4 pt-4 pb-2 space-y-6 relative border-r border-gray-200 dark:border-midnight-border">
             <Fireflies />
             <div className="flex justify-between items-center px-1">
                 <div className="flex items-center gap-3">

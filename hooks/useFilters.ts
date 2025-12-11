@@ -40,7 +40,12 @@ export const useFilters = ({ initialDates, initialAvailableFilters }: UseFilters
 
     const activeFilter = useUIStore(state => state.activeFilter);
     const setActiveFilter = useUIStore(state => state.setActiveFilter);
-    const availableFilters = useArticleStore(state => state.availableFilters);
+    const storeAvailableFilters = useArticleStore(state => state.availableFilters);
+    // Use initial data if store is empty (SSR/Hydration)
+    const availableFilters = (storeAvailableFilters.tags.length > 0 || storeAvailableFilters.categories.length > 0)
+        ? storeAvailableFilters
+        : (initialAvailableFilters || { tags: [], categories: [] });
+    // const setAvailableFilters = useArticleStore(state => state.setAvailableFilters); // Keep this but remove the 'availableFilters' const definition line 43
     const setAvailableFilters = useArticleStore(state => state.setAvailableFilters);
     const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -177,7 +182,7 @@ export const useFilters = ({ initialDates, initialAvailableFilters }: UseFilters
     };
 
     return {
-        isInitialLoad: isInitialLoad || isLoadingStatuses,
+        isInitialLoad: isInitialLoad,
         isRefreshing,
         datesForMonth,
         availableFilters,

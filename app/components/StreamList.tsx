@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useFilteredArticles } from '../../hooks/useArticles';
-import ArticleCard from './ArticleCard';
+import StreamArticleListItem from '../../components/StreamArticleListItem';
 import { useArticleStore } from '../../store/articleStore';
 import { Article } from '../../types';
 
@@ -52,11 +52,11 @@ export default function StreamList({ filterValue, initialArticles, initialContin
     const allArticleIds = data?.pages.flatMap(page => page.articles) || [];
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-4">
             {allArticleIds.map(id => {
                 const article = articlesById[id] || initialArticlesMap[id];
                 if (!article) return null;
-                return <ArticleCard key={id} article={article} />;
+                return <StreamArticleListItem key={id} articleId={id} initialArticle={article} />;
             })}
 
             {hasNextPage && (

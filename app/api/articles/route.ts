@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getFreshRssClient } from '../../lib/api-utils';
-import { FreshRSSItem } from '../../../types';
+import { fetchArticleContentServer } from '../../lib/data';
 
 export async function POST(request: NextRequest) {
     try {
@@ -11,23 +10,13 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ message: 'Article ID is required.' }, { status: 400 });
         }
 
-        const freshRss = getFreshRssClient();
-        const apiBody = new URLSearchParams({ i: String(id) });
-        const data = await freshRss.post<{ items: FreshRSSItem[] }>('/stream/items/contents?output=json', apiBody);
+        const data = await fetchArticleContentServer(id);
 
-        if (!data.items || data.items.length === 0) {
-            return NextResponse.json({ message: 'Article content not found in FreshRSS response.' }, { status: 404 });
+        if (!data) {
+            return NextResponse.json({ message: 'Article content not found.' }, { status: 404 });
         }
 
-        const item = data.items[0];
-        const content = item.summary?.content || item.content?.content || '';
-        const source = item.origin?.title || (item.canonical?.[0]?.href ? new URL(item.canonical[0].href).hostname : '');
-
-        return NextResponse.json({
-            title: item.title,
-            content: content,
-            source: source,
-        });
+        return NextResponse.json(data);
     } catch (error: any) {
         console.error('Error in articles API:', error);
         return NextResponse.json({ message: 'Internal Server Error', error: error.message }, { status: 500 });

@@ -1,10 +1,12 @@
 // components/ArticleCard.tsx
 
 import React, { useState, useMemo, memo } from 'react';
+import Link from 'next/link';
 import { Article, Tag } from '../types';
 import TagPopover from './TagPopover';
 import { useArticleMetadata } from '../hooks/useArticleMetadata';
 import { getRandomColorClass } from '../utils/colorUtils';
+import { toShortId } from '../utils/idHelpers';
 import { STAR_TAG, READ_TAG } from '../constants';
 import ArticleTitleStar from '../app/components/ArticleTitleStar';
 
@@ -240,7 +242,14 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, onReaderModeRequest,
             <header className="mb-10">
                 <h3 className="text-2xl lg:text-2xl font-bold font-serif text-stone-900 dark:text-midnight-text-title mb-6 leading-tight">
                     <ArticleTitleStar article={article} className="inline-block w-6 h-6 mr-2 relative top-[3px]" />
-                    <span className="align-middle">{article.title}</span>
+                    {/* SEO-Only Link: Behaves like text for users (preventDefault), but href remains for crawlers */}
+                    <Link
+                        href={`/article/${toShortId(String(article.id))}`}
+                        onClick={(e) => e.preventDefault()}
+                        className="align-middle cursor-text hover:no-underline transition-colors"
+                    >
+                        {article.title}
+                    </Link>
                     <button
                         onClick={handleCopy}
                         className={`inline-block ml-3 align-middle transition-all duration-200 p-1 rounded ${isCopied ? 'text-green-500' : 'text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5'}`}

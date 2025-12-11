@@ -35,8 +35,10 @@ export async function getSitemapUrls(): Promise<SitemapURL[]> {
     const dates = Array.from(dateSet);
     const baseUrl = 'https://www.alok-rss.top';
 
-    // 2. Fetch active Tags from FreshRSS
+    // 2. Fetch active Tags AND Categories from FreshRSS
     let tagUrls: string[] = [];
+    let categoryUrls: string[] = [];
+
     try {
         const freshRss = getFreshRssClient();
         const tagData = await freshRss.get<{ tags: { id: string, type: string, count?: number }[] }>('/tag/list', {
@@ -45,19 +47,25 @@ export async function getSitemapUrls(): Promise<SitemapURL[]> {
         });
 
         if (tagData.tags) {
-            tagUrls = tagData.tags
-                .filter((tag: { id: string; type: string; }) => {
-                    // Exclude system tags and folders
-                    return tag.type !== 'folder' &&
-                        !tag.id.includes('/state/com.google/') &&
-                        !tag.id.includes('/state/org.freshrss/');
-                })
-                .sort((a: { count?: number }, b: { count?: number }) => (b.count || 0) - (a.count || 0)) // Sort by count desc
-                .slice(0, 50) // Top 50 active tags
-                .map((tag: { id: string }) => `${baseUrl}/stream/${encodeURIComponent(tag.id)}`);
+            const validItems = tagData.tags.filter(tag =>
+                !tag.id.includes('/state/com.google/') &&
+                !tag.id.includes('/state/org.freshrss/')
+            );
+
+            // Categories (Folders)
+            categoryUrls = validItems
+                .filter(tag => tag.type === 'folder')
+                .map(tag => `${baseUrl}/stream/${encodeURIComponent(tag.id)}`);
+
+            // Tags (Labels) - Top 50
+            tagUrls = validItems
+                .filter(tag => tag.type !== 'folder')
+                .sort((a, b) => (b.count || 0) - (a.count || 0))
+                .slice(0, 50)
+                .map(tag => `${baseUrl}/stream/${encodeURIComponent(tag.id)}`);
         }
     } catch (e) {
-        console.error('Failed to fetch tags for sitemap:', e);
+        console.error('Failed to fetch filters for sitemap:', e);
     }
 
     // 3. Construct URLs with lastmod
@@ -73,6 +81,12 @@ export async function getSitemapUrls(): Promise<SitemapURL[]> {
             lastmod: date, // Daily briefings are static archives, lastmod is the date itself
             changefreq: 'weekly', // Historical dates don't change often
             priority: '0.8'
+        })),
+        ...categoryUrls.map(url => ({
+            url: url,
+            // Categories update daily, no lastmod calculation needed
+            changefreq: 'daily',
+            priority: '0.6'
         })),
         ...tagUrls.map(url => ({
             url: url,

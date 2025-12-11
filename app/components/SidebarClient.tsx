@@ -36,6 +36,7 @@ export default function SidebarClient({
         refreshFilters,
         dailyStatuses,
         handleToggleDailyStatus,
+        availableFilters,
     } = useFilters({ initialDates, initialAvailableFilters });
 
     const onMonthChange = useCallback((month: string) => {
@@ -68,6 +69,7 @@ export default function SidebarClient({
                 dailyStatuses={dailyStatuses}
                 onToggleDailyStatus={handleToggleDailyStatusWrapper}
                 initialStarredHeaders={initialStarredHeaders}
+                availableFilters={availableFilters}
             />
         </div>
     );

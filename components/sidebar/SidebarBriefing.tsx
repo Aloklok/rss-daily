@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { Filter } from '../../types';
 
 interface SidebarBriefingProps {
@@ -102,8 +103,9 @@ const SidebarBriefing: React.FC<SidebarBriefingProps> = ({
                         const displayDayOfWeekPart = dateObj.toLocaleDateString('zh-CN', { weekday: 'short' });
 
                         return (
-                            <button
+                            <Link
                                 key={date}
+                                href={`/date/${date}`}
                                 onClick={() => onDateSelect(date)}
                                 className={`w-full text-left px-4 py-2 rounded-lg transition-all duration-200 flex justify-between items-center group border border-transparent
                             ${isActive
@@ -117,7 +119,10 @@ const SidebarBriefing: React.FC<SidebarBriefingProps> = ({
                                 <div className="flex items-center gap-3">
                                     <StatusIcon
                                         completed={isCompleted}
-                                        onClick={() => onToggleDailyStatus(date, isCompleted)}
+                                        onClick={(e) => {
+                                            e.preventDefault(); // Prevent Link navigation when clicking checkbox
+                                            onToggleDailyStatus(date, isCompleted);
+                                        }}
                                     />
                                     <span className={`font-medium ${isActive ? 'text-white' : ''}`}>{displayDatePart}</span>
                                 </div>
@@ -127,7 +132,7 @@ const SidebarBriefing: React.FC<SidebarBriefingProps> = ({
                                     }`}>
                                     {displayDayOfWeekPart}
                                 </span>
-                            </button>
+                            </Link>
                         );
                     })}
                 </nav>
