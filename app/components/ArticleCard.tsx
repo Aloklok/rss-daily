@@ -64,9 +64,9 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, showActions = true }
     return (
         <article className="py-2 transition-opacity duration-300">
             <header className="mb-10">
-                <h3 className="text-2xl lg:text-2xl font-bold font-serif text-stone-900 dark:text-midnight-text-title mb-6 leading-tight flex items-center gap-x-3">
+                <h3 className="text-2xl lg:text-2xl font-bold font-serif text-stone-900 dark:text-midnight-text-title mb-6 leading-tight">
                     <ArticleTitleStar article={article} />
-                    <span>{article.title}</span>
+                    {article.title}
                 </h3>
                 <div className="bg-gray-100 dark:bg-midnight-metadata-bg p-6 rounded-lg border border-gray-200 dark:border-midnight-badge space-y-3">
                     <div className="text-sm text-black flex items-center flex-wrap gap-x-4">
@@ -74,15 +74,17 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, showActions = true }
                         <span>&bull;</span>
                         <span>发布于 {publishedDate}</span>
                     </div>
-                    <div className="text-sm text-stone-600 flex items-center flex-wrap">
-                        <span className="font-medium mr-2">{article.verdict.type}</span>
-                        <span className="mr-2">&bull;</span>
-                        <span className="font-medium mr-2">{article.category}</span>
-                        <span className="mr-2">&bull;</span>
-                        <span className={`font-semibold ${article.verdict.score >= 8 ? 'text-green-600' : article.verdict.score >= 6 ? 'text-amber-600' : 'text-red-600'}`}>
-                            评分: {article.verdict.score}/10
-                        </span>
-                    </div>
+                    {article.summary && (
+                        <div className="text-sm text-stone-600 flex items-center flex-wrap">
+                            <span className="font-medium mr-2">{article.verdict.type}</span>
+                            <span className="mr-2">&bull;</span>
+                            <span className="font-medium mr-2">{article.category}</span>
+                            <span className="mr-2">&bull;</span>
+                            <span className={`font-semibold ${article.verdict.score >= 8 ? 'text-green-600' : article.verdict.score >= 6 ? 'text-amber-600' : 'text-red-600'}`}>
+                                评分: {article.verdict.score}/10
+                            </span>
+                        </div>
+                    )}
                     {allKeywords && allKeywords.length > 0 && (
                         <div className="flex flex-wrap gap-2 pt-1">
                             {allKeywords.map(tag => (
@@ -95,12 +97,23 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, showActions = true }
                 </div>
             </header>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
-                <Callout title="一句话总结" content={article.summary || ''} />
-                <Callout title="技术洞察" content={article.highlights} />
-                <Callout title="值得注意" content={article.critiques} />
-                <Callout title="市场观察" content={article.marketTake} />
-            </div>
+            {article.summary ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
+                    <Callout title="一句话总结" content={article.summary} />
+                    <Callout title="技术洞察" content={article.highlights} />
+                    <Callout title="值得注意" content={article.critiques} />
+                    <Callout title="市场观察" content={article.marketTake} />
+                </div>
+            ) : (
+                <div className="mt-6 p-8 bg-gray-50 dark:bg-midnight-card border border-dashed border-gray-300 dark:border-gray-700 rounded-2xl text-center">
+                    <p className="text-gray-500 dark:text-gray-400 text-lg">
+                        🤖 AI 简报内容尚未生成
+                    </p>
+                    <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">
+                        你可以先阅读原文，或者稍后再来看看。
+                    </p>
+                </div>
+            )}
 
             {showActions && (
                 <ArticleActions

@@ -50,6 +50,9 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
       - **架构升级**: 为了解决 Vercel 环境下 "Loopback Request" (请求自身 API)导致的 401/500 错误，重构了 SSR 数据获取层。
       - **机制**: 服务端组件 (`stream/[id]`) 不再走 HTTP API 层，而是通过 `ssr-helpers.ts` 直接调用 FreshRSS/Supabase SDK。
       - **收益**: 彻底根除鉴权与网络回路问题，首屏性能提升 30% 以上。
+  - **Tag Page ISR Strategy (标签页静态化)**:
+      - **策略**: 针对 `/stream/[id]` 标签聚合页，启用 **7天长效 ISR 缓存** (`revalidate = 604,800`)。
+      - **机制**: 结合客户端“按需补全”逻辑——缓存页秒开可见；若缓存中缺乏最新 AI 简报，用户点击时才即时获取补充数据。兼顾了极致的加载速度 (CDN) 与数据的完整性。
 
 ## 用户界面 (UI) 交互
 

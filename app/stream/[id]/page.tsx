@@ -4,6 +4,11 @@ import { fetchFilteredArticlesSSR } from '../../lib/server/ssr-helpers';
 import React from 'react';
 import StreamList from '@/app/components/StreamList';
 
+// Enable ISR (Incremental Static Regeneration)
+// Revalidate every week (604800 seconds)
+export const revalidate = 604800;
+export const dynamicParams = true; // Allow generating pages for new tags on demand
+
 // Helper to extract top keywords from a list of articles
 function getTopKeywords(articles: any[], limit = 10): string[] {
     const frequency: Record<string, number> = {};
