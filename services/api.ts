@@ -9,9 +9,16 @@ interface RequestOptions extends Omit<RequestInit, 'body'> {
     body?: any;
 }
 
+const getBaseUrl = () => {
+    if (typeof window !== 'undefined') return window.location.origin;
+    if (process.env.NEXT_PUBLIC_BASE_URL) return process.env.NEXT_PUBLIC_BASE_URL;
+    // Fallback for local development if variable not set
+    return 'http://localhost:3000';
+};
+
 const apiService = {
     async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-        const url = new URL(endpoint, window.location.origin);
+        const url = new URL(endpoint, getBaseUrl());
         if (options.params) {
             Object.entries(options.params).forEach(([key, value]) => {
                 url.searchParams.append(key, value);
@@ -30,9 +37,6 @@ const apiService = {
         if (options.body) {
             config.body = JSON.stringify(options.body);
         }
-        // ... (rest of the file)
-        // ...
-
 
         try {
             const response = await fetch(url.toString(), config);
@@ -44,7 +48,10 @@ const apiService = {
             return result;
         } catch (error) {
             console.error(`API request to ${endpoint} failed: `, error);
-            showToast(error instanceof Error ? error.message : 'An unknown error occurred.', 'error');
+            // Only show toast on client side
+            if (typeof window !== 'undefined') {
+                showToast(error instanceof Error ? error.message : 'An unknown error occurred.', 'error');
+            }
             throw error;
         }
     },
