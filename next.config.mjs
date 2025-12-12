@@ -34,14 +34,13 @@ const nextConfig = {
                 headers: [
                     {
                         key: 'Content-Security-Policy',
-                        value: "frame-ancestors *", // Allow any site (including start.me) to iframe this path
+                        // "scheme *" issue fix: Explicitly add schemes
+                        value: "frame-ancestors * https: http: data: blob:",
                     },
                     {
                         key: 'Access-Control-Allow-Origin',
                         value: '*', // Allow CORS for fonts/assets
                     }
-                    // Removed invalid 'X-Frame-Options: ALLOWALL'.
-                    // To include everything, we simply DO NOT send the X-Frame-Options header for this route.
                 ],
             },
             {
