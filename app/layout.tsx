@@ -94,7 +94,6 @@ export default async function RootLayout({
                     <GlobalUI />
                 </Providers>
 
-                {/* 仅在非管理员模式下加载统计脚本 */}
                 {!isAdmin && (
                     <>
                         <SpeedInsights />
@@ -111,6 +110,12 @@ export default async function RootLayout({
                                 })(window, document, "clarity", "script", "ugwlylpe1l");
                             `}
                         </Script>
+                        {/* Cloudflare Web Analytics */}
+                        <Script
+                            defer
+                            src='https://static.cloudflareinsights.com/beacon.min.js'
+                            data-cf-beacon='{"token": "134bcf9865674fdd9600e9ce14992b59"}'
+                        />
                     </>
                 )}
             </body>

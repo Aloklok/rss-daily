@@ -342,10 +342,10 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
                 <div className="mt-16 pt-8 border-t border-stone-200 dark:border-white/10 flex justify-between items-center font-serif">
                     {prevDate ? (
                         <Link href={`/date/${prevDate}`} className="group flex items-center transition-colors">
-                            <span className="mr-3 text-lg text-black dark:text-gray-200 transform transition-transform group-hover:-translate-x-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">←</span>
+                            <span className="mr-3 text-lg text-black transform transition-transform group-hover:-translate-x-1 group-hover:text-indigo-600">←</span>
                             <div>
-                                <span className="block text-sm font-bold uppercase tracking-wider opacity-100 text-black dark:text-stone-200 mb-0.5">上一篇</span>
-                                <span className="text-xl font-extrabold text-black dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{prevDate}</span>
+                                <span className="block text-sm font-bold uppercase tracking-wider opacity-100 text-black mb-0.5">上一篇</span>
+                                <span className="text-xl font-extrabold text-black group-hover:text-indigo-600 transition-colors">{prevDate}</span>
                             </div>
                         </Link>
                     ) : (
@@ -355,10 +355,10 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
                     {nextDate ? (
                         <Link href={`/date/${nextDate}`} className="group flex items-center text-right transition-colors">
                             <div>
-                                <span className="block text-sm font-bold uppercase tracking-wider opacity-100 text-black dark:text-stone-200 mb-0.5">下一篇</span>
-                                <span className="text-xl font-extrabold text-black dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{nextDate}</span>
+                                <span className="block text-sm font-bold uppercase tracking-wider opacity-100 text-black mb-0.5">下一篇</span>
+                                <span className="text-xl font-extrabold text-black group-hover:text-indigo-600 transition-colors">{nextDate}</span>
                             </div>
-                            <span className="ml-3 text-lg text-black dark:text-gray-200 transform transition-transform group-hover:translate-x-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">→</span>
+                            <span className="ml-3 text-lg text-black transform transition-transform group-hover:translate-x-1 group-hover:text-indigo-600">→</span>
                         </Link>
                     ) : (
                         <div></div> // Spacer

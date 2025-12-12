@@ -31,7 +31,7 @@ export default {
       },
       colors: {
         midnight: {
-          bg: '#F2F0E4',        // Slate-900 (Dark Blue)
+          bg: '#DCD2C8',        // Slate-900 (Dark Blue)
           sidebar: '#2A2A4A',   // Gray-900
           card: '#1f2937',      // Gray-800
           selected: '#db2777',  // Pink-600

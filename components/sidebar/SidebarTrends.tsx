@@ -7,7 +7,7 @@ interface SidebarTrendsProps {
 
 const SidebarTrends: React.FC<SidebarTrendsProps> = ({ isActive, onClick }) => {
     return (
-        <div className="mt-auto mb-2 pt-4 border-t border-gray-200 dark:border-midnight-border">
+        <div className="mt-auto mb-2 pt-2 border-t border-gray-200 dark:border-midnight-border">
             <button
                 onClick={onClick}
                 className={`w-full text-left px-3 py-2 rounded-lg transition-colors duration-200 flex items-center gap-3 ${isActive
