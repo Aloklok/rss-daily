@@ -35,7 +35,7 @@ const nextConfig = {
                     {
                         key: 'Content-Security-Policy',
                         // "scheme *" issue fix: Explicitly add schemes
-                        value: "frame-ancestors https: http: data: blob:",
+                        value: "frame-ancestors https: data: blob:",
                     },
                     {
                         key: 'Access-Control-Allow-Origin',
