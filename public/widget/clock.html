@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Briefing Widget</title>
+    <style>
+        /*
+           Unified Font: Playfair Display
+           Using separate blocks for weights allows proper loading of local files.
+        */
+        @font-face {
+            font-family: 'Playfair Display';
+            font-style: normal;
+            font-weight: 400;
+            src: url('/font/PlayfairDisplay-Regular.ttf') format('truetype');
+        }
+
+        @font-face {
+            font-family: 'Playfair Display';
+            font-style: normal;
+            font-weight: 500;
+            src: url('/font/PlayfairDisplay-Medium.ttf') format('truetype');
+        }
+
+        @font-face {
+            font-family: 'Playfair Display';
+            font-style: normal;
+            font-weight: 700;
+            src: url('/font/PlayfairDisplay-Bold.ttf') format('truetype');
+        }
+
+        /*
+            Modern CSS Magic:
+            Defining variables as colors allows the browser to interpolate them via transition,
+            creating the "melting" effect requested.
+        */
+        @property --bg-a {
+            syntax: '<color>';
+            inherits: false;
+            initial-value: #8a2be2;
+        }
+
+        @property --bg-b {
+            syntax: '<color>';
+            inherits: false;
+            initial-value: #ff7f50;
+        }
+
+        /*
+           Animation Upgrade: "Drifting Light"
+           Instead of just breathing, we move the gradient center to create a
+           "living light source" effect that is much more noticeable.
+        */
+        @keyframes drift {
+            0% {
+                background-position: 50% 50%;
+            }
+
+            33% {
+                background-position: 80% 20%;
+            }
+
+            66% {
+                background-position: 20% 80%;
+            }
+
+            100% {
+                background-position: 50% 50%;
+            }
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Playfair Display', serif;
+            text-align: center;
+
+            /* Dynamic Smooth Gradient */
+            /* 
+               Gradient Stops Condensed: 
+               0% -> 70% ensures the center color (A) fades out quickly enough 
+               to let the edge color (B) be visible even when zoomed in.
+            */
+            background: radial-gradient(circle at center, var(--bg-a) 0%, var(--bg-b) 70%);
+            /* 
+               Size Increased: 200% allows significant "panning" movement.
+            */
+            background-size: 200% 200%;
+            /* Faster drift (15s) to make movement immediately noticeable */
+            animation: drift 15s ease infinite;
+
+            transition: --bg-a 2.5s ease, --bg-b 2.5s ease;
+
+            overflow: hidden;
+            user-select: none;
+            cursor: default;
+            box-sizing: border-box;
+            padding: 0 2vw;
+        }
+
+        .container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            max-width: 100%;
+        }
+
+        /* 遮罩效果的伪元素 - 光感升级: 柔和光晕 */
+        #greeting::before,
+        #clock::before,
+        #date::before {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            color: #FFEA00;
+            z-index: 2;
+            /*
+               Spotlight Refinement:
+               Multi-stop gradient for a soft, atmospheric "moonlight" glow
+               instead of a harsh spotlight.
+            */
+            -webkit-mask: radial-gradient(circle 38vmin at var(--mouse-x, -50%) var(--mouse-y, -50%),
+                    black 0%,
+                    rgba(0, 0, 0, 0.8) 30%,
+                    rgba(0, 0, 0, 0.4) 50%,
+                    rgba(0, 0, 0, 0.1) 70%,
+                    transparent 100%);
+            mask: radial-gradient(circle 38vmin at var(--mouse-x, -50%) var(--mouse-y, -50%),
+                    black 0%,
+                    rgba(0, 0, 0, 0.8) 30%,
+                    rgba(0, 0, 0, 0.4) 50%,
+                    rgba(0, 0, 0, 0.1) 70%,
+                    transparent 100%);
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        /* 基础文本样式 */
+        #greeting,
+        #clock,
+        #date {
+            position: relative;
+            color: rgba(255, 255, 255, 1);
+            line-height: 1;
+            white-space: nowrap;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+
+        /* Clock: Core Element - Modern Sans-Serif with Tabular Numbers */
+        #clock {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-size: 6em;
+            font-weight: 500;
+            letter-spacing: -0.04em;
+            line-height: 0.9;
+            margin: 0;
+            /* 
+               Tabular Nums: 
+               Ensures every digit has the same width (like monospace),
+               preventing the clock from jittering as numbers change.
+            */
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: "tnum";
+        }
+
+        /* Date: Top Header - "Foreword" Info */
+        #date {
+            font-size: 2em;
+            /* Increased from 1.1em as requested */
+            font-weight: 400;
+            opacity: 0.85;
+            /* Slightly more visible */
+            margin-bottom: 0.7em;
+            /* Restored breathing room */
+            letter-spacing: 0.2em;
+        }
+
+        /* Greeting: Bottom Footer - "Mood" Info */
+        #greeting {
+            font-size: 1.4em;
+            font-weight: 400;
+            opacity: 0.9;
+            color: white;
+            margin-top: 1.2em;
+            margin-bottom: 0;
+            letter-spacing: 0.1em;
+            text-indent: 0.1em;
+            font-style: normal;
+            /* Reset Transform: Centered */
+            transform: none;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div id="date" data-text=""></div>
+        <div id="clock" data-text=""></div>
+        <div id="greeting" data-text=""></div>
+    </div>
+
+    <script>
+        // --- 元素获取 ---
+        const container = document.querySelector('.container');
+        const greetingEl = document.getElementById('greeting');
+        const clockEl = document.getElementById('clock');
+        const dateEl = document.getElementById('date');
+
+        // --- 鼠标追踪 ---
+        document.body.addEventListener('mousemove', (e) => {
+            const rect = container.getBoundingClientRect();
+            // 计算相对于容器的坐标
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            container.style.setProperty('--mouse-x', `${x}px`);
+            container.style.setProperty('--mouse-y', `${y}px`);
+        });
+
+        // --- 移动端处理 (Touch Move) ---
+        document.body.addEventListener('touchmove', (e) => {
+            const rect = container.getBoundingClientRect();
+            const touch = e.touches[0];
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+
+            container.style.setProperty('--mouse-x', `${x}px`);
+            container.style.setProperty('--mouse-y', `${y}px`);
+        }, { passive: true });
+
+
+        // --- 时间和日期更新 ---
+        function updateTime() {
+            const now = new Date();
+            const hours = now.getHours();
+
+            // Greeting Logic & Dynamic Background Variables
+            let greetingText = "您好";
+            let colorA = "#8a2be2"; // Defaults
+            let colorB = "#ff7f50";
+
+            if (hours >= 3 && hours < 5) {
+                greetingText = "凌晨好";
+                // Dawn: Slate to Teal (Calm/Deep)
+                colorA = "#2C3E50"; colorB = "#4CA1AF";
+            }
+            else if (hours >= 5 && hours < 9) {
+                greetingText = "早上好";
+                // Morning: Clear Blue Sky
+                colorA = "#1c92d2"; colorB = "#f2fcfe";
+            }
+            else if (hours >= 9 && hours < 11) {
+                greetingText = "上午好";
+                // Late AM: Vibrant Sky
+                colorA = "#56CCF2"; colorB = "#2F80ED";
+            }
+            else if (hours >= 11 && hours < 14) {
+                greetingText = "中午好";
+                // Noon: Sunny Gold
+                colorA = "#F2994A"; colorB = "#F2C94C";
+            }
+            else if (hours >= 14 && hours < 17) {
+                greetingText = "下午好";
+                // Afternoon: Original Favorite (Purple/Coral)
+                colorA = "#8a2be2"; colorB = "#ff7f50";
+            }
+            else if (hours >= 17 && hours < 19) {
+                greetingText = "傍晚好";
+                // Evening: Sunset Pink & Lemon Yellow
+                // Deeper, richer pink (not sakura) + Bright Yellow
+                colorA = "#fa709a"; colorB = "#fee140";
+            }
+            else if (hours >= 19 || hours < 23) {
+                greetingText = "晚上好";
+                // Night: Cinematic Dark Teal/Black
+                colorA = "#0F2027"; colorB = "#2C5364";
+            }
+            else {
+                greetingText = "深夜好";
+                // Midnight: Pure Dark
+                colorA = "#000000"; colorB = "#1a1a1a";
+            }
+
+            if (greetingEl.innerHTML !== greetingText) {
+                greetingEl.innerHTML = greetingText;
+                greetingEl.dataset.text = greetingText;
+            }
+
+            // Update CSS Custom Properties for smooth interpolation
+            // We check against a tracked value or just set it (setting same value is cheap in CSSOM)
+            document.body.style.setProperty('--bg-a', colorA);
+            document.body.style.setProperty('--bg-b', colorB);
+
+            // Clock Logic
+            const displayHours = String(hours).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const clockText = `${displayHours}:${minutes}:${seconds}`;
+
+            // Avoid DOM thrashing if text hasn't changed (seconds do change, but good hygiene)
+            if (clockEl.innerHTML !== clockText) {
+                clockEl.innerHTML = clockText;
+                clockEl.dataset.text = clockText;
+            }
+
+            // Date Logic
+            const weekDays = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+            const month = now.getMonth() + 1;
+            const day = now.getDate();
+            const week = weekDays[now.getDay()];
+            // Removed extra spaces
+            const dateText = `${month}月${day}日 ${week}`;
+
+            if (dateEl.innerHTML !== dateText) {
+                dateEl.innerHTML = dateText;
+                dateEl.dataset.text = dateText;
+            }
+        }
+
+        // --- 核心修正：观察 body 元素的尺寸变化 ---
+        const resizeObserver = new ResizeObserver(entries => {
+            for (let entry of entries) {
+                // 根据 body 的宽度，计算基础字体大小
+                // 调整系数 /18 使得字体在宽屏下不至于过大，在窄屏不至于过小
+                const width = entry.contentRect.width;
+                const height = entry.contentRect.height;
+
+                // 取宽高的较小值来决定缩放，防止极扁窗口下字体溢出
+                const minDim = Math.min(width, height * 1.5);
+
+                // Adjust divisor to 30 (More aggressive fill, ~90% width utilization)
+                const newSize = Math.max(10, minDim / 30);
+                container.style.fontSize = `${newSize}px`;
+            }
+        });
+
+        // 开始观察 body 元素的尺寸变化
+        resizeObserver.observe(document.body);
+
+        // --- 初始化 ---
+        setInterval(updateTime, 1000);
+        updateTime();
+    </script>
+</body>
+
+</html>

@@ -13,7 +13,7 @@ const nextConfig = {
     async headers() {
         return [
             {
-                source: '/(.*)',
+                source: '/((?!widget/).*)', // Apply security headers to everything EXCEPT /widget/
                 headers: [
                     {
                         key: 'X-Frame-Options',
@@ -27,6 +27,19 @@ const nextConfig = {
                         key: 'Referrer-Policy',
                         value: 'strict-origin-when-cross-origin',
                     },
+                ],
+            },
+            {
+                source: '/widget/:path*', // Explicitly allow framing for widget
+                headers: [
+                    {
+                        key: 'Content-Security-Policy',
+                        value: "frame-ancestors *", // Allow any site to iframe this path
+                    },
+                    {
+                        key: 'X-Frame-Options',
+                        value: 'ALLOWALL', // Redundant with CSP but good for compat
+                    }
                 ],
             },
             {
