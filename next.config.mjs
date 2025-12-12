@@ -35,7 +35,7 @@ const nextConfig = {
                     {
                         key: 'Content-Security-Policy',
                         // "scheme *" issue fix: Explicitly add schemes
-                        value: "frame-ancestors https://start.me https://*.start.me;",
+                        value: "frame-ancestors *;",
                     },
                     {
                         // 修正 2: 必须添加这个！覆盖掉可能的全局 DENY 或默认限制
