@@ -97,7 +97,8 @@ export async function generateMetadata({ params }: { params: Promise<{ date: str
         if (topArticles.length > 1) {
             const t2 = topArticles[1].title.replace(/\|/g, '-');
             // Check approximate length (Social/Search limit ~60 chars)
-            if ((dynamicTitle.length + t2.length + 25) < 65) {
+            // Relaxed limit to 100 to ensure 2nd title shows (User Preference > Strict SEO No-Truncation)
+            if ((dynamicTitle.length + t2.length) < 100) {
                 dynamicTitle += `、${t2}`;
             }
         }
@@ -204,6 +205,7 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
             />
             <BriefingClient
+                key={date} // Force remount on date change to ensure clean state (no timeSlot leakage)
                 articles={allArticles}
                 date={date}
                 headerImageUrl={headerImageUrl}

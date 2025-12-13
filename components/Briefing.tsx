@@ -139,9 +139,10 @@ interface BriefingProps {
     isToday: boolean;
     prevDate?: string | null;
     nextDate?: string | null;
+    disableAutoTimeSlot?: boolean; // New prop to control auto-selection behavior
 }
 
-const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selectedReportId, onReportSelect, onReaderModeRequest, onStateChange, onTimeSlotChange, isSidebarCollapsed, onToggleSidebar, articleCount, isLoading, headerImageUrl, articles, isToday, prevDate, nextDate }) => {
+const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selectedReportId, onReportSelect, onReaderModeRequest, onStateChange, onTimeSlotChange, isSidebarCollapsed, onToggleSidebar, articleCount, isLoading, headerImageUrl, articles, isToday, prevDate, nextDate, disableAutoTimeSlot = false }) => {
     // 1. 【新增】内部订阅文章数据
     const articlesById = useArticleStore(state => state.articlesById);
     // const activeFilter = useUIStore(state => state.activeFilter); // No longer needed for date logic
@@ -217,7 +218,8 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
 
             // Auto-select slot if today. Since we align to Shanghai time, this is consistent during SSR.
             // We verify isToday first (which relies on props, usually calculated via Shanghai time globally).
-            const autoSelectedSlot = isToday ? getCurrentTimeSlot() : null;
+            // disableAutoTimeSlot allows Archive Pages to force "Show All" without auto-selecting.
+            const autoSelectedSlot = (isToday && !disableAutoTimeSlot) ? getCurrentTimeSlot() : null;
 
             return (
                 <header className="relative mb-8 overflow-hidden rounded-2xl shadow-md transition-all duration-500 hover:shadow-xl group">

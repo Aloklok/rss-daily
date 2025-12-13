@@ -36,10 +36,10 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
         // If no articles for the date, return a generic fallback for that date
         if (dateArticles.length === 0) {
             return {
-                title: `${filterValue} Briefing | RSS Briefing Hub`,
+                title: `${filterValue} Briefing`,
                 description: `${filterValue} 每日精选简报。汇聚科技新闻与 RSS 订阅精华。`,
                 openGraph: {
-                    title: `${filterValue} Briefing | RSS Briefing Hub`,
+                    title: `${filterValue} Briefing | RSS简报`,
                     description: `${filterValue} 每日精选简报。汇聚科技新闻与 RSS 订阅精华。`,
                     images: [{ url: topImage || 'https://www.alok-rss.top/computer_cat_180.jpeg', width: 1600, height: 1200, alt: `${filterValue} Briefing` }],
                 }
@@ -71,7 +71,11 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
             dynamicTitle += `${t1}`;
             if (top2.length > 1) {
                 const t2 = top2[1].title.replace(/\|/g, '-');
-                if ((dynamicTitle.length + t2.length + 25) < 65) dynamicTitle += `、${t2}`;
+                // Check approximate length (Social/Search limit ~60 chars)
+                // Relaxed limit to 100 to ensure 2nd title shows (User Preference > Strict SEO No-Truncation)
+                if ((dynamicTitle.length + t2.length) < 100) {
+                    dynamicTitle += `、${t2}`;
+                }
             }
             // Layout template adds brand suffix
         } else {

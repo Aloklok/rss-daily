@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import Briefing from '../../../components/Briefing';
-import { Article } from '../../../types';
+import { Article, TimeSlot } from '../../../types';
 import { useArticleStore } from '../../../store/articleStore';
 import { useUIStore } from '../../../store/uiStore';
 import { useUpdateArticleState, useBriefingArticles } from '../../../hooks/useArticles';
@@ -22,8 +22,15 @@ export default function BriefingClient({ articles, date, headerImageUrl, isToday
     const addArticles = useArticleStore(state => state.addArticles);
     const setActiveFilter = useUIStore(state => state.setActiveFilter);
     const activeFilter = useUIStore(state => state.activeFilter);
-    const timeSlot = useUIStore(state => state.timeSlot);
-    const setTimeSlot = useUIStore(state => state.setTimeSlot);
+
+    // Decoupled Local State: Archives always start as "Show All" (null)
+    const [timeSlot, setTimeSlot] = useState<TimeSlot | null>(null);
+
+    // Reset local state when date changes (handles client-side soft nav)
+    useEffect(() => {
+        setTimeSlot(null);
+    }, [date]);
+
     const openModal = useUIStore(state => state.openModal);
     const isSidebarCollapsed = false; // Default or from store if needed
     // const toggleSidebar = ... // If we want to control sidebar from here
@@ -36,8 +43,6 @@ export default function BriefingClient({ articles, date, headerImageUrl, isToday
 
     // Hydrate store with server-fetched articles
     // AND sync React Query cache with server-fetched IDs.
-    // This is crucial for "Today" (SSR/Real-time) to ensure that if the server sent fresh data,
-    // we use it immediately, updating the cache even if it wasn't strictly "stale" by client timer.
     const queryClient = useQueryClient();
     useEffect(() => {
         if (articles.length > 0) {
@@ -45,9 +50,6 @@ export default function BriefingClient({ articles, date, headerImageUrl, isToday
             addArticles(articles);
 
             // 2. Update React Query Cache (ID List)
-            // We force hydrate the 'all' key because SSR data defaults to All Day.
-            // We MUST NOT use 'timeSlot' here, otherwise switching slots (Morning) would 
-            // overwrite the Morning cache with All Day data from props.
             queryClient.setQueryData(['briefing', date, 'all'], articles.map(a => a.id));
         }
     }, [articles, addArticles, queryClient, date]);
@@ -62,18 +64,12 @@ export default function BriefingClient({ articles, date, headerImageUrl, isToday
     }, [date, setActiveFilter]);
 
     // Use hook to get filtered articles based on timeSlot
-    // We use props.articles as initial data if timeSlot is null (All Day)
-    // But actually, useBriefingArticles handles fetching.
-    // Since we hydrated the store, we just need the IDs.
     const initialArticleIds = useMemo(() => articles.map(a => a.id), [articles]);
 
-    // 1. Always get the "All Day" dataset (Server Cache or Initial Props)
-    // We ignore the `timeSlot` param here effectively (by passing 'all' or relying on logic below).
-    // Actually, we use 'all' to ensure we hydrate/fetch the master list.
+    // 1. Always get the "All Day" dataset
     const { data: allDayArticleIds, isLoading } = useBriefingArticles(date, 'all', initialArticleIds);
 
     // 2. Client-Side Filtering
-    // We derive the specific slot's IDs from the master list.
     const articlesById = useArticleStore(state => state.articlesById);
 
     const displayedArticleIds = useMemo(() => {
@@ -111,12 +107,12 @@ export default function BriefingClient({ articles, date, headerImageUrl, isToday
             onToggleSidebar={() => { }} // No-op or implement if needed
             articleCount={articleIds.length}
             // Only show loading if we are fetching AND we have no articles to show.
-            // This ensures SSR content (articles passed via props) is rendered immediately.
             isLoading={isLoading}
             articles={articles}
             isToday={isToday}
             prevDate={prevDate}
             nextDate={nextDate}
+            disableAutoTimeSlot={true} // Force "Show All" visual state for Archive Pages
         />
     );
 }

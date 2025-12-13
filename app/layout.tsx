@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     metadataBase: new URL('https://www.alok-rss.top'),
     title: {
         default: 'RSS Briefing Hub - 全栈技术资讯雷达 | 聚焦架构设计、AI趋势与云原生',
-        template: '%s | RSS Briefing Hub',
+        template: '%s | RSS简报',
     },
     description: '一站式全栈技术资讯雷达。深度聚合 Martin Fowler、ACM Queue、Netflix Tech Blog 及 CNCF 等权威信源。内容覆盖大规模分布式系统设计、Kubernetes 云原生实践、高并发后端工程及前沿 AI技术落地。为架构师与开发者提供去噪后的核心技术洞察。',
     keywords: [
