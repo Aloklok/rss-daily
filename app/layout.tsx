@@ -24,11 +24,14 @@ const playfair = Playfair_Display({
 export const metadata: Metadata = {
     metadataBase: new URL('https://www.alok-rss.top'),
     title: {
-        default: 'Briefing Hub | 每日简报',
-        template: '%s | Briefing Hub',
+        default: 'RSS Briefing Hub - 全栈技术资讯雷达 | 聚焦架构设计、AI趋势与云原生',
+        template: '%s | RSS Briefing Hub',
     },
-    description: 'Personal RSS Briefing Hub & Daily AI Summaries | 个人 RSS 简报中心与每日 AI 精选',
-    keywords: ['RSS', 'Briefing', 'AI', 'Daily Updates', 'Technology', 'News', '简报', '每日更新', '科技', '新闻'],
+    description: '一站式全栈技术资讯雷达。深度聚合 Martin Fowler、ACM Queue、Netflix Tech Blog 及 CNCF 等权威信源。内容覆盖大规模分布式系统设计、Kubernetes 云原生实践、高并发后端工程及前沿 AI技术落地。为架构师与开发者提供去噪后的核心技术洞察。',
+    keywords: [
+        "RSS", "技术简报", "软件架构", "AI趋势", "云原生",
+        "前端开发", "后端工程", "分布式系统", "Martin Fowler"
+    ],
     manifest: '/manifest.json',
     icons: {
         icon: '/favicon.ico',
@@ -43,9 +46,9 @@ export const metadata: Metadata = {
         type: 'website',
         locale: 'zh_CN',
         url: 'https://www.alok-rss.top',
-        siteName: 'RSS Briefing Hub | 每日简报',
-        title: 'RSS Briefing Hub | 每日简报',
-        description: 'Your personal AI-curated daily briefing. | 您的个人 AI 每日简报。',
+        siteName: 'RSS Briefing Hub',
+        title: 'RSS Briefing Hub - 全栈技术资讯雷达',
+        description: '一站式全栈技术资讯雷达。深度聚合全球权威技术博客与架构实践，为开发者提供高价值的技术简报。',
     },
     verification: {
         other: {

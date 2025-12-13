@@ -76,12 +76,29 @@ export async function getSitemapUrls(): Promise<SitemapURL[]> {
             changefreq: 'daily',
             priority: '1.0'
         },
-        ...dates.map(date => ({
-            url: `${baseUrl}/date/${date}`,
-            lastmod: date, // Daily briefings are static archives, lastmod is the date itself
-            changefreq: 'weekly', // Historical dates don't change often
-            priority: '0.8'
-        })),
+        ...dates.map(date => {
+            // Check if it's today (simple string comparison works because dates array is YYYY-MM-DD strings)
+            // We need to get "Today" in Shanghai timezone to match the data format.
+            const today = new Intl.DateTimeFormat('en-CA', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                timeZone: 'Asia/Shanghai',
+            }).format(new Date());
+
+            const isToday = date === today;
+
+            return {
+                url: `${baseUrl}/date/${date}`,
+                // Critical SEO Fix:
+                // If the date is TODAY, we use the current ISO timestamp as lastmod.
+                // This tells crawlers "This page has changed right now!" (since the cache is 1h).
+                // If the date is PAST, we just use the date string (YYYY-MM-DD) which serves as a stable anchor.
+                lastmod: isToday ? new Date().toISOString() : date,
+                changefreq: isToday ? 'hourly' : 'weekly', // Hourly for today to encourage re-crawling
+                priority: isToday ? '0.9' : '0.8'
+            };
+        }),
         ...categoryUrls.map(url => ({
             url: url,
             // Categories update daily, no lastmod calculation needed

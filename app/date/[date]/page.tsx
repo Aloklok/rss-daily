@@ -65,17 +65,52 @@ export async function generateMetadata({ params }: { params: Promise<{ date: str
 
     const description = tldrList
         ? `${date} 每日简报。本期要点：${tldrList}`
-        : `${date} 每日 AI 精选简报。汇聚科技新闻与 RSS 订阅精华。`;
+        : `${date} 每日精选简报。汇聚科技新闻与 RSS 订阅精华。`;
+
+    // Dynamic Title Generation: "Title Party" Mode
+    const PRIORITY_MAP: Record<string, number> = {
+        '重要新闻': 3,
+        '必知要闻': 2,
+        '常规更新': 1,
+    };
+
+    // Sort ALL articles by Priority descending, then by specific Score descending
+    const sortedForTitle = [...allArticles].sort((a, b) => {
+        const pA = PRIORITY_MAP[a.briefingSection || '常规更新'] || 0;
+        const pB = PRIORITY_MAP[b.briefingSection || '常规更新'] || 0;
+        if (pA !== pB) return pB - pA; // Higher priority first
+        return (b.verdict?.score || 0) - (a.verdict?.score || 0); // Higher score first within priority
+    });
+
+    const topArticles = sortedForTitle.slice(0, 2); // Get top 2
+    let dynamicTitle = `${date} `;
+
+    if (topArticles.length > 0) {
+        // Simple cleanup: remove special chars if needed
+        const t1 = topArticles[0].title.replace(/\|/g, '-');
+        dynamicTitle += `${t1}`;
+
+        if (topArticles.length > 1) {
+            const t2 = topArticles[1].title.replace(/\|/g, '-');
+            // Check approximate length (Social/Search limit ~60 chars)
+            if ((dynamicTitle.length + t2.length + 25) < 65) {
+                dynamicTitle += `、${t2}`;
+            }
+        }
+        dynamicTitle += ` | RSS Briefing Hub`;
+    } else {
+        dynamicTitle += `Briefing | RSS Briefing Hub`;
+    }
 
     return {
-        title: `${date} Briefing | 每日简报`,
+        title: dynamicTitle,
         description: description,
         keywords: topKeywords, // Inject explicit keywords tag
         alternates: {
             canonical: `/date/${date}`,
         },
         openGraph: {
-            title: `${date} Briefing | 每日简报`,
+            title: dynamicTitle,
             description: description,
             type: 'article',
             publishedTime: date,
@@ -119,7 +154,7 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
 
     const description = tldrList
         ? `${date} 每日简报。本期要点：${tldrList}`
-        : `${date} 每日 AI 精选简报。汇聚科技新闻与 RSS 订阅精华。`;
+        : `${date} 每日精选简报。汇聚科技新闻与 RSS 订阅精华。`;
 
     const jsonLd = {
         '@context': 'https://schema.org',

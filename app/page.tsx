@@ -26,27 +26,104 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
     const filterType = typeof params.filter === 'string' ? params.filter : undefined;
     const filterValue = typeof params.value === 'string' ? params.value : undefined;
 
-    // Handle Category/Tag/Search Metadata
+    // 1. Handle "Date" Filter explicitly (Match /date/[date] logic)
+    if (filterType === 'date' && filterValue) {
+        // Fetch specific date data
+        const grouped = await fetchBriefingData(filterValue);
+        const dateArticles = Object.values(grouped).flat();
+        const topImage = await resolveBriefingImage(filterValue);
+
+        // If no articles for the date, return a generic fallback for that date
+        if (dateArticles.length === 0) {
+            return {
+                title: `${filterValue} Briefing | RSS Briefing Hub`,
+                description: `${filterValue} 每日精选简报。汇聚科技新闻与 RSS 订阅精华。`,
+                openGraph: {
+                    title: `${filterValue} Briefing | RSS Briefing Hub`,
+                    description: `${filterValue} 每日精选简报。汇聚科技新闻与 RSS 订阅精华。`,
+                    images: [{ url: topImage || 'https://www.alok-rss.top/computer_cat_180.jpeg', width: 1600, height: 1200, alt: `${filterValue} Briefing` }],
+                }
+            };
+        }
+
+        // Sorting Logic
+        const PRIORITY_MAP: Record<string, number> = {
+            '重要新闻': 3, '必知要闻': 2, '常规更新': 1,
+        };
+        const sorted = [...dateArticles].sort((a, b) => {
+            const pA = PRIORITY_MAP[a.briefingSection || '常规更新'] || 0;
+            const pB = PRIORITY_MAP[b.briefingSection || '常规更新'] || 0;
+            if (pA !== pB) return pB - pA;
+            return (b.verdict?.score || 0) - (a.verdict?.score || 0);
+        });
+
+        const top2 = sorted.slice(0, 2);
+        let dynamicTitle = `${filterValue} `;
+        if (top2.length > 0) {
+            const t1 = top2[0].title.replace(/\|/g, '-');
+            dynamicTitle += `${t1}`;
+            if (top2.length > 1) {
+                const t2 = top2[1].title.replace(/\|/g, '-');
+                if ((dynamicTitle.length + t2.length + 25) < 65) dynamicTitle += `、${t2}`;
+            }
+            dynamicTitle += ` | RSS Briefing Hub`;
+        } else {
+            dynamicTitle += `Briefing | RSS Briefing Hub`;
+        }
+
+        const tldrList = dateArticles.slice(0, 10).map((a, i) => `${i + 1}. ${a.tldr || a.title}`).join(' ');
+        const desc = tldrList
+            ? `${filterValue} 每日简报。本期要点：${tldrList}`
+            : `${filterValue} 每日精选简报。汇聚科技新闻与 RSS 订阅精华。`;
+
+        return {
+            title: dynamicTitle,
+            description: desc,
+            alternates: {
+                canonical: `https://www.alok-rss.top/date/${filterValue}`,
+            },
+            openGraph: {
+                title: dynamicTitle,
+                description: desc,
+                type: 'website',
+                url: `https://www.alok-rss.top/date/${filterValue}`,
+                siteName: 'RSS Briefing Hub',
+                images: [{ url: topImage || 'https://www.alok-rss.top/computer_cat_180.jpeg', width: 1600, height: 1200, alt: `${filterValue} Briefing` }],
+            }
+        };
+    }
+
+    // 2. Handle Other Filters (Category/Tag/Search)
     if (filterType && filterValue) {
-        // Simple SSR fetch for metadata titles (optional, or just use value)
-        // For performance, we might skip full fetch if we trust value.
-        // But let's be accurate.
         return {
             title: `${decodeURIComponent(filterValue)} - Article List`,
             description: `Articles filtered by ${filterType}: ${decodeURIComponent(filterValue)}`,
+            alternates: {
+                canonical: `https://www.alok-rss.top/?filter=${filterType}&value=${filterValue}`,
+            },
+            openGraph: {
+                title: `${decodeURIComponent(filterValue)} - Article List`,
+                description: `Articles filtered by ${filterType}: ${decodeURIComponent(filterValue)}`,
+                type: 'website',
+                url: `https://www.alok-rss.top/?filter=${filterType}&value=${filterValue}`,
+                siteName: 'RSS Briefing Hub',
+                images: [
+                    {
+                        url: 'https://www.alok-rss.top/computer_cat_180.jpeg', // Generic image for filtered lists
+                        width: 1600,
+                        height: 1200,
+                        alt: `Filtered Articles`,
+                    }
+                ],
+            },
         };
     }
 
-    // Default Briefing Metadata
+    // 3. Default Homepage (No Filters) -> Brand Title
     const { initialDate, articles, headerImageUrl } = await getLatestBriefingData();
 
-    if (!initialDate || articles.length === 0) {
-        return {
-            title: 'RSS Briefing Hub - Daily AI Updates | 每日简报归档',
-            description: 'Index of daily AI-curated technology briefings. | 每日 AI 科技简报索引。',
-        };
-    }
-
+    // Fallback description for Homepage (No "AI")
+    // We can still use the daily summary for description, but Title is Brand.
     const tldrList = articles
         .slice(0, 10)
         .map((a, i) => `${i + 1}. ${a.tldr || a.title}`)
@@ -54,20 +131,22 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
 
     const description = tldrList
         ? `${initialDate} 每日简报。本期要点：${tldrList}`
-        : `${initialDate} 每日 AI 精选简报。汇聚科技新闻与 RSS 订阅精华。`;
+        : `每日精选简报。汇聚科技新闻与 RSS 订阅精华。`;
 
     return {
-        title: `${initialDate} Briefing | 每日简报`,
+        // Title is omitted to inherit "RSS Briefing Hub..." from layout.tsx
         description: description,
         alternates: {
             canonical: 'https://www.alok-rss.top',
         },
         openGraph: {
-            title: `${initialDate} Briefing | 每日简报`,
-            description: description,
+            // Keep Brand Title for Homepage OpenGraph too? Or use Date?
+            // User said "Visit Homepage -> Brand Display". So let's keep Brand Title implicitly or explicitly.
+            // If we omit title here, it might inherit. Let's explicitly NOT set it to date.
+            // But we DO want the image.
             type: 'website',
             url: 'https://www.alok-rss.top',
-            siteName: 'Briefing Hub',
+            siteName: 'RSS Briefing Hub', // Consistent Site Name
             images: [
                 {
                     url: headerImageUrl || 'https://www.alok-rss.top/computer_cat_180.jpeg',

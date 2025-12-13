@@ -39,6 +39,8 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 - **双模访问控制**：
   - **公共只读模式**：默认允许公众访问，可以浏览所有简报和文章，但无法进行任何修改。
   - **管理员模式**：通过 URL Token (`?token=...`) 激活，系统会自动设置持久化 Cookie (`site_token`)，无需每次访问都携带 Token。拥有完整权限（如标记已读、收藏、查看原始 RSS）。
+- **第三方嵌入支持**:
+  - **Widget 集成**: 提供了专门的 Widget 路由 (如 `/widget/clock.html`)，配置了宽松的 CSP (`frame-ancestors *`)，支持将组件无缝嵌入到 Notion, start.me 等效率工具仪表盘中。
 - **SEO 深度优化**:
   - **全站 SSR覆盖**: 不仅包括每日简报，**标签/分类页面 (`/stream/[id]`)** 全面升级为 SSR 服务端渲染，将 FreshRSS 文章列表与 Supabase AI 数据融合，打造高质量内容聚合页。
   - **自动关键词注入**: 
@@ -66,6 +68,11 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
       - **Deep Content Rich Snippets**: 在 JSON-LD 的 `ListItem` 中注入 **全量 AI 摘要**，而非简单的标题，让搜索引擎“读懂”每篇文章的深度内容。
       - **Crawler-Friendly Links**: 完美支持编码后的复杂标签 URL（如 `/stream/user%2F-%2Flabel%2F%E5%90%8E%E7%AB%AF`），确保爬虫能顺畅索引所有标签聚合页。
       - **Homepage Dual-Schema**: 首页采用 **NewsArticle (今日内容)** + **CollectionPage (历史归档)** 双重结构化数据，兼顾内容时效性排名与历史页面索引。
+  - **动态标题进化 (Title Party)**: 
+      - **策略**: 摒弃死板的 "Daily Briefing" 标题。根据文章权重 (`重要新闻` > `必知要闻` > `常规更新`) 自动提取当日 **Top 2 核心头条** 动态生成 Title (e.g., `2025-12-13 Google Gemini 2.0发布、DeepSeek开源 | RSS Briefing Hub`)。
+      - **优势**: 大幅提升 SERP 点击率，让用户在搜索结果页就能看到当天的爆点新闻。
+  - **智能 Sitemap 策略**:
+      - **混合频率**: 针对 **“今天”** 的页面，配置 `hourly` 频率 + `lastmod` 实时时间戳，迫使爬虫高频回访以抓取“一日三更”的实时更新；针对 **“历史”** 页面，自动降级为 `weekly`，节省爬取配额。
   - **SSR 服务端直连**:
       - **架构升级**: 为了解决 Vercel 环境下 "Loopback Request" (请求自身 API)导致的 401/500 错误，重构了 SSR 数据获取层。
       - **机制**: 服务端组件 (`stream/[id]`) 不再走 HTTP API 层，而是通过 `ssr-helpers.ts` 直接调用 FreshRSS/Supabase SDK。

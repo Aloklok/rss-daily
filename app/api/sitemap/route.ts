@@ -20,7 +20,9 @@ ${urls.map(item => `  <url>
     return new NextResponse(sitemap, {
         headers: {
             'Content-Type': 'application/xml',
-            'Cache-Control': 's-maxage=86400, stale-while-revalidate=86400',
+            // Optimized for Daily Briefing Updates (3x/day)
+            // Cache for 1 hour (3600s). Allows crawlers to pick up evening updates.
+            'Cache-Control': 's-maxage=3600, stale-while-revalidate=3600',
         },
     });
 }
