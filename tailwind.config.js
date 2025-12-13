@@ -207,7 +207,7 @@ export default {
             // --- 7. 引用块 ---
             blockquote: {
               fontStyle: 'normal',
-              borderLeftColor: '#f97316', // Orange-500
+              borderLeftColor: '#957d6cff', // Orange-500
               borderLeftWidth: '4px',
               backgroundColor: 'transparent',
               color: '#57534e',
