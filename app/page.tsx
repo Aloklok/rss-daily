@@ -46,13 +46,20 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
             };
         }
 
-        // Sorting Logic
+        // Sorting Logic: Priority > Score
         const PRIORITY_MAP: Record<string, number> = {
-            '重要新闻': 3, '必知要闻': 2, '常规更新': 1,
+            '重要新闻': 3,
+            '必知要闻': 2,
+            '常规更新': 1,
         };
         const sorted = [...dateArticles].sort((a, b) => {
-            const pA = PRIORITY_MAP[a.briefingSection || '常规更新'] || 0;
-            const pB = PRIORITY_MAP[b.briefingSection || '常规更新'] || 0;
+            // Get raw importance string
+            const sectionA = a.briefingSection || a.verdict?.importance || '常规更新';
+            const sectionB = b.briefingSection || b.verdict?.importance || '常规更新';
+
+            const pA = PRIORITY_MAP[sectionA] || 0;
+            const pB = PRIORITY_MAP[sectionB] || 0;
+
             if (pA !== pB) return pB - pA;
             return (b.verdict?.score || 0) - (a.verdict?.score || 0);
         });
@@ -66,9 +73,9 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
                 const t2 = top2[1].title.replace(/\|/g, '-');
                 if ((dynamicTitle.length + t2.length + 25) < 65) dynamicTitle += `、${t2}`;
             }
-            dynamicTitle += ` | RSS Briefing Hub`;
+            // Layout template adds brand suffix
         } else {
-            dynamicTitle += `Briefing | RSS Briefing Hub`;
+            dynamicTitle += `Briefing`;
         }
 
         const tldrList = dateArticles.slice(0, 10).map((a, i) => `${i + 1}. ${a.tldr || a.title}`).join(' ');
@@ -120,33 +127,18 @@ export async function generateMetadata({ searchParams }: { searchParams: Promise
     }
 
     // 3. Default Homepage (No Filters) -> Brand Title
-    const { initialDate, articles, headerImageUrl } = await getLatestBriefingData();
-
-    // Fallback description for Homepage (No "AI")
-    // We can still use the daily summary for description, but Title is Brand.
-    const tldrList = articles
-        .slice(0, 10)
-        .map((a, i) => `${i + 1}. ${a.tldr || a.title}`)
-        .join(' ');
-
-    const description = tldrList
-        ? `${initialDate} 每日简报。本期要点：${tldrList}`
-        : `每日精选简报。汇聚科技新闻与 RSS 订阅精华。`;
+    const { initialDate, headerImageUrl } = await getLatestBriefingData();
 
     return {
-        // Title is omitted to inherit "RSS Briefing Hub..." from layout.tsx
-        description: description,
+        // Title & Description are omitted to inherit from layout.tsx (Brand Strategy)
         alternates: {
             canonical: 'https://www.alok-rss.top',
         },
         openGraph: {
-            // Keep Brand Title for Homepage OpenGraph too? Or use Date?
-            // User said "Visit Homepage -> Brand Display". So let's keep Brand Title implicitly or explicitly.
-            // If we omit title here, it might inherit. Let's explicitly NOT set it to date.
-            // But we DO want the image.
+            // Inherit Title/Desc from layout.tsx automatically (Next.js Deep Merge)
             type: 'website',
             url: 'https://www.alok-rss.top',
-            siteName: 'RSS Briefing Hub', // Consistent Site Name
+            siteName: 'RSS Briefing Hub',
             images: [
                 {
                     url: headerImageUrl || 'https://www.alok-rss.top/computer_cat_180.jpeg',

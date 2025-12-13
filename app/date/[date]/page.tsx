@@ -76,8 +76,12 @@ export async function generateMetadata({ params }: { params: Promise<{ date: str
 
     // Sort ALL articles by Priority descending, then by specific Score descending
     const sortedForTitle = [...allArticles].sort((a, b) => {
-        const pA = PRIORITY_MAP[a.briefingSection || '常规更新'] || 0;
-        const pB = PRIORITY_MAP[b.briefingSection || '常规更新'] || 0;
+        const sectionA = a.briefingSection || a.verdict?.importance || '常规更新';
+        const sectionB = b.briefingSection || b.verdict?.importance || '常规更新';
+
+        const pA = PRIORITY_MAP[sectionA] || 0;
+        const pB = PRIORITY_MAP[sectionB] || 0;
+
         if (pA !== pB) return pB - pA; // Higher priority first
         return (b.verdict?.score || 0) - (a.verdict?.score || 0); // Higher score first within priority
     });
@@ -97,9 +101,9 @@ export async function generateMetadata({ params }: { params: Promise<{ date: str
                 dynamicTitle += `、${t2}`;
             }
         }
-        dynamicTitle += ` | RSS Briefing Hub`;
+        // dynamicTitle += ` | RSS Briefing Hub`; // Removed to avoid duplication with layout template
     } else {
-        dynamicTitle += `Briefing | RSS Briefing Hub`;
+        dynamicTitle += `Briefing`;
     }
 
     return {
