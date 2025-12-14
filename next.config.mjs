@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    productionBrowserSourceMaps: false,
     reactStrictMode: true,
+    // experimental: {
+    //     reactCompiler: true,
+    // },
     images: {
         formats: ['image/avif', 'image/webp'],
         remotePatterns: [
