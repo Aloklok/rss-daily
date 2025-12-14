@@ -36,7 +36,7 @@ export function proxy(request: Request) {
     if (!accessToken) {
         // If no access token is configured, allow access (or maybe block? assuming allow for now based on "public access")
         // But strictly speaking, if it's not configured, maybe we should just proceed.
-        return;
+        return NextResponse.next();
     }
 
     const urlToken = url.searchParams.get('token');
@@ -100,11 +100,14 @@ export function proxy(request: Request) {
     }
 
     // So, we just let the request proceed.
-    return;
+    return NextResponse.next();
 }
 
 // 高性能 + 高安全性的 Matcher
 // 它只匹配“页面路由”（不含 . ），而不匹配静态文件
+// 高性能 + 高安全性的 Matcher
+// 它只匹配"页面路由"（不含 . ），而不匹配静态文件
+// 排除: api/, _vercel/, sitemap.xml, robots.txt, 以及所有带扩展名的文件（如 .env, .js, .css 等）
 export const config = {
     matcher: [
         '/((?!api/|_vercel/|sitemap.xml|robots.txt|.+\..+).*)',
