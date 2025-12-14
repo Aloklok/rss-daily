@@ -38,3 +38,6 @@ next-env.d.ts
 # Unused Assets
 public/computer_cat.jpeg
 public/paper-texture.png
+
+# Sentry Config File
+.env.sentry-build-plugin
