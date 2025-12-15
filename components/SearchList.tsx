@@ -57,7 +57,7 @@ const SearchListItem: React.FC<{ articleId: string | number }> = ({ articleId })
       {/* Right Side: Summary (Vertical Centered) */}
       <div className="md:w-1/3 shrink-0 flex flex-col justify-center border-t md:border-t-0 md:border-l border-stone-300 dark:border-white/20 pt-4 md:pt-0 md:pl-6">
         <p className="text-sm font-medium text-stone-600 dark:text-stone-400 leading-relaxed line-clamp-4 opacity-80 group-hover:opacity-100 transition-opacity">
-          {article.tldr || article.expectedTldr || article.summary}
+          {article.tldr || article.summary}
         </p>
         <div className="mt-4 flex justify-end">
           <svg className="size-5 text-stone-300 group-hover:text-black dark:group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
