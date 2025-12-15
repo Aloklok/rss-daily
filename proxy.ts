@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-// @ts-expect-error -- Proxy definitions
+
 export function proxy(request: Request) {
 
     const url = new URL(request.url);

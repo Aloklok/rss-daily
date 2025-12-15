@@ -47,7 +47,7 @@ const ReportContent: React.FC<ReportContentProps> = memo(({ report, onReaderMode
     return (
         <div>
             {/* Table of Contents & Summary Section */}
-            <div className="bg-white dark:bg-blue-950 p-6 rounded-3xl border border-stone-200 dark:border-white/10 shadow-lg shadow-stone-200/50 dark:shadow-none mb-10 transition-all hover:shadow-xl hover:shadow-stone-200/60 duration-500">
+            <div className="bg-white dark:bg-gray-900 p-6 rounded-3xl border border-stone-200 dark:border-white/10 shadow-lg shadow-stone-200/50 dark:shadow-none mb-10 transition-all hover:shadow-xl hover:shadow-stone-200/60 duration-500">
                 <div className="md:hidden">
                     <h2 className="text-2xl font-bold font-serif text-stone-800 dark:text-white flex items-center">
                         <span>📚 目录</span>
