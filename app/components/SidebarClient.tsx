@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useCallback } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Sidebar from '../../components/Sidebar';
 import { useFilters } from '../../hooks/useFilters';
 import { useUIStore } from '../../store/uiStore';
 import { useArticleStore } from '../../store/articleStore';
-import { Article, AvailableFilters } from '../../types';
+import { Article } from '../../types';
 import { toShortId } from '../../utils/idHelpers';
 
 interface SidebarClientProps {
@@ -21,8 +21,6 @@ export default function SidebarClient({
     initialStarredHeaders
 }: SidebarClientProps) {
     const router = useRouter();
-    const pathname = usePathname();
-    const setActiveFilter = useUIStore(state => state.setActiveFilter);
     const setSelectedArticleId = useUIStore(state => state.setSelectedArticleId);
     const addArticles = useArticleStore(state => state.addArticles);
 
@@ -57,7 +55,7 @@ export default function SidebarClient({
     return (
         <div className="h-full sticky top-0">
             <Sidebar
-                // @ts-ignore
+
                 isInitialLoading={isInitialLoad}
                 isRefreshingFilters={isRefreshingFilters}
                 availableMonths={availableMonths}

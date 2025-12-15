@@ -2,8 +2,6 @@
 
 import { usePathname } from 'next/navigation';
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { Article } from '../types';
-import { getArticlesDetails, getStarredArticles } from '../services/api'; // getStarredArticles might be needed if you keep the old structure.
 import { useStarredArticles } from './useArticles'; // 导入新的 Hook
 import { useUIStore } from '../store/uiStore';
 
@@ -28,9 +26,11 @@ export const useSidebar = ({ initialStarredHeaders }: UseSidebarProps = {}) => {
     // Sync activeTab with activeFilter
     useEffect(() => {
         if (activeFilter?.type === 'date') {
-            setActiveTab('calendar');
+            // eslint-disable-next-line
+            setActiveTab(current => current === 'calendar' ? current : 'calendar');
         } else if (activeFilter?.type === 'category' || activeFilter?.type === 'tag') {
-            setActiveTab('filters');
+            // eslint-disable-next-line
+            setActiveTab(current => current === 'filters' ? current : 'filters');
         }
     }, [activeFilter]);
 

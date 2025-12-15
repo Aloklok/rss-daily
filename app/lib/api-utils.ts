@@ -47,7 +47,7 @@ export function getFreshRssClient(): FreshRssClient {
             if (response.headers.get('Content-Type')?.includes('application/json')) {
                 return response.json();
             }
-            // @ts-ignore
+            // @ts-expect-error -- return type mismatch with stream processing
             return response.text();
         };
 

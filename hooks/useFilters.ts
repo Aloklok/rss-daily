@@ -1,6 +1,7 @@
 // hooks/useFilters.ts
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Filter, AvailableFilters } from '../types';
 import { getAvailableDates, getAvailableFilters, getTodayInShanghai } from '../services/api';
 import { useArticleStore } from '../store/articleStore';
@@ -38,8 +39,9 @@ export const useFilters = ({ initialDates, initialAvailableFilters }: UseFilters
     // If we have initial data, we are not loading initially.
     const [isInitialLoad, setIsInitialLoad] = useState(!initialDates || initialDates.length === 0);
 
-    const activeFilter = useUIStore(state => state.activeFilter);
     const setActiveFilter = useUIStore(state => state.setActiveFilter);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const queryClient = useQueryClient();
     const storeAvailableFilters = useArticleStore(state => state.availableFilters);
     // Use initial data if store is empty (SSR/Hydration)
     const availableFilters = (storeAvailableFilters.tags.length > 0 || storeAvailableFilters.categories.length > 0)
@@ -47,7 +49,6 @@ export const useFilters = ({ initialDates, initialAvailableFilters }: UseFilters
         : (initialAvailableFilters || { tags: [], categories: [] });
     // const setAvailableFilters = useArticleStore(state => state.setAvailableFilters); // Keep this but remove the 'availableFilters' const definition line 43
     const setAvailableFilters = useArticleStore(state => state.setAvailableFilters);
-    const [isRefreshing, setIsRefreshing] = useState(false);
 
     // Initialize store with initial filters if provided and store is empty
     useEffect(() => {
@@ -59,7 +60,7 @@ export const useFilters = ({ initialDates, initialAvailableFilters }: UseFilters
 
     // --- 【核心集成】 ---
     // 1. 【增】使用 useDailyStatusesForMonth Hook 获取状态数据
-    const { data: dailyStatuses, isLoading: isLoadingStatuses } = useDailyStatusesForMonth(selectedMonth);
+    const { data: dailyStatuses } = useDailyStatusesForMonth(selectedMonth);
 
     // 2. 【增】使用 useUpdateDailyStatus Hook 获取更新函数
     const { mutate: updateStatus } = useUpdateDailyStatus();
@@ -119,19 +120,21 @@ export const useFilters = ({ initialDates, initialAvailableFilters }: UseFilters
             }
         };
         fetchInitialFilterData();
-    }, [setAvailableFilters, setActiveFilter, initialDates]);
+    }, [setAvailableFilters, setActiveFilter, initialDates, initialAvailableFilters]);
 
     const refreshFilters = useCallback(async () => {
         setIsRefreshing(true); // 开始刷新
         sessionStorage.removeItem(CACHE_KEY_ACTIVE_FILTER);
         sessionStorage.removeItem(CACHE_KEY_SELECTED_MONTH);
         try {
-            const [availableDatesNew, filtersNew] = await Promise.all([
-                getAvailableDates(),
-                getAvailableFilters()
+            await Promise.all([
+                queryClient.invalidateQueries({ queryKey: ['availableDates'] }),
+                queryClient.invalidateQueries({ queryKey: ['dailyStatuses'] })
             ]);
-            setDates(availableDatesNew.sort((a, b) => new Date(b).getTime() - new Date(a).getTime()));
-            setAvailableFilters(filtersNew);
+            // Force refetch
+            // The actual data fetching and state updates (setDates, setAvailableFilters)
+            // will now be handled by the react-query hooks that consume these invalidated queries.
+            // We might still want to reset the active filter to today's date after a refresh.
             const today = getTodayInShanghai();
             if (today) {
                 const resetFilter = { type: 'date' as const, value: today };
@@ -143,9 +146,9 @@ export const useFilters = ({ initialDates, initialAvailableFilters }: UseFilters
         } catch (error) {
             console.error('Failed to refresh sidebar data', error);
         } finally {
-            setIsRefreshing(false); // 结束刷新
+            setIsRefreshing(false);
         }
-    }, [setActiveFilter, setAvailableFilters]);
+    }, [setActiveFilter, queryClient]);
 
     const availableMonths = useMemo(() => {
         const monthSet = new Set<string>();

@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { Article } from '../types';
+
 import StreamArticleListItem from './StreamArticleListItem';
 
 interface StreamListProps {

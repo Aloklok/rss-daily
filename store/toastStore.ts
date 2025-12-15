@@ -19,7 +19,7 @@ export const useToastStore = create<ToastStore>((set) => ({
     showToast: (message, type = 'info') => {
         set({ isVisible: true, message, type });
         setTimeout(() => {
-            set((state) => {
+            set((_state) => {
                 // Only hide if the message hasn't changed (simple debounce/conflict resolution)
                 // Actually, for simplicity, just hide. If a new toast came in, it would have set isVisible=true again.
                 // But we need to be careful not to hide a *new* toast if the timeout overlaps.

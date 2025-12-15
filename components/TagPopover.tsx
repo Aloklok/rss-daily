@@ -1,7 +1,7 @@
 // components/TagPopover.tsx
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Article, Tag } from '../types';
+import { Article } from '../types';
 import { useArticleStore } from '../store/articleStore';
 
 interface TagPopoverProps {

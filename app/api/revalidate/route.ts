@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
     const secret = request.nextUrl.searchParams.get('secret');
     const tag = request.nextUrl.searchParams.get('tag');
 
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 
         console.log(`[Revalidate] Successfully revalidated stream for tag: ${decodedTag}`);
         return NextResponse.json({ revalidated: true, now: Date.now() });
-    } catch (err) {
+    } catch (_err: unknown) {
         return NextResponse.json({ message: 'Error revalidating' }, { status: 500 });
     }
 }

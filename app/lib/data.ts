@@ -1,5 +1,5 @@
 import { getSupabaseClient, getFreshRssClient } from './api-utils';
-import { Article, FreshRSSItem, CleanArticleContent } from '../../types';
+import { Article, FreshRSSItem, CleanArticleContent, Tag } from '../../types';
 import { removeEmptyParagraphs } from '../../utils/contentUtils';
 import { toFullId } from '../../utils/idHelpers';
 
@@ -63,7 +63,7 @@ export async function fetchBriefingData(date: string): Promise<{ [key: string]: 
     const endDate = new Date(Date.UTC(year, month - 1, day, 23 - 8, 59, 59, 999));
 
     // Wrap Supabase query with timeout to prevent serverless function hangs
-    const timeoutPromise = new Promise<{ data: any, error: any }>((_, reject) =>
+    const timeoutPromise = new Promise<{ data: Article[] | null, error: unknown }>((_, reject) =>
         setTimeout(() => reject(new Error('Supabase query timed out after 10s')), 10000)
     );
 
@@ -77,11 +77,9 @@ export async function fetchBriefingData(date: string): Promise<{ [key: string]: 
     try {
         const result = await Promise.race([dataPromise, timeoutPromise]);
         // Supabase returns { data, error } structure
-        // @ts-ignore
         articles = result.data;
-        // @ts-ignore
         error = result.error;
-    } catch (e: any) {
+    } catch (e: unknown) {
         console.error('Fetch Briefing Data Timeout or Error:', e);
         return {}; // Start with empty if timeout, or throw? better to throw to trigger error.tsx
         // Actually, if we return {}, the page renders "No Articles", which is better than Error page?
@@ -164,7 +162,7 @@ export const fetchArticleContentServer = async (id: string | number): Promise<Cl
         }
 
         const item = data.items[0];
-        let contentHtml = item.summary?.content || item.content?.content || '';
+        const contentHtml = item.summary?.content || item.content?.content || '';
         const source = item.origin?.title || (item.canonical?.[0]?.href ? new URL(item.canonical[0].href).hostname : '');
         const title = item.title;
 
@@ -226,7 +224,7 @@ interface FreshRssTag {
     count?: number;
 }
 
-export async function getAvailableFilters(): Promise<{ tags: any[], categories: any[] }> {
+export async function getAvailableFilters(): Promise<{ tags: Tag[], categories: Tag[] }> {
     try {
         const freshRss = getFreshRssClient();
 
@@ -236,8 +234,8 @@ export async function getAvailableFilters(): Promise<{ tags: any[], categories: 
             with_counts: '1'
         });
 
-        const categories: any[] = [];
-        const tags: any[] = [];
+        const categories: Tag[] = [];
+        const tags: Tag[] = [];
 
         if (data.tags) {
             data.tags.forEach((item) => {

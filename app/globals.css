@@ -62,20 +62,20 @@
 /* Typography Overrides - Replaces JS config */
 @layer utilities {
     .prose {
-        --tw-prose-body: #292524;
+        --tw-prose-body: var(--color-stone-800);
         /* Stone-800 */
-        --tw-prose-headings: #0c0a09;
+        --tw-prose-headings: var(--color-stone-950);
         /* Stone-950 */
-        --tw-prose-links: #c2410c;
+        --tw-prose-links: var(--color-orange-700);
         /* Orange-700 */
-        --tw-prose-bold: #0c0a09;
-        --tw-prose-counters: #57534e;
-        --tw-prose-bullets: #a8a29e;
+        --tw-prose-bold: var(--color-stone-950);
+        --tw-prose-counters: var(--color-stone-600);
+        --tw-prose-bullets: var(--color-stone-400);
         /* Stone-400 */
-        --tw-prose-hr: #e7e5e4;
+        --tw-prose-hr: var(--color-stone-200);
         /* Stone-200 */
-        --tw-prose-quotes: #44403c;
-        --tw-prose-quote-borders: #f97316;
+        --tw-prose-quotes: var(--color-stone-700);
+        --tw-prose-quote-borders: var(--color-orange-500);
         /* Orange-500 */
     }
 
@@ -108,7 +108,7 @@
 .prose h3,
 .prose h4 {
     font-family: var(--font-sans);
-    color: #0c0a09;
+    color: var(--color-stone-950);
     font-weight: 800;
     letter-spacing: -0.025em;
     text-wrap: pretty;
@@ -132,7 +132,7 @@
     bottom: 0.2em;
     width: 6px;
     border-radius: 99px;
-    background-color: #ea580c;
+    background-color: var(--color-orange-600);
     /* Orange-600 */
 }
 
@@ -153,7 +153,7 @@
     bottom: 0.25em;
     width: 5px;
     border-radius: 99px;
-    background-color: #a8a29e;
+    background-color: var(--color-stone-400);
     /* Stone-400 */
 }
 
@@ -191,8 +191,8 @@
 }
 
 .prose pre {
-    background-color: #0f172a;
-    color: #e2e8f0;
+    background-color: var(--color-slate-900);
+    color: var(--color-slate-200);
     border-radius: 0.5rem;
     padding: 1rem 1.25rem;
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -212,9 +212,9 @@
 }
 
 .prose code {
-    color: #9a3412;
+    color: var(--color-orange-900);
     /* Orange-900 */
-    background-color: #ffedd5;
+    background-color: var(--color-orange-100);
     /* Orange-100 */
     padding: 0.2em 0.4em;
     border-radius: 0.25rem;
@@ -238,12 +238,12 @@
 }
 
 .prose thead {
-    background-color: #1b2a53a1;
-    border-bottom: 1px solid #1b2a53a1;
+    background-color: color-mix(in srgb, var(--color-blue-950), transparent 37%);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-blue-950), transparent 37%);
 }
 
 .prose thead th {
-    color: #0c0a09;
+    color: var(--color-stone-950);
     font-weight: 700;
     padding: 0.75rem;
     padding-bottom: 0.4rem !important;
@@ -252,13 +252,13 @@
 }
 
 .prose tbody tr {
-    border-bottom: 1px solid #e7e5e4;
+    border-bottom: 1px solid var(--color-stone-200);
 }
 
 .prose tbody td {
     text-align: center !important;
     padding: 0.75rem;
-    color: #44403c;
+    color: var(--color-stone-700);
     vertical-align: top;
 }
 
@@ -270,11 +270,11 @@
 
 .prose blockquote {
     font-style: normal;
-    border-left-color: #957d6cff;
+    border-left-color: var(--color-stone-500);
     /* Orange-500 equivalent */
     border-left-width: 4px;
     background-color: transparent;
-    color: #57534e;
+    color: var(--color-stone-600);
     padding-left: 1.25rem;
     margin-top: 1rem;
     margin-bottom: 1rem;
@@ -287,13 +287,13 @@
 
 .prose a {
     text-decoration: none;
-    color: #c2410c;
-    border-bottom: 1px solid rgba(194, 65, 12, 0.3);
+    color: var(--color-orange-700);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-orange-700), transparent 70%);
     transition: border-color 0.2s;
 }
 
 .prose a:hover {
-    border-bottom-color: #c2410c;
+    border-bottom-color: var(--color-orange-700);
 }
 
 /* Image & Video Optimization */

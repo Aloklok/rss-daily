@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
     const searchParams = request.nextUrl.searchParams;
     const start_date = searchParams.get('start_date');
     const end_date = searchParams.get('end_date');
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     });
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
     const cookieStore = await cookies();
     if (!verifyAdmin(cookieStore)) {
         return NextResponse.json({ message: 'Unauthorized: Admin access required' }, { status: 403 });
@@ -67,7 +67,8 @@ export async function POST(request: NextRequest) {
         }
 
         return NextResponse.json({ success: true, date, is_completed });
-    } catch (error: any) {
-        return NextResponse.json({ message: 'Internal Server Error', error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return NextResponse.json({ message: 'Internal Server Error', error: errorMessage }, { status: 500 });
     }
 }

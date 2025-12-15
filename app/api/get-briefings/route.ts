@@ -4,7 +4,7 @@ import { Article } from '../../../types'; // Adjust path as needed
 
 export const dynamic = 'force-dynamic'; // Ensure this runs dynamically
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
     const searchParams = request.nextUrl.searchParams;
     const date = searchParams.get('date');
     const slot = searchParams.get('slot');
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
         // If still empty, check if it was passed as 'articleIds[]'
         if (ids.length === 0) {
-            let idsBrackets = searchParams.getAll('articleIds[]');
+            const idsBrackets = searchParams.getAll('articleIds[]');
             if (idsBrackets.length > 0) ids = idsBrackets;
         }
 
@@ -55,8 +55,7 @@ export async function GET(request: NextRequest) {
     const supabase = getSupabaseClient();
     let query = supabase.from('articles').select('*');
 
-    let startDate: Date;
-    let endDate: Date;
+
 
     // Use UTC construction to match the logic in original file (which used string construction +08:00)
     // But since we are in Node environment, Date parsing with timezone offset works if the string is correct.
@@ -71,8 +70,8 @@ export async function GET(request: NextRequest) {
     // 00:00:00 Shanghai = 16:00:00 UTC (previous day)
     let startHourUtc = 0 - 8;
     let endHourUtc = 23 - 8;
-    let startMinute = 0; let endMinute = 59;
-    let startSecond = 0; let endSecond = 59;
+    const startMinute = 0; const endMinute = 59;
+    const startSecond = 0; const endSecond = 59;
 
     if (slot === 'morning') {
         // 00:00 - 11:59 Shanghai
@@ -88,8 +87,8 @@ export async function GET(request: NextRequest) {
         endHourUtc = 23 - 8;
     }
 
-    startDate = new Date(Date.UTC(year, month - 1, day, startHourUtc, startMinute, startSecond, 0));
-    endDate = new Date(Date.UTC(year, month - 1, day, endHourUtc, endMinute, endSecond, 999));
+    const startDate = new Date(Date.UTC(year, month - 1, day, startHourUtc, startMinute, startSecond, 0));
+    const endDate = new Date(Date.UTC(year, month - 1, day, endHourUtc, endMinute, endSecond, 999));
 
     query = query.gte('n8n_processing_date', startDate.toISOString());
     query = query.lte('n8n_processing_date', endDate.toISOString());

@@ -5,7 +5,7 @@ import { useUIStore } from '../../store/uiStore';
 import SidebarClient from './SidebarClient';
 import FloatingButtonsClient from './FloatingButtonsClient';
 
-import { AvailableFilters, Article } from '../../types';
+
 
 interface MainLayoutClientProps {
     children: React.ReactNode;
@@ -26,7 +26,6 @@ export default function MainLayoutClient({
     const toggleSidebar = useUIStore(state => state.toggleSidebar);
     const setSidebarCollapsed = useUIStore(state => state.setSidebarCollapsed);
     const setAdminStatus = useUIStore(state => state.setAdminStatus);
-    const selectedArticleId = useUIStore(state => state.selectedArticleId);
     const modalArticleId = useUIStore(state => state.modalArticleId);
 
     // Initialize admin status immediately

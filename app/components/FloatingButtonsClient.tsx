@@ -4,7 +4,6 @@ import React, { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import FloatingActionButtons from '../../components/FloatingActionButtons';
 import { useUIStore } from '../../store/uiStore';
-import { useArticleStore } from '../../store/articleStore';
 import { useArticleActions } from '../../hooks/useArticleActions';
 import { useBriefingArticles, useFilteredArticles, useSearchResults } from '../../hooks/useArticles';
 import { useQueryClient } from '@tanstack/react-query';
@@ -32,18 +31,17 @@ export default function FloatingButtonsClient({ isAdmin }: { isAdmin: boolean })
     } = useArticleActions();
 
     // Data Fetching for articleIdsInView
-    const { data: searchResultIds, isLoading: isSearchLoading } = useSearchResults(
+    const { data: searchResultIds } = useSearchResults(
         activeFilter?.type === 'search' ? activeFilter.value : null
     );
 
-    const { data: briefingArticleIds, isLoading: isBriefingLoading, isFetching: isBriefingFetching } = useBriefingArticles(
+    const { data: briefingArticleIds, isFetching: isBriefingFetching } = useBriefingArticles(
         activeFilter?.type === 'date' ? activeFilter.value : null,
         timeSlot
     );
 
     const {
         data: filteredArticlesData,
-        isLoading: isFilterLoading,
     } = useFilteredArticles(
         (activeFilter?.type === 'category' || activeFilter?.type === 'tag') ? activeFilter.value : null
     );

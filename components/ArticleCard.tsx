@@ -1,8 +1,8 @@
 // components/ArticleCard.tsx
 
-import React, { useState, useMemo, memo } from 'react';
+import React, { useState, memo } from 'react';
 import Link from 'next/link';
-import { Article, Tag } from '../types';
+import { Article } from '../types';
 import TagPopover from './TagPopover';
 import { useArticleMetadata } from '../hooks/useArticleMetadata';
 import { getRandomColorClass } from '../utils/colorUtils';
@@ -21,7 +21,7 @@ const calloutCardClasses = {
 };
 const parseFormattedText = (text: string, emphasisClass: string = 'font-semibold text-current') => {
     if (!text) return '';
-    const parts = text.split(/(\*\*.*?\*\*|`.*?`)/g);
+    const parts = text.split(/(\*\*.*?\*\*|`.*? `)/g);
     return parts.map((part, i) => {
         if (i % 2 === 1) {
             if (part.startsWith('**') && part.endsWith('**')) {
@@ -40,7 +40,7 @@ const formatArticleForClipboard = (article: Article): string => {
 
     return [
         article.title,
-        `${article.sourceName} • 发布于 ${publishedDate}`,
+        `${article.sourceName} • 发布于 ${publishedDate} `,
         `${article.verdict.type} • ${article.category} • 评分: ${article.verdict.score}/10`,
         keywords,
         '',
@@ -191,7 +191,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = memo(({ article, onReaderMod
                                     <svg xmlns="http://www.w3.org/2000/svg" className="size-7 cursor-pointer" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a1 1 0 011-1h5a.997.997 0 01.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" /></svg>
                                     <span className="text-xs sr-only cursor-pointer">标签</span>
                                 </button>
-                                {isTagPopoverOpen && <TagPopover article={article} onClose={() => setIsTagPopoverOpen(false)} onStateChange={onStateChange} />}
+                                {isTagPopoverOpen && <TagPopover article={article} onClose={() => setIsTagPopover(false)} onStateChange={onStateChange} />}
                             </div>
                         </>
                     )}
@@ -221,7 +221,6 @@ interface ArticleCardProps {
 
 const ArticleCard: React.FC<ArticleCardProps> = ({ article, onReaderModeRequest, onStateChange, showActions = true }) => {
     // 2. 【删除】内部组件定义已全部移出
-    const { isStarred } = useArticleMetadata(article);
     const publishedDate = new Date(article.published).toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });
     const allKeywords = [...article.keywords];
     const [isCopied, setIsCopied] = useState(false);

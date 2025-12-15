@@ -1,14 +1,12 @@
 // components/Briefing.tsx
 
 import React, { useMemo, memo } from 'react';
-import { Article, BriefingReport, Tag, Filter, GroupedArticles } from '../types';
+import { Article, BriefingReport, GroupedArticles } from '../types';
 import ArticleGroup from './ArticleGroup';
 import { useArticleStore } from '../store/articleStore';
-import { useUIStore } from '../store/uiStore';
 import LoadingSpinner from './LoadingSpinner';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getRandomGradient } from '../utils/colorUtils';
 import { TimeSlot } from '../types';
 
 interface ReportContentProps {
@@ -49,7 +47,7 @@ const ReportContent: React.FC<ReportContentProps> = memo(({ report, onReaderMode
     return (
         <div>
             {/* Table of Contents & Summary Section */}
-            <div className="bg-white dark:bg-gray-900 p-6 rounded-3xl border border-stone-200 dark:border-white/10 shadow-lg shadow-stone-200/50 dark:shadow-none mb-10 transition-all hover:shadow-xl hover:shadow-stone-200/60 duration-500">
+            <div className="bg-white dark:bg-blue-950 p-6 rounded-3xl border border-stone-200 dark:border-white/10 shadow-lg shadow-stone-200/50 dark:shadow-none mb-10 transition-all hover:shadow-xl hover:shadow-stone-200/60 duration-500">
                 <div className="md:hidden">
                     <h2 className="text-2xl font-bold font-serif text-stone-800 dark:text-white flex items-center">
                         <span>📚 目录</span>
@@ -143,7 +141,7 @@ interface BriefingProps {
     disableAutoTimeSlot?: boolean; // New prop to control auto-selection behavior
 }
 
-const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selectedReportId, onReportSelect, onReaderModeRequest, onStateChange, onTimeSlotChange, isSidebarCollapsed, onToggleSidebar, articleCount, isLoading, headerImageUrl, articles, isToday, prevDate, nextDate, disableAutoTimeSlot = false }) => {
+const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selectedReportId: _selectedReportId, onReportSelect: _onReportSelect, onReaderModeRequest, onStateChange, onTimeSlotChange, isSidebarCollapsed: _isSidebarCollapsed, onToggleSidebar: _onToggleSidebar, articleCount: _articleCount, isLoading, headerImageUrl, articles, isToday, prevDate, nextDate, disableAutoTimeSlot = false }) => {
     // 1. 【新增】内部订阅文章数据
     const articlesById = useArticleStore(state => state.articlesById);
     // const activeFilter = useUIStore(state => state.activeFilter); // No longer needed for date logic
@@ -160,13 +158,6 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
         }, {} as GroupedArticles);
         return [{ id: 1, title: "Daily Briefing", articles: groupedArticles }];
     }, [articleIds, articlesById, articles]);
-
-    const selectedReport = reports.find(r => r.id === selectedReportId);
-
-    const randomGradient = useMemo(() => {
-        // Use the date string as the key
-        return getRandomGradient(date);
-    }, [date]);
 
     // Strategy: Initialize with Shanghai time (likely match) to prevent specific "Flash" for main users.
     // Then use useEffect to update to local time for global users.
@@ -186,7 +177,7 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
         if (localHour !== currentHour) {
             setCurrentHour(localHour);
         }
-    }, []);
+    }, [currentHour]);
 
     const getGreeting = () => {
         const hour = currentHour ?? getShanghaiHour();

@@ -22,7 +22,7 @@ async function isAuthenticated(request: Request): Promise<boolean> {
     return false;
 }
 
-export async function GET(request: Request) {
+export async function GET(request: Request): Promise<NextResponse> {
     if (!(await isAuthenticated(request))) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -57,7 +57,7 @@ export async function GET(request: Request) {
     });
 }
 
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<NextResponse> {
     if (!(await isAuthenticated(request))) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
             if (Array.isArray(body.urls)) {
                 urls = body.urls;
             }
-        } catch (e) {
+        } catch (_e: unknown) {
             // Body might be empty, which is fine if we want full sync
         }
 
@@ -91,7 +91,7 @@ export async function POST(request: Request) {
             message: success ? `Submitted ${urls.length} URLs to IndexNow` : 'Submission failed',
             count: urls.length
         });
-    } catch (error) {
+    } catch (_error: unknown) {
         return NextResponse.json({ error: 'Server Error' }, { status: 500 });
     }
 }

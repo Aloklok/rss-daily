@@ -1,7 +1,7 @@
 // components/FloatingActionButtons.tsx
 
 import React, { useState } from 'react';
-import { Article, Tag } from '../types';
+
 import TagPopover from './TagPopover';
 import { useArticleMetadata } from '../hooks/useArticleMetadata';
 import { useArticleStore } from '../store/articleStore';
@@ -20,7 +20,7 @@ interface FloatingActionButtonsProps {
     isAdmin: boolean;
 }
 
-import { useUIStore } from '../store/uiStore';
+
 
 // ... (imports remain the same)
 

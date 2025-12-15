@@ -10,7 +10,7 @@ interface FreshRssTag {
     count?: number;
 }
 
-export async function GET() {
+export async function GET(): Promise<NextResponse> {
     const freshRss = getFreshRssClient();
 
     try {
@@ -43,7 +43,8 @@ export async function GET() {
             categories: categories.sort(sortByName),
             tags: tags.sort(sortByName),
         });
-    } catch (error: any) {
-        return NextResponse.json({ message: 'Error fetching categories and tags', error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return NextResponse.json({ message: 'Error fetching categories and tags', error: errorMessage }, { status: 500 });
     }
 }

@@ -3,7 +3,7 @@ import { getSupabaseClient } from '../../lib/api-utils';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(): Promise<NextResponse> {
     const supabase = getSupabaseClient();
 
     const { data, error } = await supabase

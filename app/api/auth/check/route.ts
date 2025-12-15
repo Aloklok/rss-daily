@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(): Promise<NextResponse> {
     const accessToken = process.env.ACCESS_TOKEN;
     if (!accessToken) {
         return NextResponse.json({ isAdmin: false, error: 'Server misconfiguration' }, { status: 500 });

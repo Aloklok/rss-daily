@@ -1,7 +1,6 @@
 // src/utils/colorUtils.ts
 
 const TAG_COLOR_CLASSES = [
-  'bg-slate-100 text-slate-800 dark:bg-slate-200 dark:text-slate-900',
   'bg-red-100 text-red-800 dark:bg-red-200 dark:text-red-900',
   'bg-orange-100 text-orange-800 dark:bg-orange-200 dark:text-orange-900',
   'bg-amber-100 text-amber-800 dark:bg-amber-200 dark:text-amber-900',
@@ -19,9 +18,6 @@ const TAG_COLOR_CLASSES = [
   'bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-200 dark:text-fuchsia-900',
   'bg-pink-100 text-pink-800 dark:bg-pink-200 dark:text-pink-900',
   'bg-rose-100 text-rose-800 dark:bg-rose-200 dark:text-rose-900',
-  'bg-gray-100 text-gray-800 dark:bg-gray-200 dark:text-gray-900',
-  'bg-zinc-100 text-zinc-800 dark:bg-zinc-200 dark:text-zinc-900',
-  'bg-neutral-100 text-neutral-800 dark:bg-neutral-200 dark:text-neutral-900',
   'bg-stone-100 text-stone-800 dark:bg-stone-200 dark:text-stone-900'
 ];
 

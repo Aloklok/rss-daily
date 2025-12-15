@@ -3,9 +3,9 @@ import { getSitemapUrls } from '../../lib/sitemap-helper';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(): Promise<NextResponse> {
     const urls = await getSitemapUrls();
-    const baseUrl = 'https://www.alok-rss.top'; // Keep for safety or redundancy if needed, though urls has full path
+    const _baseUrl = 'https://www.alok-rss.top'; // Keep for safety or redundancy if needed, though urls has full path
 
     const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

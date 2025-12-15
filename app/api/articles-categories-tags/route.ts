@@ -35,7 +35,7 @@ function mapFreshItemToMinimalArticle(item: FreshRSSItem): Article {
     };
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
     const searchParams = request.nextUrl.searchParams;
     const streamId = searchParams.get('value'); // Note: frontend sends 'value' as param name? Original code used req.query.value
     const n = searchParams.get('n');
@@ -63,7 +63,8 @@ export async function GET(request: NextRequest) {
             articles,
             continuation: data.continuation
         });
-    } catch (error: any) {
-        return NextResponse.json({ message: 'Error fetching from FreshRSS', error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return NextResponse.json({ message: 'Error fetching from FreshRSS', error: errorMessage }, { status: 500 });
     }
 }

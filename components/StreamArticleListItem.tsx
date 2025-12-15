@@ -30,15 +30,15 @@ const StreamArticleListItem: React.FC<StreamArticleListItemProps> = memo(({ arti
     const article = storeArticle || initialArticle;
     const openModal = useUIStore(state => state.openModal);
 
-    if (!article) return null;
-
     const { userTagLabels: displayedUserTags } = useArticleMetadata(article);
+
+    if (!article) return null;
 
     return (
         <>
             {/* Visual Item - Matches ArticleList.tsx EXACTLY */}
             <div
-                className="group relative bg-white dark:bg-midnight-card rounded-xl p-5 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer overflow-hidden will-change-transform backface-hidden ring-1 ring-black/5 dark:ring-white/10 shadow-sm"
+                className="group relative bg-white dark:bg-white/60 rounded-xl p-5 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer overflow-hidden will-change-transform backface-hidden ring-1 ring-black/5 dark:ring-black/5 shadow-sm"
                 onClick={() => openModal(article.id)}
             >
                 <div className="absolute inset-0 bg-linear-to-r from-transparent via-transparent to-stone-50/50 dark:to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
@@ -52,8 +52,8 @@ const StreamArticleListItem: React.FC<StreamArticleListItemProps> = memo(({ arti
                     </div>
 
                     <div className="flex items-center gap-3 text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-4">
-                        <span className="text-gray-600 dark:text-midnight-text-secondary">{article.sourceName}</span>
-                        <span className="size-1 rounded-full bg-gray-300 dark:bg-gray-600" />
+                        <span className="text-gray-600 dark:text-stone-600">{article.sourceName}</span>
+                        <span className="size-1 rounded-full bg-gray-300 dark:bg-stone-400" />
                         <span>{new Date(article.published).toLocaleDateString('zh-CN')}</span>
                     </div>
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchArticleContentServer } from '../../lib/data';
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
     try {
         const body = await request.json();
         const { id } = body;
@@ -17,8 +17,9 @@ export async function POST(request: NextRequest) {
         }
 
         return NextResponse.json(data);
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error in articles API:', error);
-        return NextResponse.json({ message: 'Internal Server Error', error: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return NextResponse.json({ message: 'Internal Server Error', error: errorMessage }, { status: 500 });
     }
 }

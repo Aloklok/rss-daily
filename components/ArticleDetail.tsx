@@ -1,7 +1,7 @@
 // components/ArticleDetail.tsx
 
 import React, { useEffect, useState, useRef } from 'react';
-import { Article, CleanArticleContent, Tag } from '../types'; // 导入 Tag
+import { Article, CleanArticleContent } from '../types'; // 导入 Tag
 import { getCleanArticleContent } from '../services/api';
 import { useArticleMetadata } from '../hooks/useArticleMetadata';
 import { getRandomColorClass } from '../utils/colorUtils';
@@ -38,7 +38,7 @@ function stripLeadingTitle(contentHtml: string, title: string): string {
   return contentHtml;
 }
 
-const ArticleDetail: React.FC<ArticleDetailProps> = ({ article, onClose, initialContent }) => {
+const ArticleDetail: React.FC<ArticleDetailProps> = ({ article, onClose: _onClose, initialContent }) => {
   const [isLoading, setIsLoading] = useState<boolean>(!initialContent);
   const [content, setContent] = useState<CleanArticleContent | null>(initialContent || null);
   const [error, setError] = useState<string | null>(null);

@@ -162,7 +162,6 @@ export default async function Home(props: { searchParams?: Promise<{ [key: strin
 
     let initialData: any = {};
     let initialFilter: Filter | null = null;
-    let briefingDates: string[] = [];
 
     if (filterType && filterValue) {
         // Category / Tag / Search View
@@ -177,7 +176,7 @@ export default async function Home(props: { searchParams?: Promise<{ [key: strin
         // Sidebar dates are fetched in MainLayout -> SidebarClient.
     } else {
         // Default Briefing View
-        const { initialDate, articles, headerImageUrl, dates } = await getLatestBriefingData();
+        const { initialDate, articles, headerImageUrl } = await getLatestBriefingData();
         initialData = {
             initialDate,
             initialHeaderImageUrl: headerImageUrl,
@@ -188,7 +187,6 @@ export default async function Home(props: { searchParams?: Promise<{ [key: strin
         if (initialDate) {
             initialFilter = { type: 'date', value: initialDate };
         }
-        briefingDates = dates || []; // Use default empty array for dates if undefined
     }
 
     const renderSchemas = [];

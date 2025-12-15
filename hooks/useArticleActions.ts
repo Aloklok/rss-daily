@@ -31,10 +31,10 @@ export const useArticleActions = () => {
 
     const handleArticleStateChange = async (articleId: string | number, tagsToAdd: string[], tagsToRemove: string[]) => {
         await updateArticleState({ articleId, tagsToAdd, tagsToRemove }, {
-            onSuccess: (updatedArticle) => {
+            onSuccess: (_updatedArticle) => {
                 // Success handling if needed
             },
-            onError: (error) => {
+            onError: (_error) => {
                 showToast('标签更新失败', 'error');
             }
         });

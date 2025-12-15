@@ -1,7 +1,7 @@
 // components/ArticleGroup.tsx
 
-import React,{memo}from 'react';
-import { Article, Tag } from '../types';
+import React, { memo } from 'react';
+import { Article } from '../types';
 import ArticleCard from './ArticleCard';
 
 const DecorativeDivider = () => (
@@ -19,7 +19,7 @@ interface ArticleGroupProps {
     onStateChange: (articleId: string | number, tagsToAdd: string[], tagsToRemove: string[]) => Promise<void>;
 }
 
-const ArticleGroup: React.FC<ArticleGroupProps> = ({ importance, articles,onReaderModeRequest, onStateChange }) => {
+const ArticleGroup: React.FC<ArticleGroupProps> = ({ importance, articles, onReaderModeRequest, onStateChange }) => {
     if (!articles || articles.length === 0) {
         return null;
     }
@@ -28,13 +28,13 @@ const ArticleGroup: React.FC<ArticleGroupProps> = ({ importance, articles,onRead
 
     return (
         <section id={sectionId} className="mb-12">
-<header className="sticky top-0 z-20 mb-4"> 
-<div className="backdrop-blur-sm px-4 py-3  border-b-2 border-transparent [border-image:linear-gradient(to_right,#c8b382,#b9975d,#e7d8ac)_1]">
-    <h2 className="font-serif font-bold text-[1.35rem] leading-tight text-[#7a1e16]"> 
-    {importance} 
-    </h2> 
-    </div> 
-</header>
+            <header className="sticky top-0 z-20 mb-4">
+                <div className="backdrop-blur-sm px-4 py-3  border-b-2 border-transparent [border-image:linear-gradient(to_right,#c8b382,#b9975d,#e7d8ac)_1]">
+                    <h2 className="font-serif font-bold text-[1.35rem] leading-tight text-[#7a1e16]">
+                        {importance}
+                    </h2>
+                </div>
+            </header>
 
             <div className="flex flex-col">
                 {articles.map((article, index) => (

@@ -7,7 +7,7 @@ interface FreshRssItem {
     annotations?: { id: string }[];
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
     try {
         const body = await request.json();
         const { articleIds } = body;
@@ -39,7 +39,8 @@ export async function POST(request: NextRequest) {
         }
 
         return NextResponse.json(states);
-    } catch (error: any) {
-        return NextResponse.json({ message: 'Error fetching article states', error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return NextResponse.json({ message: 'Error fetching article states', error: errorMessage }, { status: 500 });
     }
 }

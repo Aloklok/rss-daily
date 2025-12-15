@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 
-// @ts-ignore Vercel 会在边缘环境中自动提供全局类型
+// @ts-expect-error -- Proxy definitions
 export function proxy(request: Request) {
 
     const url = new URL(request.url);
     const userAgent = request.headers.get('user-agent') || '';
+
 
     // 0. Anti-Scraping: Block specific AI bots and scrapers
     const BLOCKED_AGENTS = [
@@ -110,6 +111,6 @@ export function proxy(request: Request) {
 // 排除: api/, _vercel/, sitemap.xml, robots.txt, 以及所有带扩展名的文件（如 .env, .js, .css 等）
 export const config = {
     matcher: [
-        '/((?!api/|_vercel/|sitemap.xml|robots.txt|.+\..+).*)',
+        '/((?!api/|_vercel/|sitemap.xml|robots.txt|.+\\\\..+).*)',
     ],
 };

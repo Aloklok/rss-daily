@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Article, Filter, AvailableFilters } from '../types';
 import { useSidebar } from '../hooks/useSidebar';
-import { useArticleStore } from '../store/articleStore';
 import { useUIStore } from '../store/uiStore';
 
 // Import extracted components
@@ -107,13 +106,7 @@ const Sidebar = React.memo<SidebarProps>(({
 
     const tabButtonClass = (isActive: boolean) => `flex-1 text-sm font-medium transition-all duration-200 focus:outline-hidden rounded-md py-2.5 ${isActive ? 'bg-white shadow-xs text-gray-900 dark:bg-midnight-selected dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:text-white/70 dark:hover:text-white'} cursor-pointer`;
 
-    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-    const theme = useUIStore(state => state.theme);
-    const setTheme = useUIStore(state => state.setTheme);
-    const fontSize = useUIStore(state => state.fontSize);
-    const setFontSize = useUIStore(state => state.setFontSize);
-    const lineHeight = useUIStore(state => state.lineHeight);
-    const setLineHeight = useUIStore(state => state.setLineHeight);
+    // Unused settings state removed
 
     return (
         <aside className="flex flex-col shrink-0 bg-gray-50 dark:bg-midnight-sidebar w-full h-full md:w-80 px-4 pt-4 pb-2 space-y-6 relative border-r border-gray-200 dark:border-midnight-border">
@@ -210,5 +203,7 @@ const Sidebar = React.memo<SidebarProps>(({
         </aside>
     );
 });
+
+Sidebar.displayName = 'Sidebar';
 
 export default memo(Sidebar);

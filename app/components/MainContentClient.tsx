@@ -11,7 +11,7 @@ import TrendsView from '../../components/TrendsView';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { useBriefingArticles, useFilteredArticles, useSearchResults, useUpdateArticleState } from '../../hooks/useArticles';
 import { Filter, Article } from '../../types';
-import { useRouter } from 'next/navigation';
+
 import { useQueryClient } from '@tanstack/react-query';
 
 interface MainContentClientProps {
@@ -50,7 +50,8 @@ export default function MainContentClient({
 
     const openModal = useUIStore(state => state.openModal);
 
-    const router = useRouter();
+
+
     const queryClient = useQueryClient();
     const { mutateAsync: updateArticleState } = useUpdateArticleState();
 

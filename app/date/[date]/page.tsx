@@ -1,6 +1,5 @@
 import React from 'react';
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
 import { fetchBriefingData, fetchAvailableDates, getTodayInShanghai } from '../../lib/data';
 
 import BriefingClient from './BriefingClient';
@@ -146,7 +145,6 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
     const allArticles = Object.values(groupedArticles).flat();
 
     // Check if empty
-    const hasArticles = allArticles.length > 0;
 
     // Prefetch header image
     const headerImageUrl = await resolveBriefingImage(date);

@@ -5,8 +5,7 @@ import {
     fetchBriefingArticles,
     fetchFilteredArticles,
     fetchSearchResults,
-    fetchStarredArticleHeaders
-} from '../services/articleLoader'; // 1. 【核心修改】从新的加载器导入
+} from '../services/articleLoader';
 import { getRawStarredArticles, editArticleTag, editArticleState, markAllAsRead as apiMarkAllAsRead } from '../services/api';
 import { useArticleStore } from '../store/articleStore';
 import { getTodayInShanghai } from '../services/api';
@@ -180,7 +179,7 @@ export const useUpdateArticleState = () => {
             const touchedTags = new Set([...variables.tagsToAdd, ...variables.tagsToRemove]);
             touchedTags.forEach(tag => {
                 // Don't block UI updates, fire and forget
-                fetch(`/api/revalidate?tag=${encodeURIComponent(tag)}`).catch(err =>
+                fetch(`/ api / revalidate ? tag = ${encodeURIComponent(tag)} `).catch(err =>
                     console.warn(`[Revalidate] Failed to trigger for ${tag}`, err)
                 );
             });
@@ -198,10 +197,9 @@ export const useUpdateArticleState = () => {
 
 // 5. 批量标记已读
 export const useMarkAllAsRead = () => {
-    const queryClient = useQueryClient();
     // 2. 【增加】获取新的批量更新 action
     const markArticlesAsRead = useArticleStore((state) => state.markArticlesAsRead);
-    const articlesById = useArticleStore((state) => state.articlesById); // 保持不变，可能未来需要
+
     return useMutation({
         mutationFn: apiMarkAllAsRead,
         onSuccess: (markedIds) => {
@@ -210,7 +208,7 @@ export const useMarkAllAsRead = () => {
             // 用一次调用替代整个 forEach 循环
             markArticlesAsRead(markedIds);
         },
-        onError: (err, variables, context) => {
+        onError: (err) => {
             console.error("Failed to mark as read:", err);
         },
     });

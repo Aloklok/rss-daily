@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { useFilteredArticles } from '../../hooks/useArticles';
 import StreamArticleListItem from '../../components/StreamArticleListItem';
 import { useArticleStore } from '../../store/articleStore';
@@ -34,8 +34,7 @@ export default function StreamList({ filterValue, initialArticles, initialContin
         data,
         fetchNextPage,
         hasNextPage,
-        isFetchingNextPage,
-        status
+        isFetchingNextPage
     } = useFilteredArticles(filterValue, initialData);
 
     const articlesById = useArticleStore(state => state.articlesById);

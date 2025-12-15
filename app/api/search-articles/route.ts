@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
     const cookieStore = await cookies();
     if (!verifyAdmin(cookieStore)) {
         return NextResponse.json({ message: 'Unauthorized: Admin access required' }, { status: 403 });
@@ -35,11 +35,11 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(data || []);
 
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error('Unexpected server error', err);
         return NextResponse.json({
             message: 'Unexpected server error',
-            details: err?.message ?? String(err),
+            details: err instanceof Error ? err.message : String(err),
         }, { status: 500 });
     }
 }

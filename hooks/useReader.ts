@@ -1,16 +1,15 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { Article, CleanArticleContent } from '../types';
 import { getCleanArticleContent } from '../services/api';
-import { useArticleStore } from '../store/articleStore'; // 【新增】导入 Zustand store
-import { useUIStore } from '../store/uiStore';
+import { useArticleStore } from '../store/articleStore';
+import { useUIStore } from '../store/uiStore'; // 【新增】导入 Zustand store
 
 export const useReader = () => {
     const [readerContent, setReaderContent] = useState<CleanArticleContent | null>(null);
     const [isReaderLoading, setIsReaderLoading] = useState(false);
-    const [readerArticle, setReaderArticle] = useState<Article | null>(null);
+
     const articlesById = useArticleStore((state) => state.articlesById); // 【新增】从 store 获取全局文章
 
-    const selectedArticleId = useUIStore(state => state.selectedArticleId);
     const setSelectedArticleId = useUIStore(state => state.setSelectedArticleId);
 
     // Map reader actions to modal actions
@@ -21,9 +20,7 @@ export const useReader = () => {
 
     const isReaderVisible = !!modalArticleId && modalInitialMode === 'reader';
 
-    const openReader = useCallback(() => {
-        // This will be handled in handleOpenReader with the ID
-    }, []);
+
 
     const closeReader = closeModal;
 
@@ -42,18 +39,19 @@ export const useReader = () => {
         try {
             const content = await getCleanArticleContent(article);
             setReaderContent(content);
-        } catch (error) {
+        } catch (_error) {
+            // ignore
         } finally {
             setIsReaderLoading(false);
         }
-    }, [openReader, addArticles]);
+    }, [openModal, addArticles]);
 
     const handleShowArticleInMain = useCallback((article: Article) => {
         addArticles([article]);
         setSelectedArticleId(article.id);
         // setActiveFilter(null); // 移除此行
         closeReader();
-    }, [addArticles, setSelectedArticleId, closeReader, articlesById]);
+    }, [addArticles, setSelectedArticleId, closeReader]);
 
     const handleCloseArticleDetail = useCallback(() => {
         setSelectedArticleId(null);

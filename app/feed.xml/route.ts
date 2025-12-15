@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getAvailableDates } from '@/services/api';
 import { fetchBriefingArticles } from '@/services/articleLoader';
-import { Article } from '@/types';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(): Promise<NextResponse> {
     try {
         // 1. 获取最新的简报日期
         const dates = await getAvailableDates();
@@ -69,7 +68,7 @@ export async function GET() {
             },
         });
 
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('Error generating feed:', error);
         return new NextResponse('Internal Server Error', { status: 500 });
     }

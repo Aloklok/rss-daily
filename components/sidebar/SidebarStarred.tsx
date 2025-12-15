@@ -22,11 +22,11 @@ const SidebarStarred: React.FC<SidebarStarredProps> = ({
     articles,
     onArticleClick,
     starredCount,
-    activeFilter,
+    activeFilter: _activeFilter,
     selectedArticleId,
     onSelect
 }) => {
-    const isFilterActive = activeFilter?.type === 'starred';
+    // const isFilterActive = activeFilter?.type === 'starred';
     const listItemButtonClass = (isActive: boolean) => `w-full text-left px-3 py-2 rounded-md transition-all duration-200 flex items-center gap-3 text-sm font-medium ${isActive ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-midnight-text-secondary dark:hover:bg-midnight-card dark:hover:text-gray-200'} cursor-pointer`;
 
     return (
@@ -57,7 +57,7 @@ const SidebarStarred: React.FC<SidebarStarredProps> = ({
                             <Link
                                 key={article.id}
                                 href={`/article/${toShortId(String(article.id))}?view=page`}
-                                onClick={(e) => {
+                                onClick={(_e) => {
                                     // Optional: update store but let Link handle nav
                                     onArticleClick(article);
                                 }}

@@ -16,7 +16,7 @@ import { STAR_TAG, READ_TAG } from '../../lib/constants'; // Assuming constants 
 
 
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
     const cookieStore = await cookies();
     if (!verifyAdmin(cookieStore)) {
         return NextResponse.json({ message: 'Unauthorized: Admin access required' }, { status: 403 });
@@ -67,7 +67,8 @@ export async function POST(request: NextRequest) {
         }
 
         return NextResponse.json({ success: true });
-    } catch (error: any) {
-        return NextResponse.json({ message: 'Internal Server Error', error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return NextResponse.json({ message: 'Internal Server Error', error: errorMessage }, { status: 500 });
     }
 }

@@ -6,7 +6,7 @@ interface ArticleModalHeaderProps {
     onClose: () => void;
 }
 
-const ArticleModalHeader: React.FC<ArticleModalHeaderProps> = ({ viewMode, setViewMode, onClose }) => {
+const ArticleModalHeader: React.FC<ArticleModalHeaderProps> = ({ viewMode, setViewMode, onClose: _onClose }) => {
     return (
         <div className="flex items-center gap-3 p-3 border-b border-stone-100 dark:border-white/10 bg-white/80 dark:bg-midnight-sidebar backdrop-blur-xl z-10">
             <div className="flex bg-gray-200/80 dark:bg-gray-800/80 p-1 rounded-lg">

@@ -31,7 +31,11 @@ export const Fireflies: React.FC = () => {
             });
         }
 
-        setFireflies(newFireflies);
+        // Check if window exists to ensure client-side execution
+        if (typeof window !== 'undefined') {
+            // eslint-disable-next-line
+            setFireflies(newFireflies);
+        }
     }, []);
 
     return (

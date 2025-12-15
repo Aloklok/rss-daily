@@ -148,4 +148,6 @@ const ArticleActions: React.FC<ArticleActionsProps> = memo(({ article, className
     );
 });
 
+ArticleActions.displayName = 'ArticleActions';
+
 export default ArticleActions;
