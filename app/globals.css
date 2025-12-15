@@ -1,33 +1,325 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@plugin "@tailwindcss/typography";
 
-/* 图片和视频布局稳定性优化 */
+
+@theme {
+    /* Colors */
+    --color-midnight-bg: #DCD2C8;
+    --color-midnight-sidebar: #2A2A4A;
+    --color-midnight-card: #1f2937;
+    --color-midnight-selected: #db2777;
+    --color-midnight-border: #1f2937;
+    --color-midnight-text-primary: #000000;
+    --color-midnight-text-reader: #000000;
+    --color-midnight-text-secondary: #9ca3af;
+    --color-midnight-text-title: #000000;
+    --color-midnight-metadata-bg: #E8E8E0;
+    --color-midnight-badge: #374151;
+
+    /* Callout Colors */
+    --color-midnight-callout-pink-bg: #fce7f3;
+    --color-midnight-callout-pink-title: #500724;
+    --color-midnight-callout-pink-body: #831843;
+
+    --color-midnight-callout-blue-bg: #dbeafe;
+    --color-midnight-callout-blue-title: #172554;
+    --color-midnight-callout-blue-body: #1e3a8a;
+
+    --color-midnight-callout-orange-bg: #ffedd5;
+    --color-midnight-callout-orange-title: #431407;
+    --color-midnight-callout-orange-body: #7c2d12;
+
+    --color-midnight-callout-green-bg: #dcfce7;
+    --color-midnight-callout-green-title: #052e16;
+    --color-midnight-callout-green-body: #14532d;
+
+    /* Fonts */
+    --font-sans: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+    --font-serif: var(--font-playfair), "Playfair Display", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+
+    /* Background Image */
+    --background-image-paper-texture: url('/paper-texture.webp');
+}
+
+/* Base Styles & Resets */
+@layer base {
+
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--color-gray-200, currentcolor);
+    }
+
+    button,
+    a,
+    [role="button"] {
+        cursor: pointer;
+    }
+}
+
+/* Typography Overrides - Replaces JS config */
+@layer utilities {
+    .prose {
+        --tw-prose-body: #292524;
+        /* Stone-800 */
+        --tw-prose-headings: #0c0a09;
+        /* Stone-950 */
+        --tw-prose-links: #c2410c;
+        /* Orange-700 */
+        --tw-prose-bold: #0c0a09;
+        --tw-prose-counters: #57534e;
+        --tw-prose-bullets: #a8a29e;
+        /* Stone-400 */
+        --tw-prose-hr: #e7e5e4;
+        /* Stone-200 */
+        --tw-prose-quotes: #44403c;
+        --tw-prose-quote-borders: #f97316;
+        /* Orange-500 */
+    }
+
+    /* Dark Mode Prose */
+    @media (prefers-color-scheme: dark) {
+        .prose-invert {
+            --tw-prose-body: var(--color-midnight-text-reader);
+            --tw-prose-headings: var(--color-midnight-text-reader);
+            --tw-prose-lead: var(--color-midnight-text-reader);
+            --tw-prose-links: var(--color-blue-600);
+            --tw-prose-bold: var(--color-midnight-text-reader);
+            --tw-prose-counters: var(--color-midnight-text-reader);
+            --tw-prose-bullets: var(--color-midnight-text-reader);
+            --tw-prose-hr: var(--color-gray-300);
+            --tw-prose-quotes: var(--color-midnight-text-reader);
+            --tw-prose-quote-borders: var(--color-midnight-text-reader);
+            --tw-prose-captions: var(--color-midnight-text-reader);
+            --tw-prose-code: var(--color-rose-600);
+            --tw-prose-pre-code: var(--color-midnight-text-reader);
+            --tw-prose-pre-bg: var(--color-gray-800);
+            --tw-prose-th-borders: var(--color-midnight-text-reader);
+            --tw-prose-td-borders: var(--color-midnight-text-reader);
+        }
+    }
+}
+
+/* Specific Typography Elements */
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+    font-family: var(--font-sans);
+    color: #0c0a09;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    text-wrap: pretty;
+}
+
+.prose h2 {
+    position: relative;
+    font-size: 1.6em;
+    margin-top: 2em;
+    margin-bottom: 0.8em;
+    padding-left: 0.75em;
+    border: none;
+    line-height: 1.3;
+}
+
+.prose h2::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.2em;
+    bottom: 0.2em;
+    width: 6px;
+    border-radius: 99px;
+    background-color: #ea580c;
+    /* Orange-600 */
+}
+
+.prose h3 {
+    position: relative;
+    font-size: 1.25em;
+    margin-top: 1.5em;
+    margin-bottom: 0.6em;
+    font-weight: 700;
+    padding-left: 0.75em;
+}
+
+.prose h3::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.25em;
+    bottom: 0.25em;
+    width: 5px;
+    border-radius: 99px;
+    background-color: #a8a29e;
+    /* Stone-400 */
+}
+
+.prose p {
+    margin-top: 0.2em;
+    margin-bottom: 0.6em;
+    line-height: 1.6;
+    text-wrap: pretty;
+}
+
+/* Hide empty P tags */
+.prose p:empty {
+    display: none;
+}
+
+.prose ul,
+.prose ol {
+    margin-top: 0.2em;
+    margin-bottom: 0.6em;
+    list-style-position: outside;
+    padding-left: 1.25em;
+}
+
+.prose ul {
+    list-style-type: disc;
+}
+
+.prose ol {
+    list-style-type: decimal;
+}
+
+.prose li {
+    margin-top: 0.2em;
+    margin-bottom: 0.2em;
+}
+
+.prose pre {
+    background-color: #0f172a;
+    color: #e2e8f0;
+    border-radius: 0.5rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    max-height: none;
+    /* Override default max-height if set */
+    overflow-y: visible;
+}
+
+.prose pre code {
+    background-color: transparent;
+    color: inherit;
+    font-size: 0.875em;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-weight: 500;
+}
+
+.prose code {
+    color: #9a3412;
+    /* Orange-900 */
+    background-color: #ffedd5;
+    /* Orange-100 */
+    padding: 0.2em 0.4em;
+    border-radius: 0.25rem;
+    font-weight: 600;
+    font-family: monospace;
+}
+
+.prose code::before,
+.prose code::after {
+    content: "";
+}
+
+.prose table {
+    width: 100%;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-collapse: collapse;
+    font-size: 0.95em;
+    background-color: transparent;
+    padding-left: 1rem;
+}
+
+.prose thead {
+    background-color: #1b2a53a1;
+    border-bottom: 1px solid #1b2a53a1;
+}
+
+.prose thead th {
+    color: #0c0a09;
+    font-weight: 700;
+    padding: 0.75rem;
+    padding-bottom: 0.4rem !important;
+    text-align: center !important;
+    font-size: 1.05em;
+}
+
+.prose tbody tr {
+    border-bottom: 1px solid #e7e5e4;
+}
+
+.prose tbody td {
+    text-align: center !important;
+    padding: 0.75rem;
+    color: #44403c;
+    vertical-align: top;
+}
+
+/* Force removal of P margin in tables */
+.prose tbody td p {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.prose blockquote {
+    font-style: normal;
+    border-left-color: #957d6cff;
+    /* Orange-500 equivalent */
+    border-left-width: 4px;
+    background-color: transparent;
+    color: #57534e;
+    padding-left: 1.25rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+.prose i,
+.prose em {
+    font-style: italic;
+}
+
+.prose a {
+    text-decoration: none;
+    color: #c2410c;
+    border-bottom: 1px solid rgba(194, 65, 12, 0.3);
+    transition: border-color 0.2s;
+}
+
+.prose a:hover {
+    border-bottom-color: #c2410c;
+}
+
+/* Image & Video Optimization */
 .prose img {
     max-width: 100%;
     height: auto;
-    /* 预留空间以防止CLS */
     display: block;
 }
 
-/* 确保视频容器有固定宽高比 */
 .prose video {
     max-width: 100%;
     height: auto;
 }
 
-/* 防止图片加载时的布局偏移 */
 .prose img[data-src] {
     min-height: 100px;
 }
 
-/* 自定义字体加载时防止文本闪烁 */
+/* Custom Font Fallback */
 @supports (font-variation-settings: normal) {
     body {
-        font-family: 'Inter', 'Microsoft YaHei', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+        font-family: var(--font-sans);
     }
 }
 
+/* Dark Mode Backgrounds */
 @media (prefers-color-scheme: dark) {
     body {
         @apply bg-midnight-bg text-slate-200;
@@ -36,47 +328,34 @@
     }
 }
 
-/* Ensure root background matches theme to prevent white flashes in PWA */
 html,
 body {
     @apply bg-gray-50;
+    overflow-x: hidden;
 }
 
-
-/* index.css */
-
-/* --- 在文件末尾新增以下代码 --- */
-
-/* For Webkit browsers (Chrome, Safari, Edge) */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
     width: 8px;
-    /* 预留滚动条宽度 */
 }
 
 ::-webkit-scrollbar-track {
     background: transparent;
-    /* 轨道背景透明 */
 }
 
 ::-webkit-scrollbar-thumb {
     background-color: rgba(0, 0, 0, 0.2);
-    /* 滑块颜色 */
     border-radius: 4px;
-    /* 滑块圆角 */
     border: 2px solid transparent;
-    /* 创建一个内边距效果 */
     background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
     background-color: rgba(0, 0, 0, 0.4);
-    /* 鼠标悬浮时滑块颜色 */
 }
 
-/* For Firefox */
+/* Firefox Scrollbar */
 * {
     scrollbar-width: thin;
-    /* 让滚动条变细 */
     scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
-    /* 滑块颜色 和 轨道颜色 */
 }

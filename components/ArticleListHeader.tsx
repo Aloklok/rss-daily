@@ -24,10 +24,10 @@ const ArticleListHeader: React.FC<ArticleListHeaderProps> = memo(({ title, count
     }, [title]);
 
     return (
-        <header className={`relative mb-8 overflow-hidden rounded-2xl bg-gradient-to-br ${randomGradient} shadow-sm`}>
+        <header className={`relative mb-8 overflow-hidden rounded-2xl bg-linear-to-br ${randomGradient} shadow-xs`}>
             <div className="absolute inset-0 bg-[url('/paper-texture.png')] opacity-30 mix-blend-overlay pointer-events-none"></div>
             <div className="relative px-6 py-6 md:px-10 md:py-8">
-                <h1 className="text-3xl md:text-4xl font-serif font-bold text-gray-900 dark:text-white tracking-tight drop-shadow-sm">
+                <h1 className="text-3xl md:text-4xl font-serif font-bold text-gray-900 dark:text-white tracking-tight drop-shadow-xs">
                     {title}
                 </h1>
 

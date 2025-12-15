@@ -151,7 +151,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({ article, onClose, initial
   return (
     <div className="p-2 md:p-8">
       <article>
-        <header className="mb-6 border-b pb-6">
+        <header className="mb-3 border-b pb-3 md:mb-6 md:pb-6">
 
           <h1 className="text-3xl md:text-4xl font-bold font-serif text-gray-900 dark:text-midnight-text-reader mb-2">
             <ArticleTitleStar article={article} className="inline-block w-8 h-8 mr-2 relative top-[3px]" />
@@ -173,23 +173,23 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({ article, onClose, initial
 
             <button
               onClick={handleCopy}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-stone-200 dark:bg-stone-700 hover:bg-stone-300 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-200 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-stone-200 dark:bg-stone-700 hover:bg-stone-300 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-200 transition-colors cursor-pointer"
               title="复制全文"
             >
               {copied ? (
                 <>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-600 dark:text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-600 dark:text-green-400 cursor-pointer" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
-                  <span className="text-green-600 dark:text-green-400">已复制</span>
+                  <span className="text-green-600 dark:text-green-400 cursor-pointer">已复制</span>
                 </>
               ) : (
                 <>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 cursor-pointer" viewBox="0 0 20 20" fill="currentColor">
                     <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
                     <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
                   </svg>
-                  <span>复制</span>
+                  <span className="cursor-pointer">复制</span>
                 </>
               )}
             </button>
@@ -197,14 +197,14 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({ article, onClose, initial
               href={article.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-stone-200 dark:bg-stone-700 hover:bg-stone-300 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-200 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-stone-200 dark:bg-stone-700 hover:bg-stone-300 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-200 transition-colors cursor-pointer"
               title="打开原文"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 cursor-pointer" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
                 <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
               </svg>
-              <span>原文</span>
+              <span className="cursor-pointer">原文</span>
             </a>
           </div>
         </header>
@@ -219,7 +219,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({ article, onClose, initial
             <p>无法加载文章内容：{error}</p>
           </div>
         ) : displayContent ? (
-          <div id="article-detail-content" ref={contentRef} className="prose prose-lg max-w-none text-gray-800 dark:text-midnight-text-reader dark:prose-invert leading-relaxed mt-6 select-text" dangerouslySetInnerHTML={{ __html: displayContent }} />
+          <div id="article-detail-content" ref={contentRef} className="prose md:prose-lg max-w-none break-words text-gray-800 dark:text-midnight-text-reader dark:prose-invert leading-relaxed mt-6 select-text" dangerouslySetInnerHTML={{ __html: displayContent }} />
         ) : (
           <div className="text-gray-500 py-10">
             <p>正在获取全文内容...</p>

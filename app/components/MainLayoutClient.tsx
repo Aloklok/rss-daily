@@ -26,6 +26,8 @@ export default function MainLayoutClient({
     const toggleSidebar = useUIStore(state => state.toggleSidebar);
     const setSidebarCollapsed = useUIStore(state => state.setSidebarCollapsed);
     const setAdminStatus = useUIStore(state => state.setAdminStatus);
+    const selectedArticleId = useUIStore(state => state.selectedArticleId);
+    const modalArticleId = useUIStore(state => state.modalArticleId);
 
     // Initialize admin status immediately
     const initialized = useRef(false);
@@ -107,7 +109,7 @@ export default function MainLayoutClient({
                 className={`fixed top-5 p-2 bg-white dark:bg-midnight-card rounded-full shadow-lg hover:shadow-xl ${transitionClass} border border-gray-200 dark:border-midnight-border z-50
                     hidden md:block
                     md:left-5 ${transitionsEnabled ? 'md:transition-all md:duration-300' : ''} ${isSidebarCollapsed ? 'md:left-5' : 'md:left-[304px]'}
-                    right-5 md:right-auto 
+                    right-5 md:right-auto cursor-pointer
                 `}
                 aria-label="Toggle Sidebar"
             >
@@ -119,23 +121,26 @@ export default function MainLayoutClient({
             </button>
 
             {/* Mobile Toggle Button */}
-            <button
-                onClick={handleToggle}
-                className={`md:hidden fixed top-3 right-5 z-50 p-2 rounded-full ${transitionClass}
-                    ${isSidebarCollapsed ? 'bg-gray-800 text-white' : 'bg-white/20 text-white'}
+            {/* Mobile Toggle Button - HIDE when modal is open */}
+            {!modalArticleId && (
+                <button
+                    onClick={handleToggle}
+                    className={`md:hidden fixed top-4 right-6 z-50 p-2 rounded-full ${transitionClass}
+                    ${isSidebarCollapsed ? 'bg-gray-800 text-white' : 'bg-white/20 text-white'} cursor-pointer
                 `}
-                aria-label="Toggle Sidebar"
-            >
-                {isSidebarCollapsed ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
-                ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="3" y="4" width="18" height="16" rx="2" strokeWidth="2" /><path d="M9 4v16" strokeWidth="2" /></svg>
-                )}
-            </button>
+                    aria-label="Toggle Sidebar"
+                >
+                    {isSidebarCollapsed ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+                    ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><rect x="3" y="4" width="18" height="16" rx="2" strokeWidth="2" /><path d="M9 4v16" strokeWidth="2" /></svg>
+                    )}
+                </button>
+            )}
 
             {/* Main Content Area */}
             <div ref={mainContentRef} className={`flex-1 flex flex-col min-w-0 bg-neutral-50 dark:bg-midnight-bg bg-paper-texture dark:bg-none ${transitionClass} ${!isSidebarCollapsed ? 'md:ml-80' : ''}`}>
-                <div className="w-full max-w-3xl mx-auto px-2 md:px-8 pt-4">
+                <div className="w-full max-w-3xl mx-auto px-2 md:px-8 pt-2 md:pt-4">
                     {children}
                 </div>
                 <FloatingButtonsClient isAdmin={isAdmin} />

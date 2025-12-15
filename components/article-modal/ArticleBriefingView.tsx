@@ -33,7 +33,7 @@ const ArticleBriefingView: React.FC<ArticleBriefingViewProps> = ({ article, isLo
                 <p className="text-gray-500 mb-6">该文章尚未完成 AI 分析，请直接阅读原文。</p>
                 <button
                     onClick={onReaderModeRequest}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors shadow-sm"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors shadow-xs cursor-pointer"
                 >
                     切换到原文阅读
                 </button>

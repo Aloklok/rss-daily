@@ -131,6 +131,17 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({ article, onCl
             <div onClick={onClose} className="fixed inset-0 bg-black/60 z-30 transition-opacity duration-300 animate-fadeIn" />
             <div className="fixed top-0 right-0 h-full w-full max-w-2xl bg-neutral-50 dark:bg-midnight-bg bg-paper-texture dark:bg-none shadow-2xl z-40 transform transition-transform duration-300 animate-slideInRight flex flex-col">
 
+                {/* Unified Close Button - Original Style Restored */}
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 z-50 p-2 text-gray-500 dark:text-gray-400 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                    title="关闭"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+
                 <ArticleModalHeader
                     viewMode={viewMode}
                     setViewMode={setViewMode}
@@ -138,7 +149,7 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({ article, onCl
                 />
 
                 {/* Content Body */}
-                <div className="flex-grow overflow-y-auto bg-neutral-50 dark:bg-midnight-bg">
+                <div className="grow overflow-y-auto bg-neutral-50 dark:bg-midnight-bg">
                     {viewMode === 'briefing' ? (
                         <ArticleBriefingView
                             article={article}

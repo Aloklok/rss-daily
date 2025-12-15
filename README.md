@@ -42,7 +42,7 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 - **第三方嵌入支持**:
   - **Widget 集成**: 提供了专门的 Widget 路由 (如 `/widget/clock.html`)，配置了宽松的 CSP (`frame-ancestors *`)，支持将组件无缝嵌入到 Notion, start.me 等效率工具仪表盘中。
 - **SEO 深度优化**:
-  - **全站 SSR覆盖**: 不仅包括每日简报，**标签/分类页面 (`/stream/[id]`)** 全面升级为 SSR 服务端渲染，将 FreshRSS 文章列表与 Supabase AI 数据融合，打造高质量内容聚合页。
+  - **全站 SSR/ISR 覆盖**: 不仅包括每日简报，**标签/分类页面 (`/stream/[id]`)** 全面升级为 ISR 增量静态再生（7天缓存），将 FreshRSS 文章列表与 Supabase AI 数据融合，打造高质量内容聚合页。
   - **自动关键词注入**: 
       - **自动关键词提取**: 服务器自动分析页面内所有文章，提取高频关键词（如 "GPT-4", "Transformer"）。
       - **智能注入**: 将关键词注入 Metadata (`keywords`, `description`)。
@@ -111,7 +111,7 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 
 ## 技术栈
 
-- **核心框架**: Next.js 16.0.7 (App Router), React 18.3.1, TypeScript
+- **核心框架**: Next.js 16 (App Router), React 19, TypeScript
 - **样式**: Tailwind CSS
 - **状态管理**:
   - **服务器状态**: TanStack Query (React Query) - 负责客户端数据交互。
@@ -158,7 +158,7 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
   - **`Briefing.tsx`**: **简报核心视图**。包含头图、问候语、目录和文章列表。
   - **`ArticleGroup.tsx`**: 文章分组组件 (按重要性分组)。
   - **`ArticleCard.tsx`**: 文章卡片组件 (展示摘要、操作按钮)。
-  - **`UnifiedArticleModal.tsx`**: **统一阅读模态框**。整合了 AI 摘要 (`BriefingDetailView`) 和原文阅读 (`ReaderView`)。
+  - **`ArticleBriefingView.tsx`**: **统一阅读模态框**。整合了 AI 摘要 (`ArticleBriefingView`) 和原文阅读 (`ArticleReaderView`)。
   - **`article-modal/`**: 模态框的子组件 (Header, Content, Footer)。
   - **`sidebar/`**: 侧边栏的子组件 (Calendar, FilterList)。
   - **`TrendsView.tsx`**: 趋势页面的主要展示组件。

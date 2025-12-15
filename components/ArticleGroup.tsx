@@ -29,7 +29,7 @@ const ArticleGroup: React.FC<ArticleGroupProps> = ({ importance, articles,onRead
     return (
         <section id={sectionId} className="mb-12">
 <header className="sticky top-0 z-20 mb-4"> 
-<div className="backdrop-blur px-4 py-3  border-b-[2px] border-transparent [border-image:linear-gradient(to_right,#c8b382,#b9975d,#e7d8ac)_1]">
+<div className="backdrop-blur-sm px-4 py-3  border-b-2 border-transparent [border-image:linear-gradient(to_right,#c8b382,#b9975d,#e7d8ac)_1]">
     <h2 className="font-serif font-bold text-[1.35rem] leading-tight text-[#7a1e16]"> 
     {importance} 
     </h2> 

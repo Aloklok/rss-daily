@@ -64,9 +64,9 @@ export default function StreamList({ filterValue, initialArticles, initialContin
                     <button
                         onClick={() => fetchNextPage()}
                         disabled={isFetchingNextPage}
-                        className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                        className="px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 transition-colors cursor-pointer"
                     >
-                        {isFetchingNextPage ? '加载中...' : '加载更多'}
+                        <span className="cursor-pointer">{isFetchingNextPage ? '加载中...' : '加载更多'}</span>
                     </button>
                 </div>
             )}

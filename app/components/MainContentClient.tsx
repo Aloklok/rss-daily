@@ -5,7 +5,8 @@ import { useUIStore } from '../../store/uiStore';
 import { useArticleStore } from '../../store/articleStore';
 import ArticleDetailClient from './ArticleDetailClient';
 import Briefing from '../../components/Briefing';
-import ArticleList from '../../components/ArticleList';
+import SearchList from '../../components/SearchList';
+import StreamList from '../../components/StreamList';
 import TrendsView from '../../components/TrendsView';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { useBriefingArticles, useFilteredArticles, useSearchResults, useUpdateArticleState } from '../../hooks/useArticles';
@@ -146,9 +147,8 @@ export default function MainContentClient({
     if (activeFilter?.type === 'category' || activeFilter?.type === 'tag') {
         const ids = filteredData?.pages.flatMap(page => page.articles) || [];
         return (
-            <ArticleList
+            <StreamList
                 articleIds={ids}
-                onOpenArticle={handleOpenArticle}
                 isLoading={isFilteredLoading}
                 fetchNextPage={fetchNextPage}
                 hasNextPage={hasNextPage}
@@ -159,7 +159,7 @@ export default function MainContentClient({
 
     if (activeFilter?.type === 'search') {
         return (
-            <ArticleList
+            <SearchList
                 articleIds={searchResultIds || []}
                 onOpenArticle={handleOpenArticle}
                 isLoading={isSearchLoading}

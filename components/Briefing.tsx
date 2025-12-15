@@ -8,6 +8,8 @@ import { useUIStore } from '../store/uiStore';
 import LoadingSpinner from './LoadingSpinner';
 import Image from 'next/image';
 import Link from 'next/link';
+import { getRandomGradient } from '../utils/colorUtils';
+import { TimeSlot } from '../types';
 
 interface ReportContentProps {
     report: BriefingReport;
@@ -47,7 +49,7 @@ const ReportContent: React.FC<ReportContentProps> = memo(({ report, onReaderMode
     return (
         <div>
             {/* Table of Contents & Summary Section */}
-            <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl p-6 rounded-3xl border border-stone-100 dark:border-white/10 shadow-lg shadow-stone-200/50 dark:shadow-none mb-10 transition-all hover:shadow-xl hover:shadow-stone-200/60 duration-500">
+            <div className="bg-white dark:bg-gray-900 p-6 rounded-3xl border border-stone-200 dark:border-white/10 shadow-lg shadow-stone-200/50 dark:shadow-none mb-10 transition-all hover:shadow-xl hover:shadow-stone-200/60 duration-500">
                 <div className="md:hidden">
                     <h2 className="text-2xl font-bold font-serif text-stone-800 dark:text-white flex items-center">
                         <span>📚 目录</span>
@@ -117,8 +119,7 @@ const ReportContent: React.FC<ReportContentProps> = memo(({ report, onReaderMode
 });
 ReportContent.displayName = 'ReportContent';
 
-import { getRandomGradient } from '../utils/colorUtils';
-import { TimeSlot } from '../types';
+
 
 interface BriefingProps {
     articleIds: (string | number)[];
@@ -230,26 +231,28 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
                             alt="Daily Background"
                             fill
                             priority
+                            unoptimized={process.env.NODE_ENV === 'development'}
                             sizes="(max-width: 768px) 100vw, (max-width: 1536px) 80vw, 1152px"
-                            className="object-cover transition-transform duration-700 group-hover:scale-105"
+                            className="object-cover transition-transform duration-700 group-hover:scale-105 will-change-transform backface-hidden"
                         />
                         {/* Dark Gradient Overlay for Text Readability */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/20"></div>
+                        <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-black/20"></div>
                     </div>
 
-                    <div className="relative z-10 px-6 py-8 md:px-8 md:py-11 flex flex-col gap-8">
+                    <div className="relative z-10 px-6 py-8 md:px-8 md:py-11 flex flex-col gap-4 md:gap-8">
                         {/* Top Row: Date & Time Slot Selector */}
                         <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
                             {/* Left: Date - Structured Layout (White Text) */}
                             <div className="flex flex-col gap-2 text-white">
-                                <h1 className="text-5xl md:text-6xl font-serif font-medium tracking-tight leading-none drop-shadow-md mb-2">
+                                <h1 className="sr-only">{date} 每日AI全栈架构技术简报</h1>
+                                <div aria-hidden="true" className="text-5xl md:text-6xl font-serif font-medium tracking-tight leading-none drop-shadow-md mb-2 text-balance">
                                     {isToday ? '今天' : datePart}
-                                </h1>
-                                <div className="flex items-center gap-2 text-sm md:text-base text-white/95 drop-shadow-sm bg-white/20 px-4 py-1.5 rounded-full self-start">
+                                </div>
+                                <div className="flex items-center gap-2 text-sm md:text-base text-white/95 drop-shadow-xs bg-white/20 px-4 py-1.5 rounded-full self-start">
                                     {isToday && (
                                         <>
                                             <span>{datePart}</span>
-                                            <span className="w-1 h-1 rounded-full bg-white/60"></span>
+                                            <span className="size-1 rounded-full bg-white/60"></span>
                                         </>
                                     )}
                                     <span>{weekdayPart}</span>
@@ -271,11 +274,11 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
                                                 key={slotOption}
                                                 onClick={() => onTimeSlotChange(isSelected ? null : slotOption)}
                                                 className={`
-                                                    w-10 h-10 rounded-full flex items-center justify-center text-sm font-serif transition-all duration-300 border border-white/20
+                                                    size-10 rounded-full flex items-center justify-center text-sm font-serif transition-all duration-300 border border-white/20
                                                     ${isSelected
                                                         ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)] scale-110 border-white dark:bg-amber-100 dark:text-amber-900 dark:shadow-[0_0_15px_rgba(251,191,36,0.6)] dark:border-amber-100'
                                                         : 'bg-black/20 text-white/90 hover:bg-white/20 hover:border-white/40 backdrop-blur-md'
-                                                    }
+                                                    } cursor-pointer
                                                 `}
                                                 title={titleMap[slotOption]}
                                             >
@@ -288,8 +291,8 @@ const Briefing: React.FC<BriefingProps> = ({ articleIds, date, timeSlot, selecte
                         </div>
 
                         {/* Bottom Row: Greeting & Count - Unified (White Text) with Separator */}
-                        <div className="pt-4 border-t border-white/20">
-                            <p className="text-base md:text-lg text-white/95 leading-relaxed font-serif drop-shadow-sm">
+                        <div className="pt-2 md:pt-4 border-t border-white/20">
+                            <p className="text-base md:text-lg text-white/95 leading-relaxed font-serif drop-shadow-xs">
                                 {isToday ? (
                                     <span>{getGreeting()}，欢迎阅读今日简报</span>
                                 ) : (

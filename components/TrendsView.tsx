@@ -308,7 +308,7 @@ const TrendsView: React.FC = () => {
                     return (
                         <div key={category}>
                             <div className="flex items-center mb-6">
-                                <div className={`w-1.5 h-7 rounded-full ${config.accent} mr-3 shadow-sm`}></div>
+                                <div className={`w-1.5 h-7 rounded-full ${config.accent} mr-3 shadow-xs`}></div>
                                 <h3 className={`text-xl font-bold ${config.text} tracking-wide`}>
                                     {category}
                                 </h3>

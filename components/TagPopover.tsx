@@ -52,7 +52,7 @@ const TagPopover: React.FC<TagPopoverProps> = ({ article, onClose, onStateChange
     };
 
     return (
-        <div ref={popoverRef} className="absolute bottom-full mb-2 w-64 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 right-0" onClick={(e) => e.stopPropagation()}>
+        <div ref={popoverRef} className="absolute bottom-full mb-2 w-64 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 right-0 transition-all duration-200 opacity-100 scale-100 starting:opacity-0 starting:scale-95 origin-bottom-right" onClick={(e) => e.stopPropagation()}>
             <div className="p-4 border-b"><h4 className="font-semibold text-gray-800">编辑标签</h4></div>
             {(!availableUserTags || availableUserTags.length === 0) ? (
                 <div className="p-4 text-center text-gray-500">暂无可用标签。</div>
@@ -65,7 +65,7 @@ const TagPopover: React.FC<TagPopoverProps> = ({ article, onClose, onStateChange
                                     type="checkbox"
                                     checked={selectedTags.has(tag.id)}
                                     onChange={() => handleTagChange(tag.id)}
-                                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    className="h-4 w-4 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500"
                                 />
                                 <span className="text-gray-700">{tag.label}</span>
                             </label>

@@ -17,17 +17,29 @@ const SidebarExplore: React.FC<SidebarExploreProps> = ({
 }) => {
     const [categoriesExpanded, setCategoriesExpanded] = useState(false);
 
+    const handleTagClick = (e: React.MouseEvent, tag: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onFilterSelect({ type: 'tag', value: tag });
+    };
+
+    const handleCategoryClick = (e: React.MouseEvent, category: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onFilterSelect({ type: 'category', value: category });
+    };
+
     const isFilterActive = (type: Filter['type'], value: string) => {
         return activeFilter?.type === type && activeFilter?.value === value && !selectedArticleId;
     };
 
-    const listItemButtonClass = (isActive: boolean) => `w-full text-left px-3 py-2 rounded-md transition-all duration-200 flex items-center gap-3 text-sm font-medium ${isActive ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-midnight-text-secondary dark:hover:bg-midnight-card dark:hover:text-gray-200'}`;
+    const listItemButtonClass = (isActive: boolean) => `w-full text-left px-3 py-2 rounded-md transition-all duration-200 flex items-center gap-3 text-sm font-medium ${isActive ? 'bg-indigo-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-midnight-text-secondary dark:hover:bg-midnight-card dark:hover:text-gray-200'} cursor-pointer`;
 
     return (
         <div className="space-y-2">
             {/* 分类 */}
             <nav className="flex flex-col">
-                <button onClick={() => setCategoriesExpanded(prev => !prev)} className="w-full text-left px-2 py-1 flex items-center justify-between text-base font-bold text-gray-600 dark:text-gray-300 mb-1 hover:text-gray-900 dark:hover:text-white transition-colors">
+                <button onClick={() => setCategoriesExpanded(prev => !prev)} className="w-full text-left px-2 py-1 flex items-center justify-between text-base font-bold text-gray-600 dark:text-gray-300 mb-1 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer">
                     <div className="flex items-center gap-2">
                         <span>📂 分类</span>
                     </div>
@@ -42,7 +54,7 @@ const SidebarExplore: React.FC<SidebarExploreProps> = ({
                             <Link
                                 key={category.id}
                                 href={`/stream/${encodeURIComponent(category.id)}`}
-                                onClick={() => onFilterSelect({ type: 'category', value: category.id })}
+                                onClick={(e) => handleCategoryClick(e, category.id)}
                                 className={listItemButtonClass(isFilterActive('category', category.id))}
                             >
                                 <span className="flex-1 truncate">{category.label}</span>
@@ -73,8 +85,8 @@ const SidebarExplore: React.FC<SidebarExploreProps> = ({
                             <Link
                                 key={tag.id}
                                 href={`/stream/${encodeURIComponent(tag.id)}`}
-                                onClick={() => onFilterSelect({ type: 'tag', value: tag.id })}
-                                className={`w-full text-left px-2.5 py-1.5 rounded-md transition-all duration-200 flex items-center justify-between text-sm font-medium border ${colorClass}`}
+                                onClick={(e) => handleTagClick(e, tag.id)}
+                                className={`w-full text-left px-2.5 py-1.5 rounded-md transition-all duration-200 flex items-center justify-between text-sm font-medium border ${colorClass} cursor-pointer`}
                             >
                                 <span className="truncate">#{tag.label}</span>
                                 {tag.count !== undefined && tag.count > 0 && (

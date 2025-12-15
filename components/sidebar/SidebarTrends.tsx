@@ -13,7 +13,7 @@ const SidebarTrends: React.FC<SidebarTrendsProps> = ({ isActive, onClick }) => {
                 className={`w-full text-left px-3 py-2 rounded-lg transition-colors duration-200 flex items-center gap-3 ${isActive
                     ? 'bg-gray-800 text-white font-semibold dark:bg-midnight-selected'
                     : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-midnight-card'
-                    }`}
+                    } cursor-pointer cursor-pointer`}
             >
                 <span>📈</span>
                 <span className="flex-1">趋势</span>
