@@ -4,34 +4,34 @@
 
 @theme {
     /* Colors */
-    --color-midnight-bg: #DCD2C8;
-    --color-midnight-sidebar: #2A2A4A;
-    --color-midnight-card: #1f2937;
-    --color-midnight-selected: #db2777;
-    --color-midnight-border: #1f2937;
-    --color-midnight-text-primary: #000000;
-    --color-midnight-text-reader: #000000;
-    --color-midnight-text-secondary: #9ca3af;
-    --color-midnight-text-title: #000000;
-    --color-midnight-metadata-bg: #E8E8E0;
-    --color-midnight-badge: #374151;
+    --color-midnight-bg: oklch(90.39% 0.034 81.39);
+    --color-midnight-sidebar: oklch(25.32% 0.052 291.68);
+    --color-midnight-card: oklch(20.3% 0.039 270.62);
+    --color-midnight-selected: oklch(57.06% 0.178 351.27);
+    --color-midnight-border: oklch(20.3% 0.039 270.62);
+    --color-midnight-text-primary: oklch(0% 0 0);
+    --color-midnight-text-reader: oklch(0% 0 0);
+    --color-midnight-text-secondary: oklch(66.6% 0.024 266.38);
+    --color-midnight-text-title: oklch(0% 0 0);
+    --color-midnight-metadata-bg: oklch(95.05% 0.009 95.83);
+    --color-midnight-badge: oklch(28.25% 0.036 261.27);
 
     /* Callout Colors */
-    --color-midnight-callout-pink-bg: #fce7f3;
-    --color-midnight-callout-pink-title: #500724;
-    --color-midnight-callout-pink-body: #831843;
+    --color-midnight-callout-pink-bg: oklch(94.5% 0.046 348.65);
+    --color-midnight-callout-pink-title: oklch(21.43% 0.076 343.3);
+    --color-midnight-callout-pink-body: oklch(36.19% 0.106 347.01);
 
-    --color-midnight-callout-blue-bg: #dbeafe;
-    --color-midnight-callout-blue-title: #172554;
-    --color-midnight-callout-blue-body: #1e3a8a;
+    --color-midnight-callout-blue-bg: oklch(89.04% 0.042 277.49);
+    --color-midnight-callout-blue-title: oklch(18.06% 0.068 281.33);
+    --color-midnight-callout-blue-body: oklch(30.64% 0.126 274.62);
 
-    --color-midnight-callout-orange-bg: #ffedd5;
-    --color-midnight-callout-orange-title: #431407;
-    --color-midnight-callout-orange-body: #7c2d12;
+    --color-midnight-callout-orange-bg: oklch(97.16% 0.04 85.04);
+    --color-midnight-callout-orange-title: oklch(19.34% 0.059 40.54);
+    --color-midnight-callout-orange-body: oklch(35.53% 0.093 42.1);
 
-    --color-midnight-callout-green-bg: #dcfce7;
-    --color-midnight-callout-green-title: #052e16;
-    --color-midnight-callout-green-body: #14532d;
+    --color-midnight-callout-green-bg: oklch(94.5% 0.042 120.91);
+    --color-midnight-callout-green-title: oklch(13.62% 0.055 142.12);
+    --color-midnight-callout-green-body: oklch(30.29% 0.101 143.91);
 
     /* Fonts */
     --font-sans: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
@@ -195,7 +195,7 @@
     color: var(--color-slate-200);
     border-radius: 0.5rem;
     padding: 1rem 1.25rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid oklch(100% 0 0 / 10%);
     margin-top: 1rem;
     margin-bottom: 1rem;
     max-height: none;
@@ -344,18 +344,18 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.2);
+    background-color: oklch(0% 0 0 / 20%);
     border-radius: 4px;
     border: 2px solid transparent;
     background-clip: content-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: oklch(0% 0 0 / 40%);
 }
 
 /* Firefox Scrollbar */
 * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+    scrollbar-color: oklch(0% 0 0 / 20%) transparent;
 }
