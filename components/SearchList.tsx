@@ -27,7 +27,7 @@ const SearchListItem: React.FC<{ articleId: string | number }> = ({ articleId })
   return (
     <div
       onClick={() => openModal(article.id)}
-      className="group relative flex flex-col md:flex-row gap-6 p-6 rounded-2xl bg-white dark:bg-white/60 ring-1 ring-stone-200 dark:ring-black/5 hover:ring-2 hover:ring-black dark:hover:ring-black/10 transition-all cursor-pointer shadow-sm hover:shadow-xl"
+      className="group relative flex flex-col md:flex-row gap-6 p-6 rounded-2xl bg-white dark:bg-white/40 dark:backdrop-blur-md ring-1 ring-stone-200 dark:ring-white/50 hover:ring-2 hover:ring-black dark:hover:ring-white/70 transition-all cursor-pointer shadow-sm hover:shadow-xl"
     >
       <div className="flex-1 min-w-0 flex flex-col justify-between">
         <div>

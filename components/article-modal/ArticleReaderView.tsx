@@ -78,7 +78,7 @@ const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({ article, readerCo
     return (
         <article className="p-6 md:p-8 animate-fadeIn">
             <h1 className="text-2xl md:text-3xl font-bold font-serif text-gray-900 dark:text-midnight-text-reader mb-2">{readerContent.title}</h1>
-            <div className="mb-6 border-b dark:border-gray-700 pb-4">
+            <div className="mb-6 border-b border-gray-200 dark:border-stone-700 pb-4">
                 <p className="text-gray-500 dark:text-gray-400">来源: {readerContent.source}</p>
                 {userTagLabels.length > 0 && (
                     <div className="mt-4 flex flex-wrap gap-2">

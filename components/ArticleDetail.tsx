@@ -151,7 +151,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({ article, onClose: _onClos
   return (
     <div className="p-2 md:p-8">
       <article>
-        <header className="mb-3 border-b pb-3 md:mb-6 md:pb-6">
+        <header className="mb-3 border-b border-gray-200 dark:border-stone-700 pb-3 md:mb-6 md:pb-6">
 
           <h1 className="text-3xl md:text-4xl font-bold font-serif text-gray-900 dark:text-midnight-text-reader mb-2">
             <ArticleTitleStar article={article} className="inline-block w-8 h-8 mr-2 relative top-[3px]" />

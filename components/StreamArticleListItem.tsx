@@ -38,7 +38,7 @@ const StreamArticleListItem: React.FC<StreamArticleListItemProps> = memo(({ arti
         <>
             {/* Visual Item - Matches ArticleList.tsx EXACTLY */}
             <div
-                className="group relative bg-white dark:bg-white/60 rounded-xl p-5 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer overflow-hidden will-change-transform backface-hidden ring-1 ring-black/5 dark:ring-black/5 shadow-sm"
+                className="group relative bg-white dark:bg-white/40 dark:backdrop-blur-md rounded-xl p-5 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer overflow-hidden will-change-transform backface-hidden ring-1 ring-black/5 dark:ring-white/50 shadow-sm"
                 onClick={() => openModal(article.id)}
             >
                 <div className="absolute inset-0 bg-linear-to-r from-transparent via-transparent to-stone-50/50 dark:to-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
