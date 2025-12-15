@@ -23,13 +23,14 @@ export default function BriefingClient({ articles, date, headerImageUrl, isToday
     const setActiveFilter = useUIStore(state => state.setActiveFilter);
     const activeFilter = useUIStore(state => state.activeFilter);
 
-    // Decoupled Local State: Archives always start as "Show All" (null)
-    const [timeSlot, setTimeSlot] = useState<TimeSlot | null>(null);
+    // Use global state so FloatingButtonsClient can see the current selection
+    const timeSlot = useUIStore(state => state.timeSlot);
+    const setTimeSlot = useUIStore(state => state.setTimeSlot);
 
-    // Reset local state when date changes (handles client-side soft nav)
+    // Reset global state when date changes (handles client-side soft nav and ensures clean start)
     useEffect(() => {
         setTimeSlot(null);
-    }, [date]);
+    }, [date, setTimeSlot]);
 
     const openModal = useUIStore(state => state.openModal);
     const isSidebarCollapsed = false; // Default or from store if needed

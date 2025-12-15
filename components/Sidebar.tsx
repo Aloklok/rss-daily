@@ -99,7 +99,8 @@ const Sidebar = React.memo<SidebarProps>(({
     };
 
     const handleDateSelect = (date: string) => {
-        setActiveFilter({ type: 'date', value: date });
+        // Don't set activeFilter here. Let navigation handle it.
+        // setActiveFilter({ type: 'date', value: date });
         setSelectedArticleId(null);
         router.push(`/date/${date}`);
     };

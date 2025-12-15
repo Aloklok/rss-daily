@@ -1,26 +1,7 @@
 import { create } from 'zustand';
 import { Filter, TimeSlot } from '../types';
 
-// Helper for Shanghai Timezone
-const getTodayInShanghai = (): string => {
-    const formatter = new Intl.DateTimeFormat('en-CA', {
-        year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Shanghai'
-    });
-    return formatter.format(new Date());
-};
-
-const getCurrentTimeSlotInShanghai = (): TimeSlot => {
-    const now = new Date();
-    const hour = parseInt(new Intl.DateTimeFormat('en-US', {
-        hour: '2-digit',
-        hour12: false,
-        timeZone: 'Asia/Shanghai'
-    }).format(now), 10);
-
-    if (hour < 12) return 'morning';
-    if (hour < 19) return 'afternoon';
-    return 'evening';
-};
+// Helper for Shanghai Timezone removed as unused
 
 interface UIStoreState {
     activeFilter: Filter | null;
@@ -66,20 +47,12 @@ export const useUIStore = create<UIStoreState>((set) => ({
     modalInitialMode: 'briefing',
 
     setActiveFilter: (filter) => {
-        let newTimeSlot: TimeSlot | null = null;
 
-        // Calculate timeSlot based on filter
-        if (filter?.type === 'date') {
-            const today = getTodayInShanghai();
-            if (filter.value === today) {
-                newTimeSlot = getCurrentTimeSlotInShanghai();
-            }
-        }
 
         set({
             activeFilter: filter,
             selectedArticleId: null,
-            timeSlot: newTimeSlot
+            timeSlot: null // Always reset timeSlot when filter changes, logic is handled by components
         });
     },
 

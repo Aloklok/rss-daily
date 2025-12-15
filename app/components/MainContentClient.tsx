@@ -56,8 +56,13 @@ export default function MainContentClient({
     const { mutateAsync: updateArticleState } = useUpdateArticleState();
 
     // Initialize timeSlot if not set (e.g. first load)
+    // Initialize timeSlot if not set (e.g. first load)
     useEffect(() => {
-        if (!timeSlot && activeFilter?.type === 'date') {
+        // Guard: Only auto-set time slot on the homepage.
+        // When navigating to /date/[date], we want "Show All" (null), so we shouldn't trigger this.
+        const isHomepage = typeof window !== 'undefined' && window.location.pathname === '/';
+
+        if (isHomepage && !timeSlot && activeFilter?.type === 'date') {
             const hour = new Date().getHours();
             let currentSlot: 'morning' | 'afternoon' | 'evening' = 'morning';
             if (hour >= 12 && hour < 19) currentSlot = 'afternoon';
