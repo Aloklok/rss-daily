@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import Briefing from '../../../components/Briefing';
-import { Article, TimeSlot } from '../../../types';
+import { Article } from '../../../types';
 import { useArticleStore } from '../../../store/articleStore';
 import { useUIStore } from '../../../store/uiStore';
 import { useUpdateArticleState, useBriefingArticles } from '../../../hooks/useArticles';
@@ -18,7 +18,7 @@ interface BriefingClientProps {
     nextDate?: string | null;
 }
 
-export default function BriefingClient({ articles, date, headerImageUrl, isToday, prevDate, nextDate }: BriefingClientProps) {
+export default function BriefingClient({ articles, date, headerImageUrl, isToday, prevDate, nextDate }: BriefingClientProps): JSX.Element {
     const addArticles = useArticleStore(state => state.addArticles);
     const setActiveFilter = useUIStore(state => state.setActiveFilter);
     const activeFilter = useUIStore(state => state.activeFilter);
