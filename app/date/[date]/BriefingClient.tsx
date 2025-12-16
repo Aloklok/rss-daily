@@ -18,7 +18,7 @@ interface BriefingClientProps {
     nextDate?: string | null;
 }
 
-export default function BriefingClient({ articles, date, headerImageUrl, isToday, prevDate, nextDate }: BriefingClientProps): JSX.Element {
+export default function BriefingClient({ articles, date, headerImageUrl, isToday, prevDate, nextDate }: BriefingClientProps): React.ReactElement {
     const addArticles = useArticleStore(state => state.addArticles);
     const setActiveFilter = useUIStore(state => state.setActiveFilter);
     const activeFilter = useUIStore(state => state.activeFilter);
