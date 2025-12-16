@@ -4,17 +4,17 @@ import { cookies } from 'next/headers';
 export const dynamic = 'force-dynamic';
 
 export async function GET(): Promise<NextResponse> {
-    const accessToken = process.env.ACCESS_TOKEN;
-    if (!accessToken) {
-        return NextResponse.json({ isAdmin: false, error: 'Server misconfiguration' }, { status: 500 });
-    }
+  const accessToken = process.env.ACCESS_TOKEN;
+  if (!accessToken) {
+    return NextResponse.json({ isAdmin: false, error: 'Server misconfiguration' }, { status: 500 });
+  }
 
-    const cookieStore = await cookies();
-    const siteToken = cookieStore.get('site_token')?.value;
+  const cookieStore = await cookies();
+  const siteToken = cookieStore.get('site_token')?.value;
 
-    if (siteToken === accessToken) {
-        return NextResponse.json({ isAdmin: true });
-    }
+  if (siteToken === accessToken) {
+    return NextResponse.json({ isAdmin: true });
+  }
 
-    return NextResponse.json({ isAdmin: false });
+  return NextResponse.json({ isAdmin: false });
 }

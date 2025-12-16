@@ -4,7 +4,7 @@ info:
   description: |
     基于 FreshRSS greader.php 源码生成的 Google Reader API 兼容层文档。
     该 API 旨在兼容旧版 Google Reader 客户端及现代 RSS 阅读器（如 Reeder, NetNewsWire 等）。
-    
+
     **主要功能**：
     - 兼容 Google Reader Level 2 API
     - 支持订阅管理、文章获取、状态同步（已读/星标）
@@ -96,7 +96,7 @@ paths:
               schema:
                 type: string
                 minLength: 57
-                example: "0123456789abcdef..."
+                example: '0123456789abcdef...'
         '401':
           description: 未授权
 
@@ -213,7 +213,7 @@ paths:
                   type: array
                   items:
                     type: string
-                  description: "Stream ID，例如: feed/http://example.com/rss.xml"
+                  description: 'Stream ID，例如: feed/http://example.com/rss.xml'
                 t:
                   type: array
                   items:
@@ -299,7 +299,7 @@ paths:
               type: string
               format: binary
           text/xml:
-             schema:
+            schema:
               type: string
               format: binary
       responses:
@@ -728,16 +728,16 @@ components:
           items:
             type: object
             properties:
-              href: 
+              href:
                 type: string
         alternate:
           type: array
           items:
             type: object
             properties:
-              href: 
+              href:
                 type: string
-              type: 
+              type:
                 type: string
         summary:
           type: object

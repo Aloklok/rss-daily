@@ -1,4 +1,5 @@
 ## 项目根目录
+
 - `App.tsx` - 主应用组件
 - `README.md` - 项目文档
 - `eslint.config.ts` - ESLint 配置
@@ -17,6 +18,7 @@
 - `.vscode/settings.json` - VSCode 设置
 
 ## API 目录 (`/api`)
+
 - `_utils.ts` - API 工具函数
 - `article-states.ts` - 文章状态相关 API
 - `articles-categories-tags.ts` - 文章分类标签 API
@@ -29,6 +31,7 @@
 - `update-state.ts` - 更新文章状态 API
 
 ## 组件目录 (`/components`)
+
 - `ArticleCard.tsx` - 文章卡片组件
 - `ArticleDetail.tsx` - 文章详情组件
 - `ArticleGroup.tsx` - 文章分组组件
@@ -40,6 +43,7 @@
 - `Sidebar.tsx` - 侧边栏组件
 
 ## 自定义 Hooks 目录 (`/hooks`)
+
 - `useArticleManagement.ts` - 文章管理相关 Hook
 - `useDataFetching.ts` - 数据获取相关 Hook
 - `useFilters.ts` - 筛选器相关 Hook
@@ -47,12 +51,15 @@
 - `useSidebar.ts` - 侧边栏相关 Hook
 
 ## 服务目录 (`/services`)
+
 - `api.ts` - API 服务模块
 
 ## 类型定义目录 (`/types`)
+
 - `optional-mods.d.ts` - 可选模块类型定义
 
 ## 构建输出目录 (`/dist`)
+
 - `assets/` - 静态资源文件
 - `index.html` - 构建后 HTML 文件
 - `manifest.json` - 构建后清单文件
@@ -60,11 +67,13 @@
 - `sw.js` - Service Worker 文件
 
 ## 公共资源目录 (`/public`)
+
 - `manifest.json` - PWA 清单文件
 - `robots.txt` - robots 文件
 - `sw.js` - Service Worker 文件
 
 ## 配置文件说明
+
 - 项目采用 React + TypeScript + Vite 架构
 - 使用 Tailwind CSS 作为样式框架
 - 通过 Supabase 和 FreshRSS 作为后端服务

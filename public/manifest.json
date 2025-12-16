@@ -1,15 +1,15 @@
 {
-    "name": "RSS Briefing Hub",
-    "short_name": "Briefing",
-    "start_url": "/",
-    "display": "standalone",
-    "background_color": "#ffffff",
-    "theme_color": "#000000",
-    "icons": [
-        {
-            "src": "/computer_cat_180.jpeg",
-            "sizes": "180x180",
-            "type": "image/jpeg"
-        }
-    ]
+  "name": "RSS Briefing Hub",
+  "short_name": "Briefing",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "/computer_cat_180.jpeg",
+      "sizes": "180x180",
+      "type": "image/jpeg"
+    }
+  ]
 }

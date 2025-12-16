@@ -1,81 +1,81 @@
-import {withSentryConfig} from '@sentry/nextjs';
+import { withSentryConfig } from '@sentry/nextjs';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    productionBrowserSourceMaps: false,
-    reactStrictMode: true,
-    // experimental: {
-    //     reactCompiler: true,
-    // },
-    images: {
-        formats: ['image/avif', 'image/webp'],
-        remotePatterns: [
-            {
-                protocol: 'https',
-                hostname: 'picsum.photos',
-            },
+  productionBrowserSourceMaps: false,
+  reactStrictMode: true,
+  // experimental: {
+  //     reactCompiler: true,
+  // },
+  images: {
+    formats: ['image/avif', 'image/webp'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
+      },
+    ],
+  },
+  async headers() {
+    return [
+      {
+        source: '/((?!widget/).*)', // Apply security headers to everything EXCEPT /widget/
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
         ],
-    },
-    async headers() {
-        return [
-            {
-                source: '/((?!widget/).*)', // Apply security headers to everything EXCEPT /widget/
-                headers: [
-                    {
-                        key: 'X-Frame-Options',
-                        value: 'DENY',
-                    },
-                    {
-                        key: 'X-Content-Type-Options',
-                        value: 'nosniff',
-                    },
-                    {
-                        key: 'Referrer-Policy',
-                        value: 'strict-origin-when-cross-origin',
-                    },
-                ],
-            },
-            {
-                source: '/widget/:path*', // Explicitly allow framing for widget
-                headers: [
-                    {
-                        // 修正 2: 必须添加这个！覆盖掉可能的全局 DENY 或默认限制
-                        key: 'X-Frame-Options',
-                        value: 'ALLOWALL',
-                    },
-                    {
-                        key: 'Access-Control-Allow-Origin',
-                        value: '*', // Allow CORS for fonts/assets
-                    }
-                ],
-            },
-            {
-                source: '/(.*).(jpg|jpeg|png|webp|avif|ico|svg)',
-                headers: [
-                    {
-                        key: 'Cache-Control',
-                        value: 'public, max-age=31536000, immutable',
-                    },
-                ],
-            },
-        ];
-    },
-    async rewrites() {
-        return [
-            {
-                source: '/sitemap.xml',
-                destination: '/api/sitemap',
-            },
-        ];
-    },
+      },
+      {
+        source: '/widget/:path*', // Explicitly allow framing for widget
+        headers: [
+          {
+            // 修正 2: 必须添加这个！覆盖掉可能的全局 DENY 或默认限制
+            key: 'X-Frame-Options',
+            value: 'ALLOWALL',
+          },
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*', // Allow CORS for fonts/assets
+          },
+        ],
+      },
+      {
+        source: '/(.*).(jpg|jpeg|png|webp|avif|ico|svg)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ];
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/sitemap.xml',
+        destination: '/api/sitemap',
+      },
+    ];
+  },
 };
 
 export default withSentryConfig(nextConfig, {
   // For all available options, see:
   // https://www.npmjs.com/package/@sentry/webpack-plugin#options
 
-  org: "alok-rss",
+  org: 'alok-rss',
 
-  project: "sentry-amber-house",
+  project: 'sentry-amber-house',
 
   // Only print logs for uploading source maps in CI
   silent: !process.env.CI,
@@ -90,7 +90,7 @@ export default withSentryConfig(nextConfig, {
   // This can increase your server load as well as your hosting bill.
   // Note: Check that the configured route will not match with your Next.js middleware, otherwise reporting of client-
   // side errors will fail.
-  tunnelRoute: "/monitoring",
+  tunnelRoute: '/monitoring',
 
   // Automatically tree-shake Sentry logger statements to reduce bundle size
   disableLogger: true,

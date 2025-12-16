@@ -8,14 +8,14 @@ While Next.js works when self-hosting, deploying to Vercel is zero-configuration
 
 To get started with Next.js on Vercel:
 
-*   If you already have a project with Next.js, install [Vercel CLI](/docs/cli) and run the `vercel` command from your project's root directory
-*   Clone one of our Next.js example repos to your favorite git provider and deploy it on Vercel with the button below:
+- If you already have a project with Next.js, install [Vercel CLI](/docs/cli) and run the `vercel` command from your project's root directory
+- Clone one of our Next.js example repos to your favorite git provider and deploy it on Vercel with the button below:
 
 [![](https://7nyt0uhk7sse4zvn.public.blob.vercel-storage.com/docs-assets/static/topics/icons/next.svg)Deploy our Next.js template, or view a live example.](/templates/next.js/nextjs-boilerplate)
 
 [Deploy](/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fvercel%2Ftree%2Fmain%2Fexamples%2Fnextjs&template=nextjs)[Live Example](https://nextjs-template.vercel.app/)
 
-*   Or, choose a template from Vercel's marketplace:
+- Or, choose a template from Vercel's marketplace:
 
 Vercel deployments can [integrate with your git provider](/docs/git) to [generate preview URLs](/docs/deployments/environments#preview-environment-pre-production) for each pull request you make to your Next.js project.
 
@@ -34,14 +34,14 @@ TypeScript
 
 TypeScript
 export async function getStaticProps() {
-  /* Fetch data here */
- 
-  return {
-    props: {
-      /* Add something to your props */
-    },
-    revalidate: 10, // Seconds
-  };
+/_ Fetch data here _/
+
+return {
+props: {
+/_ Add something to your props _/
+},
+revalidate: 10, // Seconds
+};
 }
 
 Next.js (/app)Next.js (/pages)
@@ -55,7 +55,7 @@ TypeScriptJavaScriptBash
 ```
 export async function getStaticProps() {
   /* Fetch data here */
- 
+
   return {
     props: {
       /* Add something to your props */
@@ -67,10 +67,10 @@ export async function getStaticProps() {
 
 To summarize, using ISR with Next.js on Vercel:
 
-*   Better performance with our global [CDN](/docs/cdn)
-*   Zero-downtime rollouts to previously statically generated pages
-*   Framework-aware infrastructure enables global content updates in 300ms
-*   Generated pages are both cached and persisted to durable storage
+- Better performance with our global [CDN](/docs/cdn)
+- Zero-downtime rollouts to previously statically generated pages
+- Framework-aware infrastructure enables global content updates in 300ms
+- Generated pages are both cached and persisted to durable storage
 
 [Learn more about Incremental Static Regeneration (ISR)](/docs/incremental-static-regeneration)
 
@@ -82,10 +82,10 @@ On Vercel, you can server-render Next.js applications through [Vercel Functions]
 
 To summarize, SSR with Next.js on Vercel:
 
-*   Scales to zero when not in use
-*   Scales automatically with traffic increases
-*   Has zero-configuration support for [`Cache-Control` headers](/docs/edge-cache), including `stale-while-revalidate`
-*   Framework-aware infrastructure enables automatic creation of Functions for SSR
+- Scales to zero when not in use
+- Scales automatically with traffic increases
+- Has zero-configuration support for [`Cache-Control` headers](/docs/edge-cache), including `stale-while-revalidate`
+- Framework-aware infrastructure enables automatic creation of Functions for SSR
 
 [Learn more about SSR](https://nextjs.org/docs/app/building-your-application/rendering#static-and-dynamic-rendering-on-the-server)
 
@@ -93,9 +93,9 @@ To summarize, SSR with Next.js on Vercel:
 
 Vercel supports streaming in Next.js projects with any of the following:
 
-*   [Route Handlers](https://nextjs.org/docs/app/building-your-application/routing/router-handlers)
-*   [Vercel Functions](/docs/functions/streaming-functions)
-*   React Server Components
+- [Route Handlers](https://nextjs.org/docs/app/building-your-application/routing/router-handlers)
+- [Vercel Functions](/docs/functions/streaming-functions)
+- React Server Components
 
 Streaming data allows you to fetch information in chunks rather than all at once, speeding up Function responses. You can use streams to improve your app's user experience and prevent your functions from failing when fetching large files.
 
@@ -134,7 +134,7 @@ TypeScriptJavaScriptBash
 ```
 import { Suspense } from 'react';
 import { PostFeed, Weather } from './components';
- 
+
 export default function Posts() {
   return (
     <section>
@@ -151,8 +151,8 @@ export default function Posts() {
 
 To summarize, using Streaming with Next.js on Vercel:
 
-*   Speeds up Function response times, improving your app's user experience
-*   Display initial loading UI with incremental updates from the server as new data becomes available
+- Speeds up Function response times, improving your app's user experience
+- Display initial loading UI with incremental updates from the server as new data becomes available
 
 Learn more about [Streaming](/docs/functions/streaming-functions) with Vercel Functions.
 
@@ -164,9 +164,9 @@ Partial Prerendering (PPR) is an experimental feature in Next.js that allows the
 
 When a user visits a route:
 
-*   A static route _shell_ is served immediately, this makes the initial load fast.
-*   The shell leaves _holes_ where dynamic content will be streamed in to minimize the perceived overall page load time.
-*   The async holes are loaded in parallel, reducing the overall load time of the page.
+- A static route _shell_ is served immediately, this makes the initial load fast.
+- The shell leaves _holes_ where dynamic content will be streamed in to minimize the perceived overall page load time.
+- The async holes are loaded in parallel, reducing the overall load time of the page.
 
 This approach is useful for pages like dashboards, where unique, per-request data coexists with static elements such as sidebars or layouts. This is different from how your application behaves today, where entire routes are either fully static or dynamic.
 
@@ -187,25 +187,25 @@ TypeScript
 
 TypeScript
 import Image from 'next/image';
- 
+
 interface ExampleProps {
-  name: string;
+name: string;
 }
- 
+
 const ExampleComponent = ({ name }: ExampleProps) => {
-  return (
-    <>
-      <Image
+return (
+<>
+<Image
         src="example.png"
         alt="Example picture"
         width={500}
         height={500}
       />
-      <span>{name}</span>
-    </>
-  );
+<span>{name}</span>
+</>
+);
 };
- 
+
 export default ExampleComponent;
 
 Next.js (/app)Next.js (/pages)
@@ -218,11 +218,11 @@ TypeScriptJavaScriptBash
 
 ```
 import Image from 'next/image';
- 
+
 interface ExampleProps {
   name: string;
 }
- 
+
 const ExampleComponent = ({ name }: ExampleProps) => {
   return (
     <>
@@ -236,16 +236,16 @@ const ExampleComponent = ({ name }: ExampleProps) => {
     </>
   );
 };
- 
+
 export default ExampleComponent;
 ```
 
 To summarize, using Image Optimization with Next.js on Vercel:
 
-*   Zero-configuration Image Optimization when using `next/image`
-*   Helps your team ensure great performance by default
-*   Keeps your builds fast by optimizing images on-demand
-*   Requires No additional services needed to procure or set up
+- Zero-configuration Image Optimization when using `next/image`
+- Helps your team ensure great performance by default
+- Keeps your builds fast by optimizing images on-demand
+- Requires No additional services needed to procure or set up
 
 [Learn more about Image Optimization](/docs/image-optimization)
 
@@ -266,23 +266,24 @@ TypeScript
 
 TypeScript
 import { Inter } from 'next/font/google';
- 
+
 // If loading a variable font, you don't need to specify the font weight
 const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
+subsets: ['latin'],
+display: 'swap',
 });
- 
+
 export default function RootLayout({
-  children,
+children,
 }: {
-  children: React.ReactNode;
+children: React.ReactNode;
 }) {
-  return (
-    <html lang="en" className={inter.className}>
-      <body>{children}</body>
-    </html>
-  );
+return (
+
+<html lang="en" className={inter.className}>
+<body>{children}</body>
+</html>
+);
 }
 
 TypeScript
@@ -292,10 +293,10 @@ TypeScriptJavaScriptBash
 ```
 import { Inter } from 'next/font/google';
 import type { AppProps } from 'next/app';
- 
+
 // If loading a variable font, you don't need to specify the font weight
 const inter = Inter({ subsets: ['latin'] });
- 
+
 export default function MyApp({ Component, pageProps }: AppProps) {
   return (
     <main className={inter.className}>
@@ -307,10 +308,10 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 
 To summarize, using Font Optimization with Next.js on Vercel:
 
-*   Enables built-in, automatic self-hosting for font files
-*   Loads web fonts with zero layout shift
-*   Allows for CSS and font files to be downloaded at build time and self-hosted with the rest of your static files
-*   Ensures that no requests are sent to Google by the browser
+- Enables built-in, automatic self-hosting for font files
+- Loads web fonts with zero layout shift
+- Allows for CSS and font files to be downloaded at build time and self-hosted with the rest of your static files
+- Ensures that no requests are sent to Google by the browser
 
 [Learn more about Font Optimization](https://nextjs.org/docs/app/building-your-application/optimizing/fonts)
 
@@ -332,7 +333,7 @@ TypeScriptJavaScriptBash
 
 ```
 import { ImageResponse } from '@vercel/og';
- 
+
 export default function () {
   return new ImageResponse(
     (
@@ -363,9 +364,9 @@ To see your generated image, run `npm run dev` in your terminal and visit the `/
 
 To summarize, the benefits of using Vercel OG with Next.js include:
 
-*   Instant, dynamic social card images without needing headless browsers
-*   Generated images are automatically cached on the Vercel CDN
-*   Image generation is co-located with the rest of your frontend codebase
+- Instant, dynamic social card images without needing headless browsers
+- Generated images are automatically cached on the Vercel CDN
+- Image generation is co-located with the rest of your frontend codebase
 
 [Learn more about OG Image Generation](/docs/og-image-generation)
 
@@ -379,9 +380,9 @@ See [the Middleware API docs](/docs/routing-middleware/api) for more information
 
 To summarize, Middleware with Next.js on Vercel:
 
-*   Runs using [Middleware](/docs/routing-middleware) which are deployed globally
-*   Replaces needing additional services for customizable routing rules
-*   Helps you achieve the best performance for serving content globally
+- Runs using [Middleware](/docs/routing-middleware) which are deployed globally
+- Replaces needing additional services for customizable routing rules
+- Helps you achieve the best performance for serving content globally
 
 [Learn more about Middleware](/docs/routing-middleware)
 
@@ -411,10 +412,10 @@ Users outside your Vercel team cannot toggle Draft Mode.
 
 To summarize, the benefits of using Draft Mode with Next.js on Vercel include:
 
-*   Easily server-render previews of static pages
-*   Adds additional security measures to prevent malicious usage
-*   Integrates with any headless provider of your choice
-*   You can enable and disable Draft Mode in [the comments toolbar](/docs/comments/how-comments-work) on Preview Deployments
+- Easily server-render previews of static pages
+- Adds additional security measures to prevent malicious usage
+- Integrates with any headless provider of your choice
+- You can enable and disable Draft Mode in [the comments toolbar](/docs/comments/how-comments-work) on Preview Deployments
 
 [Learn more about Draft Mode](/docs/draft-mode)
 
@@ -463,7 +464,7 @@ TypeScriptJavaScriptBash
 ```
 import type { AppProps } from 'next/app';
 import { Analytics } from '@vercel/analytics/next';
- 
+
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <>
@@ -472,14 +473,14 @@ function MyApp({ Component, pageProps }: AppProps) {
     </>
   );
 }
- 
+
 export default MyApp;
 ```
 
 To summarize, Web Analytics with Next.js on Vercel:
 
-*   Enables you to track traffic and see your top-performing pages
-*   Offers you detailed breakdowns of visitor demographics, including their OS, browser, geolocation, and more
+- Enables you to track traffic and see your top-performing pages
+- Offers you detailed breakdowns of visitor demographics, including their OS, browser, geolocation, and more
 
 [Learn more about Web Analytics](/docs/analytics)
 
@@ -526,11 +527,11 @@ export function reportWebVitals(metric) {
       break;
   }
 }
- 
+
 function MyApp({ Component, pageProps }) {
   return <Component {...pageProps} />;
 }
- 
+
 export default MyApp;
 ```
 
@@ -538,9 +539,9 @@ Next.js uses [Google's `web-vitals` library](https://github.com/GoogleChrome/web
 
 To summarize, tracking Web Vitals with Next.js on Vercel:
 
-*   Enables you to track traffic performance metrics, such as [First Contentful Paint](/docs/speed-insights/metrics#first-contentful-paint-fcp), or [First Input Delay](/docs/speed-insights/metrics#first-input-delay-fid)
-*   Enables you to view performance analytics by page name and URL for more granular analysis
-*   Shows you [a score for your app's performance](/docs/speed-insights/metrics#how-the-scores-are-determined) on each recorded metric, which you can use to track improvements or regressions
+- Enables you to track traffic performance metrics, such as [First Contentful Paint](/docs/speed-insights/metrics#first-contentful-paint-fcp), or [First Input Delay](/docs/speed-insights/metrics#first-input-delay-fid)
+- Enables you to view performance analytics by page name and URL for more granular analysis
+- Shows you [a score for your app's performance](/docs/speed-insights/metrics#how-the-scores-are-determined) on each recorded metric, which you can use to track improvements or regressions
 
 [Learn more about Speed Insights](/docs/speed-insights)
 
@@ -550,9 +551,9 @@ Vercel has partnered with popular service providers, such as MongoDB and Sanity,
 
 To summarize, Integrations on Vercel:
 
-*   Simplify the process of connecting your preferred services to a Vercel project
-*   Help you achieve the optimal setup for a Vercel project using your preferred service
-*   Configure your environment variables for you
+- Simplify the process of connecting your preferred services to a Vercel project
+- Help you achieve the optimal setup for a Vercel project using your preferred service
+- Configure your environment variables for you
 
 [Learn more about Integrations](/integrations)
 
@@ -564,14 +565,14 @@ See [our Frameworks documentation page](/docs/frameworks) to learn about the ben
 
 Learn more about deploying Next.js projects on Vercel with the following resources:
 
-*   [Build a fullstack Next.js app](/kb/guide/nextjs-prisma-postgres)
-*   [Build a multi-tenant app](/docs/multi-tenant)
-*   [Next.js with Contenful](/kb/guide/integrating-next-js-and-contentful-for-your-headless-cms)
-*   [Next.js with Stripe Checkout and Typescript](/kb/guide/getting-started-with-nextjs-typescript-stripe)
-*   [Next.js with Magic.link](/kb/guide/add-auth-to-nextjs-with-magic)
-*   [Generate a sitemap with Next.js](/kb/guide/how-do-i-generate-a-sitemap-for-my-nextjs-app-on-vercel)
-*   [Next.js ecommerce with Shopify](/kb/guide/deploying-locally-built-nextjs)
-*   [Deploy a locally built Next.js app](/kb/guide/deploying-locally-built-nextjs)
-*   [Deploying Next.js to Vercel](https://www.youtube.com/watch?v=AiiGjB2AxqA)
-*   [Learn about combining static and dynamic rendering on the same page in Next.js 14](https://www.youtube.com/watch?v=wv7w_Zx-FMU)
-*   [Learn about suspense boundaries and streaming when loading your UI](https://nextjs.org/docs/app/building-your-application/routing/loading-ui-and-streaming)
+- [Build a fullstack Next.js app](/kb/guide/nextjs-prisma-postgres)
+- [Build a multi-tenant app](/docs/multi-tenant)
+- [Next.js with Contenful](/kb/guide/integrating-next-js-and-contentful-for-your-headless-cms)
+- [Next.js with Stripe Checkout and Typescript](/kb/guide/getting-started-with-nextjs-typescript-stripe)
+- [Next.js with Magic.link](/kb/guide/add-auth-to-nextjs-with-magic)
+- [Generate a sitemap with Next.js](/kb/guide/how-do-i-generate-a-sitemap-for-my-nextjs-app-on-vercel)
+- [Next.js ecommerce with Shopify](/kb/guide/deploying-locally-built-nextjs)
+- [Deploy a locally built Next.js app](/kb/guide/deploying-locally-built-nextjs)
+- [Deploying Next.js to Vercel](https://www.youtube.com/watch?v=AiiGjB2AxqA)
+- [Learn about combining static and dynamic rendering on the same page in Next.js 14](https://www.youtube.com/watch?v=wv7w_Zx-FMU)
+- [Learn about suspense boundaries and streaming when loading your UI](https://nextjs.org/docs/app/building-your-application/routing/loading-ui-and-streaming)

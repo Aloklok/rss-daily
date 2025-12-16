@@ -2,15 +2,16 @@
 
 > [!NOTE]
 > **SEO 与 渲染架构概览**
-> 
-> | 页面类型 | 路由 | 渲染策略 | 数据获取 | 可爬取性 |
-> | :--- | :--- | :--- | :--- | :--- |
-> | **首页 / 简报** | `/`, `/date/[date]` | **阻塞式 SSR** | 服务端 `fetch` (阻塞) | ✅ 完全 (HTML 包含完整内容) |
-> | **文章详情** | `/article/[id]` | **SSR** | 服务端 `fetch` (阻塞) | ✅ 完全 (服务端内容获取) |
-> | **Stream / 标签** | `/stream/[id]` | **ISR (7天)** | 按需重验证 | ✅ 完全 (服务端数据水合) |
-> | **趋势** | `/trends` | **SSG** | 构建时生成 | ✅ 完全 (静态 HTML) |
-> 
+>
+> | 页面类型          | 路由                | 渲染策略       | 数据获取              | 可爬取性                    |
+> | :---------------- | :------------------ | :------------- | :-------------------- | :-------------------------- |
+> | **首页 / 简报**   | `/`, `/date/[date]` | **阻塞式 SSR** | 服务端 `fetch` (阻塞) | ✅ 完全 (HTML 包含完整内容) |
+> | **文章详情**      | `/article/[id]`     | **SSR**        | 服务端 `fetch` (阻塞) | ✅ 完全 (服务端内容获取)    |
+> | **Stream / 标签** | `/stream/[id]`      | **ISR (7天)**  | 按需重验证            | ✅ 完全 (服务端数据水合)    |
+> | **趋势**          | `/trends`           | **SSG**        | 构建时生成            | ✅ 完全 (静态 HTML)         |
+>
 > **核心 SEO 特性:**
+>
 > - **零客户端内容获取**: 所有文章内容均在服务端获取。
 > - **内部链接**: 文章标题链接至 `/article/[id]`，确保深度爬取。
 > - **Sitemap**: 全自动生成。分类（每日），标签（活跃 Top 50），简报（每日）。
@@ -43,45 +44,45 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
   - **Widget 集成**: 提供了专门的 Widget 路由 (如 `/widget/clock.html`)，配置了宽松的 CSP (`frame-ancestors *`)，支持将组件无缝嵌入到 Notion, start.me 等效率工具仪表盘中。
 - **SEO 深度优化**:
   - **全站 SSR/ISR 覆盖**: 不仅包括每日简报，**标签/分类页面 (`/stream/[id]`)** 全面升级为 ISR 增量静态再生（7天缓存），将 FreshRSS 文章列表与 Supabase AI 数据融合，打造高质量内容聚合页。
-  - **自动关键词注入**: 
-      - **自动关键词提取**: 服务器自动分析页面内所有文章，提取高频关键词（如 "GPT-4", "Transformer"）。
-      - **智能注入**: 将关键词注入 Metadata (`keywords`, `description`)。
-      - **可视化增强**: 重构了 **Stream 列表页头**。智能区分 "分类" (无计数) 与 "标签" (含计数) 的展示逻辑；"Related Topics" 采用清爽的纯文本列表设计，提升阅读体验。
+  - **自动关键词注入**:
+    - **自动关键词提取**: 服务器自动分析页面内所有文章，提取高频关键词（如 "GPT-4", "Transformer"）。
+    - **智能注入**: 将关键词注入 Metadata (`keywords`, `description`)。
+    - **可视化增强**: 重构了 **Stream 列表页头**。智能区分 "分类" (无计数) 与 "标签" (含计数) 的展示逻辑；"Related Topics" 采用清爽的纯文本列表设计，提升阅读体验。
   - **富文本摘要**:
-      - **JSON-LD 增强**: 每日简报页面的 `NewsArticle` Schema 中，每条新闻都包含了 AI 生成的 **"一句话精华摘要"**。
-      - **效果**: Google 搜索结果可直接展示新闻详情，大幅提升点击率。
+    - **JSON-LD 增强**: 每日简报页面的 `NewsArticle` Schema 中，每条新闻都包含了 AI 生成的 **"一句话精华摘要"**。
+    - **效果**: Google 搜索结果可直接展示新闻详情，大幅提升点击率。
   - **结构化内链**:
-      - **时光机导航**: 日历页底部增加 "上一篇 / 下一篇" 导航，确保爬虫能顺着时间线遍历所有历史内容，防止孤岛页面。
+    - **时光机导航**: 日历页底部增加 "上一篇 / 下一篇" 导航，确保爬虫能顺着时间线遍历所有历史内容，防止孤岛页面。
   - **增长引擎**:
-      - **AI RSS Feed**: `/feed.xml` 自动分发经过 AI 清洗和点评的内容（非原文），吸引自然反向链接。
-      - **自动化 Sitemap**: 自动将 **所有分类** 和最活跃的 TOP 50 标签页推送到 `sitemap.xml`。针对分类页，配置了 **Daily 更新频率** (免 Lastmod)，确保高频更新内容被搜索引擎及时抓取。配合 IndexNow 实现秒级收录。
+    - **AI RSS Feed**: `/feed.xml` 自动分发经过 AI 清洗和点评的内容（非原文），吸引自然反向链接。
+    - **自动化 Sitemap**: 自动将 **所有分类** 和最活跃的 TOP 50 标签页推送到 `sitemap.xml`。针对分类页，配置了 **Daily 更新频率** (免 Lastmod)，确保高频更新内容被搜索引擎及时抓取。配合 IndexNow 实现秒级收录。
   - **Canonical 保护**: 全站统一采用 **WWW 域名** (`https://www.alok-rss.top`) 作为唯一规范地址，彻底消灭重复内容风险。
-      - **自动重定向**: 依赖 Vercel/Cloudflare 边缘层自动将 Root 请求重定向到 WWW。
-      - **验证集成**: 首页集成 **Baidu** (`baidu-site-verification`) 和 **Bing** (`msvalidate.01`) 的 HTML 验证标签，无需上传文件。
-      - **自动提交**: 集成了 IndexNow API (`api.indexnow.org`)。
-      - **提交工具**: `utils/indexnow.ts` 提供了 `submitUrlsToIndexNow` 函数。
-      - **API 接口**: `/api/indexnow`
-        - 一键全量提交 (自动提交 Sitemap 所有 URL)。
-        - 单条提交 `?url=...`。
+    - **自动重定向**: 依赖 Vercel/Cloudflare 边缘层自动将 Root 请求重定向到 WWW。
+    - **验证集成**: 首页集成 **Baidu** (`baidu-site-verification`) 和 **Bing** (`msvalidate.01`) 的 HTML 验证标签，无需上传文件。
+    - **自动提交**: 集成了 IndexNow API (`api.indexnow.org`)。
+    - **提交工具**: `utils/indexnow.ts` 提供了 `submitUrlsToIndexNow` 函数。
+    - **API 接口**: `/api/indexnow`
+      - 一键全量提交 (自动提交 Sitemap 所有 URL)。
+      - 单条提交 `?url=...`。
   - **高密度信息策略**:
-      - **Meta Description**: 摒弃传统的简短摘要，采用 **"序号列表 + TLDR"** 模式（例如：`1. AI辅助... 2. Memori...`），在 SERP 中直接展示当期 10+ 条核心观点，极大提升信息密度。
-      - **Deep Content Rich Snippets**: 在 JSON-LD 的 `ListItem` 中注入 **全量 AI 摘要**，而非简单的标题，让搜索引擎“读懂”每篇文章的深度内容。
-      - **Crawler-Friendly Links**: 完美支持编码后的复杂标签 URL（如 `/stream/user%2F-%2Flabel%2F%E5%90%8E%E7%AB%AF`），确保爬虫能顺畅索引所有标签聚合页。
-      - **Homepage Dual-Schema**: 首页采用 **NewsArticle (今日内容)** + **CollectionPage (历史归档)** 双重结构化数据，兼顾内容时效性排名与历史页面索引。
-  - **动态标题进化 (Title Party)**: 
-      - **策略**: 摒弃死板的 "Daily Briefing" 标题。根据文章权重 (`重要新闻` > `必知要闻` > `常规更新`) 自动提取当日 **Top 2 核心头条** 动态生成 Title (e.g., `2025-12-13 Google Gemini 2.0发布、DeepSeek开源 | RSS Briefing Hub`)。
-      - **优势**: 大幅提升 SERP 点击率，让用户在搜索结果页就能看到当天的爆点新闻。
+    - **Meta Description**: 摒弃传统的简短摘要，采用 **"序号列表 + TLDR"** 模式（例如：`1. AI辅助... 2. Memori...`），在 SERP 中直接展示当期 10+ 条核心观点，极大提升信息密度。
+    - **Deep Content Rich Snippets**: 在 JSON-LD 的 `ListItem` 中注入 **全量 AI 摘要**，而非简单的标题，让搜索引擎“读懂”每篇文章的深度内容。
+    - **Crawler-Friendly Links**: 完美支持编码后的复杂标签 URL（如 `/stream/user%2F-%2Flabel%2F%E5%90%8E%E7%AB%AF`），确保爬虫能顺畅索引所有标签聚合页。
+    - **Homepage Dual-Schema**: 首页采用 **NewsArticle (今日内容)** + **CollectionPage (历史归档)** 双重结构化数据，兼顾内容时效性排名与历史页面索引。
+  - **动态标题进化 (Title Party)**:
+    - **策略**: 摒弃死板的 "Daily Briefing" 标题。根据文章权重 (`重要新闻` > `必知要闻` > `常规更新`) 自动提取当日 **Top 2 核心头条** 动态生成 Title (e.g., `2025-12-13 Google Gemini 2.0发布、DeepSeek开源 | RSS Briefing Hub`)。
+    - **优势**: 大幅提升 SERP 点击率，让用户在搜索结果页就能看到当天的爆点新闻。
   - **智能 Sitemap 策略**:
-      - **混合频率**: 针对 **“今天”** 的页面，配置 `hourly` 频率 + `lastmod` 实时时间戳，迫使爬虫高频回访以抓取“一日三更”的实时更新；针对 **“历史”** 页面，自动降级为 `weekly`，节省爬取配额。
+    - **混合频率**: 针对 **“今天”** 的页面，配置 `hourly` 频率 + `lastmod` 实时时间戳，迫使爬虫高频回访以抓取“一日三更”的实时更新；针对 **“历史”** 页面，自动降级为 `weekly`，节省爬取配额。
   - **SSR 服务端直连**:
-      - **架构升级**: 为了解决 Vercel 环境下 "Loopback Request" (请求自身 API)导致的 401/500 错误，重构了 SSR 数据获取层。
-      - **机制**: 服务端组件 (`stream/[id]`) 不再走 HTTP API 层，而是通过 `ssr-helpers.ts` 直接调用 FreshRSS/Supabase SDK。
-      - **收益**: 彻底根除鉴权与网络回路问题，首屏性能提升 30% 以上。
+    - **架构升级**: 为了解决 Vercel 环境下 "Loopback Request" (请求自身 API)导致的 401/500 错误，重构了 SSR 数据获取层。
+    - **机制**: 服务端组件 (`stream/[id]`) 不再走 HTTP API 层，而是通过 `ssr-helpers.ts` 直接调用 FreshRSS/Supabase SDK。
+    - **收益**: 彻底根除鉴权与网络回路问题，首屏性能提升 30% 以上。
   - **主动式 ISR**:
-      - **策略**: 针对 `/stream/[id]` 标签页，启用 **7天长效 ISR 缓存**。
-      - **机制**: 摒弃传统的“被动等待过期”，采用 **“修改即刷新” (Revalidate-on-Tagging)** 策略。管理员在前端打标签时，会自动触发 `/api/revalidate`，瞬间更新边缘节点缓存。既享受了静态页面的极致性能，又实现了动态内容的实时性。
+    - **策略**: 针对 `/stream/[id]` 标签页，启用 **7天长效 ISR 缓存**。
+    - **机制**: 摒弃传统的“被动等待过期”，采用 **“修改即刷新” (Revalidate-on-Tagging)** 策略。管理员在前端打标签时，会自动触发 `/api/revalidate`，瞬间更新边缘节点缓存。既享受了静态页面的极致性能，又实现了动态内容的实时性。
   - **首页零布局偏移**:
-      - **SSR Hydration**: 首页采用“SSR 直出 + 状态水合”双重保障。即使在禁用 JavaScript 的环境下，也能完美渲染首屏简报内容，杜绝 "Loading Spinner" 闪烁，大幅提升 Core Web Vitals 分数。
+    - **SSR Hydration**: 首页采用“SSR 直出 + 状态水合”双重保障。即使在禁用 JavaScript 的环境下，也能完美渲染首屏简报内容，杜绝 "Loading Spinner" 闪烁，大幅提升 Core Web Vitals 分数。
 
 ## 用户界面 (UI) 交互
 
@@ -105,7 +106,7 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 - **视觉与交互升级**:
   - **矢量化图标**: 关键交互元素（如收藏星标）全面升级为高精度 SVG，确保在 Retina 屏幕上的锐利显示与像素级对齐。
   - **高对比度导航**: 简报底部集成大字号、高对比度的 "Time Machine" 导航，提供清晰的上一篇/下一篇跳转体验。
-- **趋势工具集成**: 
+- **趋势工具集成**:
   - 独立的 `/trends` 页面，采用极简主义设计，展示前沿 AI 榜单和技术趋势。
   - **SSG 构建**：页面内容静态生成，访问零延迟。
 
@@ -113,12 +114,13 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 
 - **核心框架**: Next.js 16 (App Router), React 19, TypeScript
 - **样式**: Tailwind CSS
+- **代码质量**: ESLint, Prettier, Husky, lint-staged
 - **状态管理**:
   - **服务器状态**: TanStack Query (React Query) - 负责客户端数据交互。
   - **客户端状态**: Zustand - 管理 UI 状态和乐观更新。
-- **安全性**: isomorphic-dompurify - 跨端 HTML 清洗与增强。
+  - **安全性**: sanitize-html - 跨端 HTML 清洗与增强。
 - **边缘计算**: Next.js Proxy (原 Middleware) - 用于在网络边缘层实现安全访问控制。
-- **性能优化**: 
+- **性能优化**:
   - **图片优化**: 全面采用 `next/image` 组件，支持 `picsum.photos` 源的自动格式转换 (WebP/AVIF) 和按需缩放，显著降低 LCP。
 - **后端服务**:
   - **Supabase**: 提供文章的核心内容和自定义元数据。
@@ -140,7 +142,7 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 
 ### 安全性架构
 
-- **HTML 内容清洗**: 采用 **isomorphic-dompurify** 进行服务端与客户端双重清洗。
+- **HTML 内容清洗**: 采用 **sanitize-html** 进行服务端与客户端双重清洗。
   - **stripTags**: 用于生成安全的 Metadata Description 和 Title，防止标签闭合攻击。
   - **sanitizeHtml**: 用于文章正文渲染，严格白名单过滤 (移除 `script`, `object`, `embed` 等危险标签)，防止 XSS 攻击。
 
@@ -149,6 +151,7 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 项目采用 Next.js App Router 架构，利用 Server Components 和 Client Components 的优势。
 
 ### 核心目录结构
+
 - **`app/`**: 应用路由和页面 (App Router)。
   - **`layout.tsx`**: 根布局，包含全局 Providers (`QueryClientProvider`) 和全局 UI (`GlobalUI`)。
   - **`error.tsx`**: 全局错误边界 (Error Boundary)。
@@ -181,21 +184,25 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 ### 状态与数据流架构详解
 
 #### 1. `services/api.ts` - 原始 API 层
+
 - **职责**: 作为最底层的通信模块，只负责与后端 API 端点进行原始的 `fetch` 通信，对返回的数据不做任何处理。此外，它也包含一些客户端辅助函数，如 `getCurrentTimeSlotInShanghai`，用于处理时区相关的计算。
 
 #### 2. `services/articleLoader.ts` - 数据加载与融合层
+
 - **职责**: **核心业务逻辑层**。它封装了所有复杂的数据融合与转换过程。
   - **数据融合**: 例如，`fetchFilteredArticles` 函数会先从 `api.ts` 调用 `getArticlesByLabel` 获取 FreshRSS 文章列表，再调用 `getArticlesDetails` 获取 Supabase 详情，最后将两者合并成完整的 `Article` 对象。
   - **数据转换**: 例如，`fetchBriefingArticles` 函数会将从 Supabase 返回的 `verdict.importance` 字段（如 "重要新闻"）映射到前端 `Article` 模型中统一的 `briefingSection` 字段，确保文章可以在 UI 中被正确分组。
 - **优点**: 将业务逻辑与 React Hooks 解耦，使其变得可独立测试和复用。
 
 #### 3. `hooks/useArticles.ts` - 服务器状态连接层 (React Query)
+
 - **职责**: 作为连接“数据加载器”与 React 世界的桥梁。
 - **`use...Query` Hooks**: 调用 `articleLoader.ts` 中的函数，通过 `react-query` 管理缓存、加载状态，并将成功获取的数据存入 Zustand Store。
 - **`use...Mutation` Hooks**: 负责处理所有“写”操作（如更新文章状态、标记每日进度），采用了**安全更新策略**（等待服务端确认后更新），确保数据的一致性与可靠性。
 - **`useFilters.ts`**: 作为核心业务逻辑 Hook，它负责计算和触发 `activeFilter` 和 `timeSlot` 的原子化更新，确保数据请求的准确性并消除冗余调用。
 
 #### 4. `store/` - 客户端状态中心 (Zustand)
+
 - **职责**: 应用的**“单一事实来源”**与**客户端业务逻辑中心**。
   - **`articleStore.ts`**: 存储所有经过融合的、完整的文章数据 (`articlesById`)，以及元数据（如 `availableFilters`）。
   - **`uiStore.ts`**: 存储纯 UI 状态，如 `activeFilter`、`timeSlot`、`selectedArticleId`、`modalArticleId`。这实现了数据与 UI 的分离，减少了不必要的渲染。
@@ -221,6 +228,7 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 - `pnpm run build` - 构建生产版本
 - `pnpm run start` - 启动生产服务器
 - `pnpm run lint` - 代码检查
+- `pnpm run format` - 代码自动格式化 (Prettier)
 - `pnpm run gen:supabase-types` - 自动生成 Supabase 数据库类型定义
 - `pnpm run gen:freshrss-types` - 自动生成 FreshRSS 类型定义
 

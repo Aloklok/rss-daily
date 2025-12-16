@@ -1,0 +1,5 @@
+# Fix for GitHub Desktop / GUI clients
+# Explicitly add the user's Node.js path
+export PATH="/Users/Alok/.nvm/versions/node/v24.11.1/bin:$PATH"
+
+lint-staged

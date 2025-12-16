@@ -17,7 +17,8 @@ interface ArticleStoreState {
   setAvailableFilters: (filters: AvailableFilters) => void;
 }
 
-const isUserTag = (tagId: string) => !tagId.includes('/state/com.google/') && !tagId.includes('/state/org.freshrss/');
+const isUserTag = (tagId: string) =>
+  !tagId.includes('/state/com.google/') && !tagId.includes('/state/org.freshrss/');
 
 export const useArticleStore = create<ArticleStoreState>((set, get) => ({
   articlesById: {},
@@ -28,7 +29,7 @@ export const useArticleStore = create<ArticleStoreState>((set, get) => ({
     if (!articles || articles.length === 0) return;
     set((state) => {
       const newArticlesById = { ...state.articlesById };
-      articles.forEach(article => {
+      articles.forEach((article) => {
         newArticlesById[article.id] = { ...state.articlesById[article.id], ...article };
       });
       return { articlesById: newArticlesById };
@@ -46,31 +47,31 @@ export const useArticleStore = create<ArticleStoreState>((set, get) => ({
       if (isNowStarred && !wasStarred) {
         newStarredArticleIds = [updatedArticle.id, ...newStarredArticleIds];
       } else if (!isNowStarred && wasStarred) {
-        newStarredArticleIds = newStarredArticleIds.filter(id => id !== updatedArticle.id);
+        newStarredArticleIds = newStarredArticleIds.filter((id) => id !== updatedArticle.id);
       }
 
       // --- Dynamic Tag Count Update ---
       const oldUserTags = new Set((oldArticle?.tags || []).filter(isUserTag));
       const newUserTags = new Set((updatedArticle.tags || []).filter(isUserTag));
 
-      const tagsToAdd = [...newUserTags].filter(t => !oldUserTags.has(t));
-      const tagsToRemove = [...oldUserTags].filter(t => !newUserTags.has(t));
+      const tagsToAdd = [...newUserTags].filter((t) => !oldUserTags.has(t));
+      const tagsToRemove = [...oldUserTags].filter((t) => !newUserTags.has(t));
 
       let newAvailableTags = [...state.availableFilters.tags];
 
       if (tagsToAdd.length > 0 || tagsToRemove.length > 0) {
         // 1. Identify which tags are TRULY new to the available list
-        const existingTagIds = new Set(newAvailableTags.map(t => t.id));
-        const brandNewTags = tagsToAdd.filter(id => !existingTagIds.has(id));
+        const existingTagIds = new Set(newAvailableTags.map((t) => t.id));
+        const brandNewTags = tagsToAdd.filter((id) => !existingTagIds.has(id));
 
         // 2. Append brand new tags to the list with initial count 0 (count will be incremented below)
-        brandNewTags.forEach(id => {
+        brandNewTags.forEach((id) => {
           const label = decodeURIComponent(id.split('/').pop() || id);
           newAvailableTags.push({ id, label, count: 0 });
         });
 
         // 3. Update counts for all affected tags
-        newAvailableTags = newAvailableTags.map(tag => {
+        newAvailableTags = newAvailableTags.map((tag) => {
           const newTag = { ...tag };
           if (tagsToAdd.includes(newTag.id)) {
             newTag.count = (newTag.count || 0) + 1;
@@ -100,7 +101,7 @@ export const useArticleStore = create<ArticleStoreState>((set, get) => ({
       const newArticlesById = { ...state.articlesById };
       let hasChanged = false;
 
-      idsToMark.forEach(id => {
+      idsToMark.forEach((id) => {
         const article = newArticlesById[id];
         if (article && !article.tags?.includes(READ_TAG)) {
           newArticlesById[id] = {
@@ -121,4 +122,3 @@ export const useArticleStore = create<ArticleStoreState>((set, get) => ({
 
   setAvailableFilters: (filters) => set({ availableFilters: filters }),
 }));
-

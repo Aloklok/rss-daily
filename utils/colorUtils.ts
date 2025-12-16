@@ -18,7 +18,7 @@ const TAG_COLOR_CLASSES = [
   'bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-200 dark:text-fuchsia-900',
   'bg-pink-100 text-pink-800 dark:bg-pink-200 dark:text-pink-900',
   'bg-rose-100 text-rose-800 dark:bg-rose-200 dark:text-rose-900',
-  'bg-stone-100 text-stone-800 dark:bg-stone-200 dark:text-stone-900'
+  'bg-stone-100 text-stone-800 dark:bg-stone-200 dark:text-stone-900',
 ];
 
 const GRADIENTS = [
@@ -36,7 +36,7 @@ const GRADIENTS = [
   'from-cyan-400 via-blue-500 to-indigo-500',
   'from-yellow-400 via-orange-500 to-red-500',
   'from-sky-400 via-blue-500 to-indigo-500',
-  'from-violet-400 via-purple-500 to-fuchsia-500'
+  'from-violet-400 via-purple-500 to-fuchsia-500',
 ];
 
 /**

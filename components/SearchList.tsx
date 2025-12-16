@@ -17,8 +17,8 @@ interface ArticleListProps {
 
 // Internal customized card for SearchList only
 const SearchListItem: React.FC<{ articleId: string | number }> = ({ articleId }) => {
-  const openModal = useUIStore(state => state.openModal);
-  const article = useArticleStore(state => state.articlesById[articleId]);
+  const openModal = useUIStore((state) => state.openModal);
+  const article = useArticleStore((state) => state.articlesById[articleId]);
 
   const { userTagLabels } = useArticleMetadata(article);
 
@@ -27,16 +27,19 @@ const SearchListItem: React.FC<{ articleId: string | number }> = ({ articleId })
   return (
     <div
       onClick={() => openModal(article.id)}
-      className="group relative flex flex-col md:flex-row gap-6 p-6 rounded-2xl bg-white dark:bg-white/40 dark:backdrop-blur-md ring-1 ring-stone-200 dark:ring-white/50 hover:ring-2 hover:ring-black dark:hover:ring-white/70 transition-all cursor-pointer shadow-sm hover:shadow-xl"
+      className="group relative flex cursor-pointer flex-col gap-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-stone-200 transition-all hover:shadow-xl hover:ring-2 hover:ring-black md:flex-row dark:bg-white/40 dark:ring-white/50 dark:backdrop-blur-md dark:hover:ring-white/70"
     >
-      <div className="flex-1 min-w-0 flex flex-col justify-between">
+      <div className="flex min-w-0 flex-1 flex-col justify-between">
         <div>
-          <h3 className="text-xl font-medium text-stone-900 dark:text-stone-900 mb-2 leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-600 transition-colors">
-            <ArticleTitleStar article={article} className="size-5 inline-block mr-2 -mt-1 text-amber-400" />
+          <h3 className="mb-2 text-xl leading-tight font-medium text-stone-900 transition-colors group-hover:text-blue-600 dark:text-stone-900 dark:group-hover:text-blue-600">
+            <ArticleTitleStar
+              article={article}
+              className="-mt-1 mr-2 inline-block size-5 text-amber-400"
+            />
             {article.title}
           </h3>
 
-          <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-wider text-stone-500 mb-4">
+          <div className="mb-4 flex items-center gap-3 text-xs font-bold tracking-wider text-stone-500 uppercase">
             <span className="text-stone-700 dark:text-stone-600">{article.sourceName}</span>
             <span className="size-1 rounded-full bg-stone-300"></span>
             <span>{new Date(article.published).toLocaleDateString('zh-CN')}</span>
@@ -44,8 +47,11 @@ const SearchListItem: React.FC<{ articleId: string | number }> = ({ articleId })
 
           {userTagLabels.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              {userTagLabels.map(tag => (
-                <span key={tag} className={`text-xs font-semibold px-2.5 py-1 rounded-full ${getRandomColorClass(tag)}`}>
+              {userTagLabels.map((tag) => (
+                <span
+                  key={tag}
+                  className={`rounded-full px-2.5 py-1 text-xs font-semibold ${getRandomColorClass(tag)}`}
+                >
                   {tag}
                 </span>
               ))}
@@ -55,26 +61,32 @@ const SearchListItem: React.FC<{ articleId: string | number }> = ({ articleId })
       </div>
 
       {/* Right Side: Summary (Vertical Centered) */}
-      <div className="md:w-1/3 shrink-0 flex flex-col justify-center border-t md:border-t-0 md:border-l border-stone-300 dark:border-white/20 pt-4 md:pt-0 md:pl-6">
-        <p className="text-sm font-medium text-stone-600 dark:text-stone-600 leading-relaxed line-clamp-4 opacity-80 group-hover:opacity-100 transition-opacity">
+      <div className="flex shrink-0 flex-col justify-center border-t border-stone-300 pt-4 md:w-1/3 md:border-t-0 md:border-l md:pt-0 md:pl-6 dark:border-white/20">
+        <p className="line-clamp-4 text-sm leading-relaxed font-medium text-stone-600 opacity-80 transition-opacity group-hover:opacity-100 dark:text-stone-600">
           {article.tldr || article.summary}
         </p>
         <div className="mt-4 flex justify-end">
-          <svg className="size-5 text-stone-300 group-hover:text-black dark:group-hover:text-black transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg
+            className="size-5 text-stone-300 transition-colors group-hover:text-black dark:group-hover:text-black"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
             <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
           </svg>
         </div>
       </div>
     </div>
   );
-}
+};
 
 const SearchList: React.FC<ArticleListProps> = ({
   articleIds,
   isLoading,
   fetchNextPage,
   hasNextPage,
-  isFetchingNextPage
+  isFetchingNextPage,
 }) => {
   const activeFilter = useUIStore((state) => state.activeFilter);
 
@@ -89,22 +101,22 @@ const SearchList: React.FC<ArticleListProps> = ({
 
   if (articleIds.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] text-stone-400">
-        <div className="text-6xl mb-4 grayscale">📂</div>
+      <div className="flex min-h-[50vh] flex-col items-center justify-center text-stone-400">
+        <div className="mb-4 text-6xl grayscale">📂</div>
         <p className="font-serif text-xl">No articles found.</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12 md:px-8">
+    <div className="mx-auto max-w-4xl px-4 py-12 md:px-8">
       {/* Editorial Header */}
       <div className="mb-16">
-        <h2 className="text-5xl md:text-7xl font-serif font-black text-stone-900 dark:text-stone-900 mb-4 tracking-tight">
+        <h2 className="mb-4 font-serif text-5xl font-black tracking-tight text-stone-900 md:text-7xl dark:text-stone-900">
           {filterLabel}
         </h2>
-        <div className="h-2 w-24 bg-blue-600 dark:bg-blue-400 mb-6"></div>
-        <p className="text-stone-500 font-medium uppercase tracking-widest text-sm">
+        <div className="mb-6 h-2 w-24 bg-blue-600 dark:bg-blue-400"></div>
+        <p className="text-sm font-medium tracking-widest text-stone-500 uppercase">
           Found {articleIds.length} Articles
         </p>
       </div>
@@ -120,7 +132,7 @@ const SearchList: React.FC<ArticleListProps> = ({
           <button
             onClick={() => fetchNextPage?.()}
             disabled={isFetchingNextPage}
-            className="inline-flex items-center gap-3 px-8 py-4 bg-stone-100 dark:bg-stone-800 rounded-full font-bold hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-3 rounded-full bg-stone-100 px-8 py-4 font-bold transition-colors hover:bg-stone-200 disabled:opacity-50 dark:bg-stone-800 dark:hover:bg-stone-700"
           >
             {isFetchingNextPage ? 'Loading...' : 'View More Archives'}
           </button>

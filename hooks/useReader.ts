@@ -5,72 +5,75 @@ import { useArticleStore } from '../store/articleStore';
 import { useUIStore } from '../store/uiStore'; // 【新增】导入 Zustand store
 
 export const useReader = () => {
-    const [readerContent, setReaderContent] = useState<CleanArticleContent | null>(null);
-    const [isReaderLoading, setIsReaderLoading] = useState(false);
+  const [readerContent, setReaderContent] = useState<CleanArticleContent | null>(null);
+  const [isReaderLoading, setIsReaderLoading] = useState(false);
 
-    const articlesById = useArticleStore((state) => state.articlesById); // 【新增】从 store 获取全局文章
+  const articlesById = useArticleStore((state) => state.articlesById); // 【新增】从 store 获取全局文章
 
-    const setSelectedArticleId = useUIStore(state => state.setSelectedArticleId);
+  const setSelectedArticleId = useUIStore((state) => state.setSelectedArticleId);
 
-    // Map reader actions to modal actions
-    const openModal = useUIStore(state => state.openModal);
-    const closeModal = useUIStore(state => state.closeModal);
-    const modalArticleId = useUIStore(state => state.modalArticleId);
-    const modalInitialMode = useUIStore(state => state.modalInitialMode);
+  // Map reader actions to modal actions
+  const openModal = useUIStore((state) => state.openModal);
+  const closeModal = useUIStore((state) => state.closeModal);
+  const modalArticleId = useUIStore((state) => state.modalArticleId);
+  const modalInitialMode = useUIStore((state) => state.modalInitialMode);
 
-    const isReaderVisible = !!modalArticleId && modalInitialMode === 'reader';
+  const isReaderVisible = !!modalArticleId && modalInitialMode === 'reader';
 
+  const closeReader = closeModal;
 
+  const addArticles = useArticleStore((state) => state.addArticles);
 
-    const closeReader = closeModal;
+  const [readerArticleId, setReaderArticleId] = useState<string | number | null>(null);
 
-    const addArticles = useArticleStore(state => state.addArticles);
+  const articleForReader = readerArticleId ? articlesById[readerArticleId] : null;
+  const handleOpenReader = useCallback(
+    async (article: Article) => {
+      addArticles([article]);
+      // 【改】设置当前正在阅读的文章 ID。
+      setReaderArticleId(article.id);
+      openModal(article.id, 'reader');
+      setIsReaderLoading(true);
+      setReaderContent(null);
+      try {
+        const content = await getCleanArticleContent(article);
+        setReaderContent(content);
+      } catch (_error) {
+        // ignore
+      } finally {
+        setIsReaderLoading(false);
+      }
+    },
+    [openModal, addArticles],
+  );
 
-    const [readerArticleId, setReaderArticleId] = useState<string | number | null>(null);
+  const handleShowArticleInMain = useCallback(
+    (article: Article) => {
+      addArticles([article]);
+      setSelectedArticleId(article.id);
+      // setActiveFilter(null); // 移除此行
+      closeReader();
+    },
+    [addArticles, setSelectedArticleId, closeReader],
+  );
 
-    const articleForReader = readerArticleId ? articlesById[readerArticleId] : null;
-    const handleOpenReader = useCallback(async (article: Article) => {
-        addArticles([article]);
-        // 【改】设置当前正在阅读的文章 ID。
-        setReaderArticleId(article.id);
-        openModal(article.id, 'reader');
-        setIsReaderLoading(true);
-        setReaderContent(null);
-        try {
-            const content = await getCleanArticleContent(article);
-            setReaderContent(content);
-        } catch (_error) {
-            // ignore
-        } finally {
-            setIsReaderLoading(false);
-        }
-    }, [openModal, addArticles]);
+  const handleCloseArticleDetail = useCallback(() => {
+    setSelectedArticleId(null);
+  }, [setSelectedArticleId]);
 
-    const handleShowArticleInMain = useCallback((article: Article) => {
-        addArticles([article]);
-        setSelectedArticleId(article.id);
-        // setActiveFilter(null); // 移除此行
-        closeReader();
-    }, [addArticles, setSelectedArticleId, closeReader]);
+  const handleCloseReader = useCallback(() => {
+    closeReader();
+    setReaderArticleId(null);
+  }, [closeReader]);
 
-    const handleCloseArticleDetail = useCallback(() => {
-        setSelectedArticleId(null);
-    }, [setSelectedArticleId]);
-
-
-    const handleCloseReader = useCallback(() => {
-        closeReader();
-        setReaderArticleId(null);
-    }, [closeReader]);
-
-    return {
-        readerContent,
-        isReaderLoading,
-        isReaderVisible,
-        articleForReader,
-        handleOpenReader,
-        handleShowArticleInMain,
-        handleCloseReader,
-        handleCloseArticleDetail,
-    };
+  return {
+    readerContent,
+    isReaderLoading,
+    isReaderVisible,
+    articleForReader,
+    handleOpenReader,
+    handleShowArticleInMain,
+    handleCloseReader,
+    handleCloseArticleDetail,
+  };
 };
