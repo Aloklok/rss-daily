@@ -15,28 +15,7 @@ interface ArticleDetailProps {
 
 
 
-import { removeEmptyParagraphs } from '../utils/contentUtils';
-
-function stripLeadingTitle(contentHtml: string, title: string): string {
-  if (!contentHtml || !title) return contentHtml;
-  try {
-    const h1Match = contentHtml.match(/^\s*<h1[^>]*>([\s\S]*?)<\/h1>/i);
-    if (h1Match && h1Match[1]) {
-      const h1Text = h1Match[1].replace(/<[^>]+>/g, '').toLowerCase().trim();
-      const titleLower = title.toLowerCase().trim();
-      if (h1Text && (h1Text === titleLower || h1Text.includes(titleLower) || titleLower.includes(h1Text))) {
-        return contentHtml.replace(h1Match[0], '');
-      }
-    }
-    const textStart = contentHtml.replace(/^\s+/, '');
-    if (textStart.toLowerCase().startsWith(title.toLowerCase().trim())) {
-      return contentHtml.replace(new RegExp('^\\s*' + title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), '');
-    }
-  } catch (e) {
-    console.error('stripLeadingTitle error', e);
-  }
-  return contentHtml;
-}
+import { removeEmptyParagraphs, stripTags, sanitizeHtml, stripLeadingTitle } from '../utils/contentUtils';
 
 const ArticleDetail: React.FC<ArticleDetailProps> = ({ article, onClose: _onClose, initialContent }) => {
   const [isLoading, setIsLoading] = useState<boolean>(!initialContent);
@@ -219,7 +198,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({ article, onClose: _onClos
             <p>无法加载文章内容：{error}</p>
           </div>
         ) : displayContent ? (
-          <div id="article-detail-content" ref={contentRef} className="prose md:prose-lg max-w-none break-words text-gray-800 dark:text-midnight-text-reader dark:prose-invert leading-relaxed mt-6 select-text" dangerouslySetInnerHTML={{ __html: displayContent }} />
+          <div id="article-detail-content" ref={contentRef} className="prose md:prose-lg max-w-none break-words text-gray-800 dark:text-midnight-text-reader dark:prose-invert leading-relaxed mt-6 select-text" dangerouslySetInnerHTML={{ __html: sanitizeHtml(displayContent) }} />
         ) : (
           <div className="text-gray-500 py-10">
             <p>正在获取全文内容...</p>

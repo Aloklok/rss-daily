@@ -116,6 +116,7 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 - **状态管理**:
   - **服务器状态**: TanStack Query (React Query) - 负责客户端数据交互。
   - **客户端状态**: Zustand - 管理 UI 状态和乐观更新。
+- **安全性**: isomorphic-dompurify - 跨端 HTML 清洗与增强。
 - **边缘计算**: Next.js Proxy (原 Middleware) - 用于在网络边缘层实现安全访问控制。
 - **性能优化**: 
   - **图片优化**: 全面采用 `next/image` 组件，支持 `picsum.photos` 源的自动格式转换 (WebP/AVIF) 和按需缩放，显著降低 LCP。
@@ -136,6 +137,12 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 1.  **Supabase**: 提供文章的核心内容 (Content, Summary, Verdict)。
 2.  **FreshRSS**: 提供文章的元数据 (Read/Starred Status, Tags)。
 3.  **融合逻辑**: `Article` 对象的 `tags` 数组是融合模型的集中体现，混合了多种“标签类”信息，确保前端组件（如卡片、模态框）可以统一处理。
+
+### 安全性架构
+
+- **HTML 内容清洗**: 采用 **isomorphic-dompurify** 进行服务端与客户端双重清洗。
+  - **stripTags**: 用于生成安全的 Metadata Description 和 Title，防止标签闭合攻击。
+  - **sanitizeHtml**: 用于文章正文渲染，严格白名单过滤 (移除 `script`, `object`, `embed` 等危险标签)，防止 XSS 攻击。
 
 ## 前端架构 (Next.js App Router)
 
@@ -214,7 +221,8 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 - `pnpm run build` - 构建生产版本
 - `pnpm run start` - 启动生产服务器
 - `pnpm run lint` - 代码检查
-- `pnpm run gen:types` - 自动生成 Supabase 数据库类型定义
+- `pnpm run gen:supabase-types` - 自动生成 Supabase 数据库类型定义
+- `pnpm run gen:freshrss-types` - 自动生成 FreshRSS 类型定义
 
 ## 部署
 

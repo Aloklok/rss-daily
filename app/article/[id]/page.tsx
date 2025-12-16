@@ -1,8 +1,8 @@
-import React from 'react';
-import { Metadata } from 'next';
 import { fetchArticleById, fetchArticleContentServer } from '../../lib/data';
+import { Metadata } from 'next';
 import ArticleDetailClient from '../../components/ArticleDetailClient';
 import { notFound } from 'next/navigation';
+import { stripTags } from '../../../utils/contentUtils';
 
 export const revalidate = false;
 
@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
     // Truncate summary for description
     const description = article.summary
-        ? article.summary.replace(/<[^>]+>/g, '').substring(0, 160) + '...'
+        ? stripTags(article.summary).substring(0, 160) + '...'
         : `Read ${article.title} on Briefing Hub | 在 Briefing Hub 阅读 ${article.title}。`;
 
     return {

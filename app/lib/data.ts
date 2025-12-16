@@ -1,6 +1,5 @@
 import { getSupabaseClient, getFreshRssClient } from './api-utils';
 import { Article, FreshRSSItem, CleanArticleContent, Tag } from '../../types';
-import { removeEmptyParagraphs } from '../../utils/contentUtils';
 import { toFullId } from '../../utils/idHelpers';
 
 export async function fetchAvailableDates(): Promise<string[]> {
@@ -129,26 +128,9 @@ export async function fetchBriefingData(date: string): Promise<{ [key: string]: 
 // 【新增】服务端直接获取文章内容 (用于 SSR / No-JS)
 
 // Helper to strip title - duplicated from ArticleDetail.tsx but needed here for SSR clean
-function stripLeadingTitle(contentHtml: string, title: string): string {
-    if (!contentHtml || !title) return contentHtml;
-    try {
-        const h1Match = contentHtml.match(/^\s*<h1[^>]*>([\s\S]*?)<\/h1>/i);
-        if (h1Match && h1Match[1]) {
-            const h1Text = h1Match[1].replace(/<[^>]+>/g, '').toLowerCase().trim();
-            const titleLower = title.toLowerCase().trim();
-            if (h1Text && (h1Text === titleLower || h1Text.includes(titleLower) || titleLower.includes(h1Text))) {
-                return contentHtml.replace(h1Match[0], '');
-            }
-        }
-        const textStart = contentHtml.replace(/^\s+/, '');
-        if (textStart.toLowerCase().startsWith(title.toLowerCase().trim())) {
-            return contentHtml.replace(new RegExp('^\\s*' + title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), '');
-        }
-    } catch (e) {
-        console.error('stripLeadingTitle error', e);
-    }
-    return contentHtml;
-}
+// Helper to strip title - duplicated from ArticleDetail.tsx but needed here for SSR clean
+import { removeEmptyParagraphs, stripTags, stripLeadingTitle } from '../../utils/contentUtils';
+
 
 export const fetchArticleContentServer = async (id: string | number): Promise<CleanArticleContent | null> => {
     try {
