@@ -71,3 +71,8 @@ updates:
       # 禁止自动升级 Supabase 的大版本 (防止 API 破坏性变更)
       - dependency-name: "@supabase/supabase-js"
         update-types: ["version-update:semver-major"]
+
+      # 3. 【关键】忽略 Node 类型定义的大版本
+      # 告诉机器人：除非我手动升，否则别把 Node 类型从 20 升到 21/22/25
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
