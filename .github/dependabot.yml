@@ -1,0 +1,73 @@
+version: 2
+
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    
+    # 限制每次最多开 10 个 PR
+    open-pull-requests-limit: 10
+
+    # =================================================
+    # 策略 1：核心框架保护区 (Next.js + React)
+    # 既然你用了 Next 16 + React 19，必须把它们和对应的 Types 锁死在一起
+    # =================================================
+    groups:
+      nextjs-core:
+        patterns:
+          - "next"
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+          - "eslint-plugin-react*" # React 的相关插件通常要跟 React 版本对齐
+      
+      # 策略 2：Tailwind v4 全家桶
+      # v4 和 postcss 绑定很紧，必须一起升
+      tailwind-ecosystem:
+        patterns:
+          - "tailwindcss"
+          - "@tailwindcss/*"
+          - "postcss"
+      
+      # 策略 3：TanStack Query
+      tanstack-query:
+        patterns:
+          - "@tanstack/*"
+
+      # 策略 4：Vercel 监控全家桶
+      vercel-tools:
+        patterns:
+          - "@vercel/*"
+          - "@sentry/*" # 监控类通常可以一起升
+
+      # 策略 5：ESLint 9 工具链
+      # 避免插件版本不兼容导致 lint 报错
+      linting-tools:
+        patterns:
+          - "eslint"
+          - "typescript-eslint"
+          - "@eslint/*"
+          - "globals"
+
+    # =================================================
+    # 核心安全网：忽略规则 (Ignore Rules)
+    # 这里回答了你的疑虑：只要配置了这里，机器人就不会乱升大版本
+    # =================================================
+    ignore:
+      # 禁止自动升级 Next.js 的大版本 (比如 16 -> 17)
+      - dependency-name: "next"
+        update-types: ["version-update:semver-major"]
+      
+      # 禁止自动升级 React 的大版本 (比如 19 -> 20)
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      
+      # 禁止自动升级 Supabase 的大版本 (防止 API 破坏性变更)
+      - dependency-name: "@supabase/supabase-js"
+        update-types: ["version-update:semver-major"]
