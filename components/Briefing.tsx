@@ -274,7 +274,7 @@ const Briefing: React.FC<BriefingProps> = ({
           <div className="absolute inset-0 z-0">
             <Image
               src={bgImage}
-              alt="Daily Background"
+              alt="RSS简报封面背景"
               fill
               priority
               unoptimized={process.env.NODE_ENV === 'development'}

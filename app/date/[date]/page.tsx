@@ -187,6 +187,13 @@ export async function generateMetadata({
     title: dynamicTitle,
     description: description,
     keywords: topKeywords, // Inject explicit keywords tag
+    // Dynamic Robot Control:
+    // If we have content, index it. If empty (timeout/error), do not index but follow links.
+    // This prevents "Soft 404" penalties while keeping the page accessible to users.
+    robots: {
+      index: allArticles.length > 0,
+      follow: true,
+    },
     alternates: {
       canonical: `/date/${date}`,
     },

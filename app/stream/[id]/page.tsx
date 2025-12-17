@@ -38,10 +38,21 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { articles } = await fetchFilteredArticlesSSR(decodedId, 20, true);
   const topKeywords = getTopKeywords(articles, 8);
 
+  // Indexing Threshold: Only index if there is at least 1 article.
+  // This avoids polluting the index with empty tags.
+  const shouldIndex = articles && articles.length > 0;
+
   return {
     title: `${tagName} - AI Insights & Briefings`,
     description: `Explore AI-curated insights for ${tagName}, covering topics like ${topKeywords.join(', ')}. Daily updates, market takes, and critical analysis.`,
     keywords: topKeywords,
+    robots: {
+      index: shouldIndex, // Only index if content exists
+      follow: true,
+    },
+    alternates: {
+      canonical: `/stream/${id}`, // Self-referencing canonical to prevent duplicate content issues
+    },
   };
 }
 
