@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { CleanArticleContent, Article } from '../../../../types';
 import LoadingSpinner from '../../../common/ui/Spinner';
 import { getRandomColorClass } from '../../../../utils/colorUtils';
-import { removeEmptyParagraphs, sanitizeHtml } from '../../../../utils/contentUtils';
+import { removeEmptyParagraphs } from '../../../../utils/contentUtils';
 
 interface ArticleReaderViewProps {
   article: Article;
@@ -168,7 +168,12 @@ const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
         ref={contentRef}
         className="prose prose-lg dark:prose-invert dark:text-midnight-text-reader max-w-none leading-relaxed text-gray-800 select-text"
         dangerouslySetInnerHTML={{
-          __html: sanitizeHtml(removeEmptyParagraphs(readerContent.content)),
+          // Content is already sanitized by the server (fetchArticleContentServer)
+          // removeEmptyParagraphs is also applied on server, but idempotent if applied again.
+          // Applying removeEmptyParagraphs here handles cases where client-side logic might have introduced it?
+          // No, but it's cheap. Safe to keep or remove.
+          // Let's keep removeEmptyParagraphs for robustness but remove sanitizeHtml.
+          __html: removeEmptyParagraphs(readerContent.content),
         }}
       />
     </article>

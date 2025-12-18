@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint . --quiet",
     "format": "prettier --write .",
+    "analyze": "cross-env ANALYZE=true next build --webpack",
     "vercel": "NODE_OPTIONS='--dns-result-order=ipv4first' vercel dev",
     "gen:supabase-types": "npx supabase gen types typescript --project-id rpctclawjqruwpfirkez > types/supabase.ts",
     "gen:freshrss-types": "npx openapi-typescript types/freshrss-greader.yaml -o types/freshrss-greader.ts",
@@ -35,6 +36,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
+    "@next/bundle-analyzer": "^16.0.10",
     "@tailwindcss/postcss": "^4.1.18",
     "@tailwindcss/typography": "^0.5.19",
     "@types/node": "^20.19.27",
@@ -42,6 +44,7 @@
     "@types/react-dom": "^19.0.0",
     "@types/sanitize-html": "^2.16.0",
     "@vercel/node": "^5.5.15",
+    "cross-env": "^10.1.0",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react": "^7.37.5",

@@ -124,7 +124,9 @@ export async function fetchBriefingData(date: string): Promise<{ [key: string]: 
 
 // Helper to strip title - duplicated from ArticleDetail.tsx but needed here for SSR clean
 // Helper to strip title - duplicated from ArticleDetail.tsx but needed here for SSR clean
+// Helper to strip title - duplicated from ArticleDetail.tsx but needed here for SSR clean
 import { removeEmptyParagraphs, stripLeadingTitle } from '../../utils/contentUtils';
+import { sanitizeHtml } from '../../utils/serverSanitize';
 
 export const fetchArticleContentServer = async (
   id: string | number,
@@ -149,9 +151,13 @@ export const fetchArticleContentServer = async (
       (item.canonical?.[0]?.href ? new URL(item.canonical[0].href).hostname : '');
     const title = item.title;
 
-    // Apply same cleaning as client-side
+    // Apply strict sanitization order:
+    // 1. Strip redundant title (text operation)
+    // 2. Remove empty paragraphs (HTML regex operation)
+    // 3. Sanitize HTML (security + tag whitelist) - moved from client to server
     const cleanedHtml = stripLeadingTitle(contentHtml, title || '');
-    const finalHtml = removeEmptyParagraphs(cleanedHtml);
+    const preSanitized = removeEmptyParagraphs(cleanedHtml);
+    const finalHtml = sanitizeHtml(preSanitized);
 
     return {
       title: title,

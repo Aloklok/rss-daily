@@ -12,8 +12,6 @@ interface ArticleDetailProps {
   initialContent?: CleanArticleContent | null;
 }
 
-import { sanitizeHtml } from '../../../utils/contentUtils';
-
 import { useArticleContent } from '../../../hooks/useArticleContent';
 
 const ArticleDetail: React.FC<ArticleDetailProps> = ({
@@ -169,7 +167,8 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
             id="article-detail-content"
             ref={contentRef}
             className="prose md:prose-lg dark:text-midnight-text-reader dark:prose-invert mt-6 max-w-none leading-relaxed break-words text-gray-800 select-text"
-            dangerouslySetInnerHTML={{ __html: sanitizeHtml(displayContent) }}
+            // Content is already sanitized on the server (see lib/server/dataFetcher.ts)
+            dangerouslySetInnerHTML={{ __html: displayContent }}
           />
         ) : (
           <div className="py-10 text-gray-500">

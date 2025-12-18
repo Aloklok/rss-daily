@@ -142,9 +142,9 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 
 ### 安全性架构
 
-- **HTML 内容清洗**: 采用 **sanitize-html** 进行服务端与客户端双重清洗。
+- **HTML 内容清洗**: 采用 **sanitize-html** 进行**服务端统一清洗** (Server-Side Only)。
   - **stripTags**: 用于生成安全的 Metadata Description 和 Title，防止标签闭合攻击。
-  - **sanitizeHtml**: 用于文章正文渲染，严格白名单过滤 (移除 `script`, `object`, `embed` 等危险标签)，防止 XSS 攻击。
+  - **sanitizeHtml**: 在数据获取层 (`fetchArticleContentServer`) 直接对 HTML 进行清洗。这不仅防止了 XSS 攻击，还显著减少了客户端 bundle 体积（移除了客户端的 sanitization 库）。
 
 ## 前端架构 (Next.js App Router)
 
@@ -191,6 +191,7 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 - `pnpm install` - 安装依赖
 - `pnpm run dev` - 启动开发服务器
 - `pnpm run build` - 构建生产版本
+- `pnpm run analyze` - 构建并分析 Bundle 体积
 - `pnpm run start` - 启动生产服务器
 - `pnpm run lint` - 代码检查
 - `pnpm run format` - 代码自动格式化 (Prettier)

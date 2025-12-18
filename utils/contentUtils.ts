@@ -1,5 +1,3 @@
-import sanitize from 'sanitize-html';
-
 /**
  * Removes empty paragraphs from the HTML content.
  * Handles <p>&nbsp;</p>, <p> </p>, and other whitespace-only paragraphs.
@@ -15,62 +13,13 @@ export function removeEmptyParagraphs(html: string): string {
 }
 
 /**
- * Safely strips ALL HTML tags from a string.
+ * Safely strips ALL HTML tags from a string using Regex.
  * Used for extracting plain text for metadata, titles, or descriptions.
+ * CLIENT-SAFE: Does not use heavy libraries.
  */
 export function stripTags(html: string): string {
   if (!html) return '';
-  return sanitize(html, {
-    allowedTags: [],
-    allowedAttributes: {},
-  });
-}
-
-/**
- * Safely sanitizes HTML content for rendering.
- * Removes <script>, <iframe> (unless whitelisted), and other dangerous tags.
- */
-export function sanitizeHtml(html: string): string {
-  if (!html) return '';
-
-  return sanitize(html, {
-    allowedTags: sanitize.defaults.allowedTags.concat([
-      'iframe',
-      'img',
-      'h1',
-      'h2',
-      'h3',
-      'h4',
-      'h5',
-      'h6',
-      'span',
-      'div',
-    ]),
-    allowedAttributes: {
-      ...sanitize.defaults.allowedAttributes,
-      iframe: [
-        'src',
-        'allow',
-        'allowfullscreen',
-        'frameborder',
-        'scrolling',
-        'target',
-        'width',
-        'height',
-      ],
-      img: ['src', 'srcset', 'alt', 'title', 'width', 'height', 'loading', 'style', 'class'],
-      a: ['href', 'name', 'target', 'rel', 'title', 'class'],
-      div: ['class', 'style'],
-      span: ['class', 'style'],
-      '*': ['style', 'class'], // Allow style and class globally or per tag if needed, but be careful.
-      // DOMPurify usually allows class/id by default but strips dangerous styles.
-      // sanitize-html is stricter. Let's start with this.
-    },
-    allowedSchemes: ['http', 'https', 'ftp', 'mailto', 'tel'],
-    allowedSchemesAppliedToAttributes: ['href', 'src', 'cite'],
-    allowProtocolRelative: true,
-    enforceHtmlBoundary: false,
-  });
+  return html.replace(/<[^>]*>?/gm, '');
 }
 
 /**
