@@ -7,7 +7,7 @@
     "dev": "next dev --turbo",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint .",
+    "lint": "eslint . --quiet",
     "format": "prettier --write .",
     "vercel": "NODE_OPTIONS='--dns-result-order=ipv4first' vercel dev",
     "gen:supabase-types": "npx supabase gen types typescript --project-id rpctclawjqruwpfirkez > types/supabase.ts",
