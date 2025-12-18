@@ -16,9 +16,16 @@ export default function ArticleDetailClient({
   initialContent,
 }: ArticleDetailClientProps) {
   const router = useRouter();
-  // Try to get the live article from the store to ensure we have the latest tags/state
+  // Try to get the live article from the store to ensure we have the latest tags/state.
+  // We use initialArticle during SSR/Hydration to ensure match, and switch to storedArticle after mount.
   const storedArticle = useArticleStore((state) => state.articlesById[initialArticle.id]);
-  const article = storedArticle || initialArticle;
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const article = isMounted && storedArticle ? storedArticle : initialArticle;
 
   const handleClose = () => {
     // Navigate back to home or previous page
