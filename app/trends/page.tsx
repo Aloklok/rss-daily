@@ -10,7 +10,7 @@ export const metadata = {
 
 export default function TrendsPage() {
   return (
-    <div className="dark:bg-midnight-bg min-h-screen bg-gray-50">
+    <div className="dark:bg-midnight-bg min-h-screen">
       <TrendsView />
     </div>
   );

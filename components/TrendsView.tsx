@@ -37,16 +37,16 @@ const THEME_STYLES: Record<
   }
 > = {
   teal: {
-    text: 'text-teal-600 dark:text-teal-800',
-    icon: 'text-teal-700 dark:text-teal-700',
+    text: 'text-teal-700 dark:text-teal-800',
+    icon: 'text-teal-800 dark:text-teal-700',
     iconHover: 'group-hover:text-teal-500 dark:group-hover:text-teal-600',
     border1: 'border-teal-200 dark:border-teal-200',
     border2: 'border-teal-300 dark:border-teal-300',
     bg: 'bg-teal-50/50 dark:bg-teal-100',
   },
   indigo: {
-    text: 'text-indigo-600 dark:text-indigo-800',
-    icon: 'text-indigo-700 dark:text-indigo-700',
+    text: 'text-indigo-700 dark:text-indigo-800',
+    icon: 'text-indigo-800 dark:text-indigo-700',
     iconHover: 'group-hover:text-indigo-500 dark:group-hover:text-indigo-600',
     border1: 'border-indigo-200 dark:border-indigo-200',
     border2: 'border-indigo-300 dark:border-indigo-300',
@@ -55,70 +55,70 @@ const THEME_STYLES: Record<
   slate: {
     text: 'text-slate-700 dark:text-slate-800',
     icon: 'text-slate-800 dark:text-slate-700',
-    iconHover: 'group-hover:text-slate-600 dark:group-hover:text-slate-600',
+    iconHover: 'group-hover:text-slate-500 dark:group-hover:text-slate-600',
     border1: 'border-slate-200 dark:border-slate-200',
     border2: 'border-slate-300 dark:border-slate-300',
     bg: 'bg-slate-50/50 dark:bg-slate-100',
   },
   orange: {
-    text: 'text-orange-600 dark:text-orange-800',
-    icon: 'text-orange-700 dark:text-orange-700',
+    text: 'text-orange-700 dark:text-orange-800',
+    icon: 'text-orange-800 dark:text-orange-700',
     iconHover: 'group-hover:text-orange-500 dark:group-hover:text-orange-600',
     border1: 'border-orange-200 dark:border-orange-200',
     border2: 'border-orange-300 dark:border-orange-300',
     bg: 'bg-orange-50/50 dark:bg-orange-100',
   },
   blue: {
-    text: 'text-blue-600 dark:text-blue-800',
-    icon: 'text-blue-700 dark:text-blue-700',
+    text: 'text-blue-700 dark:text-blue-800',
+    icon: 'text-blue-800 dark:text-blue-700',
     iconHover: 'group-hover:text-blue-500 dark:group-hover:text-blue-600',
     border1: 'border-blue-200 dark:border-blue-200',
     border2: 'border-blue-300 dark:border-blue-300',
     bg: 'bg-blue-50/50 dark:bg-blue-100',
   },
   purple: {
-    text: 'text-purple-600 dark:text-purple-800',
-    icon: 'text-purple-700 dark:text-purple-700',
+    text: 'text-purple-700 dark:text-purple-800',
+    icon: 'text-purple-800 dark:text-purple-700',
     iconHover: 'group-hover:text-purple-500 dark:group-hover:text-purple-600',
     border1: 'border-purple-200 dark:border-purple-200',
     border2: 'border-purple-300 dark:border-purple-300',
     bg: 'bg-purple-50/50 dark:bg-purple-100',
   },
   yellow: {
-    text: 'text-yellow-600 dark:text-yellow-800',
-    icon: 'text-yellow-700 dark:text-yellow-700',
+    text: 'text-yellow-700 dark:text-yellow-800',
+    icon: 'text-yellow-800 dark:text-yellow-700',
     iconHover: 'group-hover:text-yellow-500 dark:group-hover:text-yellow-600',
     border1: 'border-yellow-200 dark:border-yellow-200',
     border2: 'border-yellow-300 dark:border-yellow-300',
     bg: 'bg-yellow-50/50 dark:bg-yellow-100',
   },
   red: {
-    text: 'text-red-600 dark:text-red-800',
-    icon: 'text-red-700 dark:text-red-700',
+    text: 'text-red-700 dark:text-red-800',
+    icon: 'text-red-800 dark:text-red-700',
     iconHover: 'group-hover:text-red-500 dark:group-hover:text-red-600',
     border1: 'border-red-200 dark:border-red-200',
     border2: 'border-red-300 dark:border-red-300',
     bg: 'bg-red-50/50 dark:bg-red-100',
   },
   pink: {
-    text: 'text-pink-600 dark:text-pink-800',
-    icon: 'text-pink-700 dark:text-pink-700',
+    text: 'text-pink-700 dark:text-pink-800',
+    icon: 'text-pink-800 dark:text-pink-700',
     iconHover: 'group-hover:text-pink-500 dark:group-hover:text-pink-600',
     border1: 'border-pink-200 dark:border-pink-200',
     border2: 'border-pink-300 dark:border-pink-300',
     bg: 'bg-pink-50/50 dark:bg-pink-100',
   },
   green: {
-    text: 'text-green-600 dark:text-green-800',
-    icon: 'text-green-700 dark:text-green-700',
+    text: 'text-green-700 dark:text-green-800',
+    icon: 'text-green-800 dark:text-green-700',
     iconHover: 'group-hover:text-green-500 dark:group-hover:text-green-600',
     border1: 'border-green-200 dark:border-green-200',
     border2: 'border-green-300 dark:border-green-300',
     bg: 'bg-green-50/50 dark:bg-green-100',
   },
   cyan: {
-    text: 'text-cyan-600 dark:text-cyan-800',
-    icon: 'text-cyan-700 dark:text-cyan-700',
+    text: 'text-cyan-700 dark:text-cyan-800',
+    icon: 'text-cyan-800 dark:text-cyan-700',
     iconHover: 'group-hover:text-cyan-500 dark:group-hover:text-cyan-600',
     border1: 'border-cyan-200 dark:border-cyan-200',
     border2: 'border-cyan-300 dark:border-cyan-300',
@@ -223,6 +223,20 @@ const LINKS: LinkConfig[] = [
     category: '趋势',
     iconPath: <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />,
   },
+  {
+    id: 'srg-research',
+    title: 'SRG Research',
+    url: 'https://www.srgresearch.com/research',
+    theme: 'teal',
+    category: '趋势',
+    iconPath: (
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+      />
+    ),
+  },
 
   {
     id: 'chatbot-arena',
@@ -279,10 +293,10 @@ const LinkCard: React.FC<{ config: LinkConfig }> = ({ config }) => {
       href={config.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group relative block overflow-hidden rounded-lg no-underline transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
+      className="group relative block h-full overflow-hidden rounded-lg no-underline transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
     >
       <div
-        className={`relative w-full rounded-lg ${styles.bg} border ${styles.border1} flex items-center gap-3 overflow-hidden px-3 py-3`}
+        className={`relative flex h-full w-full items-center gap-3 overflow-hidden rounded-lg border px-3 py-3 transition-colors duration-300 ${styles.bg} ${styles.border1} dark:group-hover:bg-midnight-metadata-bg`}
       >
         {/* 背景装饰 */}
         <div

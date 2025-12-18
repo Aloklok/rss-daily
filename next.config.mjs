@@ -18,7 +18,7 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: '/((?!widget/).*)', // Apply security headers to everything EXCEPT /widget/
+        source: '/((?!widget|trends).*)', // Apply security headers to everything EXCEPT /widget and /trends
         headers: [
           {
             key: 'X-Frame-Options',
@@ -35,10 +35,22 @@ const nextConfig = {
         ],
       },
       {
-        source: '/widget/:path*', // Explicitly allow framing for widget
+        source: '/:path(widget|trends)', // Matches /widget or /trends exactly
         headers: [
           {
-            // 修正 2: 必须添加这个！覆盖掉可能的全局 DENY 或默认限制
+            key: 'X-Frame-Options',
+            value: 'ALLOWALL',
+          },
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*', // Allow CORS for fonts/assets
+          },
+        ],
+      },
+      {
+        source: '/:path(widget|trends)/:path*', // Matches subpaths like /widget/clock
+        headers: [
+          {
             key: 'X-Frame-Options',
             value: 'ALLOWALL',
           },
