@@ -23,8 +23,8 @@ const nextConfig = {
       },
     ],
   },
+  serverExternalPackages: ['@supabase/supabase-js'],
   experimental: {
-    serverExternalPackages: ['@supabase/supabase-js'],
   },
   async headers() {
     return [
@@ -119,10 +119,10 @@ export default withBundleAnalyzer(
     // Automatically tree-shake Sentry logger statements to reduce bundle size
     disableLogger: true,
 
-    // Enables automatic instrumentation of Vercel Cron Monitors. (Does not yet work with App Router route handlers.)
-    // See the following for more information:
-    // https://docs.sentry.io/product/crons/
-    // https://vercel.com/docs/cron-jobs
-    automaticVercelMonitors: true,
+    // Transpiles SDK to be compatible with Next.js setup, enabling better tree shaking
+    transpileClientSDK: true,
+
+    // Hides source maps from generated client bundles
+    hideSourceMaps: true,
   })
 );
