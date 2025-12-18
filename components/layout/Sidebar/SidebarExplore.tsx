@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { AvailableFilters, Filter } from '../../types';
+import { AvailableFilters, Filter } from '@/types';
 
 interface SidebarExploreProps {
   availableFilters: AvailableFilters;
