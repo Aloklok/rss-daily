@@ -1,34 +1,8 @@
-import { getFreshRssClient, getSupabaseClient } from '../api-utils';
+import { getFreshRssClient, getSupabaseClient } from '../../../lib/server/apiUtils';
 import { Article, FreshRSSItem } from '../../../types';
+import { mapFreshItemToMinimalArticle } from '@/lib/server/mappers';
 
-// Map FreshRSS item to Article (Logic copied from route.ts to ensure consistency)
-function mapFreshItemToMinimalArticle(item: FreshRSSItem): Article {
-  const annotationTags = (item.annotations || [])
-    .map((anno: { id: string }) => anno.id)
-    .filter(Boolean);
-
-  const allTags = [...(Array.isArray(item.categories) ? item.categories : []), ...annotationTags];
-
-  return {
-    id: item.id || '',
-    title: item.title || '',
-    link: item.alternate?.[0]?.href || '',
-    sourceName: item.origin?.title || '',
-    created_at: new Date().toISOString(),
-    published: new Date(item.published * 1000).toISOString(),
-    category: '',
-    briefingSection: '',
-    keywords: [],
-    verdict: { type: '', score: 0 },
-    summary: '',
-    tldr: '',
-    highlights: '',
-    critiques: '',
-    marketTake: '',
-    // n8n_processing_date: undefined,
-    tags: allTags,
-  };
-}
+// Function mapFreshItemToMinimalArticle moved to '@/lib/server/mappers'
 
 // Fetch details from Supabase (Bypassing /api/get-briefings)
 async function fetchSupabaseDetails(

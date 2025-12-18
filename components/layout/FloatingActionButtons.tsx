@@ -15,7 +15,7 @@ import {
   useSearchResults,
 } from '../../hooks/useArticles';
 import { useFilters } from '../../hooks/useFilters';
-import { getCurrentTimeSlotInShanghai } from '../../services/api';
+import { getCurrentTimeSlotInShanghai } from '../../services/clientApi';
 import { READ_TAG, STAR_TAG } from '../../constants';
 
 interface FloatingActionButtonsProps {

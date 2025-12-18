@@ -1,4 +1,4 @@
-import { getSupabaseClient, getFreshRssClient } from './api-utils';
+import { getSupabaseClient, getFreshRssClient } from './apiUtils';
 import { Article, FreshRSSItem, CleanArticleContent, Tag } from '../../types';
 import { toFullId } from '../../utils/idHelpers';
 
@@ -34,15 +34,8 @@ export async function fetchAvailableDates(): Promise<string[]> {
   return Array.from(dateSet);
 }
 
-export function getTodayInShanghai(): string {
-  const formatter = new Intl.DateTimeFormat('en-CA', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    timeZone: 'Asia/Shanghai',
-  });
-  return formatter.format(new Date());
-}
+import { getTodayInShanghai } from '../../utils/dateUtils';
+export { getTodayInShanghai };
 
 export async function fetchBriefingData(date: string): Promise<{ [key: string]: Article[] }> {
   const supabase = getSupabaseClient();

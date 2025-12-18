@@ -16,7 +16,7 @@ interface SidebarBriefingProps {
 }
 
 import { useUIStore } from '../../../store/uiStore';
-import { getTodayInShanghai } from '../../../services/api';
+import { getTodayInShanghai } from '@/utils/dateUtils';
 
 const StatusIcon: React.FC<{ completed: boolean; onClick: (e: React.MouseEvent) => void }> = ({
   completed,

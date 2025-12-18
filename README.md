@@ -158,30 +158,15 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 - **`components/features/`**: **业务层**。包含所有具体功能的实现 (如 `briefing`, `article`, `stream`)。
 - **`components/layout/`**: **布局层**。包含侧边栏、全局外壳和布局容器。
 - **`components/common/`**: **基础层**。包含通用 UI 组件和 Providers。
+- **`lib/server/`**: **服务端核心**。包含所有直接数据库/API访问逻辑 (原 `app/lib/data.ts` 已移动至此)。
 
 这种结构确保了关注点分离，使得路由层保持轻量，业务逻辑高度内聚。
 
 ### 状态与数据流架构详解
 
-#### 1. `services/api.ts` - 原始 API 层
+> 📚 **API 与服务架构详解**: 关于最新的 **API 路由结构**、**Hooks 封装**、**Server/Client 代码拆分**及**数据流向**，请务必阅读 **[API.md](./API.md)**。本节仅介绍客户端内部状态管理。
 
-- **职责**: 作为最底层的通信模块，只负责与后端 API 端点进行原始的 `fetch` 通信，对返回的数据不做任何处理。此外，它也包含一些客户端辅助函数，如 `getCurrentTimeSlotInShanghai`，用于处理时区相关的计算。
-
-#### 2. `services/articleLoader.ts` - 数据加载与融合层
-
-- **职责**: **核心业务逻辑层**。它封装了所有复杂的数据融合与转换过程。
-  - **数据融合**: 例如，`fetchFilteredArticles` 函数会先从 `api.ts` 调用 `getArticlesByLabel` 获取 FreshRSS 文章列表，再调用 `getArticlesDetails` 获取 Supabase 详情，最后将两者合并成完整的 `Article` 对象。
-  - **数据转换**: 例如，`fetchBriefingArticles` 函数会将从 Supabase 返回的 `verdict.importance` 字段（如 "重要新闻"）映射到前端 `Article` 模型中统一的 `briefingSection` 字段，确保文章可以在 UI 中被正确分组。
-- **优点**: 将业务逻辑与 React Hooks 解耦，使其变得可独立测试和复用。
-
-#### 3. `hooks/useArticles.ts` - 服务器状态连接层 (React Query)
-
-- **职责**: 作为连接“数据加载器”与 React 世界的桥梁。
-- **`use...Query` Hooks**: 调用 `articleLoader.ts` 中的函数，通过 `react-query` 管理缓存、加载状态，并将成功获取的数据存入 Zustand Store。
-- **`use...Mutation` Hooks**: 负责处理所有“写”操作（如更新文章状态、标记每日进度），采用了**安全更新策略**（等待服务端确认后更新），确保数据的一致性与可靠性。
-- **`useFilters.ts`**: 作为核心业务逻辑 Hook，它负责计算和触发 `activeFilter` 和 `timeSlot` 的原子化更新，确保数据请求的准确性并消除冗余调用。
-
-#### 4. `store/` - 客户端状态中心 (Zustand)
+#### 客户端状态中心 (`store/` - Zustand)
 
 - **职责**: 应用的**“单一事实来源”**与**客户端业务逻辑中心**。
   - **`articleStore.ts`**: 存储所有经过融合的、完整的文章数据 (`articlesById`)，以及元数据（如 `availableFilters`）。

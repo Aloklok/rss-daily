@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseClient, verifyAdmin } from '../../lib/api-utils';
+import { getSupabaseClient, verifyAdmin } from '@/lib/server/apiUtils';
 import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';

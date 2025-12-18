@@ -11,10 +11,12 @@ import {
   editArticleTag,
   editArticleState,
   markAllAsRead as apiMarkAllAsRead,
-} from '../services/api';
+} from '../services/clientApi';
 import { useArticleStore } from '../store/articleStore';
-import { getTodayInShanghai } from '../services/api';
-// --- Query Hooks (现在变得非常简洁) ---
+import { getTodayInShanghai } from '../utils/dateUtils';
+import { useToastStore } from '../store/toastStore';
+
+// ... (Query Hooks remain unchanged)
 
 export const useBriefingArticles = (
   date: string | null,
@@ -139,6 +141,7 @@ export const useUpdateArticleState = () => {
   const queryClient = useQueryClient();
   const updateArticle = useArticleStore((state) => state.updateArticle);
   const articlesById = useArticleStore((state) => state.articlesById);
+  const showToast = useToastStore((state) => state.showToast);
 
   return useMutation({
     mutationFn: async ({
@@ -190,6 +193,21 @@ export const useUpdateArticleState = () => {
     onSuccess: (updatedArticle, variables) => {
       updateArticle(updatedArticle);
 
+      // 【Toast Notification Logic Moved to Hook】
+      // Calculate changes for user tags
+      const userTagsToAdd = variables.tagsToAdd.filter((t) => !t.startsWith('user/-/state'));
+      const userTagsToRemove = variables.tagsToRemove.filter((t) => !t.startsWith('user/-/state'));
+
+      if (userTagsToAdd.length > 0 || userTagsToRemove.length > 0) {
+        const extractLabel = (tag: string) => decodeURIComponent(tag.split('/').pop() || tag);
+        const added = userTagsToAdd.map(extractLabel).join(', ');
+        const removed = userTagsToRemove.map(extractLabel).join(', ');
+        let message = '';
+        if (added) message += `成功添加标签: ${added} `;
+        if (removed) message += `${added ? ' ' : ''} 成功移除标签: ${removed} `;
+        showToast(message.trim(), 'success');
+      }
+
       // 【Active Revalidation】
       // When tags change, immediately trigger revalidation for those tag streams.
       // This ensures SEO pages are fresh without waiting for ISR cycle.
@@ -203,6 +221,7 @@ export const useUpdateArticleState = () => {
     },
     onError: (err) => {
       console.error('Failed to update article state:', err);
+      showToast(err instanceof Error ? err.message : '更新文章状态失败', 'error');
     },
     onSettled: () => {
       // 告诉 react-query，所有与“收藏”相关的查询数据都可能已经过时了。
@@ -216,6 +235,7 @@ export const useUpdateArticleState = () => {
 export const useMarkAllAsRead = () => {
   // 2. 【增加】获取新的批量更新 action
   const markArticlesAsRead = useArticleStore((state) => state.markArticlesAsRead);
+  const showToast = useToastStore((state) => state.showToast);
 
   return useMutation({
     mutationFn: apiMarkAllAsRead,
@@ -224,9 +244,11 @@ export const useMarkAllAsRead = () => {
       if (!markedIds || markedIds.length === 0) return;
       // 用一次调用替代整个 forEach 循环
       markArticlesAsRead(markedIds);
+      showToast(`已将 ${markedIds.length} 篇文章设为已读`, 'success');
     },
     onError: (err) => {
       console.error('Failed to mark as read:', err);
+      showToast(err instanceof Error ? err.message : '标记已读失败', 'error');
     },
   });
 };

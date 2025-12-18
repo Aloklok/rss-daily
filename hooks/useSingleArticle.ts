@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Article } from '../types';
-import { getArticleStates, getArticlesDetails } from '../services/api';
+import { getArticleStates, getArticlesDetails } from '../services/clientApi';
 
 export const useSingleArticle = (articleId: string | undefined, initialData?: Article) => {
   return useQuery({

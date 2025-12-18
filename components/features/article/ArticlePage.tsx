@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { Article, CleanArticleContent } from '../../../types'; // 导入 Tag
-import { getCleanArticleContent } from '../../../services/api';
 import { useArticleMetadata } from '../../../hooks/useArticleMetadata';
 import { getRandomColorClass } from '../../../utils/colorUtils';
 import ArticleTitleStar from './ArticleTitleStar';
@@ -13,20 +12,18 @@ interface ArticleDetailProps {
   initialContent?: CleanArticleContent | null;
 }
 
-import {
-  removeEmptyParagraphs,
-  sanitizeHtml,
-  stripLeadingTitle,
-} from '../../../utils/contentUtils';
+import { sanitizeHtml } from '../../../utils/contentUtils';
+
+import { useArticleContent } from '../../../hooks/useArticleContent';
 
 const ArticleDetail: React.FC<ArticleDetailProps> = ({
   article,
   onClose: _onClose,
   initialContent,
 }) => {
-  const [isLoading, setIsLoading] = useState<boolean>(!initialContent);
-  const [content, setContent] = useState<CleanArticleContent | null>(initialContent || null);
-  const [error, setError] = useState<string | null>(null);
+  // 【Refactor】Use Unified Hook for Data Fetching & Caching
+  const { data: content, isLoading, error } = useArticleContent(article, initialContent);
+
   const contentRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
 
@@ -42,8 +39,6 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
       console.error('Failed to copy text:', err);
     }
   };
-
-  const isSentinel = article.link === 'about:blank' || String(article.id).startsWith('empty-');
 
   // 【新增】调用辅助函数获取标签文本
   const { userTagLabels } = useArticleMetadata(article);
@@ -70,70 +65,6 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, []); // 【查】空依赖数组确保只在挂载和卸载时运行
-
-  useEffect(() => {
-    let mounted = true;
-    const load = async () => {
-      if (isSentinel) {
-        if (!mounted) return;
-        setIsLoading(false);
-        setError(null);
-        setContent(null);
-        return;
-      }
-
-      // 【核心修改】如果由服务端（或父组件）传入了 initialContent，直接使用，不再 Fetch
-      // 注意：这里假设 initialContent 确实是当前 article 的内容。
-      // 在 ArticlePage (Server) -> ArticleDetailClient 流程中，这是保证的。
-      if (initialContent) {
-        if (!mounted) return;
-        setContent(initialContent);
-        setIsLoading(false);
-        setError(null);
-        return;
-      }
-
-      setIsLoading(true);
-      setError(null);
-      setContent(null);
-      try {
-        const url = article.link;
-        const data = await getCleanArticleContent({ ...article, link: url });
-        if (!mounted) return;
-
-        let contentHtml = (data && data.content) || '';
-        const hasUsefulContent = contentHtml && contentHtml.trim().length > 40;
-
-        if (!hasUsefulContent) {
-          if (article.summary && article.summary.trim().length > 0) {
-            contentHtml = article.summary;
-          } else {
-            contentHtml = `<p>无法从目标站点提取可读内容。您可以点击下面的链接查看原文：</p><p><a href="${article.link}" target="_blank" rel="noopener noreferrer">打开原文</a></p>`;
-          }
-        }
-
-        const cleanedHtml = stripLeadingTitle(
-          contentHtml,
-          (data && data.title) || article.title || '',
-        );
-        const finalHtml = removeEmptyParagraphs(cleanedHtml);
-        setContent({
-          title: (data && data.title) || article.title,
-          source: (data && data.source) || article.sourceName,
-          content: finalHtml,
-        });
-      } catch (e: any) {
-        console.error('ArticleDetail fetch error', e);
-        if (mounted) setError(e.message || 'Failed to load article');
-      } finally {
-        if (mounted) setIsLoading(false);
-      }
-    };
-    load();
-    return () => {
-      mounted = false;
-    };
-  }, [article, isSentinel, initialContent]);
 
   // Determine display data: prefer fetched content, fallback to prop article
   const displayTitle = (content && content.title) || article.title;
@@ -231,7 +162,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
           </div>
         ) : error ? (
           <div className="p-8 text-center text-red-600">
-            <p>无法加载文章内容：{error}</p>
+            <p>无法加载文章内容：{error instanceof Error ? error.message : 'Unknown error'}</p>
           </div>
         ) : displayContent ? (
           <div

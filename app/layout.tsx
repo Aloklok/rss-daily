@@ -71,7 +71,11 @@ export const viewport = {
   themeColor: '#ffffff',
 };
 
-import { fetchAvailableDates, getAvailableFilters, fetchStarredArticleHeaders } from './lib/data';
+import {
+  fetchAvailableDates,
+  getAvailableFilters,
+  fetchStarredArticleHeaders,
+} from '@/lib/server/dataFetcher';
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();

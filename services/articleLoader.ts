@@ -4,11 +4,10 @@ import {
   getBriefingReportsByDate,
   getRawStarredArticles,
   getArticlesByLabel,
-  getStarredArticles,
   getArticlesDetails,
   getArticleStates,
   searchArticlesByKeyword,
-} from './api';
+} from './clientApi';
 import { Article } from '../types';
 
 // --- 数据融合辅助函数 ---
@@ -59,7 +58,7 @@ export async function fetchFilteredArticles(
   filterValue: string,
   continuation?: string,
   n: number = 20,
-  merge: boolean = true, // Changed back to true to ensure Client loads AI data by default
+  merge: boolean = false, // Optimization: Default to false to skip client-side waterfall. List UI doesn't show AI data.
 ): Promise<{ articles: Article[]; continuation?: string }> {
   console.log(
     `[Loader] Requesting articles for: ${filterValue}, continuation: ${continuation}, merge: ${merge}`,
@@ -69,6 +68,7 @@ export async function fetchFilteredArticles(
   const response = await getArticlesByLabel({ value: filterValue } as any, continuation, n);
 
   // 2. 根据 merge 参数决定是否融合 Supabase 详情
+  // 对于无限滚动列表，UI不显示AI字段，所以跳过这一步可以消除“闪烁”并显著加速
   if (merge) {
     console.log('[Loader] Merging with Supabase details for Tag Page SSR...');
     const mergedArticles = await mergeWithSupabaseDetails(response.articles);
@@ -81,7 +81,7 @@ export async function fetchFilteredArticles(
 
 // 3. 加载收藏文章（【核心修改】建议也不再融合，保持一致性）
 export async function fetchStarredArticles(): Promise<Article[]> {
-  const freshArticles = await getStarredArticles();
+  const freshArticles = await getRawStarredArticles();
   return freshArticles; // 直接返回
 }
 
@@ -120,12 +120,4 @@ export async function fetchSearchResults(
     articles: mergedArticles,
     continuation: hasNextPage ? page + 1 : undefined,
   };
-}
-
-// 6. 预解析简报头图 URL
-export async function resolveBriefingImage(date: string): Promise<string> {
-  // 【优化】恢复使用 Picsum，但不再进行服务端 Fetch 探测。
-  // 直接返回 Seed URL 既能保留每日一图的特性，又消除了 1.5s 的 TTFB 阻塞。
-  // Next.js Image 组件会自动处理 URL 及其重定向。
-  return `https://picsum.photos/seed/${date}/1600/1200`;
 }

@@ -25,3 +25,13 @@ export const getArticleTimeSlot = (dateString: string | undefined): TimeSlot => 
   if (hour >= 12 && hour < 19) return 'afternoon';
   return 'evening';
 };
+
+export const getTodayInShanghai = (): string => {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    timeZone: 'Asia/Shanghai',
+  });
+  return formatter.format(new Date());
+};

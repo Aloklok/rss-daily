@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getFreshRssClient } from '../../lib/api-utils';
-import { Tag } from '../../../types';
+import { getFreshRssClient } from '@/lib/server/apiUtils';
+import { Tag } from '@/types';
 
 export const dynamic = 'force-dynamic';
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseClient } from '../../lib/api-utils';
-import { Article } from '../../../types'; // Adjust path as needed
+import { getSupabaseClient } from '@/lib/server/apiUtils';
+import { Article } from '@/types'; // Adjust path as needed
 
 export const dynamic = 'force-dynamic'; // Ensure this runs dynamically
 

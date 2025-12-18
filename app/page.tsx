@@ -1,7 +1,7 @@
-import { fetchAvailableDates, fetchBriefingData } from './lib/data';
+import { fetchAvailableDates, fetchBriefingData } from '@/lib/server/dataFetcher';
 import { fetchFilteredArticlesSSR } from './lib/server/ssr-helpers';
 import MainContentClient from '@/components/layout/MainContentClient';
-import { resolveBriefingImage } from '../services/articleLoader';
+import { resolveBriefingImage } from '@/utils/imageUtils';
 import { Metadata } from 'next';
 import { Filter } from '../types';
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchArticleContentServer } from '../../lib/data';
+import { fetchArticleContentServer } from '@/lib/server/dataFetcher';
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {

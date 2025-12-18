@@ -1,8 +1,8 @@
 import React from 'react';
 import ArticleListHeader from '@/components/features/stream/StreamHeader';
 import StreamList from '@/components/features/stream/StreamContainer';
-import { fetchFilteredArticlesSSR } from '../../lib/server/ssr-helpers';
-import { getAvailableFilters } from '../../lib/data';
+import { fetchFilteredArticlesSSR } from '@/app/lib/server/ssr-helpers';
+import { getAvailableFilters } from '@/lib/server/dataFetcher';
 
 // Enable ISR (Incremental Static Regeneration)
 // Revalidate every 7 days (604800 seconds), relying on on-demand revalidation for updates

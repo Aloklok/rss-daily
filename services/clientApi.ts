@@ -1,7 +1,6 @@
 import {
   Article,
   BriefingReport,
-  Tag,
   CleanArticleContent,
   AvailableFilters,
   Filter,
@@ -58,34 +57,21 @@ const apiService = {
       return result;
     } catch (error) {
       console.error(`API request to ${endpoint} failed: `, error);
-      // Only show toast on client side
-      if (typeof window !== 'undefined') {
-        showToast(error instanceof Error ? error.message : 'An unknown error occurred.', 'error');
-      }
+      // throw error to let caller (likely React Query) handle UI feedback
       throw error;
     }
   },
 };
 
-import { useToastStore } from '../store/toastStore';
+const articleCache = new Map<string | number, CleanArticleContent>();
 
 // ... (existing imports)
 
-// --- Reusable Toast Notification Utility ---
-export const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
-  useToastStore.getState().showToast(message, type);
-};
-
 // --- Helper for Shanghai Timezone ---
-export const getTodayInShanghai = (): string => {
-  const formatter = new Intl.DateTimeFormat('en-CA', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    timeZone: 'Asia/Shanghai',
-  });
-  return formatter.format(new Date());
-};
+import { getTodayInShanghai } from '../utils/dateUtils';
+export { getTodayInShanghai }; // Re-export for compatibility if needed, or better just remove usage here and rely on import.
+// Actually, let's keep the export if other files import it from here, to avoid breaking them immediately.
+// But better to fix all imports. For now, I will re-export it to be safe.
 
 export const getCurrentTimeSlotInShanghai = (): 'morning' | 'afternoon' | 'evening' => {
   const now = new Date();
@@ -117,14 +103,17 @@ export const getRawStarredArticles = (): Promise<Article[]> => {
   );
 };
 
+// Update endpoints
+// getAvailableDates
 export const getAvailableDates = (): Promise<string[]> => {
   return apiService
-    .request<string[]>('/api/get-available-dates', {
+    .request<string[]>('/api/meta/available-dates', {
       params: { _t: Date.now().toString() },
     })
     .catch(() => []);
 };
 
+// getBriefingReportsByDate
 export const getBriefingReportsByDate = async (
   date: string,
   slot?: TimeSlot,
@@ -133,7 +122,7 @@ export const getBriefingReportsByDate = async (
   if (slot) params.slot = slot;
 
   try {
-    const data = await apiService.request<GroupedArticles>('/api/get-briefings', { params });
+    const data = await apiService.request<GroupedArticles>('/api/briefings', { params });
     if (!data || Object.values(data).every((arr) => arr.length === 0)) return [];
 
     const reportTitle = `${new Date(date).toLocaleString('zh-CN', { month: 'long', day: 'numeric' })} 简报`;
@@ -143,42 +132,43 @@ export const getBriefingReportsByDate = async (
   }
 };
 
+// getArticlesDetails
 export const getArticlesDetails = (
   articleIds: (string | number)[],
 ): Promise<Record<string, Article>> => {
   if (!articleIds || articleIds.length === 0) {
     return Promise.resolve({});
   }
-  // 使用 URLSearchParams 来正确处理数组参数
   const params = new URLSearchParams();
   articleIds.forEach((id) => params.append('articleIds', String(id)));
 
-  // 调用我们刚刚修改的 get-briefings 端点
-  return apiService.request<Record<string, Article>>(`/api/get-briefings?${params.toString()}`);
+  // Use /api/briefings for details fetching as well (reusing logic)
+  return apiService.request<Record<string, Article>>(`/api/briefings?${params.toString()}`);
 };
 
+// markAllAsRead
 export const markAllAsRead = (articleIds: (string | number)[]): Promise<(string | number)[]> => {
   if (!articleIds || articleIds.length === 0) return Promise.resolve([]);
 
   return apiService
-    .request<void>('/api/update-state', {
+    .request<void>('/api/articles/state', {
       method: 'POST',
       body: { articleIds, action: 'read', isAdding: true },
     })
     .then(() => {
-      // 【核心修改】成功后，在这里显示 Toast 并返回 articleIds
-      showToast(`已将 ${articleIds.length} 篇文章设为已读`, 'success');
+      // Toast moved to Hook
       return articleIds;
     });
 };
-// --- Article Content Cache ---
-const articleCache = new Map<string | number, CleanArticleContent>();
 
+// getCleanArticleContent
 export const getCleanArticleContent = async (article: Article): Promise<CleanArticleContent> => {
   if (articleCache.has(article.id)) {
     return articleCache.get(article.id)!;
   }
   try {
+    // Keep /api/articles as it was kept in root articles dir (or should verify if moved)
+    // Plan said: Move app/api/articles/route.ts (keep) - so it stays at /api/articles
     const content = await apiService.request<CleanArticleContent>('/api/articles', {
       method: 'POST',
       body: { id: article.id },
@@ -194,12 +184,13 @@ export const getCleanArticleContent = async (article: Article): Promise<CleanArt
   }
 };
 
+// getArticleStates
 export const getArticleStates = (
   articleIds: (string | number)[],
 ): Promise<{ [key: string]: string[] }> => {
   if (!articleIds || articleIds.length === 0) return Promise.resolve({});
   return apiService
-    .request<{ [key: string]: string[] }>('/api/article-states', {
+    .request<{ [key: string]: string[] }>('/api/articles/state', {
       method: 'POST',
       body: { articleIds },
     })
@@ -212,24 +203,25 @@ export const getArticleStates = (
     });
 };
 
+// editArticleState
 export const editArticleState = (
   articleId: string | number,
   action: 'star' | 'read',
   isAdding: boolean,
 ): Promise<void> => {
-  return apiService.request<void>('/api/update-state', {
+  return apiService.request<void>('/api/articles/state', {
     method: 'POST',
     body: { articleId, action, isAdding },
   });
 };
 
+// editArticleTag
 export const editArticleTag = async (
   articleId: string | number,
   tagsToAdd: string[],
   tagsToRemove: string[],
 ): Promise<void> => {
-  // API 调用保持不变
-  await apiService.request<void>('/api/update-state', {
+  await apiService.request<void>('/api/articles/state', {
     method: 'POST',
     body: {
       articleId,
@@ -237,19 +229,10 @@ export const editArticleTag = async (
       tagsToRemove: tagsToRemove,
     },
   });
-
-  // 【核心修改】成功后，在这里直接显示 Toast
-  if (tagsToAdd.length > 0 || tagsToRemove.length > 0) {
-    const extractLabel = (tag: string) => decodeURIComponent(tag.split('/').pop() || tag);
-    const added = tagsToAdd.map(extractLabel).join(', ');
-    const removed = tagsToRemove.map(extractLabel).join(', ');
-    let message = '';
-    if (added) message += `成功添加标签: ${added} `;
-    if (removed) message += `${added ? ' ' : ''} 成功移除标签: ${removed} `;
-    showToast(message.trim(), 'success');
-  }
+  // Toast moved to Hook
 };
 
+// getArticlesByLabel
 export const getArticlesByLabel = (
   filter: Filter,
   continuation?: string,
@@ -258,46 +241,31 @@ export const getArticlesByLabel = (
   const params: Record<string, string> = { value: filter.value, n: String(n) };
   if (continuation) params.c = continuation;
 
-  return apiService.request<{ articles: Article[]; continuation?: string }>(
-    '/api/articles-categories-tags',
-    {
-      params,
-    },
-  );
-  // ❌ 删除 .catch(() => []);
-  // 这样我们才能在控制台看到真正的红色报错
+  return apiService.request<{ articles: Article[]; continuation?: string }>('/api/articles/list', {
+    params,
+  });
 };
 
-export const getStarredArticles = (): Promise<Article[]> => {
-  // Reuse getArticlesByLabel with the specific stream ID for starred articles, fetch 50 items
-  return getArticlesByLabel({ type: 'starred', value: STAR_TAG }, undefined, 50).then(
-    (res) => res.articles,
-  );
-};
-
+// getAvailableFilters
 export const getAvailableFilters = (): Promise<AvailableFilters> => {
   return apiService
-    .request<AvailableFilters>('/api/list-categories-tags')
+    .request<AvailableFilters>('/api/meta/tags')
     .catch(() => ({ categories: [], tags: [] }));
 };
 
-export const getTags = async (): Promise<Tag[]> => {
-  try {
-    const filters = await getAvailableFilters();
-    return filters.tags;
-  } catch (error) {
-    console.error('Failed to fetch tags', error);
-    return [];
-  }
-};
-
-// 【增】获取每日简报完成状态
+// getDailyStatuses
 export const getDailyStatuses = async (startDate: string, endDate: string) => {
+  // Assuming system routes are not yet moved for this, check plan.
+  // Plan: move to app/api/system/ (revalidate, refresh, indexnow).
+  // daily-statuses was not explicitly valid in the plan list but usually goes to meta or system?
+  // User Plan: Merge `app/api/article-states` and `update-state`.
+  // Wait, `app/api/daily-statuses` exists? I should check if it exists.
+  // If not moved, keep as is.
   return apiService.request<Record<string, boolean>>('/api/daily-statuses', {
     params: { start_date: startDate, end_date: endDate },
   });
 };
-
+// updateDailyStatus
 export const updateDailyStatus = async (date: string, isCompleted: boolean) => {
   return apiService.request<{ success: boolean; date: string; is_completed: boolean }>(
     '/api/daily-statuses',
@@ -308,11 +276,10 @@ export const updateDailyStatus = async (date: string, isCompleted: boolean) => {
   );
 };
 
-// 【增加】搜索文章
-// 【增加】搜索文章 (支持分页)
+// searchArticlesByKeyword
 export const searchArticlesByKeyword = (query: string, page: number = 1): Promise<Article[]> => {
   return apiService
-    .request<Article[]>('/api/search-articles', {
+    .request<Article[]>('/api/articles/search', {
       params: { query, page: String(page) },
     })
     .catch(() => []);

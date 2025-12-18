@@ -1,7 +1,9 @@
 // hooks/useDailyStatus.ts
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getDailyStatuses, updateDailyStatus, showToast } from '../services/api';
+import { getDailyStatuses, updateDailyStatus } from '../services/clientApi';
+import { useToastStore } from '../store/toastStore';
+
 // --- Query Hook ---
 // 用于获取指定月份的每日完成状态
 export const useDailyStatusesForMonth = (month: string) => {
@@ -33,6 +35,7 @@ export const useDailyStatusesForMonth = (month: string) => {
 // 用于更新单个日期的完成状态（采用乐观更新）
 export const useUpdateDailyStatus = () => {
   const queryClient = useQueryClient();
+  const showToast = useToastStore((state) => state.showToast);
 
   return useMutation({
     mutationFn: ({ date, isCompleted }: { date: string; isCompleted: boolean }) =>

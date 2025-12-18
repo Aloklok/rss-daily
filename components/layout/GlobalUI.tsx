@@ -40,6 +40,7 @@ export default function GlobalUI() {
       />
       {selectedArticle && (
         <UnifiedArticleModal
+          key={selectedArticle.id}
           article={selectedArticle}
           onClose={closeModal}
           onStateChange={handleStateChange}
