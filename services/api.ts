@@ -309,10 +309,11 @@ export const updateDailyStatus = async (date: string, isCompleted: boolean) => {
 };
 
 // 【增加】搜索文章
-export const searchArticlesByKeyword = (query: string): Promise<Article[]> => {
+// 【增加】搜索文章 (支持分页)
+export const searchArticlesByKeyword = (query: string, page: number = 1): Promise<Article[]> => {
   return apiService
     .request<Article[]>('/api/search-articles', {
-      params: { query },
+      params: { query, page: String(page) },
     })
     .catch(() => []);
 };

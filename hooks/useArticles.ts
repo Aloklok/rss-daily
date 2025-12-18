@@ -232,16 +232,25 @@ export const useMarkAllAsRead = () => {
 };
 
 // 2. 【增加】在文件末尾添加新的 useSearchResults Hook
+// 2. 【增加】搜索 Hook (升级为 Infinite Query)
 export const useSearchResults = (query: string | null) => {
   const addArticles = useArticleStore((state) => state.addArticles);
-  return useQuery({
+
+  return useInfiniteQuery({
     queryKey: ['search', query],
-    queryFn: async () => {
-      if (!query) return [];
-      const completeArticles = await fetchSearchResults(query);
-      addArticles(completeArticles);
-      return completeArticles.map((a) => a.id);
+    queryFn: async ({ pageParam = 1 }) => {
+      if (!query) return { articles: [], continuation: undefined };
+
+      const result = await fetchSearchResults(query, pageParam as number);
+      addArticles(result.articles);
+
+      return {
+        articles: result.articles.map((a) => a.id),
+        continuation: result.continuation,
+      };
     },
-    enabled: !!query, // 只有当 query 存在时才执行
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => lastPage.continuation,
+    enabled: !!query,
   });
 };

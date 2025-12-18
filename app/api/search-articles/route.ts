@@ -12,17 +12,23 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   const searchParams = request.nextUrl.searchParams;
   const query = searchParams.get('query');
+  const page = parseInt(searchParams.get('page') || '1', 10);
+  const pageSize = 20;
 
   if (!query) {
     return NextResponse.json({ message: 'Search query parameter is required.' }, { status: 400 });
   }
 
   const supabase = getSupabaseClient();
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
 
   try {
-    const { data, error } = await supabase.rpc('search_articles_by_partial_keyword', {
-      search_term: query.trim(),
-    });
+    const { data, error } = await supabase
+      .rpc('search_articles_by_partial_keyword', {
+        search_term: query.trim(),
+      })
+      .range(from, to);
 
     if (error) {
       console.error('Supabase RPC error:', error);

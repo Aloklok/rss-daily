@@ -2,7 +2,7 @@ import React from 'react';
 import { Metadata } from 'next';
 import { fetchBriefingData, fetchAvailableDates, getTodayInShanghai } from '../../lib/data';
 
-import BriefingClient from './BriefingClient';
+import BriefingClient from '@/components/features/briefing/BriefingClient';
 import { unstable_noStore as noStore } from 'next/cache';
 import { resolveBriefingImage } from '../../../services/articleLoader';
 

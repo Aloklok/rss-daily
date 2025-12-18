@@ -96,20 +96,30 @@ export async function fetchStarredArticleHeaders(): Promise<
   }));
 }
 
-// 5. 搜索（保持融合，或者也可以改为不融合）
-// 搜索通常返回结果较少，且 Supabase 是搜索源，所以逻辑稍有不同
-export async function fetchSearchResults(query: string): Promise<Article[]> {
-  // 搜索源是 Supabase，所以这里天然就有 Supabase 数据
-  const supaArticles = await searchArticlesByKeyword(query);
-  if (supaArticles.length === 0) return [];
+// 5. 搜索（支持无限加载）
+export async function fetchSearchResults(
+  query: string,
+  page: number = 1,
+): Promise<{ articles: Article[]; continuation?: number }> {
+  const supaArticles = await searchArticlesByKeyword(query, page);
+  if (supaArticles.length === 0) return { articles: [] };
 
   const articleIds = supaArticles.map((a) => a.id);
   const statesById = await getArticleStates(articleIds);
 
-  return supaArticles.map((supaArticle) => ({
+  const mergedArticles = supaArticles.map((supaArticle) => ({
     ...supaArticle,
     tags: statesById[supaArticle.id] || [],
   }));
+
+  // 如果返回的数量等于分页大小 (20)，说明可能还有下一页
+  // 简单起见，我们假设满页就有下一页
+  const hasNextPage = supaArticles.length === 20;
+
+  return {
+    articles: mergedArticles,
+    continuation: hasNextPage ? page + 1 : undefined,
+  };
 }
 
 // 6. 预解析简报头图 URL

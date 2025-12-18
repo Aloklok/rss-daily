@@ -1,11 +1,11 @@
 import './globals.css';
 import { cookies } from 'next/headers';
-import Providers from './providers';
+import Providers from '@/components/common/Providers';
 import { Metadata } from 'next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/react';
-import GlobalUI from './components/GlobalUI';
-import MainLayoutClient from './components/MainLayoutClient';
+import GlobalUI from '@/components/layout/GlobalUI';
+import MainLayoutClient from '@/components/layout/MainLayoutClient';
 import { Inter, Playfair_Display } from 'next/font/google';
 // import Script from 'next/script';
 

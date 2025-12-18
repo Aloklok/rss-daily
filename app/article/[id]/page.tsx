@@ -1,6 +1,6 @@
 import { fetchArticleById, fetchArticleContentServer } from '../../lib/data';
 import { Metadata } from 'next';
-import ArticleDetailClient from '../../components/ArticleDetailClient';
+import ArticleDetailClient from '@/components/features/article/ArticleDetailClient';
 import { notFound } from 'next/navigation';
 import { stripTags } from '../../../utils/contentUtils';
 

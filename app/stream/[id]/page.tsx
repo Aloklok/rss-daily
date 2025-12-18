@@ -1,6 +1,6 @@
 import React from 'react';
-import ArticleListHeader from '@/components/ArticleListHeader';
-import StreamList from '@/app/components/StreamList';
+import ArticleListHeader from '@/components/features/stream/StreamHeader';
+import StreamList from '@/components/features/stream/StreamContainer';
 import { fetchFilteredArticlesSSR } from '../../lib/server/ssr-helpers';
 import { getAvailableFilters } from '../../lib/data';
 
