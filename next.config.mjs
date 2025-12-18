@@ -23,7 +23,9 @@ const nextConfig = {
       },
     ],
   },
-  serverExternalPackages: ['@supabase/supabase-js'],
+  // Only externalize supabase during bundle analysis (Webpack build) to avoid build errors.
+  // In normal production builds (Turbopack/Default), externalizing it causes "Cannot use import statement" runtime errors.
+  serverExternalPackages: process.env.ANALYZE === 'true' ? ['@supabase/supabase-js'] : [],
   experimental: {
   },
   async headers() {
