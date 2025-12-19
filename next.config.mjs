@@ -21,6 +21,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'picsum.photos',
       },
+      {
+        protocol: 'https',
+        hostname: '**.supabase.co',
+      },
     ],
   },
   // Only externalize supabase during bundle analysis (Webpack build) to avoid build errors.

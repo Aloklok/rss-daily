@@ -281,8 +281,8 @@ const Briefing: React.FC<BriefingProps> = ({
               sizes="(max-width: 768px) 100vw, (max-width: 1536px) 80vw, 1152px"
               className="object-cover transition-transform duration-700 will-change-transform backface-hidden group-hover:scale-105"
             />
-            {/* Dark Gradient Overlay for Text Readability */}
-            <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-black/20"></div>
+            {/* Dark Gradient Overlay for Text Readability: Adjusted to be lighter (Moderate) */}
+            <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-black/10"></div>
           </div>
 
           <div className="relative z-10 flex flex-col gap-4 px-6 py-8 md:gap-8 md:px-8 md:py-11">

@@ -11,7 +11,7 @@
     "format": "prettier --write .",
     "analyze": "cross-env ANALYZE=true next build --webpack",
     "vercel": "NODE_OPTIONS='--dns-result-order=ipv4first' vercel dev",
-    "gen:supabase-types": "npx supabase gen types typescript --project-id rpctclawjqruwpfirkez > types/supabase.ts",
+    "gen:supabase-types": "supabase gen types typescript --project-id rpctclawjqruwpfirkez > types/supabase.ts",
     "gen:freshrss-types": "npx openapi-typescript types/freshrss-greader.yaml -o types/freshrss-greader.ts",
     "prepare": "husky"
   },

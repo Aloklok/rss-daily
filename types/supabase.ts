@@ -82,31 +82,6 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      search_articles_by_keyword_case_insensitive: {
-        Args: { search_term: string };
-        Returns: {
-          category: string | null;
-          critiques: string | null;
-          highlights: string | null;
-          id: string;
-          keywords: Json | null;
-          link: string | null;
-          marketTake: string | null;
-          n8n_processing_date: string | null;
-          published: string | null;
-          sourceName: string | null;
-          summary: string | null;
-          title: string | null;
-          tldr: string | null;
-          verdict: Json | null;
-        }[];
-        SetofOptions: {
-          from: '*';
-          to: 'articles';
-          isOneToOne: false;
-          isSetofReturn: true;
-        };
-      };
       search_articles_by_partial_keyword: {
         Args: { search_term: string };
         Returns: {

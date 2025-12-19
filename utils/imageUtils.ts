@@ -1,5 +1,138 @@
+import { createClient } from '@supabase/supabase-js';
+
+const BUCKET_NAME = 'public-assets';
+const FOLDER_NAME = 'daily-covers';
+const RETENTION_DAYS = 30;
+
+// Singleton Admin Client (Lazy Init)
+let supabaseAdmin: ReturnType<typeof createClient> | null = null;
+
+function getStorageAdmin() {
+  if (!supabaseAdmin) {
+    const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !key) {
+      throw new Error('Missing Supabase Admin credentials');
+    }
+    supabaseAdmin = createClient(url, key);
+  }
+  return supabaseAdmin;
+}
+
+// 1. Ensure Bucket Exists (Idempotent)
+async function ensureBucketExists(client: ReturnType<typeof createClient>) {
+  try {
+    const { error } = await client.storage.getBucket(BUCKET_NAME);
+    if (error && error.message.includes('not found')) {
+      console.log(`[ImageCache] Bucket '${BUCKET_NAME}' not found. Creating...`);
+      const { error: createError } = await client.storage.createBucket(BUCKET_NAME, {
+        public: true,
+        fileSizeLimit: 5242880, // 5MB
+        allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
+      });
+      if (createError) console.error('[ImageCache] Create Bucket Failed:', createError);
+      else console.log(`[ImageCache] Bucket '${BUCKET_NAME}' created.`);
+    }
+  } catch (e) {
+    console.warn('[ImageCache] Bucket check failed:', e);
+  }
+}
+
+// 2. Retention Policy: Clean old images
+async function cleanUpOldImages(client: ReturnType<typeof createClient>) {
+  try {
+    // List files (Supabase defaults to 100 limit, typically enough for retention check)
+    const { data: files } = await client.storage
+      .from(BUCKET_NAME)
+      .list(FOLDER_NAME, { limit: 100, sortBy: { column: 'created_at', order: 'asc' } });
+
+    if (!files || files.length === 0) return;
+
+    // Filter files older than N days (OR simply by count to ensure we don't go over limit)
+    // Strategy: Simple Count-Based Retention (Keep last ~35 files to be safe)
+    // Why? Clock skew or file modification times can be tricky. Count is robust.
+    const MAX_FILES = RETENTION_DAYS + 5;
+
+    if (files.length > MAX_FILES) {
+      const filesToDelete = files
+        .slice(0, files.length - MAX_FILES)
+        .map((f) => `${FOLDER_NAME}/${f.name}`);
+
+      if (filesToDelete.length > 0) {
+        console.log(`[ImageGC] Deleting ${filesToDelete.length} old images...`);
+        await client.storage.from(BUCKET_NAME).remove(filesToDelete);
+      }
+    }
+  } catch (e) {
+    console.warn('[ImageGC] Cleanup failed:', e);
+  }
+}
+
 export async function resolveBriefingImage(date: string): Promise<string> {
-  // Direct return of Seed URL to avoid 1.5s TTFB blocking.
-  // Next.js Image component handles URL and redirects automatically.
-  return `https://picsum.photos/seed/${date}/1600/1200`;
+  const admin = getStorageAdmin();
+  const fileName = `${FOLDER_NAME}/${date}.jpg`;
+
+  // 0. Ensure Bucket (Lazy check, maybe optimized to run once per cold start?)
+  // For safety, we can run it; typically fast if cached or handled by Supabase.
+  // To avoid latency, we might skip awaiting it if we assume it exists after first run,
+  // but for "first time user experience", let's await it or handle the error in upload.
+  // Optimization: Fire-and-forget or assume it exists. If upload fails with "bucket not found", then create?
+  // Let's just run it first. It's a "Get Metadata" call, fast.
+  // Actually, let's skip checking EVERY time. Just use getPublicUrl which is offline.
+  // REALITY: If bucket doesn't exist, getPublicUrl still returns a URL, but it 404s.
+  // We MUST ensure bucket exists for upload.
+
+  // Strategy: Try to find file efficiently
+  // List with search is the most accurate existence check without downloading
+  const { data: existingFiles } = await admin.storage
+    .from(BUCKET_NAME)
+    .list(FOLDER_NAME, { search: `${date}.jpg` });
+
+  // If exists, return Public URL immediately
+  if (existingFiles && existingFiles.length > 0) {
+    const {
+      data: { publicUrl },
+    } = admin.storage.from(BUCKET_NAME).getPublicUrl(fileName);
+    return publicUrl;
+  }
+
+  // --- Cache Miss ---
+  console.log(`[ImageCache] Miss for ${date}. Fetching from Picsum...`);
+
+  // Ensure bucket exists before we try to upload (Only on Miss)
+  await ensureBucketExists(admin);
+
+  const picsumUrl = `https://picsum.photos/seed/${date}/1600/1200`;
+
+  try {
+    const res = await fetch(picsumUrl, { redirect: 'follow' });
+    if (!res.ok) throw new Error(`Picsum status: ${res.status}`);
+
+    const arrayBuffer = await res.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Upload
+    const { error: uploadError } = await admin.storage.from(BUCKET_NAME).upload(fileName, buffer, {
+      contentType: 'image/jpeg',
+      upsert: true,
+    });
+
+    if (uploadError) {
+      console.error('[ImageCache] Upload failed:', uploadError);
+      // Fallback to source
+      return picsumUrl;
+    }
+
+    // Trigger cleanup async
+    cleanUpOldImages(admin);
+
+    // Return new URL
+    const {
+      data: { publicUrl },
+    } = admin.storage.from(BUCKET_NAME).getPublicUrl(fileName);
+    return publicUrl;
+  } catch (e) {
+    console.error('[ImageCache] Fallback to Picsum due to error:', e);
+    return picsumUrl;
+  }
 }
