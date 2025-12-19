@@ -101,7 +101,14 @@ export async function fetchBriefingData(date: string): Promise<{ [key: string]: 
     常规更新: [],
   };
 
-  deduped.forEach((article) => {
+  deduped.forEach((rawArticle: any) => {
+    // Map Supabase snake_case to camelCase
+    const article: Article = {
+      ...rawArticle,
+      briefingSection: rawArticle.briefing_section || rawArticle.briefingSection || '常规更新',
+      sourceName: rawArticle.source_name || rawArticle.sourceName || '',
+    };
+
     const importance = article.verdict?.importance || '常规更新';
     if (groupedArticles[importance]) {
       groupedArticles[importance].push(article);
