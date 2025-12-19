@@ -8,7 +8,11 @@ import LoadingSpinner from '../../common/ui/Spinner';
 import Image from 'next/image';
 import Link from 'next/link';
 import { TimeSlot } from '../../../types';
-import { BRIEFING_IMAGE_WIDTH, BRIEFING_IMAGE_HEIGHT } from '../../../lib/constants';
+import {
+  BRIEFING_IMAGE_WIDTH,
+  BRIEFING_IMAGE_HEIGHT,
+  BRIEFING_SECTIONS,
+} from '../../../lib/constants';
 
 interface ReportContentProps {
   report: BriefingReport;
@@ -22,7 +26,11 @@ interface ReportContentProps {
 
 const ReportContent: React.FC<ReportContentProps> = memo(
   ({ report, onReaderModeRequest, onStateChange }) => {
-    const importanceOrder = ['重要新闻', '必知要闻', '常规更新'];
+    const importanceOrder = [
+      BRIEFING_SECTIONS.IMPORTANT,
+      BRIEFING_SECTIONS.MUST_KNOW,
+      BRIEFING_SECTIONS.REGULAR,
+    ];
 
     const handleJump = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
       e.preventDefault();
@@ -204,7 +212,7 @@ const Briefing: React.FC<BriefingProps> = ({
       .map((id) => articlesById[id] || articles?.find((a) => a.id === id))
       .filter(Boolean) as Article[];
     const groupedArticles = articlesForReport.reduce((acc, article) => {
-      const group = article.briefingSection || '常规更新';
+      const group = article.briefingSection || BRIEFING_SECTIONS.REGULAR;
       if (!acc[group]) acc[group] = [];
       acc[group].push(article);
       return acc;

@@ -1,6 +1,7 @@
 import { getSupabaseClient, getFreshRssClient } from './apiUtils';
 import { Article, FreshRSSItem, CleanArticleContent, Tag } from '../../types';
 import { toFullId } from '../../utils/idHelpers';
+import { BRIEFING_SECTIONS } from '../../lib/constants';
 
 export async function fetchAvailableDates(): Promise<string[]> {
   const supabase = getSupabaseClient();
@@ -96,25 +97,27 @@ export async function fetchBriefingData(date: string): Promise<{ [key: string]: 
   const deduped = Array.from(uniqueById.values());
 
   const groupedArticles: { [key: string]: Article[] } = {
-    重要新闻: [],
-    必知要闻: [],
-    常规更新: [],
+    [BRIEFING_SECTIONS.IMPORTANT]: [],
+    [BRIEFING_SECTIONS.MUST_KNOW]: [],
+    [BRIEFING_SECTIONS.REGULAR]: [],
   };
 
   deduped.forEach((rawArticle: any) => {
-    // Map Supabase snake_case to camelCase
+    // Map Supabase JSON fields to Article properties
+    // Critical: Map verdict.importance to briefingSection because DB lacks this column
     const article: Article = {
       ...rawArticle,
-      briefingSection: rawArticle.briefing_section || rawArticle.briefingSection || '常规更新',
+      briefingSection:
+        rawArticle.verdict?.importance || rawArticle.briefingSection || BRIEFING_SECTIONS.REGULAR,
       sourceName: rawArticle.source_name || rawArticle.sourceName || '',
     };
 
-    const importance = article.verdict?.importance || '常规更新';
+    const importance = article.briefingSection;
     if (groupedArticles[importance]) {
       groupedArticles[importance].push(article);
     } else {
       // Fallback for unknown importance
-      groupedArticles['常规更新'].push(article);
+      groupedArticles[BRIEFING_SECTIONS.REGULAR].push(article);
     }
   });
 
