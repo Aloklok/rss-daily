@@ -81,8 +81,10 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
   - **主动式 ISR**:
     - **策略**: 针对 `/stream/[id]` 标签页，启用 **7天长效 ISR 缓存**。
     - **机制**: 摒弃传统的“被动等待过期”，采用 **“修改即刷新” (Revalidate-on-Tagging)** 策略。管理员在前端打标签时，会自动触发 `/api/revalidate`，瞬间更新边缘节点缓存。既享受了静态页面的极致性能，又实现了动态内容的实时性。
-  - **首页零布局偏移**:
-    - **SSR Hydration**: 首页采用“SSR 直出 + 状态水合”双重保障。即使在禁用 JavaScript 的环境下，也能完美渲染首屏简报内容，杜绝 "Loading Spinner" 闪烁，大幅提升 Core Web Vitals 分数。
+  - **极致的渲染性能 (Zero CLS & FOUC-Free)**:
+    - **CSS-Driven Sidebar**: 侧边栏响应式逻辑重构为纯 CSS 驱动，彻底消除了移动端/桌面端切换时的样式闪烁 (FOUC) 及主线程阻塞。
+    - **文章页零位移**: 通过 `Playfair Display` 字体预加载 (`preload: true`) 和 **Synchronous Store Hydration** 技术，确保文章详情页在首屏渲染时字号、标签位置完全稳定，CLS (Cumulative Layout Shift) 评分接近 0。
+    - **无感时段切换**: 针对首页“按时段过滤”的需求，采用 **Delayed Fade-In** 策略。服务端默认渲染全量内容（隐形以匹配 SSR），客户端计算完本地时区后以 0.7s 优雅渐显目标内容，完美解决了“服务端-客户端时区不一致”导致的内容跳变问题，实现了“晚一点出现但绝不闪烁”的高级交互体验。
 
 ## 用户界面 (UI) 交互
 
