@@ -9,6 +9,7 @@ import {
 import BriefingClient from '@/components/features/briefing/BriefingClient';
 import { unstable_noStore as noStore } from 'next/cache';
 import { resolveBriefingImage } from '@/utils/imageUtils';
+import { BRIEFING_IMAGE_WIDTH, BRIEFING_IMAGE_HEIGHT } from '@/lib/constants';
 
 // Revalidate every hour for past dates (ISR).
 // For "Today", we will use noStore() to opt out of caching.
@@ -209,8 +210,8 @@ export async function generateMetadata({
       images: [
         {
           url: headerImageUrl || 'https://www.alok-rss.top/computer_cat_180.jpeg',
-          width: 1600,
-          height: 1200,
+          width: BRIEFING_IMAGE_WIDTH,
+          height: BRIEFING_IMAGE_HEIGHT,
           alt: `${date} Briefing Cover`,
         },
       ],

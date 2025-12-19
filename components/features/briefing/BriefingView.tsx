@@ -8,6 +8,7 @@ import LoadingSpinner from '../../common/ui/Spinner';
 import Image from 'next/image';
 import Link from 'next/link';
 import { TimeSlot } from '../../../types';
+import { BRIEFING_IMAGE_WIDTH, BRIEFING_IMAGE_HEIGHT } from '../../../lib/constants';
 
 interface ReportContentProps {
   report: BriefingReport;
@@ -254,7 +255,9 @@ const Briefing: React.FC<BriefingProps> = ({
 
       // Use the date string as a seed for the random image to ensure it stays the same for that date
       const seed = date;
-      const bgImage = headerImageUrl || `https://picsum.photos/seed/${seed}/1600/1200`;
+      const bgImage =
+        headerImageUrl ||
+        `https://picsum.photos/seed/${seed}/${BRIEFING_IMAGE_WIDTH}/${BRIEFING_IMAGE_HEIGHT}`;
 
       const getCurrentTimeSlot = (): TimeSlot => {
         const hour = currentHour ?? getShanghaiHour();

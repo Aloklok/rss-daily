@@ -68,25 +68,34 @@ async function cleanUpOldImages(client: ReturnType<typeof createClient>) {
   }
 }
 
-export async function resolveBriefingImage(date: string): Promise<string> {
-  const admin = getStorageAdmin();
-  const fileName = `${FOLDER_NAME}/${date}.jpg`;
+import {
+  BRIEFING_IMAGE_WIDTH,
+  BRIEFING_IMAGE_HEIGHT,
+  BRIEFING_IMAGE_RESOLUTION_SUFFIX,
+} from '../lib/constants';
 
-  // 0. Ensure Bucket (Lazy check, maybe optimized to run once per cold start?)
-  // For safety, we can run it; typically fast if cached or handled by Supabase.
-  // To avoid latency, we might skip awaiting it if we assume it exists after first run,
-  // but for "first time user experience", let's await it or handle the error in upload.
-  // Optimization: Fire-and-forget or assume it exists. If upload fails with "bucket not found", then create?
-  // Let's just run it first. It's a "Get Metadata" call, fast.
-  // Actually, let's skip checking EVERY time. Just use getPublicUrl which is offline.
-  // REALITY: If bucket doesn't exist, getPublicUrl still returns a URL, but it 404s.
-  // We MUST ensure bucket exists for upload.
+export async function resolveBriefingImage(date: string): Promise<string> {
+  // --- 1. Build Time Optimization ---
+  // If we are in the CI/Build phase, DO NOT fetch/upload images to avoid timeouts.
+  // Instead, return a placeholder or the raw Picsum URL (Next.js will just use it).
+  // This prevents "Miss for date..." logs spamming the build logs and timing out Vercel.
+  if (process.env.CI || process.env.NEXT_PHASE === 'phase-production-build') {
+    // console.log(`[ImageCache] Skipping for ${date} during build.`);
+    return `https://picsum.photos/seed/${date}/${BRIEFING_IMAGE_WIDTH}/${BRIEFING_IMAGE_HEIGHT}`;
+  }
+
+  const admin = getStorageAdmin();
+  // Changed to include resolution to bust cache if needed
+  const fileName = `${FOLDER_NAME}/${date}_${BRIEFING_IMAGE_RESOLUTION_SUFFIX}.jpg`;
+
+  // 0. Ensure Bucket (Lazy check)
+  // We skip this check usually to be fast.
 
   // Strategy: Try to find file efficiently
   // List with search is the most accurate existence check without downloading
   const { data: existingFiles } = await admin.storage
     .from(BUCKET_NAME)
-    .list(FOLDER_NAME, { search: `${date}.jpg` });
+    .list(FOLDER_NAME, { search: `${date}_${BRIEFING_IMAGE_RESOLUTION_SUFFIX}.jpg` });
 
   // If exists, return Public URL immediately
   if (existingFiles && existingFiles.length > 0) {
@@ -102,7 +111,7 @@ export async function resolveBriefingImage(date: string): Promise<string> {
   // Ensure bucket exists before we try to upload (Only on Miss)
   await ensureBucketExists(admin);
 
-  const picsumUrl = `https://picsum.photos/seed/${date}/1600/1200`;
+  const picsumUrl = `https://picsum.photos/seed/${date}/${BRIEFING_IMAGE_WIDTH}/${BRIEFING_IMAGE_HEIGHT}`;
 
   try {
     const res = await fetch(picsumUrl, { redirect: 'follow' });

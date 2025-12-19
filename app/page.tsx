@@ -4,6 +4,7 @@ import MainContentClient from '@/components/layout/MainContentClient';
 import { resolveBriefingImage } from '@/utils/imageUtils';
 import { Metadata } from 'next';
 import { Filter } from '../types';
+import { BRIEFING_IMAGE_WIDTH, BRIEFING_IMAGE_HEIGHT } from '@/lib/constants';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,8 +50,8 @@ export async function generateMetadata({
           images: [
             {
               url: topImage || 'https://www.alok-rss.top/computer_cat_180.jpeg',
-              width: 1600,
-              height: 1200,
+              width: BRIEFING_IMAGE_WIDTH,
+              height: BRIEFING_IMAGE_HEIGHT,
               alt: `${filterValue} Briefing`,
             },
           ],
@@ -117,8 +118,8 @@ export async function generateMetadata({
         images: [
           {
             url: topImage || 'https://www.alok-rss.top/computer_cat_180.jpeg',
-            width: 1600,
-            height: 1200,
+            width: BRIEFING_IMAGE_WIDTH,
+            height: BRIEFING_IMAGE_HEIGHT,
             alt: `${filterValue} Briefing`,
           },
         ],
@@ -143,8 +144,8 @@ export async function generateMetadata({
         images: [
           {
             url: 'https://www.alok-rss.top/computer_cat_180.jpeg', // Generic image for filtered lists
-            width: 1600,
-            height: 1200,
+            width: BRIEFING_IMAGE_WIDTH,
+            height: BRIEFING_IMAGE_HEIGHT,
             alt: `Filtered Articles`,
           },
         ],
@@ -168,8 +169,8 @@ export async function generateMetadata({
       images: [
         {
           url: headerImageUrl || 'https://www.alok-rss.top/computer_cat_180.jpeg',
-          width: 1600,
-          height: 1200,
+          width: BRIEFING_IMAGE_WIDTH,
+          height: BRIEFING_IMAGE_HEIGHT,
           alt: `${initialDate} Briefing Cover`,
         },
       ],
