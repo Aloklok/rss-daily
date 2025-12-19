@@ -20,7 +20,7 @@ const playfair = Playfair_Display({
   subsets: ['latin'],
   variable: '--font-playfair',
   display: 'swap',
-  preload: false, // Only used in articles, avoid preloading on home page to fix warnings
+  preload: true, // Only used in articles, avoid preloading on home page to fix warnings
 });
 
 export const metadata: Metadata = {

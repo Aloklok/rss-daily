@@ -53,11 +53,12 @@ export const useFilters = ({ initialDates, initialAvailableFilters }: UseFilters
   const setAvailableFilters = useArticleStore((state) => state.setAvailableFilters);
 
   // Initialize store with initial filters if provided and store is empty
-  useEffect(() => {
-    if (initialAvailableFilters && availableFilters.tags.length === 0) {
-      setAvailableFilters(initialAvailableFilters);
-    }
-  }, [initialAvailableFilters, setAvailableFilters, availableFilters.tags.length]);
+  // [REFACTOR] Now handled synchronously in MainLayoutClient to prevent FOUC / Layout Shift
+  // useEffect(() => {
+  //   if (initialAvailableFilters && availableFilters.tags.length === 0) {
+  //     setAvailableFilters(initialAvailableFilters);
+  //   }
+  // }, [initialAvailableFilters, setAvailableFilters, availableFilters.tags.length]);
 
   // --- 【核心集成】 ---
   // 1. 【增】使用 useDailyStatusesForMonth Hook 获取状态数据

@@ -25,6 +25,7 @@ interface MainContentClientProps {
   initialArticles?: Article[];
   initialActiveFilter?: Filter | null;
   initialContinuation?: string | null;
+  isHomepage?: boolean; // New prop
 }
 
 export default function MainContentClient({
@@ -33,6 +34,7 @@ export default function MainContentClient({
   initialArticles = [],
   initialActiveFilter,
   initialContinuation,
+  isHomepage = false, // Default to false
 }: MainContentClientProps) {
   const storeActiveFilter = useUIStore((state) => state.activeFilter);
   // Use initial props for SSR/Hydration if store is empty
@@ -58,21 +60,37 @@ export default function MainContentClient({
   const queryClient = useQueryClient();
   const { mutateAsync: updateArticleState } = useUpdateArticleState();
 
-  // Initialize timeSlot if not set (e.g. first load)
+  // Visibility state for the fade-in effect.
+  // If it's the homepage, we start hidden (false) to prevent flash.
+  // Otherwise (other pages), we show immediately (true).
+  const [isVisible, setIsVisible] = React.useState(!isHomepage);
+
   // Initialize timeSlot if not set (e.g. first load)
   useEffect(() => {
-    // Guard: Only auto-set time slot on the homepage.
-    // When navigating to /date/[date], we want "Show All" (null), so we shouldn't trigger this.
-    const isHomepage = typeof window !== 'undefined' && window.location.pathname === '/';
-
+    // Logic for auto-selecting time slot on Homepage
     if (isHomepage && !timeSlot && activeFilter?.type === 'date') {
       const hour = new Date().getHours();
       let currentSlot: 'morning' | 'afternoon' | 'evening' = 'morning';
       if (hour >= 12 && hour < 19) currentSlot = 'afternoon';
       if (hour >= 19) currentSlot = 'evening';
+
+      // Update the slot
       setTimeSlot(currentSlot);
+
+      // Reveal content after setting the slot
+      // We rely on React state batching or quick re-render to fade in the Correct content.
+      // Use setTimeout to avoid synchronous setState warnings and ensure transition works.
+      setTimeout(() => {
+        setIsVisible(true);
+      }, 10);
+    } else {
+      // If no filtering needed (or already set), ensure we are visible
+      // Use setTimeout for consistency and to clear lint
+      setTimeout(() => {
+        setIsVisible(true);
+      }, 0);
     }
-  }, [timeSlot, activeFilter, setTimeSlot]);
+  }, [timeSlot, activeFilter, setTimeSlot, isHomepage]); // Removed isVisible dep as we use timeout
 
   // Determine which date to use (active filter or initial default)
   // Fallback to today if initialDate is missing (prevents missing header)
@@ -199,29 +217,33 @@ export default function MainContentClient({
       briefingArticleIds || (dateToUse === initialDate ? initialArticleIds : []);
 
     return (
-      <Briefing
-        articleIds={effectiveArticleIds}
-        date={dateToUse}
-        headerImageUrl={dateToUse === initialDate ? initialHeaderImageUrl : undefined}
-        timeSlot={timeSlot}
-        selectedReportId={1}
-        onReportSelect={() => {}}
-        onReaderModeRequest={handleReaderModeRequest}
-        onStateChange={async (id, add, remove) => {
-          await updateArticleState({ articleId: id, tagsToAdd: add, tagsToRemove: remove });
-        }}
-        onTimeSlotChange={setTimeSlot}
-        isSidebarCollapsed={isSidebarCollapsed}
-        onToggleSidebar={toggleSidebar}
-        articleCount={effectiveArticleIds.length}
-        // Only show loading if we really have no content AND are fetching (and client is mounted)
-        // This prevents infinite spinner in No-JS if SSR failed
-        isLoading={
-          effectiveArticleIds.length === 0 && isBriefingLoading && typeof window !== 'undefined'
-        }
-        articles={initialArticles} // Pass initial objects for fallback lookup
-        isToday={dateToUse === today}
-      />
+      <div
+        className={`transition-opacity duration-700 ease-out ${isVisible ? 'opacity-100' : 'opacity-0'}`}
+      >
+        <Briefing
+          articleIds={effectiveArticleIds}
+          date={dateToUse}
+          headerImageUrl={dateToUse === initialDate ? initialHeaderImageUrl : undefined}
+          timeSlot={timeSlot}
+          selectedReportId={1}
+          onReportSelect={() => {}}
+          onReaderModeRequest={handleReaderModeRequest}
+          onStateChange={async (id, add, remove) => {
+            await updateArticleState({ articleId: id, tagsToAdd: add, tagsToRemove: remove });
+          }}
+          onTimeSlotChange={setTimeSlot}
+          isSidebarCollapsed={isSidebarCollapsed}
+          onToggleSidebar={toggleSidebar}
+          articleCount={effectiveArticleIds.length}
+          // Only show loading if we really have no content AND are fetching (and client is mounted)
+          // This prevents infinite spinner in No-JS if SSR failed
+          isLoading={
+            effectiveArticleIds.length === 0 && isBriefingLoading && typeof window !== 'undefined'
+          }
+          articles={initialArticles} // Pass initial objects for fallback lookup
+          isToday={dateToUse === today}
+        />
+      </div>
     );
   }
 

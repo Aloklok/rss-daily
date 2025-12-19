@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { useUIStore } from '../../store/uiStore';
+import { useArticleStore } from '../../store/articleStore'; // Import article store
 import SidebarClient from './Sidebar/SidebarContainer';
 import FloatingActionButtons from './FloatingActionButtons';
 
@@ -30,10 +31,17 @@ export default function MainLayoutClient({
   const setAdminStatus = useUIStore((state) => state.setAdminStatus);
   const modalArticleId = useUIStore((state) => state.modalArticleId);
 
-  // Initialize admin status immediately
+  // Initialize admin status and article filters immediately (Synchronous Hydration)
   const initialized = useRef(false);
   if (!initialized.current) {
     useUIStore.setState({ isAdmin });
+    // Hydrate filters immediately to prevent layout shift (tag container FOUC)
+    if (
+      initialAvailableFilters &&
+      (initialAvailableFilters.tags.length > 0 || initialAvailableFilters.categories.length > 0)
+    ) {
+      useArticleStore.setState({ availableFilters: initialAvailableFilters });
+    }
     initialized.current = true;
   }
 

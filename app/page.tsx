@@ -255,6 +255,7 @@ export default async function Home(props: {
         // New Props
         initialActiveFilter={initialFilter}
         initialContinuation={initialData.initialContinuation}
+        isHomepage={!filterType && !filterValue} // Pass true only if no filters are active
       />
     </>
   );
