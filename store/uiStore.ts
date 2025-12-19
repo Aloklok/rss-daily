@@ -26,6 +26,13 @@ interface UIStoreState {
   checkAdminStatus: () => Promise<void>;
 
   // Sidebar State
+  isMobileOpen: boolean;
+  isDesktopCollapsed: boolean;
+  toggleMobileSidebar: () => void;
+  setMobileSidebarOpen: (open: boolean) => void;
+  toggleDesktopSidebar: () => void;
+  setDesktopSidebarCollapsed: (collapsed: boolean) => void;
+  // Deprecated compat
   isSidebarCollapsed: boolean;
   toggleSidebar: () => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
@@ -86,9 +93,24 @@ export const useUIStore = create<UIStoreState>((set) => ({
   },
 
   // Sidebar State
+  isMobileOpen: false, // Default closed on mobile
+  isDesktopCollapsed: false, // Default open on desktop
+
+  toggleMobileSidebar: () => set((state) => ({ isMobileOpen: !state.isMobileOpen })),
+  setMobileSidebarOpen: (open) => set({ isMobileOpen: open }),
+
+  toggleDesktopSidebar: () => set((state) => ({ isDesktopCollapsed: !state.isDesktopCollapsed })),
+  setDesktopSidebarCollapsed: (collapsed) => set({ isDesktopCollapsed: collapsed }),
+
+  // Compat (Maps to Desktop primarily for now, or context dependent? Better to warn deprecation)
   isSidebarCollapsed: false,
-  toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
-  setSidebarCollapsed: (collapsed) => set({ isSidebarCollapsed: collapsed }),
+  toggleSidebar: () =>
+    set((state) => ({
+      isDesktopCollapsed: !state.isDesktopCollapsed,
+      isMobileOpen: !state.isMobileOpen,
+    })), // Dirty polyfill
+  setSidebarCollapsed: (collapsed) =>
+    set({ isDesktopCollapsed: collapsed, isMobileOpen: !collapsed }),
 
   // Settings State
   theme: 'light', // Default, will be updated by effect in layout/provider

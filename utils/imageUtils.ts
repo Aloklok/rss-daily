@@ -19,8 +19,13 @@ function getStorageAdmin() {
   return supabaseAdmin;
 }
 
-// 1. Ensure Bucket Exists (Idempotent)
+// In-memory flag to avoid redundant bucket checks (Optimization)
+let bucketVerified = false;
+
+// 1. Ensure Bucket Exists (Idempotent + Cached)
 async function ensureBucketExists(client: ReturnType<typeof createClient>) {
+  if (bucketVerified) return;
+
   try {
     const { error } = await client.storage.getBucket(BUCKET_NAME);
     if (error && error.message.includes('not found')) {
@@ -33,6 +38,8 @@ async function ensureBucketExists(client: ReturnType<typeof createClient>) {
       if (createError) console.error('[ImageCache] Create Bucket Failed:', createError);
       else console.log(`[ImageCache] Bucket '${BUCKET_NAME}' created.`);
     }
+    // Mark as verified so we don't check again in this process
+    bucketVerified = true;
   } catch (e) {
     console.warn('[ImageCache] Bucket check failed:', e);
   }

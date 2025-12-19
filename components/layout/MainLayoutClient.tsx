@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useUIStore } from '../../store/uiStore';
 import SidebarClient from './Sidebar/SidebarContainer';
 import FloatingActionButtons from './FloatingActionButtons';
@@ -20,9 +20,13 @@ export default function MainLayoutClient({
   initialAvailableFilters,
   initialStarredHeaders,
 }: MainLayoutClientProps) {
-  const isSidebarCollapsed = useUIStore((state) => state.isSidebarCollapsed);
-  const toggleSidebar = useUIStore((state) => state.toggleSidebar);
-  const setSidebarCollapsed = useUIStore((state) => state.setSidebarCollapsed);
+  // Use new split state
+  const isMobileOpen = useUIStore((state) => state.isMobileOpen);
+  const isDesktopCollapsed = useUIStore((state) => state.isDesktopCollapsed);
+  const setMobileSidebarOpen = useUIStore((state) => state.setMobileSidebarOpen);
+  const toggleMobileSidebar = useUIStore((state) => state.toggleMobileSidebar);
+  const toggleDesktopSidebar = useUIStore((state) => state.toggleDesktopSidebar);
+
   const setAdminStatus = useUIStore((state) => state.setAdminStatus);
   const modalArticleId = useUIStore((state) => state.modalArticleId);
 
@@ -37,30 +41,12 @@ export default function MainLayoutClient({
     setAdminStatus(isAdmin);
   }, [isAdmin, setAdminStatus]);
 
-  const [isMdUp, setIsMdUp] = useState<boolean>(false);
-  const mainContentRef = useRef<HTMLDivElement | null>(null);
+  // Removed isMdUp state and resize listener to prevent FOUC.
+  // Responsiveness is now handled entirely by CSS classes.
 
-  // Handle viewport resize
+  // Handle body overflow for mobile sidebar only
   useEffect(() => {
-    const updateViewport = () => {
-      const mdUp = window.innerWidth >= 768;
-      setIsMdUp(mdUp);
-      // Auto-collapse on mobile, expand on desktop if needed
-      // But let's respect user state if possible, or just default logic:
-      if (!mdUp) {
-        setSidebarCollapsed(true);
-      } else {
-        setSidebarCollapsed(false);
-      }
-    };
-    updateViewport();
-    window.addEventListener('resize', updateViewport);
-    return () => window.removeEventListener('resize', updateViewport);
-  }, [setSidebarCollapsed]);
-
-  // Handle body overflow for mobile sidebar
-  useEffect(() => {
-    if (!isSidebarCollapsed && !isMdUp) {
+    if (typeof window !== 'undefined' && window.innerWidth < 768 && isMobileOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -68,35 +54,32 @@ export default function MainLayoutClient({
     return () => {
       document.body.style.overflow = '';
     };
-  }, [isSidebarCollapsed, isMdUp]);
+  }, [isMobileOpen]);
 
-  const [transitionsEnabled, setTransitionsEnabled] = useState(false);
+  // Standard ref for Main Content (unused but kept for potential scroll handling)
+  const mainContentRef = useRef<HTMLDivElement | null>(null);
 
-  const handleToggle = () => {
-    setTransitionsEnabled(true);
-    toggleSidebar();
-  };
-
-  const transitionClass = transitionsEnabled ? 'transition-all duration-300 ease-in-out' : '';
+  const transitionClass = 'transition-all duration-300 ease-in-out';
 
   return (
     <div className="dark:bg-midnight-bg flex min-h-screen flex-col bg-gray-50 font-sans md:flex-row">
-      {/* Mobile Overlay */}
-      {!isSidebarCollapsed && !isMdUp && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50"
-          onClick={() => setSidebarCollapsed(true)}
-          aria-hidden="true"
-        />
-      )}
+      {/* Mobile Overlay: Hidden on Desktop (md:hidden) */}
+      {/* Only show if Mobile Sidebar is Open */}
+      <div
+        className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 md:hidden ${
+          isMobileOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+        }`}
+        onClick={() => setMobileSidebarOpen(false)}
+        aria-hidden="true"
+      />
 
       {/* Sidebar Container */}
+      {/* 
+          Mobile: fixed, left-0, full height, z-50. transform controlled by isMobileOpen.
+          Desktop: sticky, top-0,h-screen, z-40. width controlled by isDesktopCollapsed.
+      */}
       <div
-        className={`dark:bg-midnight-sidebar dark:border-midnight-sidebar z-50 h-full border-r border-transparent bg-gray-50 ${transitionClass} ${
-          !isMdUp
-            ? `fixed top-0 left-0 w-64 ${isSidebarCollapsed ? '-translate-x-full' : 'translate-x-0'}`
-            : `md:fixed md:top-0 md:bottom-0 md:left-0 md:overflow-y-auto ${isSidebarCollapsed ? 'md:pointer-events-none md:w-0 md:opacity-0' : 'md:w-80 md:opacity-100'}`
-        }`}
+        className={`dark:bg-midnight-sidebar dark:border-midnight-sidebar h-full flex-shrink-0 border-r border-transparent bg-gray-50 ${transitionClass} fixed top-0 left-0 z-50 h-screen w-64 md:sticky md:top-0 md:z-auto md:h-screen ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 ${isDesktopCollapsed ? 'md:w-0 md:overflow-hidden md:border-none md:opacity-0' : 'md:w-80 md:opacity-100'} `}
       >
         <SidebarClient
           initialDates={initialDates}
@@ -107,11 +90,11 @@ export default function MainLayoutClient({
 
       {/* Desktop Toggle Button */}
       <button
-        onClick={handleToggle}
-        className={`dark:bg-midnight-card fixed top-5 rounded-full bg-white p-2 shadow-lg hover:shadow-xl ${transitionClass} dark:border-midnight-border z-50 hidden border border-gray-200 md:left-5 md:block ${transitionsEnabled ? 'md:transition-all md:duration-300' : ''} ${isSidebarCollapsed ? 'md:left-5' : 'md:left-[304px]'} right-5 cursor-pointer md:right-auto`}
+        onClick={toggleDesktopSidebar}
+        className={`dark:bg-midnight-card fixed top-5 rounded-full bg-white p-2 shadow-lg hover:shadow-xl ${transitionClass} dark:border-midnight-border z-50 hidden cursor-pointer border border-gray-200 md:block ${isDesktopCollapsed ? 'left-5' : 'left-[304px]'}`}
         aria-label="Toggle Sidebar"
       >
-        {isSidebarCollapsed ? (
+        {isDesktopCollapsed ? (
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-5 w-5 text-gray-800 dark:text-gray-200"
@@ -144,11 +127,11 @@ export default function MainLayoutClient({
       {/* Mobile Toggle Button - HIDE when modal is open */}
       {!modalArticleId && (
         <button
-          onClick={handleToggle}
-          className={`fixed top-4 right-6 z-50 rounded-full p-2 md:hidden ${transitionClass} ${isSidebarCollapsed ? 'bg-gray-800 text-white' : 'bg-white/20 text-white'} cursor-pointer`}
-          aria-label="Toggle Sidebar"
+          onClick={toggleMobileSidebar}
+          className={`fixed top-4 right-6 z-50 rounded-full p-2 md:hidden ${transitionClass} ${isMobileOpen ? 'bg-gray-800 text-white' : 'bg-white/20 text-white'} cursor-pointer`}
+          aria-label="Toggle Mobile Sidebar"
         >
-          {isSidebarCollapsed ? (
+          {isMobileOpen ? (
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-5 w-5"
@@ -181,7 +164,7 @@ export default function MainLayoutClient({
       {/* Main Content Area */}
       <div
         ref={mainContentRef}
-        className={`dark:bg-midnight-bg bg-paper-texture flex min-w-0 flex-1 flex-col bg-neutral-50 dark:bg-none ${transitionClass} ${!isSidebarCollapsed ? 'md:ml-80' : ''}`}
+        className={`dark:bg-midnight-bg bg-paper-texture flex min-w-0 flex-1 flex-col bg-neutral-50 dark:bg-none ${transitionClass}`}
       >
         <div className="mx-auto w-full max-w-3xl px-2 pt-2 md:px-8 md:pt-4">{children}</div>
         <FloatingActionButtons isAdmin={isAdmin} />
