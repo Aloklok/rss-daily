@@ -11,8 +11,8 @@ const withBundleAnalyzer = bundleAnalyzer({
 const nextConfig = {
   productionBrowserSourceMaps: false,
   reactStrictMode: true,
+  reactCompiler: true,
   experimental: {
-    reactCompiler: true,
   },
   images: {
     formats: ['image/avif', 'image/webp'],
@@ -121,8 +121,7 @@ export default withBundleAnalyzer(
     // side errors will fail.
     tunnelRoute: '/monitoring',
 
-    // Automatically tree-shake Sentry logger statements to reduce bundle size
-    disableLogger: true,
+
 
     // Transpiles SDK to be compatible with Next.js setup, enabling better tree shaking
     transpileClientSDK: true,
