@@ -17,7 +17,7 @@ export async function fetchAvailableDates(): Promise<string[]> {
   }
 
   // The RPC returns { date_str: string }[]
-  return data?.map((d) => d.date_str) || [];
+  return data?.map((d: { date_str: string }) => d.date_str) || [];
 }
 
 import { getTodayInShanghai } from '../../utils/dateUtils';
