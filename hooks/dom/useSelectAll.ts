@@ -7,7 +7,10 @@ import { useEffect, RefObject } from 'react';
  * @param ref - Ref to the container element
  * @param isEnabled - Whether the listener should be active
  */
-export const useSelectAll = (ref: RefObject<HTMLElement>, isEnabled: boolean = true) => {
+export const useSelectAll = <T extends HTMLElement>(
+  ref: RefObject<T>,
+  isEnabled: boolean = true,
+) => {
   useEffect(() => {
     if (!isEnabled) return;
 

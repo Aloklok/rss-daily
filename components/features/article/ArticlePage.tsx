@@ -22,7 +22,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
   // 【Refactor】Use Unified Hook for Data Fetching & Caching
   const { data: content, isLoading, error } = useArticleContent(article, initialContent);
 
-  const contentRef = useRef<HTMLElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
