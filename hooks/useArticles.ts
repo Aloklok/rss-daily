@@ -62,7 +62,11 @@ export const useBriefingArticles = (
   });
 };
 
-export const useFilteredArticles = (filterValue: string | null, initialData?: any) => {
+export const useFilteredArticles = (
+  filterValue: string | null,
+  initialData?: any,
+  merge: boolean = false,
+) => {
   const addArticles = useArticleStore((state) => state.addArticles);
 
   return useInfiniteQuery({
@@ -71,7 +75,12 @@ export const useFilteredArticles = (filterValue: string | null, initialData?: an
       if (!filterValue) return { articles: [], continuation: undefined };
 
       // pageParam is the continuation token
-      const result = await fetchFilteredArticles(filterValue, pageParam as string | undefined);
+      const result = await fetchFilteredArticles(
+        filterValue,
+        pageParam as string | undefined,
+        20,
+        merge,
+      );
 
       // Add articles to the store
       addArticles(result.articles);

@@ -281,3 +281,36 @@ export async function fetchStarredArticleHeaders(): Promise<
     return [];
   }
 }
+
+// 6. 获取订阅列表 (用于 Source Filter)
+// [Security] filter out sensitive URLs
+export async function fetchSubscriptions(): Promise<
+  { id: string; title: string; category?: string }[]
+> {
+  try {
+    const freshRss = getFreshRssClient();
+    const data = await freshRss.get<{
+      subscriptions: {
+        id: string;
+        title: string;
+        url?: string;
+        htmlUrl?: string;
+        iconUrl?: string;
+        categories?: { id: string; label: string }[];
+      }[];
+    }>('/subscription/list', { output: 'json' });
+
+    if (!data.subscriptions) return [];
+
+    return data.subscriptions.map((sub) => ({
+      id: sub.id,
+      title: sub.title,
+      // FreshRSS typically returns one folder category per subscription.
+      // We pick the first one as the primary category for grouping.
+      category: sub.categories?.[0]?.label,
+    }));
+  } catch (e) {
+    console.error('SERVER Error fetching subscriptions:', e);
+    return [];
+  }
+}

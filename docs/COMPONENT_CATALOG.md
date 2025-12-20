@@ -32,6 +32,7 @@
 - **`date/[date]/page.tsx`**: **每日简报页** (SSR)。负责获取当日简报数据，并渲染 `BriefingClient`。
 - **`article/[id]/page.tsx`**: **文章详情页** (SSR)。服务端直出文章内容，利于 SEO。
 - **`stream/[id]/page.tsx`**: **流视图页** (ISR)。用于展示分类或标签下的文章列表。
+- **`sources/page.tsx`**: **按源浏览页** (Dynamic SSR)。提供基于订阅源维度的文章筛选入口。
 - **`trends/page.tsx`**: **趋势页** (SSG)。静态生成的趋势分析页面。
 - **`api/`**: 后端 API 路由 (Next.js Route Handlers)。
 
@@ -64,9 +65,10 @@
   - **`ArticleModalActions.tsx`**: 模态框底部的操作栏 (收藏、打标签)。
   - **`UnifiedArticleModal.tsx`**: 统一的模态框入口，根据状态切换简报/原文视图。
 
-#### `search/` (搜索)
+#### `search/` (搜索与过滤)
 
 - **`SearchList.tsx`**: 搜索结果列表展示。
+- **`SourceFilterClient.tsx`**: 按订阅源浏览的过滤页面。支持按分类分组和无限滚动。
 
 #### `trends/` (趋势)
 

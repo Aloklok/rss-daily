@@ -2,7 +2,7 @@
 
 import React, { memo, useState } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Article, Filter, AvailableFilters } from '../../../types';
 import { useSidebar } from '../../../hooks/useSidebar';
 import { useUIStore } from '../../../store/uiStore';
@@ -46,6 +46,7 @@ const Sidebar = React.memo<SidebarProps>(
     availableFilters, // Destructure
   }) => {
     const router = useRouter();
+    const pathname = usePathname();
     const activeFilter = useUIStore((state) => state.activeFilter);
     // Removed internal store subscription
     const setActiveFilter = useUIStore((state) => state.setActiveFilter);
@@ -87,7 +88,7 @@ const Sidebar = React.memo<SidebarProps>(
       setSelectedArticleId(null);
 
       if (filter.type === 'category' || filter.type === 'tag') {
-        router.push(`/?filter=${filter.type}&value=${encodeURIComponent(filter.value)}`);
+        router.push(`/stream/${encodeURIComponent(filter.value)}`);
       } else if (filter.type === 'search') {
         router.push(`/?filter=search&value=${encodeURIComponent(filter.value)}`);
       } else if (filter.type === 'date') {
@@ -164,6 +165,39 @@ const Sidebar = React.memo<SidebarProps>(
           />
         )}
 
+        <div className="px-1">
+          <button
+            onClick={() => {
+              setActiveFilter(null);
+              setSelectedArticleId(null);
+              router.push('/sources');
+            }}
+            className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium shadow-sm transition-all hover:shadow-md active:scale-95 ${
+              pathname?.startsWith('/sources')
+                ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:ring-blue-800'
+                : 'bg-white text-stone-700 hover:bg-stone-50 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700'
+            }`}
+          >
+            <span className="flex size-8 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="size-4"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+                />
+              </svg>
+            </span>
+            <span>按订阅源浏览</span>
+          </button>
+        </div>
+
         <div className="flex rounded-lg bg-linear-to-r from-blue-100/80 to-indigo-100/80 p-1 dark:bg-transparent dark:from-transparent dark:to-transparent">
           <button
             className={`cursor-pointer ${tabButtonClass(activeTab === 'filters')}`}
@@ -210,7 +244,7 @@ const Sidebar = React.memo<SidebarProps>(
             />
             <SidebarExplore
               availableFilters={availableFilters}
-              activeFilter={activeFilter}
+              activeFilter={pathname?.startsWith('/sources') ? null : activeFilter}
               onFilterSelect={handleFilterSelect}
               selectedArticleId={selectedArticleId}
             />
