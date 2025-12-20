@@ -4,7 +4,6 @@ import React, { useCallback, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import LoadMoreButton from '../../common/ui/LoadMoreButton';
 import { useFilteredArticles } from '../../../hooks/useArticles'; // Assuming we re-use or adapt this hook
-// import ArticleModal from '../../common/ui/ArticleModal'; // Removing incorrect import
 import { useArticleStore } from '../../../store/articleStore';
 import { useUIStore } from '../../../store/uiStore';
 import { useArticleMetadata } from '../../../hooks/useArticleMetadata';

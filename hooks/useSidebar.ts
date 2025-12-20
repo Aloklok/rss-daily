@@ -18,6 +18,7 @@ export const useSidebar = ({ initialStarredHeaders }: UseSidebarProps = {}) => {
     if (
       pathname?.includes('/stream/') ||
       pathname?.includes('/search/') ||
+      pathname?.includes('/sources') ||
       pathname === '/trends'
     ) {
       return 'filters';

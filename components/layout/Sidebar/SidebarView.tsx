@@ -1,6 +1,6 @@
 // components/Sidebar.tsx
 
-import React, { memo, useState } from 'react';
+import React, { memo, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { Article, Filter, AvailableFilters } from '../../../types';
@@ -53,6 +53,16 @@ const Sidebar = React.memo<SidebarProps>(
     const [searchQuery, setSearchQuery] = useState('');
     const selectedArticleId = useUIStore((state) => state.selectedArticleId);
     const setSelectedArticleId = useUIStore((state) => state.setSelectedArticleId);
+
+    // Local state to prevent "flash" of selection during navigation
+    const [isNavigatingToSource, setIsNavigatingToSource] = useState(false);
+
+    useEffect(() => {
+      if (pathname?.startsWith('/sources') && isNavigatingToSource) {
+        // Defer update to avoid "setState in effect" warning
+        setTimeout(() => setIsNavigatingToSource(false), 0);
+      }
+    }, [pathname, isNavigatingToSource]);
 
     const {
       activeTab,
@@ -168,6 +178,7 @@ const Sidebar = React.memo<SidebarProps>(
         <div className="px-1">
           <button
             onClick={() => {
+              setIsNavigatingToSource(true);
               setActiveFilter(null);
               setSelectedArticleId(null);
               router.push('/sources');
@@ -244,7 +255,9 @@ const Sidebar = React.memo<SidebarProps>(
             />
             <SidebarExplore
               availableFilters={availableFilters}
-              activeFilter={pathname?.startsWith('/sources') ? null : activeFilter}
+              activeFilter={
+                pathname?.startsWith('/sources') || isNavigatingToSource ? null : activeFilter
+              }
               onFilterSelect={handleFilterSelect}
               selectedArticleId={selectedArticleId}
             />
@@ -258,7 +271,9 @@ const Sidebar = React.memo<SidebarProps>(
               datesForMonth={datesForMonth}
               dailyStatuses={dailyStatuses}
               onToggleDailyStatus={onToggleDailyStatus}
-              activeFilter={activeFilter}
+              activeFilter={
+                pathname?.startsWith('/sources') || isNavigatingToSource ? null : activeFilter
+              }
               onDateSelect={handleDateSelect}
               selectedArticleId={selectedArticleId}
             />
