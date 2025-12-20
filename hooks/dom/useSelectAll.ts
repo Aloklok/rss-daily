@@ -8,7 +8,7 @@ import { useEffect, RefObject } from 'react';
  * @param isEnabled - Whether the listener should be active
  */
 export const useSelectAll = <T extends HTMLElement>(
-  ref: RefObject<T>,
+  ref: RefObject<T | null>,
   isEnabled: boolean = true,
 ) => {
   useEffect(() => {
