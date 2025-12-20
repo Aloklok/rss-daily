@@ -41,7 +41,7 @@ export default function StreamList({
     initialData,
   );
 
-  const articlesById = useArticleStore((state) => state.articlesById);
+  // const articlesById = useArticleStore((state) => state.articlesById); <--- REMOVED dependency
 
   // Memoize initial articles map for SSR fallback
   const initialArticlesMap = React.useMemo(() => {
@@ -60,9 +60,12 @@ export default function StreamList({
   return (
     <div className="space-y-4">
       {allArticleIds.map((id) => {
-        const article = articlesById[id] || initialArticlesMap[id];
-        if (!article) return null;
-        return <StreamArticleListItem key={id} articleId={id} initialArticle={article} />;
+        // Pass ONLY initial SSR data.
+        // Logic: StreamListItem handles store lookup.
+        // If store has update, it uses store. If not (SSR), it uses this initialArticle.
+        return (
+          <StreamArticleListItem key={id} articleId={id} initialArticle={initialArticlesMap[id]} />
+        );
       })}
 
       {hasNextPage && (

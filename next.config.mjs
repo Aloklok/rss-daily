@@ -11,9 +11,9 @@ const withBundleAnalyzer = bundleAnalyzer({
 const nextConfig = {
   productionBrowserSourceMaps: false,
   reactStrictMode: true,
-  // experimental: {
-  //     reactCompiler: true,
-  // },
+  experimental: {
+    reactCompiler: true,
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
@@ -30,8 +30,7 @@ const nextConfig = {
   // Only externalize supabase during bundle analysis (Webpack build) to avoid build errors.
   // In normal production builds (Turbopack/Default), externalizing it causes "Cannot use import statement" runtime errors.
   serverExternalPackages: process.env.ANALYZE === 'true' ? ['@supabase/supabase-js'] : [],
-  experimental: {
-  },
+
   async headers() {
     return [
       {

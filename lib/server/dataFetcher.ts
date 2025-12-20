@@ -2,37 +2,22 @@ import { getSupabaseClient, getFreshRssClient } from './apiUtils';
 import { Article, FreshRSSItem, CleanArticleContent, Tag } from '../../types';
 import { toFullId } from '../../utils/idHelpers';
 import { BRIEFING_SECTIONS } from '../../lib/constants';
+import { unstable_cache } from 'next/cache';
 
 export async function fetchAvailableDates(): Promise<string[]> {
   const supabase = getSupabaseClient();
-  const { data, error } = await supabase
-    .from('articles')
-    .select('n8n_processing_date')
-    .order('n8n_processing_date', { ascending: false });
+
+  // Use Optimized RPC call (O(1) instead of O(N))
+  // The RPC handles timezones and deduplication on the DB side
+  const { data, error } = await supabase.rpc('get_unique_dates');
 
   if (error) {
     console.error('Supabase error in fetchAvailableDates:', error);
     return [];
   }
 
-  const dateSet = new Set<string>();
-  if (data) {
-    const formatter = new Intl.DateTimeFormat('en-CA', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      timeZone: 'Asia/Shanghai',
-    });
-
-    data.forEach((item) => {
-      if (item.n8n_processing_date) {
-        const date = new Date(item.n8n_processing_date);
-        dateSet.add(formatter.format(date));
-      }
-    });
-  }
-
-  return Array.from(dateSet);
+  // The RPC returns { date_str: string }[]
+  return data?.map((d) => d.date_str) || [];
 }
 
 import { getTodayInShanghai } from '../../utils/dateUtils';
@@ -219,47 +204,51 @@ interface FreshRssTag {
   count?: number;
 }
 
-export async function getAvailableFilters(): Promise<{ tags: Tag[]; categories: Tag[] }> {
-  try {
-    const freshRss = getFreshRssClient();
+export const getAvailableFilters = unstable_cache(
+  async (): Promise<{ tags: Tag[]; categories: Tag[] }> => {
+    try {
+      const freshRss = getFreshRssClient();
 
-    // Use the proven endpoint from app/api/list-categories-tags/route.ts
-    const data = await freshRss.get<{ tags: FreshRssTag[] }>('/tag/list', {
-      output: 'json',
-      with_counts: '1',
-    });
-
-    const categories: Tag[] = [];
-    const tags: Tag[] = [];
-
-    if (data.tags) {
-      data.tags.forEach((item) => {
-        const label = decodeURIComponent(item.id.split('/').pop() || '');
-
-        if (item.id.includes('/state/com.google/') || item.id.includes('/state/org.freshrss/')) {
-          return;
-        }
-
-        if (item.type === 'folder') {
-          categories.push({ id: item.id, label, count: item.count });
-        } else {
-          tags.push({ id: item.id, label, count: item.count });
-        }
+      // Use the proven endpoint from app/api/list-categories-tags/route.ts
+      const data = await freshRss.get<{ tags: FreshRssTag[] }>('/tag/list', {
+        output: 'json',
+        with_counts: '1',
       });
+
+      const categories: Tag[] = [];
+      const tags: Tag[] = [];
+
+      if (data.tags) {
+        data.tags.forEach((item) => {
+          const label = decodeURIComponent(item.id.split('/').pop() || '');
+
+          if (item.id.includes('/state/com.google/') || item.id.includes('/state/org.freshrss/')) {
+            return;
+          }
+
+          if (item.type === 'folder') {
+            categories.push({ id: item.id, label, count: item.count });
+          } else {
+            tags.push({ id: item.id, label, count: item.count });
+          }
+        });
+      }
+
+      const sortByName = (a: { label: string }, b: { label: string }) =>
+        a.label.localeCompare(b.label, 'zh-Hans-CN');
+
+      return {
+        categories: categories.sort(sortByName),
+        tags: tags.sort(sortByName),
+      };
+    } catch (e) {
+      console.error('SERVER Error fetching filters:', e);
+      return { tags: [], categories: [] };
     }
-
-    const sortByName = (a: { label: string }, b: { label: string }) =>
-      a.label.localeCompare(b.label, 'zh-Hans-CN');
-
-    return {
-      categories: categories.sort(sortByName),
-      tags: tags.sort(sortByName),
-    };
-  } catch (e) {
-    console.error('SERVER Error fetching filters:', e);
-    return { tags: [], categories: [] };
-  }
-}
+  },
+  ['available-filters'], // Cache Key
+  { revalidate: 3600 }, // Rewrite every 1 hour
+);
 
 export async function fetchStarredArticleHeaders(): Promise<
   { id: string | number; title: string; tags: string[] }[]

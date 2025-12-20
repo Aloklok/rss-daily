@@ -161,7 +161,7 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 
 本项目采用了清晰的 **Feature-Based** 组件架构。
 
-> 📚 **详细文档**: 请参阅 [COMPONENT_CATALOG.md](./COMPONENT_CATALOG.md) 获取完整的组件目录说明。
+> 📚 **详细文档**: 请参阅 [COMPONENT_CATALOG.md](./docs/COMPONENT_CATALOG.md) 获取完整的组件目录说明。
 
 ### 核心分层
 
@@ -175,15 +175,15 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 
 ### 状态与数据流架构详解
 
-> 📚 **API 与服务架构详解**: 关于最新的 **API 路由结构**、**Hooks 封装**、**Server/Client 代码拆分**及**数据流向**，请务必阅读 **[API.md](./API.md)**。本节仅介绍客户端内部状态管理。
+> 📚 **API 与服务架构详解**: 关于最新的 **API 路由结构**、**Hooks 封装**、**Server/Client 代码拆分**及**数据流向**，请务必阅读 **[API.md](./docs/API.md)**。本节仅介绍客户端内部状态管理。
 
 #### 客户端状态中心 (`store/` - Zustand)
 
+> 📚 **Store 架构详解**: 关于 **Store 拆分**、**核心 State** 及 **数据流向** 的详细说明，请阅读 **[STORE.md](./docs/STORE.md)**。
+
 - **职责**: 应用的**“单一事实来源”**与**客户端业务逻辑中心**。
-  - **`articleStore.ts`**: 存储所有经过融合的、完整的文章数据 (`articlesById`)，以及元数据（如 `availableFilters`）。
-  - **`uiStore.ts`**: 存储纯 UI 状态，如 `activeFilter`、`timeSlot`、`selectedArticleId`、`modalArticleId`。这实现了数据与 UI 的分离，减少了不必要的渲染。
-  - **`toastStore.ts`**: 管理全局 Toast 通知状态，消除了 Prop Drilling，并允许在非组件环境（如 API 层）中触发通知。
-  - **智能状态更新**: Store 内的 Actions (如 `updateArticle`) 封装了核心的客户端业务逻辑。例如，当一篇文章状态被更新时，该 action 不仅会更新这篇文章本身，还会**自动同步更新** `starredArticleIds` 列表，并**动态计算**受影响标签的 `count` 数量。这保证了所有派生状态的一致性，并避免了不必要的 API 调用。
+- **核心 Store**: `uiStore`, `articleStore`, `toastStore`。
+- **智能更新**: Store 内的 Actions 封装了核心业务逻辑，确保派生状态（如收藏列表、标签计数）的实时一致性。
 
 ## 环境变量
 

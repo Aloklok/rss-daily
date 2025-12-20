@@ -1,18 +1,18 @@
 // components/ArticleDetail.tsx
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Article, CleanArticleContent } from '../../../types'; // 导入 Tag
 import { useArticleMetadata } from '../../../hooks/useArticleMetadata';
 import { getRandomColorClass } from '../../../utils/colorUtils';
 import ArticleTitleStar from './ArticleTitleStar';
+import { useArticleContent } from '../../../hooks/useArticleContent';
+import { useSelectAll } from '../../../hooks/dom/useSelectAll';
 
 interface ArticleDetailProps {
   article: Article;
   onClose?: () => void;
   initialContent?: CleanArticleContent | null;
 }
-
-import { useArticleContent } from '../../../hooks/useArticleContent';
 
 const ArticleDetail: React.FC<ArticleDetailProps> = ({
   article,
@@ -22,7 +22,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
   // 【Refactor】Use Unified Hook for Data Fetching & Caching
   const { data: content, isLoading, error } = useArticleContent(article, initialContent);
 
-  const contentRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLElement>(null);
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -41,28 +41,8 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
   // 【新增】调用辅助函数获取标签文本
   const { userTagLabels } = useArticleMetadata(article);
 
-  useEffect(() => {
-    // 【增】添加键盘事件监听器
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key === 'a') {
-        if (contentRef.current) {
-          event.preventDefault();
-          const range = document.createRange();
-          range.selectNodeContents(contentRef.current);
-          const selection = window.getSelection();
-          if (selection) {
-            selection.removeAllRanges();
-            selection.addRange(range);
-          }
-        }
-      }
-    };
-    // 【增】组件挂载时添加监听，卸载时移除
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []); // 【查】空依赖数组确保只在挂载和卸载时运行
+  // Enable Select All (Cmd+A) for the content area
+  useSelectAll(contentRef);
 
   // Determine display data: prefer fetched content, fallback to prop article
   const displayTitle = (content && content.title) || article.title;

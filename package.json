@@ -44,6 +44,7 @@
     "@types/react-dom": "^19.0.0",
     "@types/sanitize-html": "^2.16.0",
     "@vercel/node": "^5.5.15",
+    "babel-plugin-react-compiler": "^1.0.0",
     "cross-env": "^10.1.0",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",

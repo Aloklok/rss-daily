@@ -40,8 +40,6 @@ export default function BriefingClient({
   }, [date, setTimeSlot]);
 
   const openModal = useUIStore((state) => state.openModal);
-  const isSidebarCollapsed = false; // Default or from store if needed
-  // const toggleSidebar = ... // If we want to control sidebar from here
 
   const { mutateAsync: updateArticleState } = useUpdateArticleState();
 
@@ -118,8 +116,6 @@ export default function BriefingClient({
       onReaderModeRequest={(article) => openModal(article.id, 'reader')}
       onStateChange={handleStateChange}
       onTimeSlotChange={setTimeSlot}
-      isSidebarCollapsed={isSidebarCollapsed}
-      onToggleSidebar={() => {}} // No-op or implement if needed
       articleCount={articleIds.length}
       // Only show loading if we are fetching AND we have no articles to show.
       isLoading={isLoading}

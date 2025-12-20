@@ -1,0 +1,69 @@
+# 状态管理 (Store)
+
+本项目使用 [Zustand](https://github.com/pmndrs/zustand) 进行全局状态管理，为了分离关注点，我们将 Store 拆分为三个独立的部分。
+
+## 架构概览
+
+| Store             | 文件                                          | 职责                                                |
+| ----------------- | --------------------------------------------- | --------------------------------------------------- |
+| **UI Store**      | [`uiStore.ts`](../store/uiStore.ts)           | 管理客户端交互状态 (模态框, 过滤器, 侧边栏, 主题)。 |
+| **Article Store** | [`articleStore.ts`](../store/articleStore.ts) | 管理领域数据 (文章, 收藏 ID, 标签, 过滤器计数)。    |
+| **Toast Store**   | [`toastStore.ts`](../store/toastStore.ts)     | 管理临时的通知提示状态。                            |
+
+## 1. UI Store (`uiStore.ts`)
+
+负责管理“应用长什么样”以及“当前激活了什么”。
+
+### 核心状态
+
+- **`activeFilter`**: 当前的视图筛选条件 (例如: 日期, 标签, 搜索关键词)。
+- **`timeSlot`**: 简报视图中选中的时间段 (早报/午报/晚报)。
+- **`modalArticleId` / `modalInitialMode`**: 控制统一文章模态框的显示。
+- **`settings`**: 主题 (深色/浅色) 和 排版偏好设置。
+
+### 侧边栏状态
+
+使用显式的布尔值来处理响应式行为：
+
+- `isMobileOpen`: 在移动端控制侧边栏的显示/隐藏。
+- `isDesktopCollapsed`: 在桌面端控制侧边栏的折叠/展开。
+
+---
+
+## 2. Article Store (`articleStore.ts`)
+
+作为客户端的“数据库”，存储所有已获取的内容。
+
+### 核心状态
+
+- **`articlesById`**: 所有已加载文章的归一化映射表 `{ [id: string]: Article }`。防止数据重复。
+- **`availableFilters`**: 包含**计数**信息的标签和分类列表。
+- **`starredArticleIds`**: 用户已收藏的文章 ID 列表。
+
+### 数据流
+
+1. **获取 (Fetching)**: React Query (`useArticles.ts`) 从 API 获取数据。
+2. **填充 (Hydration)**: 组件调用 `addArticles(articles)` 将数据填充到 `articlesById`。
+3. **乐观更新 (Optimistic Updates)**:
+   - `updateArticle`: 在 API 确认之前，立即更新本地文章状态 (例如: 标记已读)。
+   - `calculateNewAvailableTags`: 一个纯函数工具，当文章标签变化时，动态重新计算标签计数。
+
+### 性能优化
+
+`StreamContainer` 组件经过特别优化，**不会** 订阅整个 `articlesById` 对象，从而避免因单篇文章更新导致整个信息流重新渲染。相反，每个 `StreamListItem` 组件会单独订阅其对应的文章 ID。
+
+---
+
+## 3. Toast Store (`toastStore.ts`)
+
+一个简单的队列系统，用于显示反馈消息。
+
+- **`showToast(message, type)`**:以此消息触发一个提示。
+- **`hideToast()`**: 关闭当前提示。
+
+## 交互模式
+
+### Hooks vs Stores
+
+- **React Query Hooks** (例如 `useBriefingArticles`) 负责 **服务端状态** (获取, 缓存, 重新验证)。
+- **Zustand Stores** 负责 **客户端状态** (选中项, 可见性) 和 **归一化数据缓存** (在列表和模态框之间共享文章对象)。

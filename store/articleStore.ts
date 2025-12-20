@@ -3,6 +3,7 @@
 import { create } from 'zustand';
 import { Article, AvailableFilters } from '../types';
 import { STAR_TAG, READ_TAG } from '../constants';
+import { calculateNewAvailableTags } from '../utils/tagUtils';
 
 interface ArticleStoreState {
   articlesById: Record<string | number, Article>;
@@ -16,9 +17,6 @@ interface ArticleStoreState {
   setStarredArticleIds: (ids: (string | number)[]) => void;
   setAvailableFilters: (filters: AvailableFilters) => void;
 }
-
-const isUserTag = (tagId: string) =>
-  !tagId.includes('/state/com.google/') && !tagId.includes('/state/org.freshrss/');
 
 export const useArticleStore = create<ArticleStoreState>((set, get) => ({
   articlesById: {},
@@ -51,37 +49,11 @@ export const useArticleStore = create<ArticleStoreState>((set, get) => ({
       }
 
       // --- Dynamic Tag Count Update ---
-      const oldUserTags = new Set((oldArticle?.tags || []).filter(isUserTag));
-      const newUserTags = new Set((updatedArticle.tags || []).filter(isUserTag));
-
-      const tagsToAdd = [...newUserTags].filter((t) => !oldUserTags.has(t));
-      const tagsToRemove = [...oldUserTags].filter((t) => !newUserTags.has(t));
-
-      let newAvailableTags = [...state.availableFilters.tags];
-
-      if (tagsToAdd.length > 0 || tagsToRemove.length > 0) {
-        // 1. Identify which tags are TRULY new to the available list
-        const existingTagIds = new Set(newAvailableTags.map((t) => t.id));
-        const brandNewTags = tagsToAdd.filter((id) => !existingTagIds.has(id));
-
-        // 2. Append brand new tags to the list with initial count 0 (count will be incremented below)
-        brandNewTags.forEach((id) => {
-          const label = decodeURIComponent(id.split('/').pop() || id);
-          newAvailableTags.push({ id, label, count: 0 });
-        });
-
-        // 3. Update counts for all affected tags
-        newAvailableTags = newAvailableTags.map((tag) => {
-          const newTag = { ...tag };
-          if (tagsToAdd.includes(newTag.id)) {
-            newTag.count = (newTag.count || 0) + 1;
-          }
-          if (tagsToRemove.includes(newTag.id)) {
-            newTag.count = Math.max(0, (newTag.count || 0) - 1);
-          }
-          return newTag;
-        });
-      }
+      const newAvailableTags = calculateNewAvailableTags(
+        state.availableFilters.tags,
+        oldArticle?.tags,
+        updatedArticle.tags,
+      );
 
       return {
         articlesById: newArticlesById,

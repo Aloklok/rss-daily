@@ -21,10 +21,10 @@ export const useDailyStatusesForMonth = (month: string) => {
     },
     enabled: !!month, // 只有当 month 有效时才执行查询
     // 策略调整:
-    // 1. 每次打开 APP (冷启动/刷新) -> 内存缓存为空 -> 发起请求
-    // 2. 切换标签/最小化 (热启动) -> 内存缓存存在且未过期 (Infinity) -> 不发起请求
-    // 3. 组件重渲染 -> 不发起请求
+    // 1. 永久缓存，除非手动 invalidate
+    // 2. 只有当 month 变化且缓存中没有数据时才请求
     staleTime: Infinity,
+    gcTime: Infinity, // 保持由于切换月份导致的缓存数据不被垃圾回收
     refetchOnWindowFocus: false,
     refetchOnMount: false,
     refetchOnReconnect: false,

@@ -5,6 +5,7 @@ import { Article } from '../../../../types';
 import { useArticleMetadata } from '../../../../hooks/useArticleMetadata';
 import { useArticleContent } from '../../../../hooks/useArticleContent';
 import { useBriefingDetails } from '../../../../hooks/useBriefingDetails';
+import { useScrollLock } from '../../../../hooks/dom/useScrollLock';
 
 // Import sub-components
 import ArticleModalHeader from './ArticleModalHeader';
@@ -59,16 +60,17 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({
   //   setViewMode(initialMode);
   // }, [article.id, initialMode]);
 
+  // Lock body scroll when modal is open
+  useScrollLock(true);
+
   // Keyboard event listener for Escape
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
     };
     document.addEventListener('keydown', handleKeyDown);
-    document.body.style.overflow = 'hidden';
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'auto';
     };
   }, [onClose]);
 

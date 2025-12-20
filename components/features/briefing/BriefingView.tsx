@@ -168,8 +168,6 @@ interface BriefingProps {
     tagsToRemove: string[],
   ) => Promise<void>;
   onTimeSlotChange: (slot: TimeSlot | null) => void;
-  isSidebarCollapsed: boolean;
-  onToggleSidebar: () => void;
   articleCount: number;
   isLoading?: boolean;
 
@@ -190,8 +188,6 @@ const Briefing: React.FC<BriefingProps> = ({
   onReaderModeRequest,
   onStateChange,
   onTimeSlotChange,
-  isSidebarCollapsed: _isSidebarCollapsed,
-  onToggleSidebar: _onToggleSidebar,
   articleCount: _articleCount,
   isLoading,
   headerImageUrl,

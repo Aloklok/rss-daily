@@ -65,14 +65,6 @@ const apiService = {
 
 const articleCache = new Map<string | number, CleanArticleContent>();
 
-// ... (existing imports)
-
-// --- Helper for Shanghai Timezone ---
-import { getTodayInShanghai } from '../utils/dateUtils';
-export { getTodayInShanghai }; // Re-export for compatibility if needed, or better just remove usage here and rely on import.
-// Actually, let's keep the export if other files import it from here, to avoid breaking them immediately.
-// But better to fix all imports. For now, I will re-export it to be safe.
-
 export const getCurrentTimeSlotInShanghai = (): 'morning' | 'afternoon' | 'evening' => {
   const now = new Date();
   const hour = parseInt(
@@ -194,7 +186,8 @@ export const getArticleStates = (
       method: 'POST',
       body: { articleIds },
     })
-    .catch(() => {
+    .catch((error) => {
+      console.error('Failed to fetch article states:', error);
       const states: { [key: string]: string[] } = {};
       articleIds.forEach((id) => {
         states[String(id)] = [];
@@ -248,9 +241,10 @@ export const getArticlesByLabel = (
 
 // getAvailableFilters
 export const getAvailableFilters = (): Promise<AvailableFilters> => {
-  return apiService
-    .request<AvailableFilters>('/api/meta/tags')
-    .catch(() => ({ categories: [], tags: [] }));
+  return apiService.request<AvailableFilters>('/api/meta/tags').catch((error) => {
+    console.error('Failed to fetch available filters:', error);
+    return { categories: [], tags: [] };
+  });
 };
 
 // getDailyStatuses

@@ -82,6 +82,12 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      get_unique_dates: {
+        Args: never;
+        Returns: {
+          date_str: string;
+        }[];
+      };
       search_articles_by_partial_keyword: {
         Args: { search_term: string };
         Returns: {

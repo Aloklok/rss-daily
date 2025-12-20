@@ -67,6 +67,7 @@ const SidebarExplore: React.FC<SidebarExploreProps> = ({
                 key={category.id}
                 href={`/stream/${encodeURIComponent(category.id)}`}
                 onClick={(e) => handleCategoryClick(e, category.id)}
+                prefetch={false}
                 className={listItemButtonClass(isFilterActive('category', category.id))}
               >
                 <span className="flex-1 truncate">{category.label}</span>
@@ -100,6 +101,7 @@ const SidebarExplore: React.FC<SidebarExploreProps> = ({
                 key={tag.id}
                 href={`/stream/${encodeURIComponent(tag.id)}`}
                 onClick={(e) => handleTagClick(e, tag.id)}
+                prefetch={false}
                 className={`flex w-full items-center justify-between rounded-md border px-2.5 py-1.5 text-left text-sm font-medium transition-all duration-200 ${colorClass} cursor-pointer`}
               >
                 <span className="truncate">#{tag.label}</span>

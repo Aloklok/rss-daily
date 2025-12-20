@@ -50,8 +50,6 @@ export default function MainContentClient({
   const selectedArticleId = useUIStore((state) => state.selectedArticleId);
   const timeSlot = useUIStore((state) => state.timeSlot);
   const setTimeSlot = useUIStore((state) => state.setTimeSlot);
-  const isSidebarCollapsed = useUIStore((state) => state.isSidebarCollapsed);
-  const toggleSidebar = useUIStore((state) => state.toggleSidebar);
   const articlesById = useArticleStore((state) => state.articlesById);
   const addArticles = useArticleStore((state) => state.addArticles);
 
@@ -232,8 +230,6 @@ export default function MainContentClient({
             await updateArticleState({ articleId: id, tagsToAdd: add, tagsToRemove: remove });
           }}
           onTimeSlotChange={setTimeSlot}
-          isSidebarCollapsed={isSidebarCollapsed}
-          onToggleSidebar={toggleSidebar}
           articleCount={effectiveArticleIds.length}
           // Only show loading if we really have no content AND are fetching (and client is mounted)
           // This prevents infinite spinner in No-JS if SSR failed
