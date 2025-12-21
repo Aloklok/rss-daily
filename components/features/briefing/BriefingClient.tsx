@@ -33,6 +33,8 @@ export default function BriefingClient({
   // Use global state so FloatingButtonsClient can see the current selection
   const timeSlot = useUIStore((state) => state.timeSlot);
   const setTimeSlot = useUIStore((state) => state.setTimeSlot);
+  // Verdict Filter State (Local, as it's specific to this view)
+  const [verdictFilter, setVerdictFilter] = React.useState<string | null>(null);
 
   // Reset global state when date changes (handles client-side soft nav and ensures clean start)
   useEffect(() => {
@@ -89,19 +91,30 @@ export default function BriefingClient({
     // Safe fallback
     const masterIds = allDayArticleIds || initialArticleIds;
 
-    if (!timeSlot) {
-      return masterIds;
+    // 1. Filter based on TimeSlot
+    let filteredIds = masterIds;
+
+    if (timeSlot) {
+      filteredIds = filteredIds.filter((id) => {
+        const article = articles.find((a) => a.id === id) || articlesById[id];
+        if (!article) return false;
+        const dateStr = article.n8n_processing_date || article.published;
+        return getArticleTimeSlot(dateStr) === timeSlot;
+      });
     }
 
-    // Filter based on the article's n8n_processing_date or published date
-    return masterIds.filter((id: string | number) => {
-      const article = articles.find((a) => a.id === id) || articlesById[id];
-      if (!article) return false;
-      // Use processing date for alignment with server logic, fallback to published
-      const dateStr = article.n8n_processing_date || article.published;
-      return getArticleTimeSlot(dateStr) === timeSlot;
-    });
-  }, [timeSlot, allDayArticleIds, initialArticleIds, articles, articlesById]);
+    // 2. Filter based on Verdict Type
+    if (verdictFilter) {
+      filteredIds = filteredIds.filter((id) => {
+        const article = articles.find((a) => a.id === id) || articlesById[id];
+        if (!article) return false;
+        // '知识洞察型' | '新闻事件型'
+        return article.verdict?.type === verdictFilter;
+      });
+    }
+
+    return filteredIds;
+  }, [timeSlot, verdictFilter, allDayArticleIds, initialArticleIds, articles, articlesById]);
 
   const articleIds = displayedArticleIds;
 
@@ -116,6 +129,8 @@ export default function BriefingClient({
       onReaderModeRequest={(article) => openModal(article.id, 'reader')}
       onStateChange={handleStateChange}
       onTimeSlotChange={setTimeSlot}
+      verdictFilter={verdictFilter}
+      onVerdictFilterChange={setVerdictFilter}
       articleCount={articleIds.length}
       // Only show loading if we are fetching AND we have no articles to show.
       isLoading={isLoading}

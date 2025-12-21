@@ -37,7 +37,7 @@ const SourceListItem: React.FC<{ articleId: string | number }> = ({ articleId })
   return (
     <div
       onClick={handleClick}
-      className="group relative flex cursor-pointer flex-col gap-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-stone-200 transition-all hover:bg-stone-50 hover:shadow-xl hover:ring-2 hover:ring-black md:flex-row dark:border dark:border-white/10 dark:bg-white/40 dark:ring-white/10 dark:backdrop-blur-md dark:hover:bg-white/60 dark:hover:ring-white/30"
+      className="group dark:border-midnight-border dark:bg-midnight-card dark:ring-midnight-border/50 dark:hover:bg-midnight-card/80 dark:hover:ring-midnight-border relative flex cursor-pointer flex-col gap-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-stone-200 transition-all hover:bg-stone-50 hover:shadow-xl hover:ring-2 hover:ring-black md:flex-row dark:border"
     >
       <div className="flex min-w-0 flex-1 flex-col justify-between">
         <div>
@@ -71,7 +71,7 @@ const SourceListItem: React.FC<{ articleId: string | number }> = ({ articleId })
       </div>
 
       {/* Right Side: Summary (Vertical Centered) */}
-      <div className="flex shrink-0 flex-col justify-center border-t border-stone-300 pt-4 md:w-1/3 md:border-t-0 md:border-l md:pt-0 md:pl-6 dark:border-white/10">
+      <div className="dark:border-midnight-border flex shrink-0 flex-col justify-center border-t border-stone-300 pt-4 md:w-1/3 md:border-t-0 md:border-l md:pt-0 md:pl-6">
         <p className="line-clamp-4 text-sm leading-relaxed font-medium text-stone-600 opacity-80 transition-opacity group-hover:opacity-100 dark:text-stone-400">
           {article.tldr || article.summary || (
             <span className="italic opacity-50">暂无简报，点击阅读原文</span>

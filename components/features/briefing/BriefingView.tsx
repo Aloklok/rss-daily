@@ -177,6 +177,8 @@ interface BriefingProps {
   prevDate?: string | null;
   nextDate?: string | null;
   disableAutoTimeSlot?: boolean; // New prop to control auto-selection behavior
+  verdictFilter?: string | null;
+  onVerdictFilterChange?: (type: string | null) => void;
 }
 
 const Briefing: React.FC<BriefingProps> = ({
@@ -196,6 +198,8 @@ const Briefing: React.FC<BriefingProps> = ({
   prevDate,
   nextDate,
   disableAutoTimeSlot = false,
+  verdictFilter,
+  onVerdictFilterChange,
 }) => {
   // 1. 【新增】内部订阅文章数据
   const articlesById = useArticleStore((state) => state.articlesById);
@@ -315,41 +319,69 @@ const Briefing: React.FC<BriefingProps> = ({
                 </div>
               </div>
 
-              {/* Right: Time Slot Selector - More Visible */}
-              {/* Right: Time Slot Selector */}
+              {/* Right: Time Slot Selector & Verdict Filter - Stacked */}
               {date && (
-                <div className="flex items-center gap-3 self-start">
-                  {(['morning', 'afternoon', 'evening'] as const).map((slotOption) => {
-                    const labelMap: Record<TimeSlot, string> = {
-                      morning: '早',
-                      afternoon: '中',
-                      evening: '晚',
-                    };
-                    const titleMap: Record<TimeSlot, string> = {
-                      morning: '早上',
-                      afternoon: '中午',
-                      evening: '晚上',
-                    };
+                <div className="flex flex-col items-end gap-3 self-start">
+                  {/* Row 1: Time Slots */}
+                  <div className="flex items-center gap-2">
+                    {(['morning', 'afternoon', 'evening'] as const).map((slotOption) => {
+                      const labelMap: Record<TimeSlot, string> = {
+                        morning: '早',
+                        afternoon: '中',
+                        evening: '晚',
+                      };
+                      const titleMap: Record<TimeSlot, string> = {
+                        morning: '早上',
+                        afternoon: '中午',
+                        evening: '晚上',
+                      };
 
-                    // Toggle logic: Use manual timeSlot if available, otherwise fallback to autoSelectedSlot
-                    const isSelected =
-                      timeSlot === slotOption ||
-                      (timeSlot === null && autoSelectedSlot === slotOption);
-                    return (
-                      <button
-                        key={slotOption}
-                        onClick={() => onTimeSlotChange(isSelected ? null : slotOption)}
-                        className={`flex size-10 items-center justify-center rounded-full border border-white/20 font-serif text-sm transition-all duration-300 ${
-                          isSelected
-                            ? 'scale-110 border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)] dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900 dark:shadow-[0_0_15px_rgba(251,191,36,0.6)]'
-                            : 'bg-black/20 text-white/90 backdrop-blur-md hover:border-white/40 hover:bg-white/20'
-                        } cursor-pointer`}
-                        title={titleMap[slotOption]}
-                      >
-                        {labelMap[slotOption]}
-                      </button>
-                    );
-                  })}
+                      // Toggle logic: Use manual timeSlot if available, otherwise fallback to autoSelectedSlot
+                      const isSelected =
+                        timeSlot === slotOption ||
+                        (timeSlot === null && autoSelectedSlot === slotOption);
+                      return (
+                        <button
+                          key={slotOption}
+                          onClick={() => onTimeSlotChange(isSelected ? null : slotOption)}
+                          className={`flex size-9 items-center justify-center rounded-full border border-white/20 font-serif text-sm transition-all duration-300 ${
+                            isSelected
+                              ? 'scale-110 border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)] dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900 dark:shadow-[0_0_15px_rgba(251,191,36,0.6)]'
+                              : 'bg-black/20 text-white/90 backdrop-blur-md hover:border-white/40 hover:bg-white/20'
+                          } cursor-pointer`}
+                          title={titleMap[slotOption]}
+                        >
+                          {labelMap[slotOption]}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Row 2: Verdict Type Filter (Insight/News) */}
+                  {onVerdictFilterChange && (
+                    <div className="flex items-center gap-2">
+                      {[
+                        { id: '知识洞察型', label: '洞察', title: '深度知识与洞察' },
+                        { id: '新闻事件型', label: '新闻', title: '时事新闻与更新' },
+                      ].map((type) => {
+                        const isSelected = verdictFilter === type.id;
+                        return (
+                          <button
+                            key={type.id || 'all'}
+                            onClick={() => onVerdictFilterChange(isSelected ? null : type.id)}
+                            className={`flex h-8 min-w-[36px] items-center justify-center rounded-full border border-white/20 px-2 font-serif text-xs transition-all duration-300 ${
+                              isSelected
+                                ? 'border-white bg-white text-black shadow-[0_0_10px_rgba(255,255,255,0.4)]'
+                                : 'bg-black/10 text-white/80 backdrop-blur-sm hover:bg-white/10'
+                            } cursor-pointer`}
+                            title={type.title}
+                          >
+                            {type.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

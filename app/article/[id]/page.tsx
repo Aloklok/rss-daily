@@ -1,8 +1,8 @@
 import { fetchArticleById, fetchArticleContentServer } from '@/lib/server/dataFetcher';
 import { Metadata } from 'next';
 import ArticleDetailClient from '@/components/features/article/ArticleDetailClient';
-import { notFound } from 'next/navigation';
 import { stripTags } from '../../../utils/contentUtils';
+import NotFound from '../../not-found';
 
 export const revalidate = false;
 
@@ -45,7 +45,8 @@ export default async function ArticlePage({ params }: { params: Promise<{ id: st
 
   // 1. Fetch metadata (Supabase)
   const article = await fetchArticleById(id);
-  if (!article) notFound();
+  // Soft 404: Return 200 OK with NotFound UI to avoid SEO penalties/Bing errors
+  if (!article) return <NotFound />;
 
   // 2. Fetch full content (FreshRSS) - Server Side
   const content = await fetchArticleContentServer(article.id);

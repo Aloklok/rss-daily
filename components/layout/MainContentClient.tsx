@@ -58,6 +58,9 @@ export default function MainContentClient({
   const queryClient = useQueryClient();
   const { mutateAsync: updateArticleState } = useUpdateArticleState();
 
+  // Verdict Filter State (Local)
+  const [verdictFilter, setVerdictFilter] = React.useState<string | null>(null);
+
   // Visibility state for the fade-in effect.
   // If it's the homepage, we start hidden (false) to prevent flash.
   // Otherwise (other pages), we show immediately (true).
@@ -167,6 +170,26 @@ export default function MainContentClient({
     openModal(article.id, 'reader');
   };
 
+  // Memoize initial IDs for hook (moved here to ensure it's available for filteredArticleIds)
+  // Note: initialArticleIds is already defined above at line 133, we can reuse it.
+
+  // Filter by Verdict Type Logic (Moved to top level)
+  // We need to calculate this based on the active 'effectiveArticleIds' which depends on dateToUse.
+  // However, dateToUse is derived. This is fine.
+
+  // Determine effective IDs for Briefing Mode
+  const effectiveBriefingIds =
+    briefingArticleIds || (dateToUse === initialDate ? initialArticleIds : []);
+
+  const filteredBriefingArticleIds = useMemo(() => {
+    if (!verdictFilter) return effectiveBriefingIds;
+    return effectiveBriefingIds.filter((id) => {
+      // Try to find article in store or initial props
+      const article = articlesById[id] || initialArticles.find((a) => a.id === id);
+      return article?.verdict?.type === verdictFilter;
+    });
+  }, [effectiveBriefingIds, verdictFilter, articlesById, initialArticles]);
+
   // Render Logic
   if (selectedArticleId) {
     const article =
@@ -211,15 +234,14 @@ export default function MainContentClient({
   // This handles both explicit date filter AND default initial state
   if (dateToUse) {
     // Use effective IDs: from hook (client) or fallback to initial (SSR)
-    const effectiveArticleIds =
-      briefingArticleIds || (dateToUse === initialDate ? initialArticleIds : []);
+    // const effectiveArticleIds = ... (Refactored to effectiveBriefingIds above)
 
     return (
       <div
         className={`transition-opacity duration-700 ease-out ${isVisible ? 'opacity-100' : 'opacity-0'}`}
       >
         <Briefing
-          articleIds={effectiveArticleIds}
+          articleIds={filteredBriefingArticleIds}
           date={dateToUse}
           headerImageUrl={dateToUse === initialDate ? initialHeaderImageUrl : undefined}
           timeSlot={timeSlot}
@@ -230,11 +252,15 @@ export default function MainContentClient({
             await updateArticleState({ articleId: id, tagsToAdd: add, tagsToRemove: remove });
           }}
           onTimeSlotChange={setTimeSlot}
-          articleCount={effectiveArticleIds.length}
+          verdictFilter={verdictFilter}
+          onVerdictFilterChange={setVerdictFilter}
+          articleCount={filteredBriefingArticleIds.length}
           // Only show loading if we really have no content AND are fetching (and client is mounted)
           // This prevents infinite spinner in No-JS if SSR failed
           isLoading={
-            effectiveArticleIds.length === 0 && isBriefingLoading && typeof window !== 'undefined'
+            filteredBriefingArticleIds.length === 0 &&
+            isBriefingLoading &&
+            typeof window !== 'undefined'
           }
           articles={initialArticles} // Pass initial objects for fallback lookup
           isToday={dateToUse === today}
