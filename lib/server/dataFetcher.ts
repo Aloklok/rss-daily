@@ -165,6 +165,59 @@ export const fetchArticleContentServer = async (
   }
 };
 
+// Helper to fetch directly from FreshRSS as fallback
+async function fetchArticleFromFreshRSS(id: string): Promise<Article | null> {
+  try {
+    const freshRss = getFreshRssClient();
+    const fullId = toFullId(id);
+    const apiBody = new URLSearchParams({ i: fullId });
+
+    // Use /stream/items/contents to get the single item
+    const data = await freshRss.post<{ items: FreshRSSItem[] }>(
+      '/stream/items/contents?output=json',
+      apiBody,
+    );
+
+    if (!data.items || data.items.length === 0) {
+      return null;
+    }
+
+    const item = data.items[0];
+
+    // Map FreshRSS Item to Article
+    // We have to fill in missing AI-generated fields with placeholders
+    const article: Article = {
+      id: item.id,
+      created_at: new Date(item.published * 1000).toISOString(),
+      title: item.title,
+      link: item.alternate?.[0]?.href || '',
+      sourceName: item.origin?.title || 'Unknown Source',
+      published: new Date(item.published * 1000).toISOString(),
+      // Use current time as processing date since it's a fallback
+      n8n_processing_date: new Date().toISOString(),
+      category: 'Uncategorized', // Default
+      briefingSection: BRIEFING_SECTIONS.REGULAR,
+      keywords: [],
+      verdict: {
+        type: 'Neutral',
+        score: 0,
+        importance: BRIEFING_SECTIONS.REGULAR,
+      },
+      summary: item.summary?.content || '', // Use native summary if available
+      tldr: '', // Leave empty to indicate no AI summary
+      highlights: '',
+      critiques: '',
+      marketTake: '',
+      tags: (item.categories || []) as any[], // Clean string array
+    };
+
+    return article;
+  } catch (error) {
+    console.error('Error fetching fallback article from FreshRSS:', error);
+    return null;
+  }
+}
+
 export async function fetchArticleById(id: string): Promise<Article | null> {
   const supabase = getSupabaseClient();
 
@@ -174,9 +227,18 @@ export async function fetchArticleById(id: string): Promise<Article | null> {
 
   const { data, error } = await supabase.from('articles').select('*').eq('id', fullId).single();
 
-  if (error) {
+  if (error || !data) {
+    console.log(`Article ${id} not found in Supabase. Attempting FreshRSS fallback...`);
+
+    // Fallback: Try fetching directly from FreshRSS
+    const fallbackArticle = await fetchArticleFromFreshRSS(id);
+
+    if (fallbackArticle) {
+      return fallbackArticle;
+    }
+
     // If searching by full ID fails, try searching by the raw ID just in case
-    // (though toFullId handles already-full IDs gracefully)
+    // (Supabase retry logic - usually unlikely to help if fullId failed, but keeping original logic flow)
     if (fullId !== id) {
       const { data: retryData, error: retryError } = await supabase
         .from('articles')
@@ -187,7 +249,9 @@ export async function fetchArticleById(id: string): Promise<Article | null> {
       if (!retryError) return retryData;
     }
 
-    console.error('Error fetching article by ID:', error);
+    if (error) {
+      console.error('Error fetching article by ID (Supabase):', error);
+    }
     return null;
   }
   return data;
