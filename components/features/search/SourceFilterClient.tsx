@@ -186,12 +186,10 @@ export default function SourceFilterClient({ subscriptions }: SourceFilterClient
         {/* Header Section */}
         <div className="mb-12 flex flex-col items-center justify-between gap-6 md:flex-row">
           <div>
-            <h1 className="font-serif text-3xl font-bold text-stone-900 md:text-4xl dark:text-stone-100">
+            <h1 className="font-serif text-3xl font-bold text-stone-900 md:text-4xl">
               按订阅源浏览
             </h1>
-            <p className="mt-2 text-sm text-stone-500 dark:text-stone-400">
-              From RSS subscriptions
-            </p>
+            <p className="mt-2 text-sm text-stone-500">From RSS subscriptions</p>
           </div>
 
           {/* Source Selector */}
@@ -271,9 +269,7 @@ export default function SourceFilterClient({ subscriptions }: SourceFilterClient
           ) : (
             <div className="flex h-96 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-stone-200/50 text-center dark:border-stone-800/50">
               <div className="mb-4 text-5xl opacity-50 grayscale">📡</div>
-              <h3 className="text-lg font-medium text-stone-900 dark:text-stone-100">
-                请点击下拉框选择订阅源
-              </h3>
+              <h3 className="text-lg font-medium text-stone-900">请点击下拉框选择订阅源</h3>
             </div>
           )}
         </div>

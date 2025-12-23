@@ -70,7 +70,7 @@ export default function MainLayoutClient({
   const transitionClass = 'transition-all duration-300 ease-in-out';
 
   return (
-    <div className="dark:bg-midnight-bg flex min-h-screen flex-col bg-gray-50 font-sans md:flex-row">
+    <div className="dark:bg-midnight-sidebar flex min-h-screen flex-col bg-gray-50 font-sans md:flex-row">
       {/* Mobile Overlay: Hidden on Desktop (md:hidden) */}
       {/* Only show if Mobile Sidebar is Open */}
       <div

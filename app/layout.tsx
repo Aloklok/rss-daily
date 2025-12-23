@@ -70,7 +70,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: '#ffffff',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#2e2a36' }, // Approximate dark purple for sidebar
+  ],
 };
 
 import {
