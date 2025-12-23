@@ -5,6 +5,7 @@ import { resolveBriefingImage } from '@/utils/imageUtils';
 import { Metadata } from 'next';
 import { Filter } from '../types';
 import { BRIEFING_IMAGE_WIDTH, BRIEFING_IMAGE_HEIGHT } from '@/lib/constants';
+import { toShortId } from '@/utils/idHelpers';
 
 export const dynamic = 'force-dynamic';
 
@@ -233,7 +234,7 @@ export default async function Home(props: {
         itemListElement: articles.map((article: any, index: number) => ({
           '@type': 'ListItem',
           position: index + 1,
-          url: `https://www.alok-rss.top/article/${article.id}`,
+          url: `https://www.alok-rss.top/article/${toShortId(String(article.id))}`,
           name: article.title,
         })),
       },

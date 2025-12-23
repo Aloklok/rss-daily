@@ -10,6 +10,7 @@ import BriefingClient from '@/components/features/briefing/BriefingClient';
 import { unstable_noStore as noStore } from 'next/cache';
 import { resolveBriefingImage } from '@/utils/imageUtils';
 import { BRIEFING_IMAGE_WIDTH, BRIEFING_IMAGE_HEIGHT } from '@/lib/constants';
+import { toShortId } from '@/utils/idHelpers';
 
 // Revalidate every hour for past dates (ISR).
 // For "Today", we will use noStore() to opt out of caching.
@@ -263,7 +264,7 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
       itemListElement: allArticles.map((article, index) => ({
         '@type': 'ListItem',
         position: index + 1,
-        url: `https://www.alok-rss.top/article/${article.id}`,
+        url: `https://www.alok-rss.top/article/${toShortId(String(article.id))}`,
         name: article.title,
         // Enhanced Rich Snippet: Use the full AI summary for deep content understanding
         description: article.summary || article.tldr || '',

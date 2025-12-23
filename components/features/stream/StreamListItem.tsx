@@ -6,6 +6,7 @@ import { useArticleMetadata } from '../../../hooks/useArticleMetadata';
 import { getRandomColorClass } from '../../../utils/colorUtils';
 import ArticleTitleStar from '../article/ArticleTitleStar';
 import { useUIStore } from '../../../store/uiStore';
+import { toShortId } from '../../../utils/idHelpers';
 
 interface StreamArticleListItemProps {
   articleId: string | number;
@@ -28,7 +29,7 @@ const StreamArticleListItem: React.FC<StreamArticleListItemProps> = memo(
     // 3. Render
     return (
       <Link
-        href={`/article/${article.id}`}
+        href={`/article/${toShortId(String(article.id))}`}
         onClick={(e: React.MouseEvent) => {
           e.preventDefault();
           openModal(article.id);
