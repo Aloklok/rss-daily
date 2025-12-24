@@ -378,3 +378,39 @@ export async function fetchSubscriptions(): Promise<
     return [];
   }
 }
+
+// 7. 获取文章状态 (Server-Side)
+export async function fetchArticleStatesServer(
+  articleIds: (string | number)[],
+): Promise<{ [key: string]: string[] }> {
+  if (!articleIds || articleIds.length === 0) return {};
+
+  try {
+    const freshRss = getFreshRssClient();
+    const formData = new URLSearchParams();
+    articleIds.forEach((id: string | number) => formData.append('i', String(id)));
+
+    // Fetch from FreshRSS
+    // Use the same endpoint logic as the API route
+    const data = await freshRss.post<{ items: FreshRSSItem[] }>(
+      '/stream/items/contents?output=json&excludeContent=1',
+      formData,
+    );
+
+    const states: { [key: string]: string[] } = {};
+    if (data.items) {
+      data.items.forEach((item: FreshRSSItem) => {
+        // Merge categories (folders/labels) and annotations (user states like starred/read)
+        const annotationTags = (item.annotations || []).map((anno) => anno.id).filter(Boolean);
+        const allTags = [...(item.categories || []), ...annotationTags];
+        states[item.id] = [...new Set(allTags)];
+      });
+    }
+
+    return states;
+  } catch (error) {
+    console.error('SERVER Error fetching article states:', error);
+    // Return empty map on error to allow graceful degradation
+    return {};
+  }
+}
