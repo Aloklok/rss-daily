@@ -242,6 +242,18 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
   // Consistent High Density Description
   const description = generateHighDensityDescription(date, allArticles);
 
+  // [Optimization] Server-Side State Fetching for "Today"
+  // Since "Today" is rendered dynamically (SSR), we can fetch user states (Read/Star) here
+  // to avoid the initial "all unread" flash and subsequent slow client-side fetch.
+  let initialArticleStates: { [key: string]: string[] } | undefined;
+  if (date === today && allArticles.length > 0) {
+    // Only fetch if we have articles to check
+    // Dynamic import to avoid circular dependencies if any, though here it is fine.
+    const { fetchArticleStatesServer } = await import('@/lib/server/dataFetcher');
+    const articleIds = allArticles.map((a) => a.id);
+    initialArticleStates = await fetchArticleStatesServer(articleIds);
+  }
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'NewsArticle',
@@ -295,6 +307,7 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
         isToday={date === today}
         prevDate={prevDate}
         nextDate={nextDate}
+        initialArticleStates={initialArticleStates}
       />
     </>
   );
