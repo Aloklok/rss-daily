@@ -212,7 +212,15 @@ const Briefing: React.FC<BriefingProps> = ({
       .map((id) => articlesById[id] || articles?.find((a) => a.id === id))
       .filter(Boolean) as Article[];
     const groupedArticles = articlesForReport.reduce((acc, article) => {
-      const group = article.briefingSection || BRIEFING_SECTIONS.REGULAR;
+      let group = article.briefingSection || BRIEFING_SECTIONS.REGULAR;
+
+      // Sanitize: If group is not one of the known sections, force it to REGULAR
+      // This prevents articles with unknown sections (e.g. from older data or AI errors) from being hidden
+      const validSections = Object.values(BRIEFING_SECTIONS) as string[];
+      if (!validSections.includes(group)) {
+        group = BRIEFING_SECTIONS.REGULAR;
+      }
+
       if (!acc[group]) acc[group] = [];
       acc[group].push(article);
       return acc;
