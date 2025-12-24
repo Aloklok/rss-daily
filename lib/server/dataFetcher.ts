@@ -3,6 +3,7 @@ import { Article, FreshRSSItem, CleanArticleContent, Tag } from '../../types';
 import { toFullId } from '../../utils/idHelpers';
 import { BRIEFING_SECTIONS } from '../../lib/constants';
 import { unstable_cache } from 'next/cache';
+import { removeEmptyParagraphs, stripLeadingTitle, cleanAIContent } from '../../utils/contentUtils';
 
 export async function fetchAvailableDates(): Promise<string[]> {
   const supabase = getSupabaseClient();
@@ -95,6 +96,11 @@ export async function fetchBriefingData(date: string): Promise<{ [key: string]: 
       briefingSection:
         rawArticle.verdict?.importance || rawArticle.briefingSection || BRIEFING_SECTIONS.REGULAR,
       sourceName: rawArticle.source_name || rawArticle.sourceName || '',
+      // Clean AI Fields
+      highlights: cleanAIContent(rawArticle.highlights),
+      critiques: cleanAIContent(rawArticle.critiques),
+      marketTake: cleanAIContent(rawArticle.marketTake),
+      tldr: cleanAIContent(rawArticle.tldr),
     };
 
     const importance = article.briefingSection;
@@ -120,7 +126,6 @@ export async function fetchBriefingData(date: string): Promise<{ [key: string]: 
 // Helper to strip title - duplicated from ArticleDetail.tsx but needed here for SSR clean
 // Helper to strip title - duplicated from ArticleDetail.tsx but needed here for SSR clean
 // Helper to strip title - duplicated from ArticleDetail.tsx but needed here for SSR clean
-import { removeEmptyParagraphs, stripLeadingTitle } from '../../utils/contentUtils';
 import { sanitizeHtml } from '../../utils/serverSanitize';
 
 export const fetchArticleContentServer = async (
@@ -254,7 +259,15 @@ export async function fetchArticleById(id: string): Promise<Article | null> {
     }
     return null;
   }
-  return data;
+
+  // Sanitize fields before returning
+  return {
+    ...data,
+    highlights: cleanAIContent(data.highlights),
+    critiques: cleanAIContent(data.critiques),
+    marketTake: cleanAIContent(data.marketTake),
+    tldr: cleanAIContent(data.tldr),
+  };
 }
 
 // --- New SSR Data Fetchers ---

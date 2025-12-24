@@ -172,6 +172,9 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 - **`components/layout/`**: **布局层**。包含侧边栏、全局外壳和布局容器。
 - **`components/common/`**: **基础层**。包含通用 UI 组件和 Providers。
 - **`lib/server/`**: **服务端核心**。包含所有直接数据库/API访问逻辑 (原 `app/lib/data.ts` 已移动至此)。
+- **`utils/`**: **工具层**。包含跨组件的通用纯函数。
+
+> 📚 **工具函数详解**: 关于日期处理、HTML清洗、颜色生成等通用工具的详细说明，请参阅 **[UTILS.md](./docs/UTILS.md)**。
 
 这种结构确保了关注点分离，使得路由层保持轻量，业务逻辑高度内聚。
 

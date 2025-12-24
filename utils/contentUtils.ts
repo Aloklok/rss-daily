@@ -56,3 +56,26 @@ export function stripLeadingTitle(contentHtml: string, title: string): string {
   }
   return contentHtml;
 }
+
+/**
+ * Cleans AI-generated content fields (highlights, critiques, etc.)
+ * that might be wrapped in JSON array formatting like '["content"]'.
+ */
+export function cleanAIContent(text: string | undefined | null): string {
+  if (!text) return '';
+  // Check if it starts with [" and ends with "]
+  const trimmed = text.trim();
+  if (trimmed.startsWith('["') && trimmed.endsWith('"]')) {
+    try {
+      // Parse as JSON to safely extract the string
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'string') {
+        return parsed[0];
+      }
+    } catch (_) {
+      // Fallback: simple string replacement if JSON parse fails (e.g. unescaped chars)
+      return trimmed.slice(2, -2);
+    }
+  }
+  return text;
+}
