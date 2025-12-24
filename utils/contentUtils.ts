@@ -69,12 +69,14 @@ export function cleanAIContent(text: string | undefined | null): string {
     try {
       // Parse as JSON to safely extract the string
       const parsed = JSON.parse(trimmed);
-      if (Array.isArray(parsed) && parsed.length > 0 && typeof parsed[0] === 'string') {
-        return parsed[0];
+      if (Array.isArray(parsed)) {
+        // If it's an array, filter strings and join them (e.g. for multiple critiques)
+        return parsed.filter((item) => typeof item === 'string').join('\n\n');
       }
     } catch (_) {
-      // Fallback: simple string replacement if JSON parse fails (e.g. unescaped chars)
-      return trimmed.slice(2, -2);
+      // Fallback: Regex replacement is safer than slice
+      // Matches leading [" and trailing "] and removes them
+      return trimmed.replace(/^\["/, '').replace(/"\]$/, '');
     }
   }
   return text;

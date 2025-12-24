@@ -46,7 +46,7 @@ const calloutCardClasses = {
 };
 const parseFormattedText = (text: string, emphasisClass: string = 'font-semibold text-current') => {
   if (!text) return '';
-  const parts = text.split(/(\*\*.*?\*\*|`.*? `)/g);
+  const parts = text.split(/(\*\*.*?\*\*|`.*?`)/g);
   return parts.map((part, i) => {
     if (i % 2 === 1) {
       if (part.startsWith('**') && part.endsWith('**')) {
