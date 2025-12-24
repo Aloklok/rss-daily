@@ -33,13 +33,15 @@ export default function BriefingClient({
   // Use global state so FloatingButtonsClient can see the current selection
   const timeSlot = useUIStore((state) => state.timeSlot);
   const setTimeSlot = useUIStore((state) => state.setTimeSlot);
-  // Verdict Filter State (Local, as it's specific to this view)
-  const [verdictFilter, setVerdictFilter] = React.useState<string | null>(null);
+  // Verdict Filter State (Global)
+  const verdictFilter = useUIStore((state) => state.verdictFilter);
+  const setVerdictFilter = useUIStore((state) => state.setVerdictFilter);
 
   // Reset global state when date changes (handles client-side soft nav and ensures clean start)
   useEffect(() => {
     setTimeSlot(null);
-  }, [date, setTimeSlot]);
+    setVerdictFilter(null);
+  }, [date, setTimeSlot, setVerdictFilter]);
 
   const openModal = useUIStore((state) => state.openModal);
 

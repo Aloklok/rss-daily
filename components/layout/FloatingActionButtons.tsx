@@ -33,6 +33,7 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
   const setSelectedArticleId = useUIStore((state) => state.setSelectedArticleId);
   const setTimeSlot = useUIStore((state) => state.setTimeSlot);
   const timeSlot = useUIStore((state) => state.timeSlot);
+  const verdictFilter = useUIStore((state) => state.verdictFilter);
   const { handleResetFilter } = useFilters();
 
   // Actions
@@ -63,14 +64,24 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
 
   const articleIdsInView = useMemo(() => {
     if (activeFilter?.type === 'date') {
-      return briefingArticleIds || [];
+      let filteredIds = briefingArticleIds || [];
+      if (verdictFilter) {
+        // We need access to article objects to filter by verdict type.
+        // Since briefingArticleIds is just a list of IDs, we look them up in the store.
+        const articlesById = useArticleStore.getState().articlesById;
+        filteredIds = filteredIds.filter((id) => {
+          const article = articlesById[id];
+          return article?.verdict?.type === verdictFilter;
+        });
+      }
+      return filteredIds;
     } else if (activeFilter?.type === 'category' || activeFilter?.type === 'tag') {
       return filteredArticleIds || [];
     } else if (activeFilter?.type === 'search') {
       return searchData?.pages.flatMap((p: { articles: (string | number)[] }) => p.articles) || [];
     }
     return [];
-  }, [activeFilter, briefingArticleIds, filteredArticleIds, searchData]);
+  }, [activeFilter, briefingArticleIds, filteredArticleIds, searchData, verdictFilter]);
 
   const handleRefreshToHome = async () => {
     setSelectedArticleId(null);

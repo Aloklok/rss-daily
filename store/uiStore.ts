@@ -6,6 +6,7 @@ import { Filter, TimeSlot } from '../types';
 interface UIStoreState {
   activeFilter: Filter | null;
   timeSlot: TimeSlot | null;
+  verdictFilter: string | null;
   selectedArticleId: string | number | null;
 
   // Modal State
@@ -15,6 +16,7 @@ interface UIStoreState {
   // Actions
   setActiveFilter: (filter: Filter | null) => void;
   setTimeSlot: (slot: TimeSlot | null) => void;
+  setVerdictFilter: (filter: string | null) => void;
   setSelectedArticleId: (id: string | number | null) => void;
   openModal: (id: string | number, mode?: 'briefing' | 'reader') => void;
   closeModal: () => void;
@@ -45,6 +47,7 @@ interface UIStoreState {
 export const useUIStore = create<UIStoreState>((set) => ({
   activeFilter: null,
   timeSlot: null,
+  verdictFilter: null,
   selectedArticleId: null,
   modalArticleId: null,
   modalInitialMode: 'briefing',
@@ -54,10 +57,12 @@ export const useUIStore = create<UIStoreState>((set) => ({
       activeFilter: filter,
       selectedArticleId: null,
       timeSlot: null, // Always reset timeSlot when filter changes, logic is handled by components
+      verdictFilter: null, // Reset verdict filter
     });
   },
 
   setTimeSlot: (slot) => set({ timeSlot: slot }),
+  setVerdictFilter: (filter) => set({ verdictFilter: filter }),
   setSelectedArticleId: (id) => set({ selectedArticleId: id }),
 
   openModal: (id, mode = 'briefing') =>
