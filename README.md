@@ -117,7 +117,6 @@ Briefing Hub 是一个基于 **Next.js (App Router)** 和 TypeScript 构建的�
 ## 技术栈
 
 - **核心框架**: Next.js 16 (App Router), React 19, TypeScript
-- **样式**: Tailwind CSS
 - **代码质量**: ESLint, Prettier, Husky, lint-staged
 - **状态管理**:
   - **服务器状态**: TanStack Query (React Query) - 负责客户端数据交互。

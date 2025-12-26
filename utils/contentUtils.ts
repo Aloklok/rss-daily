@@ -59,25 +59,33 @@ export function stripLeadingTitle(contentHtml: string, title: string): string {
 
 /**
  * Cleans AI-generated content fields (highlights, critiques, etc.)
- * that might be wrapped in JSON array formatting like '["content"]'.
+ * that might be wrapped in JSON array formatting like '["content"]' OR be a raw array.
  */
-export function cleanAIContent(text: string | undefined | null): string {
-  if (!text) return '';
-  // Check if it starts with [" and ends with "]
-  const trimmed = text.trim();
-  if (trimmed.startsWith('["') && trimmed.endsWith('"]')) {
-    try {
-      // Parse as JSON to safely extract the string
-      const parsed = JSON.parse(trimmed);
-      if (Array.isArray(parsed)) {
-        // If it's an array, filter strings and join them (e.g. for multiple critiques)
-        return parsed.filter((item) => typeof item === 'string').join('\n\n');
-      }
-    } catch (_) {
-      // Fallback: Regex replacement is safer than slice
-      // Matches leading [" and trailing "] and removes them
-      return trimmed.replace(/^\["/, '').replace(/"\]$/, '');
-    }
+export function cleanAIContent(input: string | any[] | undefined | null): string {
+  if (!input) return '';
+
+  // 1. Direct Array Handling (e.g. from Gemini API response)
+  if (Array.isArray(input)) {
+    return input.filter((item) => typeof item === 'string').join('\n\n');
   }
-  return text;
+
+  // 2. String Handling
+  if (typeof input === 'string') {
+    const trimmed = input.trim();
+    // Check if it starts with [" and ends with "] (JSON Array String)
+    if (trimmed.startsWith('["') && trimmed.endsWith('"]')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((item) => typeof item === 'string').join('\n\n');
+        }
+      } catch (_) {
+        return trimmed.replace(/^\["/, '').replace(/"\]$/, '');
+      }
+    }
+    return input;
+  }
+
+  // Fallback for objects/numbers
+  return String(input);
 }

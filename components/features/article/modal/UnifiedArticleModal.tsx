@@ -130,6 +130,7 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({
           {viewMode === 'briefing' ? (
             <ArticleBriefingView
               article={article}
+              readerContent={readerContent}
               isLoading={isLoadingBriefing}
               hasBriefingData={hasBriefingData}
               onReaderModeRequest={() => setViewMode('reader')}

@@ -171,7 +171,7 @@ export const fetchArticleContentServer = async (
 };
 
 // Helper to fetch directly from FreshRSS as fallback
-async function fetchArticleFromFreshRSS(id: string): Promise<Article | null> {
+export async function fetchArticleFromFreshRSS(id: string): Promise<Article | null> {
   try {
     const freshRss = getFreshRssClient();
     const fullId = toFullId(id);

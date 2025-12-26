@@ -202,7 +202,7 @@ const Callout: React.FC<CalloutProps> = memo(({ title, content }) => {
         <span className="text-2xl">{theme.icon}</span>
         <h4 className={`text-lg font-bold ${colors.title}`}>{title}</h4>
       </div>
-      <div className={`${colors.body} text-[15px] leading-relaxed font-medium`}>
+      <div className={`${colors.body} text-[15px] leading-relaxed font-medium whitespace-pre-line`}>
         {parseFormattedText(content, colors.emphasis)}
       </div>
     </aside>
