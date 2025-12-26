@@ -8,6 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --quiet",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage",
     "format": "prettier --write .",
     "analyze": "cross-env ANALYZE=true next build --webpack",
     "vercel": "NODE_OPTIONS='--dns-result-order=ipv4first' vercel dev",
@@ -45,6 +47,7 @@
     "@types/react-dom": "^19.0.0",
     "@types/sanitize-html": "^2.16.0",
     "@vercel/node": "^5.5.15",
+    "@vitest/coverage-v8": "^4.0.16",
     "babel-plugin-react-compiler": "^1.0.0",
     "cross-env": "^10.1.0",
     "eslint": "^9.39.2",
@@ -60,6 +63,8 @@
     "prettier-plugin-tailwindcss": "^0.7.2",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.4.5",
-    "typescript-eslint": "^8.50.0"
+    "typescript-eslint": "^8.50.0",
+    "vite-tsconfig-paths": "^6.0.3",
+    "vitest": "^4.0.16"
   }
 }

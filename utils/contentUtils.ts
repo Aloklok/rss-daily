@@ -80,12 +80,36 @@ export function cleanAIContent(input: string | any[] | undefined | null): string
           return parsed.filter((item) => typeof item === 'string').join('\n\n');
         }
       } catch (_) {
-        return trimmed.replace(/^\["/, '').replace(/"\]$/, '');
+        // Fallback: If it looks like it starts with [" but fails parsing, try to strip the leading [" and valid ending "]
+        // Handle cases like '["Broken string' -> 'Broken string'
+        // And '["Valid string"]' -> 'Valid string'
+        let cleaned = trimmed;
+        if (cleaned.startsWith('["')) cleaned = cleaned.slice(2);
+        if (cleaned.endsWith('"]')) cleaned = cleaned.slice(0, -2);
+        return cleaned;
       }
     }
+    // Fallback handling also for strings that start with [" but don't end with "] (malformed JSON)
+    if (trimmed.startsWith('["')) {
+      // Attempt to strip just the starting [" if it looks like a broken array
+      return trimmed.slice(2);
+    }
+
     return input;
   }
 
   // Fallback for objects/numbers
   return String(input);
+}
+
+/**
+ * Extracts JSON from a raw text response that might be wrapped in markdown code blocks.
+ * Commonly used for parsing LLM (Gemini) responses.
+ */
+export function cleanGeminiJson(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/```json/g, '')
+    .replace(/```/g, '')
+    .trim();
 }

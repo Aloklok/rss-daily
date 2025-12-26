@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { createClient } from '@supabase/supabase-js';
+import { cleanGeminiJson } from '../../utils/contentUtils';
 
 // Init Supabase Client (Admin Access required for reading app_config if RLS is tight,
 // using Service Key is safest for server-side operations)
@@ -55,10 +56,7 @@ export async function generateBriefingWithGemini(articleData: any) {
   // 4. Parse Result
   // The prompt asks for a JSON array `[...]`.
   // We need to extract the JSON from the text (it might be wrapped in ```json ... ```)
-  const cleanJson = text
-    .replace(/```json/g, '')
-    .replace(/```/g, '')
-    .trim();
+  const cleanJson = cleanGeminiJson(text);
 
   try {
     const parsed = JSON.parse(cleanJson);
