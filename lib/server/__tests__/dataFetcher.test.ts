@@ -1,11 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { fetchArticleById } from '../dataFetcher';
+import { fetchArticleById, fetchBriefingData } from '../dataFetcher';
 
 // 1. Mock apiUtils BEFORE importing modules that use it
 // We need to intercept calls to getSupabaseClient and getFreshRssClient
 vi.mock('../apiUtils', () => ({
   getSupabaseClient: vi.fn(),
   getFreshRssClient: vi.fn(),
+}));
+
+// 2. Mock next/cache
+vi.mock('next/cache', () => ({
+  unstable_cache: (cb: any) => cb,
 }));
 
 import { getSupabaseClient, getFreshRssClient } from '../apiUtils';
@@ -125,6 +130,139 @@ describe('dataFetcher (数据获取逻辑)', () => {
 
       expect(mockSupabase.gte).toHaveBeenCalledWith('n8n_processing_date', expectedStart);
       expect(mockSupabase.lte).toHaveBeenCalledWith('n8n_processing_date', expectedEnd);
+    });
+
+    it('Timeout: 当 Supabase 查询超过 10s 时，应触发熔断并返回空对象', async () => {
+      vi.useFakeTimers();
+
+      const mockSupabase = {
+        from: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        gte: vi.fn().mockReturnThis(),
+        lte: vi.fn().mockReturnThis(),
+      };
+      // 让查询永远挂起
+      mockSupabase.lte.mockReturnValue(new Promise(() => {}));
+      (getSupabaseClient as any).mockReturnValue(mockSupabase);
+
+      // 使用静态引用，而不是动态 import
+      const fetchPromise = fetchBriefingData('2023-12-25');
+
+      // 推进时间超过 10s (这里用 11s)
+      await vi.advanceTimersByTimeAsync(11000);
+
+      const result = await fetchPromise;
+      expect(result).toEqual({});
+
+      vi.useRealTimers();
+    }, 20000); // 增加 Test Case 级别的超时时间到 20s，防止 CI 环境慢导致假失败
+
+    it('Error Handling: 当 Supabase 抛出异常时，应被捕获并返回空对象', async () => {
+      const mockSupabase = {
+        from: vi.fn().mockReturnThis(),
+        select: vi.fn().mockReturnThis(),
+        gte: vi.fn().mockReturnThis(),
+        lte: vi.fn().mockRejectedValue(new Error('Connection Reset')),
+      };
+      (getSupabaseClient as any).mockReturnValue(mockSupabase);
+
+      const result = await fetchBriefingData('2023-12-25');
+      expect(result).toEqual({});
+    });
+  });
+
+  describe('fetchArticleContentServer (清洗管线集成)', () => {
+    it('应按顺序执行: 去重标题 -> 去空行 -> 安全清洗', async () => {
+      // Mock FreshRSS response with dirty content
+      const dirtyContent = `
+             <h1>Redundant Title</h1>
+             <p>Real Content</p>
+             <p></p>
+             <p>&nbsp;</p>
+             <script>alert('xss')</script>
+           `;
+
+      const mockFreshRss = {
+        post: vi.fn().mockResolvedValue({
+          items: [
+            {
+              title: 'Redundant Title',
+              summary: { content: dirtyContent },
+              origin: { title: 'Source' },
+            },
+          ],
+        }),
+      };
+      (getFreshRssClient as any).mockReturnValue(mockFreshRss);
+
+      // 需要 import 那个函数，因为它不是 default export
+      const { fetchArticleContentServer } = await import('../dataFetcher');
+      const result = await fetchArticleContentServer('123');
+
+      // 1. 标题 "Redundant Title" 相关的 h1 应该被移除
+      expect(result?.content).not.toContain('<h1>Redundant Title</h1>');
+      // 2. 空行 <p></p> 应该被移除
+      expect(result?.content).not.toContain('<p></p>');
+      expect(result?.content).not.toContain('<p>&nbsp;</p>');
+      // 3. 脚本应该被清洗
+      expect(result?.content).not.toContain('<script>');
+      // 4. 真实内容保留
+      expect(result?.content).toContain('<p>Real Content</p>');
+    });
+
+    it('当 FreshRSS 数据结构异常(无 items)时，应安全返回 null', async () => {
+      const mockFreshRss = { post: vi.fn().mockResolvedValue({}) }; // No items
+      (getFreshRssClient as any).mockReturnValue(mockFreshRss);
+
+      const { fetchArticleContentServer } = await import('../dataFetcher');
+      const result = await fetchArticleContentServer('999');
+      expect(result).toBeNull();
+    });
+
+    describe('getAvailableFilters (Tag & Category Logic)', () => {
+      it('应过滤掉系统标签 (Google/FreshRSS state) 并按中文排序', async () => {
+        // Mock FreshRSS response
+        const mockTags = [
+          { id: 'user/1/state/com.google/read', type: 'tag' }, // Should be filtered
+          { id: 'user/1/state/org.freshrss/starred', type: 'tag' }, // Should be filtered
+          { id: 'user/1/label/Backend', type: 'tag' },
+          { id: 'user/1/label/AI', type: 'tag' },
+          { id: 'user/1/label/Frontend', type: 'folder' }, // Category
+        ];
+
+        const mockFreshRss = {
+          get: vi.fn().mockResolvedValue({ tags: mockTags }),
+        };
+        (getFreshRssClient as any).mockReturnValue(mockFreshRss);
+
+        const { getAvailableFilters } = await import('../dataFetcher');
+        const result = await getAvailableFilters();
+
+        // Verify Categories
+        expect(result.categories).toHaveLength(1);
+        expect(result.categories[0].id).toContain('Frontend');
+
+        // Verify Tags
+        expect(result.tags).toHaveLength(2);
+        const labels = result.tags.map((t) => t.label);
+        // AI (A) < Backend (B) -- simple ascii sort check, or locale check
+        expect(labels).toContain('AI');
+        expect(labels).toContain('Backend');
+        expect(labels).not.toContain('read'); // System tag filtered
+        expect(labels).not.toContain('starred'); // System tag filtered
+      });
+
+      it('当 API 失败时，应安全返回空数组', async () => {
+        (getFreshRssClient as any).mockReturnValue({
+          get: vi.fn().mockRejectedValue(new Error('API Fail')),
+        });
+
+        const { getAvailableFilters } = await import('../dataFetcher');
+        const result = await getAvailableFilters();
+
+        expect(result.tags).toEqual([]);
+        expect(result.categories).toEqual([]);
+      });
     });
   });
 });

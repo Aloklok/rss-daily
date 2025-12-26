@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">23.33% </span>
+                <span class="strong">63.33% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>7/30</span>
+                <span class='fraction'>19/30</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">20% </span>
+                <span class="strong">80% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>1/5</span>
+                <span class='fraction'>4/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">31.57% </span>
+                <span class="strong">42.1% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>6/19</span>
+                <span class='fraction'>8/19</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">22.22% </span>
+                <span class="strong">66.66% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>6/27</span>
+                <span class='fraction'>18/27</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -271,25 +271,14 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -298,12 +287,23 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
@@ -393,14 +393,14 @@ export const useUIStore = create&lt;UIStoreState&gt;((set) =&gt; ({
   // Admin State
   isAdmin: false,
   setAdminStatus: <span class="fstat-no" title="function not covered" >(i</span>sAdmin) =&gt; <span class="cstat-no" title="statement not covered" >set({ isAdmin }),</span>
-  checkAdminStatus: <span class="fstat-no" title="function not covered" >async () =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    try {</span>
-      const res = <span class="cstat-no" title="statement not covered" >await fetch('/api/auth/check');</span>
-      const data = <span class="cstat-no" title="statement not covered" >await res.json();</span>
-<span class="cstat-no" title="statement not covered" >      set({ isAdmin: data.isAdmin });</span>
+  checkAdminStatus: async () =&gt; {
+    try {
+      const res = await fetch('/api/auth/check');
+      const data = await res.json();
+      set({ isAdmin: data.isAdmin });
     } catch (error) {
-<span class="cstat-no" title="statement not covered" >      console.error('Failed to check admin status:', error);</span>
-<span class="cstat-no" title="statement not covered" >      set({ isAdmin: false });</span>
+      console.error('Failed to check admin status:', error);
+      set({ isAdmin: false });
     }
   },
 &nbsp;
@@ -418,15 +418,15 @@ export const useUIStore = create&lt;UIStoreState&gt;((set) =&gt; ({
   theme: 'light', // Default, will be updated by effect in layout/provider
   fontSize: 16,
   lineHeight: 1.7,
-  setTheme: <span class="fstat-no" title="function not covered" >(t</span>heme) =&gt; {
-<span class="cstat-no" title="statement not covered" >    set({ theme });</span>
-<span class="cstat-no" title="statement not covered" >    if (typeof window !== 'undefined') {</span>
-<span class="cstat-no" title="statement not covered" >      if (theme === 'dark') {</span>
-<span class="cstat-no" title="statement not covered" >        document.documentElement.classList.add('dark');</span>
+  setTheme: (theme) =&gt; {
+    set({ theme });
+    <span class="missing-if-branch" title="else path not taken" >E</span>if (typeof window !== 'undefined') {
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
       } else {
-<span class="cstat-no" title="statement not covered" >        document.documentElement.classList.remove('dark');</span>
+        document.documentElement.classList.remove('dark');
       }
-<span class="cstat-no" title="statement not covered" >      localStorage.setItem('theme', theme);</span>
+      localStorage.setItem('theme', theme);
     }
   },
   setFontSize: (size) =&gt; set({ fontSize: size }),
@@ -439,7 +439,7 @@ export const useUIStore = create&lt;UIStoreState&gt;((set) =&gt; ({
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-12-26T11:06:32.312Z
+                at 2025-12-26T11:27:21.686Z
             </div>
         <script src="../prettify.js"></script>
         <script>
