@@ -65,7 +65,18 @@ vi.mock('../apiUtils', () => ({
 }));
 ```
 
-## 4. 下一步计划 (Phase 2)
+## 4. 深度逻辑覆盖 (Phase 2)
+
+针对核心业务逻辑，我们进行了深度覆盖 (Deep Logic Coverage)：
+
+- **🛡️ DataFetcher**:
+  - **超时熔断**: 模拟 Supabase 10s 无响应，验证系统降级能力。
+  - **清洗管线**: 验证 `HTML -> Text` 清洗链的严格执行顺序。
+  - **标签逻辑**: 验证 `getAvailableFilters` 对系统标签的过滤和排序。
+- **🧠 UIStore**:
+  - **异步副作用**: 验证 `checkAdminStatus` 在网络异常下的状态回滚。
+
+## 5. 下一步计划 (Phase 3)
 
 - [ ] 引入 `@vitest/browser` 和 Playwright。
-- [ ] 针对 React 组件 (`components/`) 进行渲染测试。
+- [ ] 针对 React 组件 (`components/`) 进行真实浏览器渲染测试。
