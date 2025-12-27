@@ -76,6 +76,7 @@ export async function generateBriefingAction(article: Article, clientContent?: s
       highlights: cleanAIContent(briefing.highlights),
       critiques: cleanAIContent(briefing.critiques),
       marketTake: cleanAIContent(briefing.marketTake),
+      title: briefing.title || article.title,
     };
 
     const { error: updateError } = await supabase.from('articles').upsert(
