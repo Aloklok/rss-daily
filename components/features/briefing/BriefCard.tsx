@@ -75,7 +75,7 @@ const formatArticleForClipboard = (article: Article): string => {
     month: 'long',
     day: 'numeric',
   });
-  const keywords = article.keywords.join('\n');
+  const keywords = (article.keywords || []).join('\n');
 
   return [
     article.title,
@@ -528,7 +528,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
     month: 'long',
     day: 'numeric',
   });
-  const allKeywords = [...article.keywords];
+  const allKeywords = [...(article.keywords || [])];
   const [isCopied, setIsCopied] = useState(false);
 
   const handleCopy = async () => {

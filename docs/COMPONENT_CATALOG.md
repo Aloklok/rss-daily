@@ -57,11 +57,13 @@
 #### `article/` (文章详情)
 
 - **`ArticlePage.tsx`**: 文章详情页的 UI 展示（非模态框模式）。
+  - _Note_: 全文阅读组件之一（独立页面版）。使用 ID `#article-detail-content`。
 - **`ArticleDetailClient.tsx`**: 文章详情页的客户端逻辑封装。
 - **`ArticleTitleStar.tsx`**: 带收藏功能的标题组件。
 - **`modal/`**: 模态框相关组件。
   - **`ArticleBriefingView.tsx`**: 智能简报模式视图 (AI 摘要)。
-  - **`ArticleReaderView.tsx`**: 原文阅读模式视图 (纯净阅读器)。
+- **`ArticleReaderView.tsx`**: 原文阅读模式视图 (纯净阅读器)。
+  - _Note_: 全文阅读组件之二（弹窗版）。使用 ID `#article-reader-content`。拥有与独立页面版一致的样式覆盖。
   - **`ArticleModalActions.tsx`**: 模态框底部的操作栏 (收藏、打标签)。
   - **`UnifiedArticleModal.tsx`**: 统一的模态框入口，根据状态切换简报/原文视图。
 

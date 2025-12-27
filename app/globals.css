@@ -217,9 +217,8 @@
 .prose code {
   color: var(--color-orange-900);
   /* Orange-900 */
-  background-color: var(--color-orange-100);
-  /* Orange-100 */
-  padding: 0.2em 0.4em;
+  background-color: color-mix(in srgb, var(--color-orange-100), transparent 50%);
+  padding: 0;
   border-radius: 0.25rem;
   font-weight: 600;
   font-family: monospace;
@@ -228,6 +227,15 @@
 .prose code::before,
 .prose code::after {
   content: '';
+}
+
+/* Override for Article Reader specifically (Modal & Page) */
+#article-reader-content code:not(:where(pre code)),
+#article-detail-content code:not(:where(pre code)) {
+  color: var(--color-stone-500);
+  background-color: var(--color-gray-300);
+  font-weight: normal;
+  padding: 3px;
 }
 
 .prose table {
