@@ -7,12 +7,15 @@ on:
     branches: [main]
 
 jobs:
-  # Job 1: 快速检查 (Fast Checks)
-  # 包含所有的静态代码分析、类型检查和单元测试
-  # 这些步骤运行速度快，可以并行执行
-  check:
-    name: Lint, Type Check & Unit Test
+  # Merged Job: 包含 Lint, Unit Test 和 E2E
+  # 使用 Playwright 官方容器作为唯一的运行环境，避免重复安装依赖和启动开销
+  test:
+    name: Build & Test
     runs-on: ubuntu-latest
+    timeout-minutes: 60
+    container:
+      image: mcr.microsoft.com/playwright:v1.57.0-jammy
+      options: --user 1001 # 尝试以非 root 运行（可选），但 Playwright 容器默认通常是 root 或 pwuser
     steps:
       - uses: actions/checkout@v4
 
@@ -30,6 +33,8 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
+      # --- 静态检查 & 单元测试 ---
+
       - name: Lint (ESLint)
         run: pnpm lint
 
@@ -37,7 +42,6 @@ jobs:
         run: pnpm prettier --check .
 
       - name: Type Check (TypeScript)
-        # 确保没有 TypeScript 编译错误 (tsc)
         run: pnpm exec tsc --noEmit
 
       - name: Unit Tests (Vitest)
@@ -50,53 +54,23 @@ jobs:
           FRESHRSS_API_URL: 'http://127.0.0.1:9999/api/greader.php'
           FRESHRSS_AUTH_TOKEN: 'mock-token'
           ACCESS_TOKEN: 'test-admin-token'
-          # Avoid caching issues in CI
           NEXT_DISABLE_CACHE: '1'
 
-  # Job 2: 端到端测试 (E2E Tests)
-  # 只有在 check 任务成功后才运行
-  # 因为这步比较慢，所以作为第二道防线
-  e2e:
-    name: Playwright E2E Tests
-    needs: check
-    timeout-minutes: 60
-    runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/playwright:v1.57.0-jammy # 使用包含浏览器的官方镜像加速
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-
-      - name: Install Project Dependencies
-        run: pnpm install --frozen-lockfile
-
-      # 注意：因为使用了 container image，所以不需要 pnpm exec playwright install
+      # --- 端到端测试 ---
 
       - name: Run E2E Tests
         run: pnpm test:e2e
         env:
-          # CI 环境变量配置
           CI: true
-          # Mock 数据需要的基本环境变量 (虽然我们用了 mockFullApp，但 Next.js 可能需要)
+          # Mock Data & Env
           NEXT_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:9999'
           NEXT_PUBLIC_SUPABASE_ANON_KEY: 'mock-key'
           SUPABASE_URL: 'http://127.0.0.1:9999'
           SUPABASE_SERVICE_ROLE_KEY: 'mock-service-role-key'
           FRESHRSS_API_URL: 'http://127.0.0.1:9999/api/greader.php'
           FRESHRSS_AUTH_TOKEN: 'mock-token'
-          # 确保测试用的 Token 与配置文件一致
           ACCESS_TOKEN: 'test-admin-token'
-          # Workaround for Firefox in Docker
+          # Firefox Permission Fix
           HOME: /root
 
       - name: Upload Playwright Report
