@@ -42,3 +42,6 @@ public/paper-texture.png
 # Sentry Config File
 .env.sentry-build-plugin
 coverage
+html
+playwright-report
+test-results

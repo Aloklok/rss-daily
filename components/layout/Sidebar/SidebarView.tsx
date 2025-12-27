@@ -78,10 +78,12 @@ const Sidebar = React.memo<SidebarProps>(
     const handleSearchSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       const trimmedQuery = searchQuery.trim();
+      console.log('Search submit triggered:', trimmedQuery);
       if (trimmedQuery) {
         setActiveFilter({ type: 'search', value: trimmedQuery });
         setSelectedArticleId(null);
-        router.push('/');
+        console.log('Navigating to root with params');
+        router.push(`/?filter=search&value=${encodeURIComponent(trimmedQuery)}`);
       }
     };
 

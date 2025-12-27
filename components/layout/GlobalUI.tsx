@@ -31,7 +31,7 @@ export default function GlobalUI() {
   const selectedArticle = modalArticleId ? articlesById[modalArticleId] : null;
 
   return (
-    <>
+    <div data-testid="global-ui">
       <Toast
         message={toast.message}
         isVisible={toast.isVisible}
@@ -47,6 +47,6 @@ export default function GlobalUI() {
           initialMode={modalInitialMode}
         />
       )}
-    </>
+    </div>
   );
 }

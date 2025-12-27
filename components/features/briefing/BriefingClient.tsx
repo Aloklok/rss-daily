@@ -30,6 +30,11 @@ export default function BriefingClient({
   initialArticleStates,
 }: BriefingClientProps): React.ReactElement {
   const addArticles = useArticleStore((state) => state.addArticles);
+  const articlesById = useArticleStore((state) => state.articlesById);
+
+  console.log(
+    `[DIAG] BriefingClient: props articles=${articles.length}, store articlesById keys=${Object.keys(articlesById).length}`,
+  );
   const setActiveFilter = useUIStore((state) => state.setActiveFilter);
   const activeFilter = useUIStore((state) => state.activeFilter);
 
@@ -149,23 +154,34 @@ export default function BriefingClient({
   // Use hook to get filtered articles based on timeSlot
   const initialArticleIds = useMemo(() => articles.map((a) => a.id), [articles]);
 
-  // 1. Always get the "All Day" dataset
-  const { data: allDayArticleIds, isLoading } = useBriefingArticles(date, 'all', initialArticleIds);
+  // 1. Optimized Fetch Logic:
+  // - If we already have articles (SSR hydrated), we stick to 'all' and filter locally to avoid unnecessary network requests.
+  // - If articles are empty (e.g. Test environment without SSR data, or empty state), we try fetching specific slot to force a check.
+  const shouldUseSpecificSlot = articles.length === 0 && !!timeSlot;
+  const querySlot = shouldUseSpecificSlot ? timeSlot : 'all';
+
+  const { data: fetchedArticleIds, isLoading } = useBriefingArticles(
+    date,
+    querySlot,
+    initialArticleIds,
+  );
 
   // 2. Client-Side Filtering
-  const articlesById = useArticleStore((state) => state.articlesById);
 
   const displayedArticleIds = useMemo(() => {
-    // Safe fallback
-    const masterIds = allDayArticleIds || initialArticleIds;
+    // If we fetched a specific slot (e.g. evening), use that.
+    // If we fetched 'all', use that. Fallback to initial.
+    const masterIds = fetchedArticleIds || initialArticleIds;
+    if (!masterIds || masterIds.length === 0) return [];
 
-    // 1. Filter based on TimeSlot
     let filteredIds = masterIds;
 
+    // 1. Filter based on Time Slot
     if (timeSlot) {
       filteredIds = filteredIds.filter((id) => {
-        const article = articles.find((a) => a.id === id) || articlesById[id];
-        if (!article) return false;
+        const article =
+          articles.find((a) => String(a.id) === String(id)) || articlesById[String(id)];
+        if (!article) return true; // Keep it if we are still loading detail, avoid "disappearing" act
         const dateStr = article.n8n_processing_date || article.published;
         return getArticleTimeSlot(dateStr) === timeSlot;
       });
@@ -174,15 +190,16 @@ export default function BriefingClient({
     // 2. Filter based on Verdict Type
     if (verdictFilter) {
       filteredIds = filteredIds.filter((id) => {
-        const article = articles.find((a) => a.id === id) || articlesById[id];
-        if (!article) return false;
-        // '知识洞察型' | '新闻事件型'
-        return article.verdict?.type === verdictFilter;
+        const article =
+          articles.find((a) => String(a.id) === String(id)) || articlesById[String(id)];
+        if (!article) return true;
+        const type = article.verdict?.type;
+        return type === verdictFilter;
       });
     }
 
     return filteredIds;
-  }, [timeSlot, verdictFilter, allDayArticleIds, initialArticleIds, articles, articlesById]);
+  }, [timeSlot, verdictFilter, fetchedArticleIds, initialArticleIds, articles, articlesById]);
 
   const articleIds = displayedArticleIds;
 

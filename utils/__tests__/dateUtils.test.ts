@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { getArticleTimeSlot } from '../dateUtils';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { getArticleTimeSlot, getTodayInShanghai } from '../dateUtils';
 
 describe('dateUtils', () => {
   describe('getArticleTimeSlot', () => {
@@ -29,6 +29,27 @@ describe('dateUtils', () => {
 
     it('输入未定义时应返回默认值 "morning"', () => {
       expect(getArticleTimeSlot(undefined)).toBe('morning');
+    });
+  });
+
+  describe('getTodayInShanghai', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('应返回上海时区的当前日期 (YYYY-MM-DD)', () => {
+      // Mock UTC time: 2023-10-27T02:00:00Z (Shanghai 10:00)
+      vi.setSystemTime(new Date('2023-10-27T02:00:00Z'));
+      // Note: The formatter uses local time logic based on timezone
+      expect(getTodayInShanghai()).toBe('2023-10-27');
+
+      // Mock UTC time: 2023-10-27T20:00:00Z (Shanghai Next Day 04:00)
+      vi.setSystemTime(new Date('2023-10-27T20:00:00Z'));
+      expect(getTodayInShanghai()).toBe('2023-10-28');
     });
   });
 });

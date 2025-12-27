@@ -543,7 +543,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   };
 
   return (
-    <article className="@container py-2 transition-opacity duration-300">
+    <article data-testid="article-card" className="@container py-2 transition-opacity duration-300">
       <header className="mb-10">
         <h3 className="dark:text-midnight-text-title mb-6 font-serif text-2xl leading-tight font-bold text-stone-900 lg:text-2xl">
           <ArticleTitleStar
@@ -553,10 +553,15 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           {/* SEO-Only Link: Behaves like text for users (preventDefault), but href remains for crawlers */}
           <Link
             href={`/article/${toShortId(String(article.id))}`}
-            onClick={(e) => e.preventDefault()}
+            prefetch={false}
+            data-testid={`article-link-${article.id}`}
+            onClick={(e) => {
+              e.preventDefault();
+              onReaderModeRequest(article);
+            }}
             onDragStart={(e) => e.preventDefault()}
             draggable={false}
-            className="cursor-text align-middle transition-colors select-text hover:no-underline"
+            className="align-middle transition-colors hover:no-underline"
           >
             {article.title}
           </Link>

@@ -209,7 +209,7 @@ const Briefing: React.FC<BriefingProps> = ({
   const reports: BriefingReport[] = useMemo(() => {
     if (!articleIds || articleIds.length === 0) return [];
     const articlesForReport = articleIds
-      .map((id) => articlesById[id] || articles?.find((a) => a.id === id))
+      .map((id) => articlesById[String(id)] || articles?.find((a) => String(a.id) === String(id)))
       .filter(Boolean) as Article[];
     const groupedArticles = articlesForReport.reduce((acc, article) => {
       let group = article.briefingSection || BRIEFING_SECTIONS.REGULAR;
@@ -441,7 +441,7 @@ const Briefing: React.FC<BriefingProps> = ({
             ))}
           </div>
         ) : (
-          <div className="py-20 text-center">
+          <div className="py-20 text-center" data-testid="briefing-empty">
             <p className="text-2xl font-semibold text-stone-600">
               {isToday ? '暂无简报，请稍后查看。' : '该日期下没有简报。'}
             </p>

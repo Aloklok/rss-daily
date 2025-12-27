@@ -49,9 +49,6 @@ export default function MainLayoutClient({
     setAdminStatus(isAdmin);
   }, [isAdmin, setAdminStatus]);
 
-  // Removed isMdUp state and resize listener to prevent FOUC.
-  // Responsiveness is now handled entirely by CSS classes.
-
   // Handle body overflow for mobile sidebar only
   useEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth < 768 && isMobileOpen) {

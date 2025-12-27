@@ -100,7 +100,12 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({
         onClick={onClose}
         className="animate-fadeIn fixed inset-0 z-30 bg-black/60 transition-opacity duration-300"
       />
-      <div className="dark:bg-midnight-bg bg-paper-texture animate-slideInRight fixed top-0 right-0 z-40 flex h-full w-full max-w-2xl transform flex-col bg-neutral-50 shadow-2xl transition-transform duration-300 dark:bg-none">
+      <div
+        role="dialog"
+        aria-modal="true"
+        data-testid="article-modal"
+        className="dark:bg-midnight-bg bg-paper-texture animate-slideInRight fixed top-0 right-0 z-40 flex h-full w-full max-w-2xl transform flex-col bg-neutral-50 shadow-2xl transition-transform duration-300 dark:bg-none"
+      >
         {/* Unified Close Button - Original Style Restored */}
         <button
           onClick={onClose}
