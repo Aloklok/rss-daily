@@ -3,7 +3,6 @@ import bundleAnalyzer from '@next/bundle-analyzer';
 
 /** @type {import('next').NextConfig} */
 
-
 const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
   openAnalyzer: false,
@@ -12,8 +11,7 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
   reactStrictMode: true,
   reactCompiler: true,
-  experimental: {
-  },
+  experimental: {},
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
@@ -121,12 +119,10 @@ export default withBundleAnalyzer(
     // side errors will fail.
     tunnelRoute: '/monitoring',
 
-
-
     // Transpiles SDK to be compatible with Next.js setup, enabling better tree shaking
     transpileClientSDK: true,
 
     // Hides source maps from generated client bundles
     hideSourceMaps: true,
-  })
+  }),
 );
