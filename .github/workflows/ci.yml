@@ -96,6 +96,8 @@ jobs:
           FRESHRSS_AUTH_TOKEN: 'mock-token'
           # 确保测试用的 Token 与配置文件一致
           ACCESS_TOKEN: 'test-admin-token'
+          # Workaround for Firefox in Docker
+          HOME: /root
 
       - name: Upload Playwright Report
         if: always()
