@@ -15,7 +15,6 @@ jobs:
     timeout-minutes: 60
     container:
       image: mcr.microsoft.com/playwright:v1.57.0-jammy
-      options: --user 1001 # 尝试以非 root 运行（可选），但 Playwright 容器默认通常是 root 或 pwuser
     steps:
       - uses: actions/checkout@v4
 
