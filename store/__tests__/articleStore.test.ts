@@ -23,6 +23,7 @@ describe('articleStore (文章状态管理)', () => {
     briefingSection: '',
     keywords: [],
     verdict: { type: '', score: 0 },
+    category: 'tech',
     summary: '',
     tldr: '',
     highlights: '',
