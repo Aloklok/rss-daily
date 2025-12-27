@@ -43,11 +43,11 @@ jobs:
       - name: Unit Tests (Vitest)
         run: pnpm test
         env:
-          NEXT_PUBLIC_SUPABASE_URL: 'https://mock.supabase.co'
+          NEXT_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:9999'
           NEXT_PUBLIC_SUPABASE_ANON_KEY: 'mock-key'
-          SUPABASE_URL: 'https://mock.supabase.co'
+          SUPABASE_URL: 'http://127.0.0.1:9999'
           SUPABASE_SERVICE_ROLE_KEY: 'mock-service-role-key'
-          FRESHRSS_API_URL: 'https://mock.freshrss.com/api/greader.php'
+          FRESHRSS_API_URL: 'http://127.0.0.1:9999/api/greader.php'
           FRESHRSS_AUTH_TOKEN: 'mock-token'
           ACCESS_TOKEN: 'test-admin-token'
           # Avoid caching issues in CI
@@ -88,11 +88,11 @@ jobs:
           # CI 环境变量配置
           CI: true
           # Mock 数据需要的基本环境变量 (虽然我们用了 mockFullApp，但 Next.js 可能需要)
-          NEXT_PUBLIC_SUPABASE_URL: 'https://mock.supabase.co'
+          NEXT_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:9999'
           NEXT_PUBLIC_SUPABASE_ANON_KEY: 'mock-key'
-          SUPABASE_URL: 'https://mock.supabase.co'
+          SUPABASE_URL: 'http://127.0.0.1:9999'
           SUPABASE_SERVICE_ROLE_KEY: 'mock-service-role-key'
-          FRESHRSS_API_URL: 'https://mock.freshrss.com/api/greader.php'
+          FRESHRSS_API_URL: 'http://127.0.0.1:9999/api/greader.php'
           FRESHRSS_AUTH_TOKEN: 'mock-token'
           # 确保测试用的 Token 与配置文件一致
           ACCESS_TOKEN: 'test-admin-token'
