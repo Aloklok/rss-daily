@@ -62,7 +62,7 @@ jobs:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.49.1-jammy # 使用包含浏览器的官方镜像加速
+      image: mcr.microsoft.com/playwright:v1.57.0-jammy # 使用包含浏览器的官方镜像加速
     steps:
       - uses: actions/checkout@v4
 
