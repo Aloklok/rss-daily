@@ -10,6 +10,16 @@
       "src": "/computer_cat_180.jpeg",
       "sizes": "180x180",
       "type": "image/jpeg"
+    },
+    {
+      "src": "/computer_cat.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "/computer_cat.jpeg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
     }
   ]
 }

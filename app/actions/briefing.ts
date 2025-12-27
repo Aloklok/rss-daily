@@ -81,7 +81,7 @@ export async function generateBriefingAction(article: Article, clientContent?: s
     const { error: updateError } = await supabase.from('articles').upsert(
       {
         id: String(article.id),
-        title: article.title,
+        title: briefing.title || article.title,
         link: article.link,
         sourceName: article.sourceName,
         published: article.published,

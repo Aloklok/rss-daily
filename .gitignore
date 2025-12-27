@@ -45,3 +45,6 @@ coverage
 html
 playwright-report
 test-results
+
+Prompt.MD
+supabase

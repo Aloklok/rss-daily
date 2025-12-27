@@ -8,6 +8,24 @@ export type Database = {
   };
   public: {
     Tables: {
+      app_config: {
+        Row: {
+          description: string | null;
+          key: string;
+          value: string;
+        };
+        Insert: {
+          description?: string | null;
+          key: string;
+          value: string;
+        };
+        Update: {
+          description?: string | null;
+          key?: string;
+          value?: string;
+        };
+        Relationships: [];
+      };
       articles: {
         Row: {
           category: string | null;
