@@ -7,13 +7,39 @@ import { Article, Filter, AvailableFilters } from '../../../types';
 import { useSidebar } from '../../../hooks/useSidebar';
 import { useUIStore } from '../../../store/uiStore';
 
-// Import extracted components
-import SidebarSearch from './SidebarSearch';
-import SidebarTrends from './SidebarTrends';
-import SidebarBriefing from './SidebarBriefing';
-import SidebarStarred from './SidebarStarred';
-import SidebarExplore from './SidebarExplore';
-import { Fireflies } from './Fireflies';
+import dynamic from 'next/dynamic';
+
+// Dynamic imports for code splitting
+const SidebarSearch = dynamic(() => import('./SidebarSearch'), {
+  loading: () => (
+    <div className="h-10 w-full animate-pulse rounded-md bg-gray-100 dark:bg-gray-800" />
+  ),
+  ssr: false, // Admin only tool
+});
+const SidebarTrends = dynamic(() => import('./SidebarTrends'), {
+  loading: () => (
+    <div className="h-12 w-full animate-pulse rounded-md bg-gray-100 dark:bg-gray-800" />
+  ),
+});
+const SidebarBriefing = dynamic(() => import('./SidebarBriefing'), {
+  loading: () => (
+    <div className="h-64 w-full animate-pulse rounded-md bg-gray-100 dark:bg-gray-800" />
+  ),
+});
+const SidebarStarred = dynamic(() => import('./SidebarStarred'), {
+  loading: () => (
+    <div className="h-20 w-full animate-pulse rounded-md bg-gray-100 dark:bg-gray-800" />
+  ),
+});
+const SidebarExplore = dynamic(() => import('./SidebarExplore'), {
+  loading: () => (
+    <div className="h-40 w-full animate-pulse rounded-md bg-gray-100 dark:bg-gray-800" />
+  ),
+});
+// Fireflies is purely decorative and heavy
+const Fireflies = dynamic(() => import('./Fireflies').then((mod) => mod.Fireflies), {
+  ssr: false,
+});
 
 interface SidebarProps {
   isInitialLoading: boolean;
@@ -125,7 +151,7 @@ const Sidebar = React.memo<SidebarProps>(
     // Unused settings state removed
 
     return (
-      <aside className="dark:bg-midnight-sidebar dark:border-midnight-border relative flex h-full w-full shrink-0 flex-col space-y-6 border-r border-gray-200 bg-gray-50 px-4 pt-4 pb-2 md:w-80">
+      <aside className="dark:bg-midnight-sidebar dark:border-midnight-border relative flex h-full w-full shrink-0 flex-col space-y-2 border-r border-gray-200 bg-gray-50 px-4 pt-4 pb-0 md:w-80 md:pb-2">
         <Fireflies />
         <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-3">

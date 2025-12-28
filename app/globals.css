@@ -232,7 +232,7 @@
 /* Override for Article Reader specifically (Modal & Page) */
 #article-reader-content code:not(:where(pre code)),
 #article-detail-content code:not(:where(pre code)) {
-  color: var(--color-stone-500);
+  color: var(--color-stone-700);
   background-color: var(--color-gray-300);
   font-weight: normal;
   padding: 3px;

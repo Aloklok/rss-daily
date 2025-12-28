@@ -8,7 +8,6 @@ import FloatingActionButtons from './FloatingActionButtons';
 
 interface MainLayoutClientProps {
   children: React.ReactNode;
-  isAdmin: boolean;
   initialDates: string[];
   initialAvailableFilters: { tags: any[]; categories: any[] };
   initialStarredHeaders: { id: string | number; title: string; tags: string[] }[]; // Update type
@@ -16,7 +15,6 @@ interface MainLayoutClientProps {
 
 export default function MainLayoutClient({
   children,
-  isAdmin,
   initialDates,
   initialAvailableFilters,
   initialStarredHeaders,
@@ -29,12 +27,13 @@ export default function MainLayoutClient({
   const toggleDesktopSidebar = useUIStore((state) => state.toggleDesktopSidebar);
 
   const setAdminStatus = useUIStore((state) => state.setAdminStatus);
+  const isAdmin = useUIStore((state) => state.isAdmin);
   const modalArticleId = useUIStore((state) => state.modalArticleId);
 
   // Initialize admin status and article filters immediately (Synchronous Hydration)
   const initialized = useRef(false);
   if (!initialized.current) {
-    useUIStore.setState({ isAdmin });
+    // Admin status initialized via client side effect
     // Hydrate filters immediately to prevent layout shift (tag container FOUC)
     if (
       initialAvailableFilters &&
@@ -45,9 +44,23 @@ export default function MainLayoutClient({
     initialized.current = true;
   }
 
+  // Fetch admin status on mount (Client-Side Only to avoid Cookie Dynamic Opt-out)
   useEffect(() => {
-    setAdminStatus(isAdmin);
-  }, [isAdmin, setAdminStatus]);
+    const checkAdminStatus = async () => {
+      try {
+        const res = await fetch('/api/auth/status');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.isAdmin) {
+            setAdminStatus(true);
+          }
+        }
+      } catch (e) {
+        console.error('Failed to check admin status:', e);
+      }
+    };
+    checkAdminStatus();
+  }, [setAdminStatus]);
 
   // Handle body overflow for mobile sidebar only
   useEffect(() => {
@@ -84,7 +97,7 @@ export default function MainLayoutClient({
           Desktop: sticky, top-0,h-screen, z-40. width controlled by isDesktopCollapsed.
       */}
       <div
-        className={`dark:bg-midnight-sidebar dark:border-midnight-sidebar h-full flex-shrink-0 border-r border-transparent bg-gray-50 ${transitionClass} fixed top-0 left-0 z-50 h-screen w-64 md:sticky md:top-0 md:z-auto md:h-screen ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 ${isDesktopCollapsed ? 'md:w-0 md:overflow-hidden md:border-none md:opacity-0' : 'md:w-80 md:opacity-100'} `}
+        className={`dark:bg-midnight-sidebar dark:border-midnight-sidebar h-full flex-shrink-0 border-r border-transparent bg-gray-50 ${transitionClass} fixed top-0 left-0 z-50 h-[100dvh] w-64 md:sticky md:top-0 md:z-auto md:h-screen ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 ${isDesktopCollapsed ? 'md:w-0 md:overflow-hidden md:border-none md:opacity-0' : 'md:w-80 md:opacity-100'} `}
       >
         <SidebarClient
           initialDates={initialDates}

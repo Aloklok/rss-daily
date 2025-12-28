@@ -1,4 +1,4 @@
-# 架构与技术栈详情 (Architecture & Stack)
+bu# 架构与技术栈详情 (Architecture & Stack)
 
 本文档详细介绍了 Briefing Hub 的技术架构、后端集成及数据模型。
 
@@ -43,3 +43,12 @@
 - **超时熔断**: 数据库查询内置 10s 超时保护。
 - **错误边界**: 页面级错误捕获和友好 UI。
 - **图片优化**: 全面采用 `next/image` 和 Supabase Storage 旁路缓存策略。
+
+## 5. 权限验证 (Authentication)
+
+- **策略**: Client-Side Verification (客户端后置验证)。
+- **机制**:
+  - **静态优先 (ISR)**: 服务端 (`RootLayout`) **不读取 Cookie**，确保所有页面均可生成静态缓存 (ISR/SSG)，实现极速首屏 (TTFB < 100ms)。
+  - **静默升级**: 页面加载后，客户端通过 `/api/auth/status` 异步验证 `site_token`。
+  - **权限赋予**: 若验证通过，前端动态解锁管理功能（如“搜索”、“状态切换”）。
+- **优势**: 彻底解决了因服务端读取 Cookie 导致全站降级为 SSR (动态渲染) 的性能瓶颈。

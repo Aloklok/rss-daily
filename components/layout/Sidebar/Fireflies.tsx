@@ -15,19 +15,31 @@ export const Fireflies: React.FC = () => {
   const [fireflies, setFireflies] = useState<Firefly[]>([]);
 
   useEffect(() => {
-    const count = 6; // Reduced from 15
+    const count = 8; // Reduced to 8 per user request
     const newFireflies: Firefly[] = [];
 
+    const rows = 4;
+    const cols = 2;
     for (let i = 0; i < count; i++) {
+      // Sector-based positioning to ensure coverage
+      const row = Math.floor(i / cols);
+      const col = i % cols;
+
+      // Base position + Random Jitter within the sector
+      const leftBase = col * (100 / cols);
+      const topBase = row * (100 / rows);
+      const leftJitter = Math.random() * (100 / cols);
+      const topJitter = Math.random() * (100 / rows);
+
       newFireflies.push({
         id: i,
-        left: `${Math.random() * 100}%`,
-        top: `${Math.random() * 100}%`,
-        animationDuration: `${25 + Math.random() * 35}s`,
+        left: `${leftBase + leftJitter}%`,
+        top: `${topBase + topJitter}%`,
+        animationDuration: `${40 + Math.random() * 50}s`, // Slower drift: 40s-90s
         animationDelay: `${Math.random() * -30}s`,
-        flashDuration: `${3 + Math.random() * 4}s`, // Faster blinking: 3-7s
+        flashDuration: `${5 + Math.random() * 5}s`, // Slow breathing: 5-10s
         flashDelay: `${Math.random() * -5}s`,
-        size: `${1.5 + Math.random() * 2.5}px`,
+        size: `${2 + Math.random() * 3}px`, // Adjusted: 2px - 5px
       });
     }
 
@@ -47,27 +59,27 @@ export const Fireflies: React.FC = () => {
                     100% { transform: translate(0, 0); }
                 }
                 @keyframes firefly-flash {
-                    0%, 100% { opacity: 0.2; }
+                    0%, 100% { opacity: 0.5; }
                     50% { opacity: 1; }
                 }
             `}</style>
       {fireflies.map((firefly) => (
         <div
           key={firefly.id}
-          className="absolute bg-yellow-300 blur-[1px]"
+          // "Hot Core" Design: White-ish center (light source) + Golden Aura (glow)
+          // This prevents the "solid ball" look.
+          className="absolute rounded-full bg-yellow-100 shadow-[0_0_8px_3px_rgba(251,191,36,0.5)] blur-[0.5px]"
           style={{
             left: firefly.left,
             top: firefly.top,
             width: firefly.size,
             height: firefly.size,
-            borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%',
             // Combine animations: move (slow) and flash (fast)
             animation: `
                             firefly-move ${firefly.animationDuration} ease-in-out infinite alternate,
                             firefly-flash ${firefly.flashDuration} ease-in-out infinite
                         `,
             animationDelay: `${firefly.animationDelay}, ${firefly.flashDelay}`,
-            boxShadow: '0 0 20px 5px rgba(253, 224, 71, 0.9)',
           }}
         />
       ))}

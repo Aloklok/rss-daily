@@ -24,100 +24,100 @@ export async function fetchAvailableDates(): Promise<string[]> {
 import { getTodayInShanghai } from '../../utils/dateUtils';
 export { getTodayInShanghai };
 
-export async function fetchBriefingData(date: string): Promise<{ [key: string]: Article[] }> {
-  const supabase = getSupabaseClient();
+export const fetchBriefingData = unstable_cache(
+  async (date: string): Promise<{ [key: string]: Article[] }> => {
+    const supabase = getSupabaseClient();
 
-  // Validate date format YYYY-MM-DD
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    console.error('Invalid date format in fetchBriefingData:', date);
-    return {};
-  }
+    // Validate date format YYYY-MM-DD
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      console.error('Invalid date format in fetchBriefingData:', date);
+      return {};
+    }
 
-  const [year, month, day] = date.split('-').map(Number);
+    const [year, month, day] = date.split('-').map(Number);
 
-  // Shanghai is UTC+8.
-  // We construct the UTC time corresponding to Shanghai's 00:00:00 and 23:59:59.999
-  // 00:00:00 Shanghai = 16:00:00 UTC (previous day) -> handled by -8 hours
-  const startDate = new Date(Date.UTC(year, month - 1, day, 0 - 8, 0, 0, 0));
-  const endDate = new Date(Date.UTC(year, month - 1, day, 23 - 8, 59, 59, 999));
+    // Shanghai is UTC+8.
+    // We construct the UTC time corresponding to Shanghai's 00:00:00 and 23:59:59.999
+    // 00:00:00 Shanghai = 16:00:00 UTC (previous day) -> handled by -8 hours
+    const startDate = new Date(Date.UTC(year, month - 1, day, 0 - 8, 0, 0, 0));
+    const endDate = new Date(Date.UTC(year, month - 1, day, 23 - 8, 59, 59, 999));
 
-  // Wrap Supabase query with timeout to prevent serverless function hangs
-  const timeoutPromise = new Promise<{ data: Article[] | null; error: unknown }>((_, reject) =>
-    setTimeout(() => reject(new Error('Supabase query timed out after 10s')), 10000),
-  );
+    // Wrap Supabase query with timeout to prevent serverless function hangs
+    const timeoutPromise = new Promise<{ data: Article[] | null; error: unknown }>((_, reject) =>
+      setTimeout(() => reject(new Error('Supabase query timed out after 10s')), 10000),
+    );
 
-  const dataPromise = supabase
-    .from('articles')
-    .select('*')
-    .gte('n8n_processing_date', startDate.toISOString())
-    .lte('n8n_processing_date', endDate.toISOString());
+    const dataPromise = supabase
+      .from('articles')
+      .select('*')
+      .gte('n8n_processing_date', startDate.toISOString())
+      .lte('n8n_processing_date', endDate.toISOString());
 
-  let articles, error;
-  try {
-    const result = await Promise.race([dataPromise, timeoutPromise]);
-    // Supabase returns { data, error } structure
-    articles = result.data;
-    error = result.error;
-  } catch (e: unknown) {
-    console.error('Fetch Briefing Data Timeout or Error:', e);
-    return {}; // Start with empty if timeout, or throw? better to throw to trigger error.tsx
-    // Actually, if we return {}, the page renders "No Articles", which is better than Error page?
-    // But user said "Loading..." persisted. If we return {}, it renders BriefingClient -> "No Articles".
-    // Let's return {} for now, but log it.
-    // Wait, if we return {}, BriefingClient renders. This is SAFE.
-  }
+    let articles, error;
+    try {
+      const result = await Promise.race([dataPromise, timeoutPromise]);
+      // Supabase returns { data, error } structure
+      articles = result.data;
+      error = result.error;
+    } catch (e: unknown) {
+      console.error('Fetch Briefing Data Timeout or Error:', e);
+      return {};
+    }
 
-  if (error) {
-    console.error('Error fetching from Supabase by date:', error);
-    return {};
-  }
+    if (error) {
+      console.error('Error fetching from Supabase by date:', error);
+      return {};
+    }
 
-  if (!articles || articles.length === 0) {
-    return {};
-  }
+    if (!articles || articles.length === 0) {
+      return {};
+    }
 
-  const uniqueById = new Map<string | number, Article>();
-  articles.forEach((a: Article) => {
-    uniqueById.set(a.id, a);
-  });
-  const deduped = Array.from(uniqueById.values());
+    const uniqueById = new Map<string | number, Article>();
+    articles.forEach((a: Article) => {
+      uniqueById.set(a.id, a);
+    });
+    const deduped = Array.from(uniqueById.values());
 
-  const groupedArticles: { [key: string]: Article[] } = {
-    [BRIEFING_SECTIONS.IMPORTANT]: [],
-    [BRIEFING_SECTIONS.MUST_KNOW]: [],
-    [BRIEFING_SECTIONS.REGULAR]: [],
-  };
-
-  deduped.forEach((rawArticle: any) => {
-    // Map Supabase JSON fields to Article properties
-    // Critical: Map verdict.importance to briefingSection because DB lacks this column
-    const article: Article = {
-      ...rawArticle,
-      briefingSection:
-        rawArticle.verdict?.importance || rawArticle.briefingSection || BRIEFING_SECTIONS.REGULAR,
-      sourceName: rawArticle.source_name || rawArticle.sourceName || '',
-      // Clean AI Fields
-      highlights: cleanAIContent(rawArticle.highlights),
-      critiques: cleanAIContent(rawArticle.critiques),
-      marketTake: cleanAIContent(rawArticle.marketTake),
-      tldr: cleanAIContent(rawArticle.tldr),
+    const groupedArticles: { [key: string]: Article[] } = {
+      [BRIEFING_SECTIONS.IMPORTANT]: [],
+      [BRIEFING_SECTIONS.MUST_KNOW]: [],
+      [BRIEFING_SECTIONS.REGULAR]: [],
     };
 
-    const importance = article.briefingSection;
-    if (groupedArticles[importance]) {
-      groupedArticles[importance].push(article);
-    } else {
-      // Fallback for unknown importance
-      groupedArticles[BRIEFING_SECTIONS.REGULAR].push(article);
+    deduped.forEach((rawArticle: any) => {
+      // Map Supabase JSON fields to Article properties
+      // Critical: Map verdict.importance to briefingSection because DB lacks this column
+      const article: Article = {
+        ...rawArticle,
+        briefingSection:
+          rawArticle.verdict?.importance || rawArticle.briefingSection || BRIEFING_SECTIONS.REGULAR,
+        sourceName: rawArticle.source_name || rawArticle.sourceName || '',
+        // Clean AI Fields
+        highlights: cleanAIContent(rawArticle.highlights),
+        critiques: cleanAIContent(rawArticle.critiques),
+        marketTake: cleanAIContent(rawArticle.marketTake),
+        tldr: cleanAIContent(rawArticle.tldr),
+      };
+
+      const importance = article.briefingSection;
+      if (groupedArticles[importance]) {
+        groupedArticles[importance].push(article);
+      } else {
+        // Fallback for unknown importance
+        groupedArticles[BRIEFING_SECTIONS.REGULAR].push(article);
+      }
+    });
+
+    for (const importance in groupedArticles) {
+      groupedArticles[importance].sort((a, b) => (b.verdict?.score || 0) - (a.verdict?.score || 0));
     }
-  });
 
-  for (const importance in groupedArticles) {
-    groupedArticles[importance].sort((a, b) => (b.verdict?.score || 0) - (a.verdict?.score || 0));
-  }
-
-  return groupedArticles;
-}
+    return groupedArticles;
+  },
+  ['briefing-data'], // Cache Key
+  { revalidate: 3600 }, // Revalidate every hour
+);
 
 // End of imports clean up
 

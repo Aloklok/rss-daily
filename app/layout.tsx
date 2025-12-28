@@ -1,5 +1,4 @@
 import './globals.css';
-import { cookies } from 'next/headers';
 import Providers from '@/components/common/Providers';
 import { Metadata } from 'next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -83,10 +82,6 @@ import {
 } from '@/lib/server/dataFetcher';
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('site_token');
-  const isAdmin = token?.value === process.env.ACCESS_TOKEN;
-
   // Parallel Data Fetching for Sidebar SSR
   const [dates, availableFilters, starredHeaders] = await Promise.all([
     fetchAvailableDates().catch(() => []),
@@ -99,7 +94,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="font-sans antialiased">
         <Providers>
           <MainLayoutClient
-            isAdmin={isAdmin}
             initialDates={dates}
             initialAvailableFilters={availableFilters}
             initialStarredHeaders={starredHeaders}
@@ -109,30 +103,26 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <GlobalUI />
         </Providers>
 
-        {!isAdmin && (
-          <>
-            <SpeedInsights />
-            <Analytics />
-            {/* Microsoft Clarity */}
-            <script
-              dangerouslySetInnerHTML={{
-                __html: `
-                                (function(c,l,a,r,i,t,y){
-                                    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-                                    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-                                    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-                                })(window, document, "clarity", "script", "ugwlylpe1l");
-                                `,
-              }}
-            />
-            {/* Cloudflare Web Analytics */}
-            <script
-              defer
-              src="https://static.cloudflareinsights.com/beacon.min.js"
-              data-cf-beacon='{"token": "134bcf9865674fdd9600e9ce14992b59"}'
-            />
-          </>
-        )}
+        <SpeedInsights />
+        <Analytics />
+        {/* Microsoft Clarity */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+                              (function(c,l,a,r,i,t,y){
+                                  c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                                  t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                                  y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+                              })(window, document, "clarity", "script", "ugwlylpe1l");
+                              `,
+          }}
+        />
+        {/* Cloudflare Web Analytics */}
+        <script
+          defer
+          src="https://static.cloudflareinsights.com/beacon.min.js"
+          data-cf-beacon='{"token": "134bcf9865674fdd9600e9ce14992b59"}'
+        />
       </body>
     </html>
   );
