@@ -4,12 +4,14 @@ import { useArticleStore } from '../store/articleStore';
 import { useUIStore } from '../store/uiStore';
 import { useUpdateArticleState, useMarkAllAsRead } from './useArticles';
 import { useToastStore } from '../store/toastStore';
+import { READ_TAG } from '../constants';
 
 export const useArticleActions = () => {
   const showToast = useToastStore((state) => state.showToast);
   const setSelectedArticleId = useUIStore((state) => state.setSelectedArticleId);
   const openModal = useUIStore((state) => state.openModal);
   const addArticles = useArticleStore((state) => state.addArticles);
+  const articlesById = useArticleStore((state) => state.articlesById);
 
   const { mutateAsync: updateArticleState, isPending: isUpdatingArticle } = useUpdateArticleState();
   const { mutate: markAllAsRead, isPending: isMarkingAsRead } = useMarkAllAsRead();
@@ -57,10 +59,16 @@ export const useArticleActions = () => {
   };
 
   const handleMarkAllClick = (articleIdsInView: (string | number)[]) => {
-    if (articleIdsInView.length > 0) {
-      markAllAsRead(articleIdsInView);
+    // 过滤出未读的文章 ID
+    const unreadIds = articleIdsInView.filter((id) => {
+      const article = articlesById[id];
+      return article && !article.tags?.includes(READ_TAG);
+    });
+
+    if (unreadIds.length > 0) {
+      markAllAsRead(unreadIds);
     } else {
-      showToast('没有需要标记的文章', 'info');
+      showToast('没有需要标记的未读文章', 'info');
     }
   };
 
