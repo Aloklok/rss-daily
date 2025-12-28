@@ -46,26 +46,27 @@ bu# 架构与技术栈详情 (Architecture & Stack)
 
 ### 策略详情
 
-| 页面类型     | 路由路径        | 渲染模式    | 缓存策略   | 说明                                                                                                                  |
-| :----------- | :-------------- | :---------- | :--------- | :-------------------------------------------------------------------------------------------------------------------- |
-| **历史日期** | `/date/[date]`  | **SSG**     | Build Time | `generateStaticParams` 覆盖历史日期，构建时生成静态 HTML。数据由 `fetchBriefingData` 缓存。                           |
-| **今日简报** | `/date/[today]` | **Dynamic** | Data ISR   | 路由未包含在 Static Params 中，On-Demand 渲染。`noStore()` 确保页面结构实时，但数据由 `unstable_cache` (3600s) 缓存。 |
-| **首页**     | `/`             | **Dynamic** | -          | 重定向。                                                                                                              |
+### 策略详情
+
+| 页面类型     | 路由路径        | 渲染模式          | 缓存策略   | 说明                                                                                                           |
+| :----------- | :-------------- | :---------------- | :--------- | :------------------------------------------------------------------------------------------------------------- |
+| **历史日期** | `/date/[date]`  | **SSG**           | Build Time | `generateStaticParams` 覆盖历史日期，构建时生成静态 HTML。数据层由 `unstable_cache` 缓存，HTML 通过 CDN 缓存。 |
+| **今日简报** | `/date/[today]` | **SSR (Dynamic)** | Data ISR   | 排除在 Static Params 之外，且组件调用 `noStore()` 强制 SSR。数据层缓存保护数据库。                             |
+| **首页**     | `/`             | **Dynamic**       | -          | 重定向。                                                                                                       |
 
 ### 关键配置
 
 ```typescript
 // app/date/[date]/page.tsx
-// 移除 export const revalidate = 3600;
-// 依赖 unstable_cache (数据层) 和 generateStaticParams (路径层)
+// 1. generateStaticParams: 返回历史日期列表 (实现 SSG)
+// 2. if (isToday) noStore(): 强制今日动态渲染 (实现 SSR)
+// 3. 移除 export const revalidate / dynamic: 避免冲突
 ```
 
 ### 优势
 
-- **稳定性**: 彻底消除 `DYNAMIC_SERVER_USAGE` 报错。
-- **混合缓存**:
-  - **History**: 纯静态 HTML (SSG)，极致 TTFB。
-  - **Today**: 动态 HTML (Dynamic Rendering)，但数据查询仅每小时一次 (Data ISR)，保护数据库。
+- **极速访问 (History)**: 历史内容全静态 (SSG)，TTFB < 50ms。
+- **实时更新 (Today)**: 今日内容 SSR 实时渲染，无 ISR 延迟 (HTML 层面)，配合 Data ISR (1h) 实现高性能准实时。
 
 ## 5. 性能优化 (Performance)
 

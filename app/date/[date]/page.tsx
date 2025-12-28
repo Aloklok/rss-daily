@@ -12,15 +12,19 @@ import { resolveBriefingImage } from '@/utils/imageUtils';
 import { BRIEFING_IMAGE_WIDTH, BRIEFING_IMAGE_HEIGHT } from '@/lib/constants';
 import { toShortId } from '@/utils/idHelpers';
 
-// For "Today", we will use noStore() to opt out of caching.
-// export const revalidate = 3600; // Removed to avoid DYNAMIC_SERVER_USAGE with noStore()
+// HYBRID RENDERING STRATEGY:
+// 1. History Pages: Included in generateStaticParams -> SSG (Static Site Generation at build time).
+// 2. Today's Page: Excluded from generateStaticParams + noStore() -> SSR (Dynamic Rendering on demand).
+//
+// Note: We DO NOT export `revalidate` here because it conflicts with `noStore()` in some Next.js versions/configs
+// leading to DYNAMIC_SERVER_USAGE errors. History pages are statically built (infinite cache effective),
+// and Today is strictly dynamic.
 
 export async function generateStaticParams() {
   const dates = await fetchAvailableDates();
   const today = getTodayInShanghai();
 
   // Exclude today from static generation to ensure it's always treated as dynamic (SSR) initially
-  // and to avoid building a stale version at build time.
   return dates
     .filter((date) => date !== today)
     .map((date) => ({
@@ -28,7 +32,6 @@ export async function generateStaticParams() {
     }));
 }
 
-// Helper to extract top keywords from articles
 // Helper to extract top keywords with diversity (Round Robin)
 function getTopKeywords(articles: any[], limit = 10): string[] {
   const frequency: Record<string, number> = {};
@@ -182,8 +185,6 @@ export async function generateMetadata({
     const rawTitle = topArticles[0].tldr || topArticles[0].title;
     const t1 = rawTitle.replace(/\|/g, '-');
     dynamicTitle += `${t1}`;
-    // Strategy A: Only 1st title
-    // dynamicTitle += ` | RSS Briefing Hub`; // Removed to avoid duplication with layout template
   } else {
     dynamicTitle += `Briefing`;
   }
@@ -233,8 +234,6 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
   // Flatten articles for BriefingClient
   const allArticles = Object.values(groupedArticles).flat();
 
-  // Check if empty
-
   // Prefetch header image
   const headerImageUrl = await resolveBriefingImage(date);
 
@@ -262,7 +261,7 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
       url: headerImageUrl || 'https://www.alok-rss.top/computer_cat_180.jpeg', // Fallback image
     },
     description: description,
-    datePublished: `${date}T08:00:00+08:00`, // ISO 8601 with +08:00 timezone (assuming 8 AM Shanghai)
+    datePublished: `${date}T08:00:00+08:00`,
     author: [
       {
         '@type': 'Organization',
@@ -277,7 +276,6 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
         position: index + 1,
         url: `https://www.alok-rss.top/article/${toShortId(String(article.id))}`,
         name: article.title,
-        // Enhanced Rich Snippet: Use the full AI summary for deep content understanding
         description: article.summary || article.tldr || '',
       })),
     },
@@ -286,9 +284,6 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
   // Calculate Previous and Next dates for Internal Linking (SEO)
   const dates = await fetchAvailableDates();
   const currentIndex = dates.indexOf(date);
-  // dates are sorted desc (newest first).
-  // Next date (chronologically tomorrow) is at index - 1.
-  // Prev date (chronologically yesterday) is at index + 1.
   const nextDate = currentIndex > 0 ? dates[currentIndex - 1] : null;
   const prevDate = currentIndex < dates.length - 1 ? dates[currentIndex + 1] : null;
 
@@ -299,7 +294,7 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <BriefingClient
-        key={date} // Force remount on date change to ensure clean state (no timeSlot leakage)
+        key={date} // Force remount on date change to ensure clean state
         articles={allArticles}
         date={date}
         headerImageUrl={headerImageUrl}
