@@ -24,8 +24,7 @@ async function handleRevalidate(request: NextRequest): Promise<NextResponse> {
 
   try {
     // Correctly revalidate the DATA cache tag (unstable_cache)
-    // @ts-expect-error: Next.js 16 type definition mismatch (expects 2 args?)
-    revalidateTag(tag);
+    revalidateTag(tag, 'max');
 
     console.log(`[Revalidate] Successfully revalidated tag: ${tag}`);
     return NextResponse.json({ revalidated: true, tag, now: Date.now() });

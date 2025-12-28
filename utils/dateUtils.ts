@@ -35,3 +35,25 @@ export const getTodayInShanghai = (): string => {
   });
   return formatter.format(new Date());
 };
+
+/**
+ * Returns the current hour in Shanghai timezone.
+ */
+export const getShanghaiHour = (): number => {
+  const dateString = new Date().toLocaleString('en-US', {
+    timeZone: 'Asia/Shanghai',
+    hour12: false,
+  });
+  const hourString = dateString.split(', ')[1].split(':')[0];
+  return parseInt(hourString, 10);
+};
+
+/**
+ * Returns the current TimeSlot based on the provided hour or current Shanghai time.
+ */
+export const getCurrentTimeSlot = (hour?: number): TimeSlot => {
+  const h = hour !== undefined ? hour : getShanghaiHour();
+  if (h >= 0 && h < 12) return 'morning';
+  if (h >= 12 && h < 19) return 'afternoon';
+  return 'evening';
+};

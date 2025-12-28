@@ -13,6 +13,7 @@ import {
   BRIEFING_IMAGE_HEIGHT,
   BRIEFING_SECTIONS,
 } from '../../../lib/constants';
+import { getShanghaiHour, getCurrentTimeSlot } from '../../../utils/dateUtils';
 
 interface ReportContentProps {
   report: BriefingReport;
@@ -228,26 +229,16 @@ const Briefing: React.FC<BriefingProps> = ({
     return [{ id: 1, title: 'Daily Briefing', articles: groupedArticles }];
   }, [articleIds, articlesById, articles]);
 
-  // Strategy: Initialize with Shanghai time (likely match) to prevent specific "Flash" for main users.
-  // Then use useEffect to update to local time for global users.
-  const getShanghaiHour = () => {
-    const dateString = new Date().toLocaleString('en-US', {
-      timeZone: 'Asia/Shanghai',
-      hour12: false,
-    });
-    const hourString = dateString.split(', ')[1].split(':')[0];
-    return parseInt(hourString, 10);
-  };
-
-  // Initialize state with Shanghai hour to match Server SSR
+  // Use Shanghai hour by default (consistent with SSR)
   const [currentHour, setCurrentHour] = React.useState<number | null>(getShanghaiHour());
 
   React.useEffect(() => {
     // After mount, check local time
-    const localHour = new Date().getHours();
-    // Only update (trigger re-render) if local time differs from Shanghai assumption
-    if (localHour !== currentHour) {
-      setCurrentHour(localHour);
+    if (typeof window !== 'undefined') {
+      const localHour = new Date().getHours();
+      if (localHour !== currentHour) {
+        setCurrentHour(localHour);
+      }
     }
   }, [currentHour]);
 
@@ -275,17 +266,14 @@ const Briefing: React.FC<BriefingProps> = ({
         headerImageUrl ||
         `https://picsum.photos/seed/${seed}/${BRIEFING_IMAGE_WIDTH}/${BRIEFING_IMAGE_HEIGHT}`;
 
-      const getCurrentTimeSlot = (): TimeSlot => {
+      const getCurrentTimeSlotInternal = (): TimeSlot => {
         const hour = currentHour ?? getShanghaiHour();
-        if (hour >= 0 && hour < 12) return 'morning';
-        if (hour >= 12 && hour < 19) return 'afternoon';
-        return 'evening';
+        return getCurrentTimeSlot(hour);
       };
 
-      // Auto-select slot if today. Since we align to Shanghai time, this is consistent during SSR.
-      // We verify isToday first (which relies on props, usually calculated via Shanghai time globally).
-      // disableAutoTimeSlot allows Archive Pages to force "Show All" without auto-selecting.
-      const autoSelectedSlot = isToday && !disableAutoTimeSlot ? getCurrentTimeSlot() : null;
+      // auto-selected slot logic
+      const autoSelectedSlot =
+        isToday && !disableAutoTimeSlot ? getCurrentTimeSlotInternal() : null;
 
       return (
         <header className="group relative mb-8 overflow-hidden rounded-2xl shadow-md transition-all duration-500 hover:shadow-xl">

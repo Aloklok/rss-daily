@@ -6,6 +6,7 @@ import { Metadata } from 'next';
 import { Filter } from '../types';
 import { BRIEFING_IMAGE_WIDTH, BRIEFING_IMAGE_HEIGHT } from '@/lib/constants';
 import { toShortId } from '@/utils/idHelpers';
+import { getCurrentTimeSlot } from '@/utils/dateUtils';
 
 export const dynamic = 'force-dynamic';
 
@@ -241,6 +242,11 @@ export default async function Home(props: {
     });
   }
 
+  // Calculate initialTimeSlot for Homepage (Today) to prevent filtering flash
+  // We only do this for the default view (no filterParam) which represents "Today"
+  const isDefaultView = !filterType && !filterValue;
+  const initialTimeSlot = isDefaultView ? getCurrentTimeSlot() : null;
+
   return (
     <>
       {renderSchemas.length > 0 && (
@@ -256,7 +262,8 @@ export default async function Home(props: {
         // New Props
         initialActiveFilter={initialFilter}
         initialContinuation={initialData.initialContinuation}
-        isHomepage={!filterType && !filterValue} // Pass true only if no filters are active
+        isHomepage={isDefaultView} // Pass true only if no filters are active
+        initialTimeSlot={initialTimeSlot}
       />
     </>
   );
