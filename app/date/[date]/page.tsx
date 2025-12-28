@@ -12,9 +12,8 @@ import { resolveBriefingImage } from '@/utils/imageUtils';
 import { BRIEFING_IMAGE_WIDTH, BRIEFING_IMAGE_HEIGHT } from '@/lib/constants';
 import { toShortId } from '@/utils/idHelpers';
 
-// Revalidate every hour for past dates (ISR).
 // For "Today", we will use noStore() to opt out of caching.
-export const revalidate = 604800;
+// export const revalidate = 604800; // Removed to prevent DYNAMIC_SERVER_USAGE error
 
 export async function generateStaticParams() {
   const dates = await fetchAvailableDates();
