@@ -16,6 +16,7 @@ import {
   useUpdateArticleState,
 } from '../../hooks/useArticles';
 import { Filter, Article, TimeSlot } from '../../types';
+import { getArticleTimeSlot } from '@/utils/dateUtils';
 
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -42,15 +43,19 @@ export default function MainContentClient({
   // Use initial props for SSR/Hydration if store is empty
   const activeFilter = storeActiveFilter || initialActiveFilter;
 
-  // Sync prop to store after mount
-  useEffect(() => {
-    if (initialActiveFilter && !storeActiveFilter) {
-      useUIStore.getState().setActiveFilter(initialActiveFilter);
-    }
-  }, [initialActiveFilter, storeActiveFilter]);
-
   const selectedArticleId = useUIStore((state) => state.selectedArticleId);
-  const timeSlot = useUIStore((state) => state.timeSlot);
+  const storeTimeSlot = useUIStore((state) => state.timeSlot);
+
+  // Track if component is mounted to differentiate hydration from post-mount user interaction
+  const [mounted, setMounted] = React.useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Use initialTimeSlot fallback ONLY during the initial mount or when store is empty.
+  // We prioritize storeTimeSlot but allow initialTimeSlot to bridge the hydration period.
+  const timeSlot = storeTimeSlot || (mounted ? null : initialTimeSlot) || null;
+
   const setTimeSlot = useUIStore((state) => state.setTimeSlot);
   const articlesById = useArticleStore((state) => state.articlesById);
   const addArticles = useArticleStore((state) => state.addArticles);
@@ -63,13 +68,22 @@ export default function MainContentClient({
   // Verdict Filter State (Local)
   const [verdictFilter, setVerdictFilter] = React.useState<string | null>(null);
 
-  // Initialize timeSlot if not set (e.g. first load)
-  // Sync initialTimeSlot from SSR to store immediately
+  // Sync initial state (Filter & TimeSlot) to store ONLY ONCE on mount
   useEffect(() => {
-    if (isHomepage && initialTimeSlot && !timeSlot) {
-      setTimeSlot(initialTimeSlot);
+    // 1. Sync Active Filter
+    const filterState = useUIStore.getState();
+    if (initialActiveFilter && !filterState.activeFilter) {
+      filterState.setActiveFilter(initialActiveFilter);
     }
-  }, [isHomepage, initialTimeSlot, timeSlot, setTimeSlot]);
+
+    // 2. Sync Time Slot (Homepage only)
+    // Get FRESH state because setActiveFilter might have reset timeSlot to null
+    const slotState = useUIStore.getState();
+    if (isHomepage && initialTimeSlot && !slotState.timeSlot) {
+      slotState.setTimeSlot(initialTimeSlot);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run strictly once on mount
 
   // Determine which date to use (active filter or initial default)
   const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
@@ -84,10 +98,31 @@ export default function MainContentClient({
 
       // 2. Update React Query Cache (ID List)
       if (activeFilter?.type === 'date' && dateToUse) {
+        // ALWAYS hydrate the 'all' key
         queryClient.setQueryData(
           ['briefing', dateToUse, 'all'],
           initialArticles.map((a) => a.id),
         );
+
+        // Selective Total Hydration: Only hydrate slots that actually have articles from SSR
+        if (isHomepage) {
+          const slots: TimeSlot[] = ['morning', 'afternoon', 'evening'];
+          slots.forEach((slot) => {
+            const filteredIds = initialArticles
+              .filter((a) => {
+                // Use n8n_processing_date for consistent slot grouping
+                const timeSlotValue = getArticleTimeSlot(a.n8n_processing_date || a.published);
+                return timeSlotValue === slot;
+              })
+              .map((a) => a.id);
+
+            // Only populate cache if there is content.
+            // If empty, we leave it empty so React Query triggers a fetch on-click (User Requirement)
+            if (filteredIds.length > 0) {
+              queryClient.setQueryData(['briefing', dateToUse, slot], filteredIds);
+            }
+          });
+        }
       } else if (activeFilter?.type === 'category' || activeFilter?.type === 'tag') {
         // Pre-populate useFilteredArticles cache?
         // React Query key needed.
@@ -116,8 +151,10 @@ export default function MainContentClient({
   const { data: briefingArticleIds, isLoading: isBriefingLoading } = useBriefingArticles(
     dateToUse || null,
     timeSlot,
-    // Pass initial data only if matching the SSR date
-    dateToUse === initialDate ? initialArticleIds : undefined,
+    // CRITICAL: Only seed with all initialArticleIds if timeSlot is null (All View).
+    // If a time-slot is selected, we want it to either find its Selective Hydration cache OR fetch from network.
+    // Passing initialArticleIds here for a specific slot would incorrectly cache the FULL list for that slot.
+    dateToUse === initialDate && !timeSlot ? initialArticleIds : undefined,
   );
 
   const {
@@ -161,13 +198,29 @@ export default function MainContentClient({
   );
 
   const filteredBriefingArticleIds = useMemo(() => {
-    if (!verdictFilter) return effectiveBriefingIds;
-    return effectiveBriefingIds.filter((id) => {
+    let filteredIds = effectiveBriefingIds;
+
+    // 1. Filter based on Time Slot (Ensures SSR/Hydration consistency)
+    if (timeSlot) {
+      filteredIds = filteredIds.filter((id) => {
+        // Use String() for safe lookup in both store and initialArticles
+        const article =
+          articlesById[String(id)] || initialArticles.find((a) => String(a.id) === String(id));
+        if (!article) return false;
+        // Prefer n8n_processing_date to match API behavior and Selective Hydration logic
+        return getArticleTimeSlot(article.n8n_processing_date || article.published) === timeSlot;
+      });
+    }
+
+    // 2. Filter based on Verdict Type
+    if (!verdictFilter) return filteredIds;
+    return filteredIds.filter((id) => {
       // Try to find article in store or initial props
-      const article = articlesById[id] || initialArticles.find((a) => a.id === id);
+      const article =
+        articlesById[String(id)] || initialArticles.find((a) => String(a.id) === String(id));
       return article?.verdict?.type === verdictFilter;
     });
-  }, [effectiveBriefingIds, verdictFilter, articlesById, initialArticles]);
+  }, [effectiveBriefingIds, timeSlot, verdictFilter, articlesById, initialArticles]);
 
   // Render Logic
   if (selectedArticleId) {

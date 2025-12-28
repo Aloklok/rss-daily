@@ -51,7 +51,7 @@ export const useBriefingArticles = (
       // 如果查询的日期是今天，我们使用一个较短的 staleTime (例如 5 分钟)，
       // 因为今天的数据是会变化的。
       if (date === today) {
-        return 1000 * 60 * 5; // 5 minutes
+        return 1000 * 60 * 10; // 10 minutes (User Requirement)
       }
       // 如果查询的是历史日期，我们告诉 react-query 这个数据是“永不过期”的。
       // Infinity 意味着只要缓存存在，就永远不要认为它是 stale 的，

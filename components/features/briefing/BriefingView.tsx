@@ -13,7 +13,7 @@ import {
   BRIEFING_IMAGE_HEIGHT,
   BRIEFING_SECTIONS,
 } from '../../../lib/constants';
-import { getShanghaiHour, getCurrentTimeSlot } from '../../../utils/dateUtils';
+import { getShanghaiHour } from '../../../utils/dateUtils';
 
 interface ReportContentProps {
   report: BriefingReport;
@@ -177,7 +177,6 @@ interface BriefingProps {
   isToday: boolean;
   prevDate?: string | null;
   nextDate?: string | null;
-  disableAutoTimeSlot?: boolean; // New prop to control auto-selection behavior
   verdictFilter?: string | null;
   onVerdictFilterChange?: (type: string | null) => void;
 }
@@ -198,7 +197,6 @@ const Briefing: React.FC<BriefingProps> = ({
   isToday,
   prevDate,
   nextDate,
-  disableAutoTimeSlot = false,
   verdictFilter,
   onVerdictFilterChange,
 }) => {
@@ -266,15 +264,6 @@ const Briefing: React.FC<BriefingProps> = ({
         headerImageUrl ||
         `https://picsum.photos/seed/${seed}/${BRIEFING_IMAGE_WIDTH}/${BRIEFING_IMAGE_HEIGHT}`;
 
-      const getCurrentTimeSlotInternal = (): TimeSlot => {
-        const hour = currentHour ?? getShanghaiHour();
-        return getCurrentTimeSlot(hour);
-      };
-
-      // auto-selected slot logic
-      const autoSelectedSlot =
-        isToday && !disableAutoTimeSlot ? getCurrentTimeSlotInternal() : null;
-
       return (
         <header className="group relative mb-8 overflow-hidden rounded-2xl shadow-md transition-all duration-500 hover:shadow-xl">
           {/* Background Image with Overlay */}
@@ -333,10 +322,9 @@ const Briefing: React.FC<BriefingProps> = ({
                         evening: '晚上',
                       };
 
-                      // Toggle logic: Use manual timeSlot if available, otherwise fallback to autoSelectedSlot
-                      const isSelected =
-                        timeSlot === slotOption ||
-                        (timeSlot === null && autoSelectedSlot === slotOption);
+                      // Strictly use the passed timeSlot prop for highlighting.
+                      // Fallback logic is now handled in MainContentClient for hydration only.
+                      const isSelected = timeSlot === slotOption;
                       return (
                         <button
                           key={slotOption}

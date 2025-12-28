@@ -53,11 +53,18 @@ export const useUIStore = create<UIStoreState>((set) => ({
   modalInitialMode: 'briefing',
 
   setActiveFilter: (filter) => {
-    set({
-      activeFilter: filter,
-      selectedArticleId: null,
-      timeSlot: null, // Always reset timeSlot when filter changes, logic is handled by components
-      verdictFilter: null, // Reset verdict filter
+    set((state) => {
+      // Only reset timeSlot and verdictFilter if the filter has actually changed.
+      // This prevents redundant syncs (like the one in useFilters.ts) from wiping the active timeSlot.
+      const isFilterSame =
+        state.activeFilter?.type === filter?.type && state.activeFilter?.value === filter?.value;
+
+      return {
+        activeFilter: filter,
+        selectedArticleId: null,
+        timeSlot: isFilterSame ? state.timeSlot : null,
+        verdictFilter: isFilterSame ? state.verdictFilter : null,
+      };
     });
   },
 
