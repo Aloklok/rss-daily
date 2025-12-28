@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
 import { cookies } from 'next/headers';
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
+async function handleRevalidate(request: NextRequest): Promise<NextResponse> {
   const secret = request.nextUrl.searchParams.get('secret');
   const tag = request.nextUrl.searchParams.get('tag');
 
@@ -32,4 +32,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   } catch (_err: unknown) {
     return NextResponse.json({ message: 'Error revalidating' }, { status: 500 });
   }
+}
+
+export async function GET(request: NextRequest) {
+  return handleRevalidate(request);
+}
+
+export async function POST(request: NextRequest) {
+  return handleRevalidate(request);
 }

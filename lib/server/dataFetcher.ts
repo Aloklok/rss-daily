@@ -327,7 +327,7 @@ export const getAvailableFilters = unstable_cache(
     }
   },
   ['available-filters'], // Cache Key
-  { revalidate: 3600 }, // Rewrite every 1 hour
+  { revalidate: 86400 }, // Rewrite every 24 hours (Match global ISR)
 );
 
 export async function fetchStarredArticleHeaders(): Promise<
