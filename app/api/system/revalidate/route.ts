@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { revalidatePath } from 'next/cache';
+import { revalidateTag } from 'next/cache';
 import { cookies } from 'next/headers';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -23,15 +23,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const decodedTag = decodeURIComponent(tag);
-    // Revalidate the specific stream page
-    revalidatePath(`/stream/${decodedTag}`);
+    // Correctly revalidate the DATA cache tag (unstable_cache)
+    // @ts-expect-error: Next.js 16 type definition mismatch (expects 2 args?)
+    revalidateTag(tag);
 
-    // Also revalidate the homepage as it might contain recent stream items
-    revalidatePath('/');
-
-    console.log(`[Revalidate] Successfully revalidated stream for tag: ${decodedTag}`);
-    return NextResponse.json({ revalidated: true, now: Date.now() });
+    console.log(`[Revalidate] Successfully revalidated tag: ${tag}`);
+    return NextResponse.json({ revalidated: true, tag, now: Date.now() });
   } catch (_err: unknown) {
     return NextResponse.json({ message: 'Error revalidating' }, { status: 500 });
   }

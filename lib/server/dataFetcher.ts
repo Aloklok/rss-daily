@@ -115,8 +115,11 @@ export const fetchBriefingData = unstable_cache(
 
     return groupedArticles;
   },
-  ['briefing-data'], // Cache Key
-  { revalidate: 3600 }, // Revalidate every hour
+  ['briefing-data'], // Cache Key Parts
+  {
+    revalidate: 86400, // 24 Hours (Global ISR) - rely on Webhook for updates
+    tags: ['briefing-data'], // Critical: needed for revalidateTag to work
+  },
 );
 
 // End of imports clean up

@@ -7,24 +7,21 @@ import {
 } from '@/lib/server/dataFetcher';
 
 import BriefingClient from '@/components/features/briefing/BriefingClient';
-import { unstable_noStore as noStore } from 'next/cache';
 import { resolveBriefingImage } from '@/utils/imageUtils';
 import { BRIEFING_IMAGE_WIDTH, BRIEFING_IMAGE_HEIGHT } from '@/lib/constants';
 import { toShortId } from '@/utils/idHelpers';
 
-// HYBRID RENDERING STRATEGY:
-// 1. History Pages: Included in generateStaticParams -> SSG (Static Site Generation at build time).
-// 2. Today's Page: Excluded from generateStaticParams + noStore() -> SSR (Dynamic Rendering on demand).
-//
-// Note: We DO NOT export `revalidate` here because it conflicts with `noStore()` in some Next.js versions/configs
-// leading to DYNAMIC_SERVER_USAGE errors. History pages are statically built (infinite cache effective),
-// and Today is strictly dynamic.
+// UNIFIED ISR STRATEGY:
+// All pages (History & Today) are cached for 24 hours (86400s).
+// Real-time updates are handled by the Supabase Webhook invalidating the 'briefing-data' tag.
+export const revalidate = 86400;
 
 export async function generateStaticParams() {
   const dates = await fetchAvailableDates();
   const today = getTodayInShanghai();
 
-  // Exclude today from static generation to ensure it's always treated as dynamic (SSR) initially
+  // Exclude today from build-time generation to avoid baking in "incomplete" morning data.
+  // It will be generated On-Demand (ISR) when first visited.
   return dates
     .filter((date) => date !== today)
     .map((date) => ({
@@ -224,10 +221,7 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
   const { date } = await params;
   const today = getTodayInShanghai();
 
-  // If it's today, opt out of caching to ensure real-time updates (SSR)
-  if (date === today) {
-    noStore();
-  }
+  // Unified ISR: No need for noStore. Caching is managed by revalidate + Webhook.
 
   const groupedArticles = await fetchBriefingData(date);
 

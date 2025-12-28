@@ -46,27 +46,27 @@ bu# 架构与技术栈详情 (Architecture & Stack)
 
 ### 策略详情
 
-### 策略详情
-
-| 页面类型     | 路由路径        | 渲染模式          | 缓存策略   | 说明                                                                                                           |
-| :----------- | :-------------- | :---------------- | :--------- | :------------------------------------------------------------------------------------------------------------- |
-| **历史日期** | `/date/[date]`  | **SSG**           | Build Time | `generateStaticParams` 覆盖历史日期，构建时生成静态 HTML。数据层由 `unstable_cache` 缓存，HTML 通过 CDN 缓存。 |
-| **今日简报** | `/date/[today]` | **SSR (Dynamic)** | Data ISR   | 排除在 Static Params 之外，且组件调用 `noStore()` 强制 SSR。数据层缓存保护数据库。                             |
-| **首页**     | `/`             | **Dynamic**       | -          | 重定向。                                                                                                       |
+| 页面类型     | 路由路径       | 渲染模式      | 缓存策略                | 说明                                                                                                                                   |
+| :----------- | :------------- | :------------ | :---------------------- | :------------------------------------------------------------------------------------------------------------------------------------- |
+| **全站简报** | `/date/[date]` | **ISR (24h)** | **Global Revalidation** | 统一采用 24小时 ISR 策略。无论是历史还是今日，均缓存 24 小时以实现极速访问。数据更新完全依赖 Supabase Webhook 触发，实现按需秒级刷新。 |
+| **首页**     | `/`            | **Dynamic**   | -                       | 重定向。                                                                                                                               |
 
 ### 关键配置
 
 ```typescript
 // app/date/[date]/page.tsx
-// 1. generateStaticParams: 返回历史日期列表 (实现 SSG)
-// 2. if (isToday) noStore(): 强制今日动态渲染 (实现 SSR)
-// 3. 移除 export const revalidate / dynamic: 避免冲突
+export const revalidate = 86400; // 24 Hours
+// 移除所有 noStore() 调用，确保纯粹的静态/ISR渲染。
+
+// lib/server/dataFetcher.ts
+// unstable_cache 设置 tags: ['briefing-data'] 用于 Webhook 精准打击。
 ```
 
 ### 优势
 
-- **极速访问 (History)**: 历史内容全静态 (SSG)，TTFB < 50ms。
-- **实时更新 (Today)**: 今日内容 SSR 实时渲染，无 ISR 延迟 (HTML 层面)，配合 Data ISR (1h) 实现高性能准实时。
+- **极致性能**: 所有页面均为静态缓存 (TTFB < 50ms)。
+- **架构统一**: 消除“历史 vs 今天”的逻辑差异，降低维护复杂度。
+- **实时响应**: 依赖 Webhook 保证数据变更后的即时一致性，24h 自动刷新作为兜底。
 
 ## 5. 性能优化 (Performance)
 
