@@ -223,7 +223,6 @@ export default function BriefingClient({
       isToday={isToday}
       prevDate={prevDate}
       nextDate={nextDate}
-      disableAutoTimeSlot={true} // Force "Show All" visual state for Archive Pages
     />
   );
 }
