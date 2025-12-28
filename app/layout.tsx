@@ -6,7 +6,7 @@ import { Analytics } from '@vercel/analytics/react';
 import GlobalUI from '@/components/layout/GlobalUI';
 import MainLayoutClient from '@/components/layout/MainLayoutClient';
 import { Inter, Playfair_Display } from 'next/font/google';
-// import Script from 'next/script';
+import Script from 'next/script';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -105,21 +105,24 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
         <SpeedInsights />
         <Analytics />
-        {/* Microsoft Clarity */}
-        <script
+        {/* Microsoft Clarity - Optimized with next/script for better TBT */}
+        <Script
+          id="microsoft-clarity"
+          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
-                              (function(c,l,a,r,i,t,y){
-                                  c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-                                  t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-                                  y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-                              })(window, document, "clarity", "script", "ugwlylpe1l");
-                              `,
+              (function(c,l,a,r,i,t,y){
+                  c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                  t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                  y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+              })(window, document, "clarity", "script", "ugwlylpe1l");
+            `,
           }}
         />
-        {/* Cloudflare Web Analytics */}
-        <script
-          defer
+
+        {/* Cloudflare Web Analytics - Optimized with next/script */}
+        <Script
+          strategy="afterInteractive"
           src="https://static.cloudflareinsights.com/beacon.min.js"
           data-cf-beacon='{"token": "134bcf9865674fdd9600e9ce14992b59"}'
         />

@@ -296,6 +296,7 @@ const Briefing: React.FC<BriefingProps> = ({
               alt="RSS简报封面背景"
               fill
               priority
+              fetchPriority="high"
               unoptimized={process.env.NODE_ENV === 'development'}
               sizes="(max-width: 768px) 100vw, (max-width: 1536px) 80vw, 1152px"
               className="object-cover transition-transform duration-700 will-change-transform backface-hidden group-hover:scale-105"
