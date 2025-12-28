@@ -44,23 +44,28 @@ bu# 架构与技术栈详情 (Architecture & Stack)
 
 ### 策略详情
 
-| 页面类型     | 路由路径        | 渲染模式          | Revalidate | 说明                                                                                                           |
-| :----------- | :-------------- | :---------------- | :--------- | :------------------------------------------------------------------------------------------------------------- |
-| **历史日期** | `/date/[date]`  | **ISR (Static)**  | 3600s (1h) | 历史内容不再变动，优先生成静态 HTML，利用 CDN 缓存，TTFB < 100ms。                                             |
-| **今日简报** | `/date/[today]` | **Dynamic (ISR)** | 3600s (1h) | 利用 `revalidate = 3600` 兼容 `noStore()`。Next.js 会尝试缓存，但允许组件级 opt-out 以保证“今日”数据的实时性。 |
-| **首页**     | `/`             | **Dynamic**       | -          | 默认为动态渲染，重定向到最新日期。                                                                             |
+### 策略详情
+
+| 页面类型     | 路由路径        | 渲染模式    | 缓存策略   | 说明                                                                                                                  |
+| :----------- | :-------------- | :---------- | :--------- | :-------------------------------------------------------------------------------------------------------------------- |
+| **历史日期** | `/date/[date]`  | **SSG**     | Build Time | `generateStaticParams` 覆盖历史日期，构建时生成静态 HTML。数据由 `fetchBriefingData` 缓存。                           |
+| **今日简报** | `/date/[today]` | **Dynamic** | Data ISR   | 路由未包含在 Static Params 中，On-Demand 渲染。`noStore()` 确保页面结构实时，但数据由 `unstable_cache` (3600s) 缓存。 |
+| **首页**     | `/`             | **Dynamic** | -          | 重定向。                                                                                                              |
 
 ### 关键配置
 
 ```typescript
 // app/date/[date]/page.tsx
-export const revalidate = 3600; // 显式启用 ISR，兼容 Server Component 中的 noStore()
+// 移除 export const revalidate = 3600;
+// 依赖 unstable_cache (数据层) 和 generateStaticParams (路径层)
 ```
 
 ### 优势
 
-- **极速访问**: 绝大多数用户访问的是 CDN 上的静态缓存。
-- **动态兼容**: 解决了 `DYNAMIC_SERVER_USAGE` 报错，同时保留了在同一套代码中处理“静态历史”和“动态今日”的能力。
+- **稳定性**: 彻底消除 `DYNAMIC_SERVER_USAGE` 报错。
+- **混合缓存**:
+  - **History**: 纯静态 HTML (SSG)，极致 TTFB。
+  - **Today**: 动态 HTML (Dynamic Rendering)，但数据查询仅每小时一次 (Data ISR)，保护数据库。
 
 ## 5. 性能优化 (Performance)
 
