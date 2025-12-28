@@ -87,11 +87,15 @@ export async function mockFullApp(page: Page) {
           body: JSON.stringify({ ['2025-01-01']: true }), // Ensure some status exists
         });
       }
-      if (pathname === '/api/auth/check') {
+      if (pathname === '/api/auth/status') {
+        const headers = route.request().headers();
+        const cookie = headers['cookie'] || '';
+        const isAdmin = cookie.includes('site_token=test-admin-token');
+
         return route.fulfill({
           status: 200,
           contentType: 'application/json',
-          body: JSON.stringify({ isAdmin: true }),
+          body: JSON.stringify({ isAdmin }),
         });
       }
       if (pathname === '/api/articles/search') {

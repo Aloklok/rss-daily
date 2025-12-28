@@ -13,7 +13,7 @@ import { BRIEFING_IMAGE_WIDTH, BRIEFING_IMAGE_HEIGHT } from '@/lib/constants';
 import { toShortId } from '@/utils/idHelpers';
 
 // For "Today", we will use noStore() to opt out of caching.
-// export const revalidate = 604800; // Removed to prevent DYNAMIC_SERVER_USAGE error
+export const revalidate = 3600;
 
 export async function generateStaticParams() {
   const dates = await fetchAvailableDates();
