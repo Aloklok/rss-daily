@@ -1,5 +1,8 @@
 import { useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useArticleStore } from '../store/articleStore';
+import { Article, CleanArticleContent } from '../types';
+import { getCleanArticleContent } from '../services/articleLoader';
 
 export const useArticleContent = (
   article: Article,
