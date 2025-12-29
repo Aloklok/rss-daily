@@ -205,10 +205,26 @@ const Briefing: React.FC<BriefingProps> = ({
   // const activeFilter = useUIStore(state => state.activeFilter); // No longer needed for date logic
 
   // 2. 【新增】内部生成 reports
+  // 关键: 优先使用 props 中的 articles (来自 SSR,已合并 initialArticleStates)
+  // 然后用 Store 中的 tags 覆盖 (用于响应用户交互后的状态更新)
   const reports: BriefingReport[] = useMemo(() => {
     if (!articleIds || articleIds.length === 0) return [];
     const articlesForReport = articleIds
-      .map((id) => articlesById[String(id)] || articles?.find((a) => String(a.id) === String(id)))
+      .map((id) => {
+        // 优先从 props 查找 (SSR 数据,包含正确的初始状态)
+        const propsArticle = articles?.find((a) => String(a.id) === String(id));
+        const storeArticle = articlesById[String(id)];
+
+        if (propsArticle) {
+          // 如果 Store 有更新的状态,使用 Store 的 tags 覆盖
+          if (storeArticle?.tags) {
+            return { ...propsArticle, tags: storeArticle.tags };
+          }
+          return propsArticle;
+        }
+        // Fallback 到 Store (用于动态加载的文章)
+        return storeArticle;
+      })
       .filter(Boolean) as Article[];
     const groupedArticles = articlesForReport.reduce((acc, article) => {
       let group = article.briefingSection || BRIEFING_SECTIONS.REGULAR;

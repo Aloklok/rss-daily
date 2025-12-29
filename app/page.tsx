@@ -20,20 +20,24 @@ async function getLatestBriefingData() {
       articles: [],
       headerImageUrl: undefined,
       dates: [],
-      initialArticleStates: {},
     };
 
   const groupedArticles = await fetchBriefingData(initialDate);
-  const articles = Object.values(groupedArticles).flat();
+  let articles = Object.values(groupedArticles).flat();
   const headerImageUrl = await resolveBriefingImage(initialDate);
 
-  // Prefetch Article States (Read/Star)
-  const { fetchArticleStatesServer } = await import('@/lib/server/dataFetcher');
-  const initialArticleStates =
-    articles.length > 0 ? await fetchArticleStatesServer(articles.map((a) => a.id)) : {};
+  // Server-Side State Merging: Directly merge states into articles for zero-flicker first paint
+  if (articles.length > 0) {
+    const { fetchArticleStatesServer } = await import('@/lib/server/dataFetcher');
+    const states = await fetchArticleStatesServer(articles.map((a) => a.id));
+    articles = articles.map((article) => ({
+      ...article,
+      tags: states[article.id] || article.tags || [],
+    }));
+  }
 
   // Return dates as well so we can build the archive schema
-  return { initialDate, articles, headerImageUrl, dates, initialArticleStates };
+  return { initialDate, articles, headerImageUrl, dates };
 }
 
 export async function generateMetadata({
@@ -203,29 +207,34 @@ export default async function Home(props: {
 
   if (filterType && filterValue) {
     // Category / Tag / Search View
-    const { articles, continuation } = await fetchFilteredArticlesSSR(filterValue, 20, true);
+    const result = await fetchFilteredArticlesSSR(filterValue, 20, true);
+    let articles = result.articles;
+    const continuation = result.continuation;
 
-    // Server-Side State Fetching for Article States (Category/Tag)
-    const { fetchArticleStatesServer } = await import('@/lib/server/dataFetcher');
-    const states =
-      articles.length > 0 ? await fetchArticleStatesServer(articles.map((a) => a.id)) : {};
+    // Server-Side State Merging for Article States (Category/Tag)
+    // Directly merge states into articles for zero-flicker first paint
+    if (articles.length > 0) {
+      const { fetchArticleStatesServer } = await import('@/lib/server/dataFetcher');
+      const states = await fetchArticleStatesServer(articles.map((a) => a.id));
+      articles = articles.map((article) => ({
+        ...article,
+        tags: states[article.id] || article.tags || [],
+      }));
+    }
 
     initialData = {
       initialArticles: articles,
       initialContinuation: continuation,
-      initialArticleStates: states,
     };
     initialFilter = { type: filterType as any, value: filterValue };
   } else {
     // Default Briefing View
-    const { initialDate, articles, headerImageUrl, initialArticleStates } =
-      await getLatestBriefingData();
+    const { initialDate, articles, headerImageUrl } = await getLatestBriefingData();
     initialData = {
       initialDate,
       initialHeaderImageUrl: headerImageUrl,
       initialArticles: articles,
       initialContinuation: null,
-      initialArticleStates,
     };
     // If initialDate exists, activeFilter should be 'date'
     if (initialDate) {
@@ -276,7 +285,6 @@ export default async function Home(props: {
         initialDate={initialData.initialDate}
         initialHeaderImageUrl={initialData.initialHeaderImageUrl}
         initialArticles={initialData.initialArticles}
-        initialArticleStates={initialData.initialArticleStates}
         // New Props
         initialActiveFilter={initialFilter}
         initialContinuation={initialData.initialContinuation}

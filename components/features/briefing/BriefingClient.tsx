@@ -18,7 +18,6 @@ interface BriefingClientProps {
   isToday: boolean;
   prevDate?: string | null;
   nextDate?: string | null;
-  initialArticleStates?: { [key: string]: string[] };
 }
 
 export default function BriefingClient({
@@ -28,7 +27,6 @@ export default function BriefingClient({
   isToday,
   prevDate,
   nextDate,
-  initialArticleStates,
 }: BriefingClientProps): React.ReactElement {
   const articlesById = useArticleStore((state) => state.articlesById);
 
@@ -64,8 +62,8 @@ export default function BriefingClient({
     await updateArticleState({ articleId, tagsToAdd, tagsToRemove });
   };
 
-  // Hydrate store and sync states in background
-  useArticleStateHydration(articles, initialArticleStates, date);
+  // Hydrate store with SSR articles (states already merged in SSR)
+  useArticleStateHydration(articles, undefined, date);
 
   // Sync React Query cache with server-fetched IDs.
   useEffect(() => {
@@ -152,8 +150,9 @@ export default function BriefingClient({
       verdictFilter={verdictFilter}
       onVerdictFilterChange={setVerdictFilter}
       articleCount={articleIds.length}
-      // Only show loading if we are fetching AND we have no articles to show.
-      isLoading={isLoading}
+      // Only show loading if we are fetching AND we have no SSR articles to show.
+      // This prevents Hydration Mismatch - SSR always has articles, so isLoading should be false.
+      isLoading={isLoading && articles.length === 0}
       articles={articles}
       isToday={isToday}
       prevDate={prevDate}

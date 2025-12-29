@@ -29,7 +29,6 @@ interface MainContentClientProps {
   initialContinuation?: string | null;
   isHomepage?: boolean; // New prop
   initialTimeSlot?: TimeSlot | null;
-  initialArticleStates?: { [key: string]: string[] };
 }
 
 export default function MainContentClient({
@@ -40,7 +39,6 @@ export default function MainContentClient({
   initialContinuation,
   isHomepage = false, // Default to false
   initialTimeSlot,
-  initialArticleStates,
 }: MainContentClientProps) {
   const storeActiveFilter = useUIStore((state) => state.activeFilter);
   // Use initial props for SSR/Hydration if store is empty
@@ -93,7 +91,8 @@ export default function MainContentClient({
     activeFilter?.type === 'date' ? activeFilter.value : activeFilter ? null : initialDate || today;
 
   // Hydrate store and sync states in background
-  useArticleStateHydration(initialArticles, initialArticleStates, dateToUse || undefined);
+  // Hydrate store with SSR articles (states already merged in SSR)
+  useArticleStateHydration(initialArticles, undefined, dateToUse || undefined);
 
   // Sync React Query cache with server-fetched IDs
   useEffect(() => {
@@ -278,12 +277,12 @@ export default function MainContentClient({
         verdictFilter={verdictFilter}
         onVerdictFilterChange={setVerdictFilter}
         articleCount={filteredBriefingArticleIds.length}
-        // Only show loading if we really have no content AND are fetching (and client is mounted)
-        // This prevents infinite spinner in No-JS if SSR failed
+        // Only show loading if we really have no content AND are fetching
+        // Since SSR always provides initialArticles, this should be false on first render
         isLoading={
           filteredBriefingArticleIds.length === 0 &&
           isBriefingLoading &&
-          typeof window !== 'undefined'
+          initialArticles.length === 0
         }
         articles={initialArticles} // Pass initial objects for fallback lookup
         isToday={dateToUse === today}

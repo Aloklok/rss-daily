@@ -227,7 +227,7 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
   const groupedArticles = await fetchBriefingData(date);
 
   // Flatten articles for BriefingClient
-  const allArticles = Object.values(groupedArticles).flat();
+  let allArticles = Object.values(groupedArticles).flat();
 
   // Prefetch header image
   const headerImageUrl = await resolveBriefingImage(date);
@@ -235,15 +235,20 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
   // Consistent High Density Description
   const description = generateHighDensityDescription(date, allArticles);
 
-  // [Optimization] Server-Side State Fetching for Article States
-  // We fetch user states (Read/Star) here for ALL dates (History & Today)
-  // to avoid the initial "all unread" flash and subsequent slow client-side fetch.
-  let initialArticleStates: { [key: string]: string[] } | undefined;
+  // [Optimization] Server-Side State Merging for Article States
+  // Since /date/[date] cache is invalidated on every user action (revalidate-date),
+  // we can directly merge states into articles for zero-flicker first paint.
+  // This is different from /article/[id] which needs to keep content cache separate from user state.
   if (allArticles.length > 0) {
-    // Fetch state if we have articles to check
     const { fetchArticleStatesServer } = await import('@/lib/server/dataFetcher');
     const articleIds = allArticles.map((a) => a.id);
-    initialArticleStates = await fetchArticleStatesServer(articleIds);
+    const articleStates = await fetchArticleStatesServer(articleIds);
+
+    // Merge states directly into articles
+    allArticles = allArticles.map((article) => ({
+      ...article,
+      tags: articleStates[article.id] || article.tags || [],
+    }));
   }
 
   const jsonLd = {
@@ -295,7 +300,6 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
         isToday={date === today}
         prevDate={prevDate}
         nextDate={nextDate}
-        initialArticleStates={initialArticleStates}
       />
     </>
   );

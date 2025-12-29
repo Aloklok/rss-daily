@@ -1,7 +1,5 @@
-'use client';
-
-import { useArticleMetadata } from '../../../hooks/useArticleMetadata';
 import { Article } from '../../../types';
+import { STAR_TAG } from '../../../constants';
 
 export default function ArticleTitleStar({
   article,
@@ -10,11 +8,8 @@ export default function ArticleTitleStar({
   article: Article;
   className?: string;
 }) {
-  const { isStarred } = useArticleMetadata(article);
-
-  // Use a mounted check to avoid hydration mismatch if needed,
-  // but usually useArticleMetadata should be consistent if store is hydrated.
-  // For now, we assume it's fine or we accept a small flicker.
+  // 直接从 article.tags 判断,支持 SSR 渲染
+  const isStarred = article?.tags?.includes(STAR_TAG) ?? false;
 
   if (!isStarred) return null;
   return (
