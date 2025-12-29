@@ -7,14 +7,12 @@ export const useArticleContent = (
   initialData?: CleanArticleContent | null,
   options?: { enabled?: boolean },
 ) => {
-  const query = useQuery({
+  return useQuery({
     queryKey: ['article', 'content', article.id],
-    queryFn: () => getCleanArticleContent(article, { includeState: true }),
+    queryFn: () => getCleanArticleContent(article),
     enabled: options?.enabled !== false && !!article.id,
     initialData: initialData || undefined,
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
   });
-
-  return query;
 };
