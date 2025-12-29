@@ -98,7 +98,10 @@ bu# 架构与技术栈详情 (Architecture & Stack)
   - 组件懒加载 (`next/dynamic`)。
 - **超时熔断**: 数据库查询内置 10s 超时保护。
 - **错误边界**: 页面级错误捕获和友好 UI。
-- **图片优化**: 全面采用 `next/image` 和 Supabase Storage 旁路缓存策略。
+- **图片优化 (Image Strategy)**:
+  - **自适应代理 (Adaptive Proxy)**: 放弃昂贵的 Next.js Image Optimization，转而使用 **Weserv.nl** (Cloudflare-based) 免费图片服务。
+  - **实现逻辑**: 在 `serverSanitize.ts` 中拦截所有 `<img>` 标签，重写 `src` 指向 Weserv 代理，并追加 `w=800&output=webp&q=75` 参数，实现 WebP 自动压缩、防盗链绕过和 CDN 加速。
+  - **性能**: 强制 `loading="lazy"`，LCP 提升显著。
 
 ## 6. 权限验证 (Authentication)
 
