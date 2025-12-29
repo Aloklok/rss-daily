@@ -19,6 +19,7 @@ import { Filter, Article, TimeSlot } from '../../types';
 import { getArticleTimeSlot } from '@/utils/dateUtils';
 
 import { useQueryClient } from '@tanstack/react-query';
+import { useArticleStateHydration } from '../../hooks/useArticleStateHydration';
 
 interface MainContentClientProps {
   initialDate?: string;
@@ -28,6 +29,7 @@ interface MainContentClientProps {
   initialContinuation?: string | null;
   isHomepage?: boolean; // New prop
   initialTimeSlot?: TimeSlot | null;
+  initialArticleStates?: { [key: string]: string[] };
 }
 
 export default function MainContentClient({
@@ -38,6 +40,7 @@ export default function MainContentClient({
   initialContinuation,
   isHomepage = false, // Default to false
   initialTimeSlot,
+  initialArticleStates,
 }: MainContentClientProps) {
   const storeActiveFilter = useUIStore((state) => state.activeFilter);
   // Use initial props for SSR/Hydration if store is empty
@@ -58,7 +61,6 @@ export default function MainContentClient({
 
   const setTimeSlot = useUIStore((state) => state.setTimeSlot);
   const articlesById = useArticleStore((state) => state.articlesById);
-  const addArticles = useArticleStore((state) => state.addArticles);
 
   const openModal = useUIStore((state) => state.openModal);
 
@@ -90,13 +92,13 @@ export default function MainContentClient({
   const dateToUse =
     activeFilter?.type === 'date' ? activeFilter.value : activeFilter ? null : initialDate || today;
 
-  // Hydrate store with server-fetched articles (SSR -> Client Handover)
+  // Hydrate store and sync states in background
+  useArticleStateHydration(initialArticles, initialArticleStates, dateToUse || undefined);
+
+  // Sync React Query cache with server-fetched IDs
   useEffect(() => {
     if (initialArticles.length > 0) {
-      // 1. Update Zustand (Detailed objects)
-      addArticles(initialArticles);
-
-      // 2. Update React Query Cache (ID List)
+      // Update React Query Cache (ID List)
       if (activeFilter?.type === 'date' && dateToUse) {
         // ALWAYS hydrate the 'all' key
         queryClient.setQueryData(
@@ -110,26 +112,18 @@ export default function MainContentClient({
           slots.forEach((slot) => {
             const filteredIds = initialArticles
               .filter((a) => {
-                // Use n8n_processing_date for consistent slot grouping
                 const timeSlotValue = getArticleTimeSlot(a.n8n_processing_date || a.published);
                 return timeSlotValue === slot;
               })
               .map((a) => a.id);
 
-            // Only populate cache if there is content.
-            // If empty, we leave it empty so React Query triggers a fetch on-click (User Requirement)
             if (filteredIds.length > 0) {
               queryClient.setQueryData(['briefing', dateToUse, slot], filteredIds);
             }
           });
         }
       } else if (activeFilter?.type === 'category' || activeFilter?.type === 'tag') {
-        // Pre-populate useFilteredArticles cache?
-        // React Query key needed.
-        // Key: ['filteredArticles', filterValue]
         if (activeFilter.value) {
-          // We need to match the structure expected by useFilteredArticles
-          // It expects InfiniteData<{ articles: number[], continuation: string | null }>
           queryClient.setQueryData(['filteredArticles', activeFilter.value], {
             pages: [
               {
@@ -142,7 +136,7 @@ export default function MainContentClient({
         }
       }
     }
-  }, [initialArticles, addArticles, queryClient, dateToUse, activeFilter, initialContinuation]);
+  }, [initialArticles, queryClient, dateToUse, activeFilter, initialContinuation, isHomepage]);
 
   // Memoize initial IDs for hook
   const initialArticleIds = useMemo(() => initialArticles.map((a) => a.id), [initialArticles]);

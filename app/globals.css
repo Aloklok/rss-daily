@@ -204,6 +204,8 @@
   max-height: none;
   /* Override default max-height if set */
   overflow-y: visible;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .prose pre code {
@@ -246,6 +248,9 @@
   font-size: 0.95em;
   background-color: transparent;
   padding-left: 1rem;
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .prose thead {
@@ -314,7 +319,8 @@
   display: block;
 }
 
-.prose video {
+.prose video,
+.prose iframe {
   max-width: 100%;
   height: auto;
 }

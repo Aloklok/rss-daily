@@ -7,7 +7,7 @@ import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default tseslint.config(
   {
-    ignores: ['.next/**', 'node_modules/**', '.vercel/**', 'public/**'],
+    ignores: ['.next/**', 'node_modules/**', '.vercel/**', 'public/**', 'types/**', 'html/**'],
   },
   {
     files: ['**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],

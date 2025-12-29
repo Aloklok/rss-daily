@@ -44,7 +44,12 @@
 
 1. **获取 (Fetching)**: React Query (`useArticles.ts`) 从 API 获取数据。
 2. **填充 (Hydration)**: 组件调用 `addArticles(articles)` 将数据填充到 `articlesById`。
-3. **乐观更新 (Optimistic Updates)**:
+3. **同步与修正 (Synchronization)**:
+   - **服务端状态预取**: 在 SSR 阶段获取 `initialArticleStates` 并注入。
+   - **三级状态同步 Hook (`useArticleStateHydration`)**:
+     - 负责将预取的 Read/Star 状态合并并分发至 Zustand Store。
+     - **自愈机制**: 后台异步对比 FreshRSS 实时状态，若发现静态缓存过时，自动修正 UI 并触发服务端 `revalidate-date` 接口刷新缓存。
+4. **乐观更新 (Optimistic Updates)**:
    - `updateArticle`: 在 API 确认之前，立即更新本地文章状态 (例如: 标记已读)。
    - `calculateNewAvailableTags`: 一个纯函数工具，当文章标签变化时，动态重新计算标签计数。
 

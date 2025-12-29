@@ -131,7 +131,7 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({
         <ArticleModalHeader viewMode={viewMode} setViewMode={setViewMode} onClose={onClose} />
 
         {/* Content Body */}
-        <div className="dark:bg-midnight-bg grow overflow-y-auto bg-neutral-50">
+        <div className="dark:bg-midnight-bg grow overflow-x-hidden overflow-y-auto bg-neutral-50">
           {viewMode === 'briefing' ? (
             <ArticleBriefingView
               article={article}

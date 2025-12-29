@@ -50,7 +50,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
   const displayContent = content && content.content;
 
   return (
-    <div className="p-2 md:p-8">
+    <div className="overflow-x-hidden p-2 md:p-8">
       <article>
         <header className="mb-3 border-b border-gray-200 pb-3 md:mb-6 md:pb-6 dark:border-stone-700">
           <h1 className="dark:text-midnight-text-reader mb-2 font-serif text-3xl font-bold text-gray-900 md:text-4xl">

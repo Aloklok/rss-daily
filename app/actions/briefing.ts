@@ -100,9 +100,25 @@ export async function generateBriefingAction(article: Article, clientContent?: s
       throw updateError;
     }
 
-    // 4. Revalidate
+    // 4. Smart Revalidate
+    // Clear Article Detail
     revalidatePath(`/article/${article.id}`);
-    revalidatePath('/');
+
+    // Clear Date Page (Granular)
+    const date = (article.n8n_processing_date || article.published || '').split('T')[0];
+    if (date) {
+      const { revalidateTag } = await import('next/cache');
+      revalidateTag(`briefing-data-${date}`, 'max');
+      revalidatePath(`/date/${date}`);
+
+      // Clear Homepage if it's today
+      const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai' }).format(
+        new Date(),
+      );
+      if (date === today) {
+        revalidatePath('/');
+      }
+    }
 
     return {
       success: true,

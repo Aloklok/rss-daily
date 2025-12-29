@@ -55,3 +55,29 @@ API 路由按照业务领域进行组织：
 | `select * from articles` (获取日期) | `rpc('get_unique_dates')` | 查询时间从 500ms -> 10ms，且数据实时。  |
 | 每次请求都拉取 FreshRSS Tags        | `unstable_cache` (1h)     | 消除 FreshRSS API 抖动影响，提升 TTFB。 |
 | Store 监听所有文章更新              | `StreamListItem` 独立订阅 | 列表渲染性能大幅提升，消除无意义重绘。  |
+
+## 4. 智能缓存碎冰 (Smart Revalidation)
+
+为了保证简报数据的实时性并最大程度降低后端 FreshRSS 压力，系统实现了“精准碎冰”策略：
+
+### A. 全自动化 Webhook 刷新
+
+- **端点**: `POST /api/system/revalidate`
+- **逻辑**: 当 n8n 推送新文章到 Supabase 时，Webhook 会自动触发此接口。
+- **智能特性**:
+  - **自动日期检测**: API 会自动从 Webhook 的 Body 中提取文章日期，并**仅刷新该日期**对应的页面。
+  - **自动防抖**: 内置 10 秒刷新频率限制，即使 n8n 逐行推送，服务器也只会对 FreshRSS 发起一次对账请求。
+
+### B. 按需手动刷新 (Targeted Date)
+
+- **端点**: `POST /api/system/revalidate-date`
+- **用途**: 当用户点击“重新生成简报”或通过 Hook 修改文章状态（已读/收藏）时调用。
+
+### C. 缓存标签规范
+
+- `briefing-data-YYYY-MM-DD`: 对应日期的专属数据标签。
+
+---
+
+> [!NOTE]
+> 关于**三级状态同步**与**缓存自愈**的宏观架构，请参阅 [ARCHITECTURE.md](./ARCHITECTURE.md)；关于具体的数据流实现，请参阅 [STORE.md](./STORE.md)。

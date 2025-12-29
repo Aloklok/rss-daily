@@ -15,14 +15,25 @@ async function getLatestBriefingData() {
   const initialDate = dates.length > 0 ? dates[0] : undefined;
 
   if (!initialDate)
-    return { initialDate: undefined, articles: [], headerImageUrl: undefined, dates: [] };
+    return {
+      initialDate: undefined,
+      articles: [],
+      headerImageUrl: undefined,
+      dates: [],
+      initialArticleStates: {},
+    };
 
   const groupedArticles = await fetchBriefingData(initialDate);
   const articles = Object.values(groupedArticles).flat();
   const headerImageUrl = await resolveBriefingImage(initialDate);
 
+  // Prefetch Article States (Read/Star)
+  const { fetchArticleStatesServer } = await import('@/lib/server/dataFetcher');
+  const initialArticleStates =
+    articles.length > 0 ? await fetchArticleStatesServer(articles.map((a) => a.id)) : {};
+
   // Return dates as well so we can build the archive schema
-  return { initialDate, articles, headerImageUrl, dates };
+  return { initialDate, articles, headerImageUrl, dates, initialArticleStates };
 }
 
 export async function generateMetadata({
@@ -193,22 +204,28 @@ export default async function Home(props: {
   if (filterType && filterValue) {
     // Category / Tag / Search View
     const { articles, continuation } = await fetchFilteredArticlesSSR(filterValue, 20, true);
+
+    // Server-Side State Fetching for Article States (Category/Tag)
+    const { fetchArticleStatesServer } = await import('@/lib/server/dataFetcher');
+    const states =
+      articles.length > 0 ? await fetchArticleStatesServer(articles.map((a) => a.id)) : {};
+
     initialData = {
       initialArticles: articles,
       initialContinuation: continuation,
+      initialArticleStates: states,
     };
     initialFilter = { type: filterType as any, value: filterValue };
-
-    // Use empty dates or fetch distinct dates if needed for UI? MainContentClient handles dates via Sidebar.
-    // Sidebar dates are fetched in MainLayout -> SidebarClient.
   } else {
     // Default Briefing View
-    const { initialDate, articles, headerImageUrl } = await getLatestBriefingData();
+    const { initialDate, articles, headerImageUrl, initialArticleStates } =
+      await getLatestBriefingData();
     initialData = {
       initialDate,
       initialHeaderImageUrl: headerImageUrl,
       initialArticles: articles,
       initialContinuation: null,
+      initialArticleStates,
     };
     // If initialDate exists, activeFilter should be 'date'
     if (initialDate) {
@@ -259,6 +276,7 @@ export default async function Home(props: {
         initialDate={initialData.initialDate}
         initialHeaderImageUrl={initialData.initialHeaderImageUrl}
         initialArticles={initialData.initialArticles}
+        initialArticleStates={initialData.initialArticleStates}
         // New Props
         initialActiveFilter={initialFilter}
         initialContinuation={initialData.initialContinuation}

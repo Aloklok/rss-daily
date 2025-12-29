@@ -1,0 +1,8 @@
+# Ignore types directory
+types/
+.next/
+node_modules/
+.vercel/
+public/
+dist/
+coverage/

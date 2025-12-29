@@ -12,18 +12,19 @@ import { BRIEFING_IMAGE_WIDTH, BRIEFING_IMAGE_HEIGHT } from '@/lib/constants';
 import { toShortId } from '@/utils/idHelpers';
 
 // UNIFIED ISR STRATEGY:
-// All pages (History & Today) are cached for 24 hours (86400s).
-// Real-time updates are handled by the Supabase Webhook invalidating the 'briefing-data' tag.
-export const revalidate = 86400;
+// All pages (History & Today) are cached for 7 days (604800s).
+// Real-time updates are handled by the Supabase Webhook/API invalidating the 'briefing-data' tag.
+export const revalidate = 604800;
 
 export async function generateStaticParams() {
   const dates = await fetchAvailableDates();
   const today = getTodayInShanghai();
 
-  // Exclude today from build-time generation to avoid baking in "incomplete" morning data.
-  // It will be generated On-Demand (ISR) when first visited.
+  // [Optimization] Only pre-generate the last 7 days to reduce build-time pressure.
+  // Historical dates will be generated On-Demand (ISR) when first visited.
   return dates
     .filter((date) => date !== today)
+    .slice(0, 7) // Only take top 7 most recent
     .map((date) => ({
       date: date,
     }));
@@ -234,13 +235,12 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
   // Consistent High Density Description
   const description = generateHighDensityDescription(date, allArticles);
 
-  // [Optimization] Server-Side State Fetching for "Today"
-  // Since "Today" is rendered dynamically (SSR), we can fetch user states (Read/Star) here
+  // [Optimization] Server-Side State Fetching for Article States
+  // We fetch user states (Read/Star) here for ALL dates (History & Today)
   // to avoid the initial "all unread" flash and subsequent slow client-side fetch.
   let initialArticleStates: { [key: string]: string[] } | undefined;
-  if (date === today && allArticles.length > 0) {
-    // Only fetch if we have articles to check
-    // Dynamic import to avoid circular dependencies if any, though here it is fine.
+  if (allArticles.length > 0) {
+    // Fetch state if we have articles to check
     const { fetchArticleStatesServer } = await import('@/lib/server/dataFetcher');
     const articleIds = allArticles.map((a) => a.id);
     initialArticleStates = await fetchArticleStatesServer(articleIds);

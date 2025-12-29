@@ -59,6 +59,10 @@ export const useArticleActions = () => {
   };
 
   const handleMarkAllClick = (articleIdsInView: (string | number)[]) => {
+    // Determine the current date context from active filter
+    const activeFilter = useUIStore.getState().activeFilter;
+    const currentDate = activeFilter?.type === 'date' ? activeFilter.value : undefined;
+
     // 过滤出未读的文章 ID
     const unreadIds = articleIdsInView.filter((id) => {
       const article = articlesById[id];
@@ -66,7 +70,7 @@ export const useArticleActions = () => {
     });
 
     if (unreadIds.length > 0) {
-      markAllAsRead(unreadIds);
+      markAllAsRead({ articleIds: unreadIds, date: currentDate });
     } else {
       showToast('没有需要标记的未读文章', 'info');
     }

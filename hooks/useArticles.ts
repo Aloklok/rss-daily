@@ -218,12 +218,20 @@ export const useUpdateArticleState = () => {
       }
 
       // 【Active Revalidation】
-      // When tags change, immediately trigger revalidation for those tag streams.
-      // This ensures SEO pages are fresh without waiting for ISR cycle.
+      // A. Target the specific Article Date for granular data/page refresh
+      const dateStr = updatedArticle.n8n_processing_date || updatedArticle.published;
+      if (dateStr) {
+        const date = dateStr.split('T')[0];
+        fetch('/api/system/revalidate-date', {
+          method: 'POST',
+          body: JSON.stringify({ date }),
+        }).catch((err) => console.warn(`[Revalidate] Failed for date: ${date}`, err));
+      }
+
+      // B. Keep tag-based revalidation for SEO/Aggregator pages
       const touchedTags = new Set([...variables.tagsToAdd, ...variables.tagsToRemove]);
       touchedTags.forEach((tag) => {
-        // Don't block UI updates, fire and forget
-        fetch(`/ api / revalidate ? tag = ${encodeURIComponent(tag)} `).catch((err) =>
+        fetch(`/api/system/revalidate?tag=${encodeURIComponent(tag)}`).catch((err) =>
           console.warn(`[Revalidate] Failed to trigger for ${tag}`, err),
         );
       });
@@ -247,13 +255,23 @@ export const useMarkAllAsRead = () => {
   const showToast = useToastStore((state) => state.showToast);
 
   return useMutation({
-    mutationFn: apiMarkAllAsRead,
-    onSuccess: (markedIds) => {
+    mutationFn: (variables: { articleIds: (string | number)[]; date?: string }) =>
+      apiMarkAllAsRead(variables.articleIds).then((ids) => ({ ids, date: variables.date })),
+    onSuccess: (result) => {
       // markedIds 是从 apiMarkAllAsRead 成功返回的 ID 列表
+      const markedIds = result.ids;
       if (!markedIds || markedIds.length === 0) return;
-      // 用一次调用替代整个 forEach 循环
+
       markArticlesAsRead(markedIds);
       showToast(`已将 ${markedIds.length} 篇文章设为已读`, 'success');
+
+      // Targeted Revalidation for the specific date
+      if (result.date) {
+        fetch('/api/system/revalidate-date', {
+          method: 'POST',
+          body: JSON.stringify({ date: result.date }),
+        }).catch((err) => console.warn(`[Revalidate] Failed for date: ${result.date}`, err));
+      }
     },
     onError: (err) => {
       console.error('Failed to mark as read:', err);

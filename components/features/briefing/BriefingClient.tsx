@@ -8,7 +8,8 @@ import { useArticleStore } from '../../../store/articleStore';
 import { useUIStore } from '../../../store/uiStore';
 import { useUpdateArticleState, useBriefingArticles } from '../../../hooks/useArticles';
 import { getArticleTimeSlot } from '../../../utils/dateUtils';
-import { getArticleStates } from '../../../services/clientApi';
+
+import { useArticleStateHydration } from '../../../hooks/useArticleStateHydration';
 
 interface BriefingClientProps {
   articles: Article[];
@@ -29,7 +30,6 @@ export default function BriefingClient({
   nextDate,
   initialArticleStates,
 }: BriefingClientProps): React.ReactElement {
-  const addArticles = useArticleStore((state) => state.addArticles);
   const articlesById = useArticleStore((state) => state.articlesById);
 
   console.log(
@@ -54,6 +54,7 @@ export default function BriefingClient({
   const openModal = useUIStore((state) => state.openModal);
 
   const { mutateAsync: updateArticleState } = useUpdateArticleState();
+  const queryClient = useQueryClient();
 
   const handleStateChange = async (
     articleId: string | number,
@@ -63,84 +64,18 @@ export default function BriefingClient({
     await updateArticleState({ articleId, tagsToAdd, tagsToRemove });
   };
 
-  // Hydrate store with server-fetched articles
-  // AND sync React Query cache with server-fetched IDs.
-  const queryClient = useQueryClient();
+  // Hydrate store and sync states in background
+  useArticleStateHydration(articles, initialArticleStates, date);
+
+  // Sync React Query cache with server-fetched IDs.
   useEffect(() => {
     if (articles.length > 0) {
-      // 1. Prepare Articles with Tags (Merge initialStates if available)
-      // This is crucial for fixing the "Ghost Unread" issue and "Slow Loading" of read states
-      const mergedArticles = articles.map((a) => {
-        // If we have initial states (Server-Side), use them.
-        if (initialArticleStates && initialArticleStates[a.id]) {
-          return { ...a, tags: initialArticleStates[a.id] };
-        }
-        return a;
-      });
-
-      // 2. Update Zustand (Detailed objects)
-      addArticles(mergedArticles);
-
-      // 3. Update React Query Cache (ID List)
       queryClient.setQueryData(
         ['briefing', date, 'all'],
         articles.map((a) => a.id),
       );
-
-      // 4. Client-Side Hydration (If Server-Side data was missing or only partial)
-      // Only run client-side fetch if we didn't get initial states (e.g. cached ISR page)
-      if (!initialArticleStates || Object.keys(initialArticleStates).length === 0) {
-        // Optimization:
-        // 1. Increase Batch Size to 50 (Reasonable for HTTP/2 and FreshRSS API)
-        // 2. Limit Concurrency to 3 (Prevent browser network congestion)
-        const BATCH_SIZE = 50;
-        const MAX_CONCURRENT = 3;
-        const allIds = articles.map((a) => a.id);
-
-        const fetchBatch = async (ids: (string | number)[]) => {
-          try {
-            const states = await getArticleStates(ids);
-            const articlesWithTags = ids
-              .map((id) => {
-                const article = articles.find((a) => a.id === id);
-                return article ? { ...article, tags: states[id] || [] } : undefined;
-              })
-              .filter(Boolean) as Article[];
-
-            if (articlesWithTags.length > 0) {
-              addArticles(articlesWithTags);
-            }
-          } catch (err) {
-            console.error('Failed to hydrate article states batch:', err);
-          }
-        };
-
-        // Queue-based Concurrency execution
-        const processBatches = async () => {
-          const chunks = [];
-          for (let i = 0; i < allIds.length; i += BATCH_SIZE) {
-            chunks.push(allIds.slice(i, i + BATCH_SIZE));
-          }
-
-          const executing: Promise<void>[] = [];
-          for (const chunk of chunks) {
-            const p = fetchBatch(chunk).then(() => {
-              // Remove self from executing list
-              executing.splice(executing.indexOf(p), 1);
-            });
-            executing.push(p);
-
-            if (executing.length >= MAX_CONCURRENT) {
-              await Promise.race(executing);
-            }
-          }
-          await Promise.all(executing);
-        };
-
-        processBatches();
-      }
     }
-  }, [articles, addArticles, queryClient, date, initialArticleStates]);
+  }, [articles, queryClient, date]);
 
   // Set active filter to date
   useEffect(() => {

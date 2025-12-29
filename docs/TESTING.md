@@ -63,19 +63,7 @@ npm run test:e2e
 pnpm exec playwright test e2e/tests/sidebar.spec.ts
 ```
 
-### 未来规划 (Roadmap)
-
-我们在 E2E 层面识别出了以下高价值缺口，将在后续迭代中补齐：
-
-1. 📱 **移动端深度体验**:
-   - 增加触摸手势 (Swipe) 测试。
-   - 验证虚拟键盘弹出时对搜索框的遮挡情况。
-2. ⚡️ **无限滚动 (Infinite Scroll)**:
-   - 模拟滚动到底部，验证 `/api/briefings` 分页请求及 DOM 节点追加。
-3. 🛡️ **错误状态 (Error States)**:
-   - 拦截 API 返回 500/404，验证错误提示 UI (Toast/Error Page) 及重试按钮功能。
-4. 🔍 **SEO 验证**:
-   - 抓取页面 `<head>`，验证 Canonical URL 及 JSON-LD 结构化数据是否生成正确。
+---
 
 ---
 
