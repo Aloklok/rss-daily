@@ -12,7 +12,9 @@ describe('serverSanitize (服务端 HTML 清洗)', () => {
     // sanitize-html 可能会微调输出格式（如自闭合标签），所以我们检查包含关系或标准化输出
     // 这里我们简单检查是否包含 img 标签
     expect(sanitizeHtml(input)).toContain('<img');
-    expect(sanitizeHtml(input)).toContain('src="test.jpg"');
+    // Code should now rewrite to Weserv.nl
+    expect(sanitizeHtml(input)).toContain('images.weserv.nl');
+    expect(sanitizeHtml(input)).toContain('w=800');
   });
 
   it('应保留白名单内的 <iframe> 属性', () => {
