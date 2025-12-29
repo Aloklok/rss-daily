@@ -1,0 +1,123 @@
+import { test, expect } from '@playwright/test';
+import { mockFullApp } from '../utils/mock-api';
+import { MOCK_ARTICLE } from '../mocks/data';
+
+test.describe('文章状态同步与持久化测试', () => {
+    test.beforeEach(async ({ page }) => {
+        await mockFullApp(page);
+        await page.route('**/_vercel/**', (route) => route.fulfill({ status: 200 }));
+    });
+
+    test('验证：点击收藏 -> 零冗余请求 -> 定向清除缓存 -> 刷新页面持久化', async ({ page }) => {
+        // ----------------------------------------------------------------
+        // 1. 初始加载
+        // ----------------------------------------------------------------
+        await page.goto('/');
+
+        // 找到测试文章的收藏按钮 (通用定位：由 Mock 确保有数据)
+        // 既然 Mock 保证了返回数据，我们直接取第一个 Article 即可，不再纠结于具体的文本或 ID
+        // 这样能避免因渲染细节变化导致的 flaky test
+        const articleCard = page.locator('article').first();
+        const starButton = articleCard.getByRole('button', { name: /收藏/ }).first();
+
+        // 确保页面加载完成
+        await expect(articleCard).toBeVisible({ timeout: 10000 });
+        // 确保初始未收藏
+        await expect(starButton).toHaveAttribute('aria-pressed', 'false');
+
+        // ----------------------------------------------------------------
+        // 2. 监听网络流量 (关键步骤)
+        // ----------------------------------------------------------------
+
+        // A. 监听 "收藏" API 请求 (期望发生)
+        // 我们需要验证其成功，所以应该等待 Response
+        const stateResponsePromise = page.waitForResponse(
+            (res) => res.url().includes('/api/articles/state') && res.request().method() === 'POST'
+        );
+
+        // B. 监听 "重新验证" API 请求 (期望发生，且 payload 正确)
+        // 同样，我们需要读取 postData，虽然 request 对象也有 postDataJSON，但等待 response 更稳妥
+        const revalidateRequestPromise = page.waitForRequest(
+            (req) => req.url().includes('/api/system/revalidate-date') && req.method() === 'POST'
+        );
+
+        // C. 监听 "冗余列表拉取" (期望 **不** 发生)
+        let redundantFetchDetected = false;
+        // 改进的冗余检测逻辑：
+        // 我们定义一个 "startMonitoringTime"
+        let startMonitoringTime = 0;
+        page.on('request', (req) => {
+            if (Date.now() > startMonitoringTime && req.url().includes('/api/briefings') && req.method() === 'GET') {
+                redundantFetchDetected = true;
+                console.error('[FAILURE] Detected redundant fetch:', req.url());
+            }
+        });
+
+        // ----------------------------------------------------------------
+        // 3. 执行操作：点击收藏
+        // ----------------------------------------------------------------
+        // 设置开始监控时间 (给自己 500ms 缓冲，确保之前的请求都发完了)
+        await page.waitForTimeout(1000);
+        startMonitoringTime = Date.now();
+
+        await starButton.click();
+
+        // ----------------------------------------------------------------
+        // 4. 验证：Confirmed Update (UI 立即变色)
+        // ----------------------------------------------------------------
+        // 我们的逻辑是 API 200 OK 后变色，API 响应很快，UI 应该迅速反馈
+        await expect(starButton).toHaveAttribute('aria-pressed', 'true');
+
+        // ----------------------------------------------------------------
+        // 5. 验证：后台请求正确性
+        // ----------------------------------------------------------------
+        const stateResponse = await stateResponsePromise;
+        expect(stateResponse.ok()).toBeTruthy();
+
+        const revalidateRequest = await revalidateRequestPromise;
+        const revalidateData = revalidateRequest.postDataJSON();
+
+        // 关键断言：必须精确清除当天的缓存
+        // MOCK_ARTICLE 的 n8n_processing_date 是 '2025-01-01T04:00:00+08:00'，所以应该清除 '2025-01-01'
+        expect(revalidateData).toEqual({ date: '2025-01-01' });
+
+        // ----------------------------------------------------------------
+        // 6. 验证：没有发起多余的列表请求
+        // ----------------------------------------------------------------
+        // 给一点缓冲时间让潜在的 useEffect run
+        await page.waitForTimeout(1000);
+        expect(redundantFetchDetected).toBe(false);
+
+        // ----------------------------------------------------------------
+        // 7. 验证：刷新页面后的 SSR 持久化
+        // ----------------------------------------------------------------
+        // 模拟服务端此时已经更新了数据
+        // 我们需要 override mock，让下一次 /api/briefings 返回带收藏状态的数据
+        // 注意：真实场景是 SSR HTML 变化，这里我们 Mock API 代表数据源变化
+        await page.unroute('**/api/briefings*'); // 清除旧 Mock
+        await page.route('**/api/briefings*', async (route) => {
+            // 构造一个已收藏的 Article 对象
+            const starredArticle = {
+                ...MOCK_ARTICLE,
+                tags: ['user/-/state/com.google/starred'] // 添加收藏标签
+            };
+            const jsonResponse = {
+                [MOCK_ARTICLE.briefingSection]: [starredArticle],
+                必知要闻: [],
+                常规更新: [],
+            };
+            await route.fulfill({ status: 200, json: jsonResponse });
+        });
+
+        // 刷新页面
+        await page.reload();
+
+        // 检查 UI 是否依然是高亮状态
+        const reloadedCard = page.locator(`article[data-id="${MOCK_ARTICLE.id}"]`).first();
+        const reloadedStarBtn = reloadedCard.getByLabel('取消收藏'); // 通常已收藏状态下 Label 会变，或者查 aria-pressed
+
+        // 根据具体实现，Mantine 的 ActionIcon 可能保持 label 不变，只变样式或 aria-pressed
+        // 稳健起见，再次获取按钮并查状态
+        await expect(reloadedCard.locator('button[aria-pressed="true"]')).toBeVisible();
+    });
+});

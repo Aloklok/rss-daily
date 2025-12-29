@@ -16,6 +16,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ message: 'Article content not found.' }, { status: 404 });
     }
 
+    if (body.include_state) {
+      const { fetchArticleStatesServer } = await import('@/lib/server/dataFetcher');
+      const statesMap = await fetchArticleStatesServer([id]);
+      const tags = statesMap[id] || [];
+      return NextResponse.json({ ...data, tags });
+    }
+
     return NextResponse.json(data);
   } catch (error: unknown) {
     console.error('Error in articles API:', error);

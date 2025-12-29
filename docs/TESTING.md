@@ -1,4 +1,4 @@
-# 测试指南 (Testing Guide)
+# 测试指南
 
 本项目采用 **双层测试金字塔 (Two-Layer Testing Pyramid)** 策略，结合 Vitest 和 Playwright，旨在确保从底层业务逻辑到顶层用户流程的全面稳定性。
 
@@ -11,7 +11,7 @@
 
 ---
 
-## 2. 单元测试 (Unit & Integration)
+## 2. 单元测试
 
 侧重于**高价值、高风险**的逻辑覆盖，运行速度极快。
 

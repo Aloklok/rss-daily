@@ -1,4 +1,4 @@
-bu# 架构与技术栈详情 (Architecture & Stack)
+# 架构与技术栈详情
 
 本文档详细介绍了 Briefing Hub 的技术架构、后端集成及数据模型。
 
@@ -24,7 +24,7 @@ bu# 架构与技术栈详情 (Architecture & Stack)
 
 > 详细 API 定义请查看 [types/freshrss-greader.ts](../types/freshrss-greader.ts)。
 
-### 统一数据模型 (Unified Data Model)
+### 统一数据模型
 
 前端通过**数据融合**，将上述两个数据源的信息合并成一个统一的 `Article` 对象：
 
@@ -38,11 +38,9 @@ bu# 架构与技术栈详情 (Architecture & Stack)
   - **stripTags**: 用于生成安全的 Metadata Description 和 Title，防止标签闭合攻击。
   - **sanitizeHtml**: 在数据获取层 (`fetchArticleContentServer`) 直接对 HTML 进行清洗。这不仅防止了 XSS 攻击，还显著减少了客户端 bundle 体积。
 
-## 4. 渲染策略 (Hybrid Rendering)
+## 4. 渲染策略
 
 项目采用 **ISR (Incremental Static Regeneration)** 与 **Dynamic Rendering** 混合的策略，以平衡性能与实时性。
-
-### 策略详情
 
 ### 策略详情
 
@@ -54,23 +52,31 @@ bu# 架构与技术栈详情 (Architecture & Stack)
 ### 关键配置策略
 
 - **按日期粒度缓存重验**: 摒弃全站缓存清理。利用 `unstable_cache` 的 `tags` 机制，为每一天生成唯一的标签 (如 `briefing-data-2025-12-29`)。Webhook 或 UI 触发重验时，仅清理受影响日期的缓存，确保历史数据持续命中，极大降低 FreshRSS 负载。
-- **三级状态同步机制**:
-  1.  **服务端状态预取**: 服务端预取 Read/Star 状态并注入 HTML。
-  2.  **客户端即时挂载**: 客户端挂载时立即分发至 Zustand，消除未读状态闪烁。
-  3.  **后台对账与自愈**: 自动后台对账，若发现静态缓存过时，UI 修正的同时自动调用 API 更新服务器缓存。
+- **三级状态同步机制 (Triple Synchronization)**:
+  1.  **服务端状态预取 (Pre-hydration)**:
+      - SSR 阶段并行预取 Read/Star 状态，注入 HTML 初始数据。
+      - **作用**: 保证首屏可见即有状态，消除“未读”闪烁。
+  2.  **客户端智能合并 (Smart Merging)**:
+      - Hydration 阶段采用 **Store-First (本地优先)** 策略。
+      - **逻辑**: 若本地 Store 已存在该文章（说明用户一直在交互），则**拒绝**使用服务端传来的状态（可能是滞后的 ISR/RSC 数据）覆盖本地。
+      - **作用**: 完美保护“乐观更新”。例如用户点击收藏后立刻触发后台重验，回来的旧 HTML 不会冲掉本地的“已收藏”状态，彻底解决 UI 回跳问题。
+  3.  **后台对账与自愈 (Background Revalidation)**:
+      - 利用 `requestIdleCallback` 或 `useEffect` 在后台发起低优先级请求。
+      - **优化**: 若检测到文章已具备有效用户状态（来自聚合 API 或本地 Store），**自动跳过**冗余的后台请求。
+      - **作用**: 仅在必要时（如初始加载或多端同步）修正缓存数据，节省服务器资源。
 
 > [!TIP]
 > **直白理解现在的缓存逻辑**：
-> 除非你手动操作（收藏、已读、重新生成简报）触发“刷新”，或者有新文章推送，否则在 7 天内，任何用户访问日期页面，拿到的都是**毫秒级响应的纯静态 HTML**。既保证了速度，又保证了数据的一致性。
+> 除非你手动操作（收藏、已读、重新生成简报）触发“刷新”，或者有新文章推送，否则在 7 天内，任何用户访问日期页面，拿到的都是**毫秒级响应的纯静态 HTML**。既保证了速度，又保证了数据的一致性。同时，无论后台怎么“慢半拍”，**你的每一次点击都会被本地 UI 立即确认并保护起来**，绝对不会莫名其妙地跳回去。
 
 ### 优势
 
 - **极致性能**: 所有页面均为静态缓存或预渲染 (TTFB < 50ms)。
 - **实时响应**: 依赖 Webhook 保证新文章秒级入库并同步更新。
 
-### 侧边栏数据策略 (Sidebar Data Strategy)
+### 侧边栏数据策略
 
-侧边栏采用**混合阻塞策略 (Hybrid Blocking Strategy)**，在 `RootLayout` 中并行请求：
+侧边栏采用**混合阻塞策略**，在 `RootLayout` 中并行请求：
 
 | 数据类型             | 来源         | 缓存策略 (Next.js 15)    | 说明                                                                                                           |
 | :------------------- | :----------- | :----------------------- | :------------------------------------------------------------------------------------------------------------- |
@@ -82,7 +88,7 @@ bu# 架构与技术栈详情 (Architecture & Stack)
 >
 > 目前 FreshRSS 响应极快 (<100ms)，"阻塞式实时请求"带来的首屏延迟几乎不可感知，但却换来了**SEO 完整性**（爬虫能抓到收藏链接）和**开发复杂度降低**（无需处理 Suspense 边界）。这是一种“实用主义”的选择。
 
-## 5. 性能与 UX 优化 (Performance & UX)
+## 5. 性能与 UX 优化
 
 - **消除内容闪烁 & 瞬时切换 (UX)**:
   - **全量注入**: 服务端预计算 `initialTimeSlot` 消除首屏跳变。
@@ -98,10 +104,13 @@ bu# 架构与技术栈详情 (Architecture & Stack)
   - 组件懒加载 (`next/dynamic`)。
 - **超时熔断**: 数据库查询内置 10s 超时保护。
 - **错误边界**: 页面级错误捕获和友好 UI。
-- **图片优化 (Image Strategy)**:
-  - **自适应代理 (Adaptive Proxy)**: 放弃昂贵的 Next.js Image Optimization，转而使用 **Weserv.nl** (Cloudflare-based) 免费图片服务。
+- **图片优化**:
+  - **自适应代理**: 放弃昂贵的 Next.js Image Optimization，转而使用 **Weserv.nl** (Cloudflare-based) 免费图片服务。
   - **实现逻辑**: 在 `serverSanitize.ts` 中拦截所有 `<img>` 标签，重写 `src` 指向 Weserv 代理，并追加 `w=800&output=webp&q=75` 参数，实现 WebP 自动压缩、防盗链绕过和 CDN 加速。
   - **性能**: 强制 `loading="lazy"`，LCP 提升显著。
+- **API 响应聚合**:
+  - **CSR (优化点)**: 针对客户端交互（列表页后台刷新、阅读弹窗详情），实现了 `include_state` 聚合。一次请求同时获取“文章内容+用户状态”，消除了传统的 "Fetch Content -> Wait -> Fetch State" 瀑布流，显著提升交互响应速度。
+  - **SSR (保留项)**: 针对服务端渲染 (`/date/[date]`, `/article/[id]`)，特意保留了串行获取逻辑并配合 **ISR (Static Caching)**。**不**在 SSR 阶段做聚合是为了避免将“用户个性化状态（已读/未读）”误写入公共 CDN 缓存，确保了 HTML 缓存的普适性和长效性。
 
 ## 6. 权限验证 (Authentication)
 

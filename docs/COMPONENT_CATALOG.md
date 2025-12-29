@@ -1,4 +1,4 @@
-# 组件架构目录 (Component Catalog)
+# 组件架构目录
 
 本文档详细描述了 Briefing Hub 项目的前端组件架构。项目采用了 **Feature-Based**（基于功能）的架构模式，将业务逻辑高度内聚，同时保证了路由层 (`app/`) 的轻量化。
 
@@ -23,7 +23,7 @@
 
 ## 2. 详细目录说明
 
-### `app/` (Routing Layer)
+### `app/`
 
 负责定义应用的路由结构、服务端数据预取 (SSR) 和页面元数据 (Metadata)。**不包含复杂的 UI 实现。**
 
@@ -36,7 +36,7 @@
 - **`trends/page.tsx`**: **趋势页** (SSG)。静态生成的趋势分析页面。
 - **`api/`**: 后端 API 路由 (Next.js Route Handlers)。
 
-### `components/features/` (Feature Modules)
+### `components/features/`
 
 业务逻辑的核心所在。每个子目录对应一个具体的业务领域。
 
@@ -76,7 +76,7 @@
 
 - **`TrendsPage.tsx`**: 趋势页面的主视图。
 
-### `components/layout/` (Layout & Shell)
+### `components/layout/`
 
 负责应用的整体骨架。
 
@@ -89,7 +89,7 @@
   - **`SidebarCalendar.tsx`**: 日历导航组件。
   - **`SidebarBriefing.tsx`**: 简报导航项。
 
-### `components/common/` (Shared Base)
+### `components/common/`
 
 跨业务复用的基础组件。
 

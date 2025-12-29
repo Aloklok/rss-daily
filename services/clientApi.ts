@@ -109,9 +109,11 @@ export const getAvailableDates = (): Promise<string[]> => {
 export const getBriefingReportsByDate = async (
   date: string,
   slot?: TimeSlot,
+  options?: { includeState?: boolean },
 ): Promise<BriefingReport[]> => {
   const params: Record<string, string> = { date };
   if (slot) params.slot = slot;
+  if (options?.includeState) params.include_state = 'true';
 
   try {
     const data = await apiService.request<GroupedArticles>('/api/briefings', { params });
@@ -154,7 +156,10 @@ export const markAllAsRead = (articleIds: (string | number)[]): Promise<(string 
 };
 
 // getCleanArticleContent
-export const getCleanArticleContent = async (article: Article): Promise<CleanArticleContent> => {
+export const getCleanArticleContent = async (
+  article: Article,
+  options?: { includeState?: boolean },
+): Promise<CleanArticleContent> => {
   if (articleCache.has(article.id)) {
     return articleCache.get(article.id)!;
   }
@@ -163,7 +168,10 @@ export const getCleanArticleContent = async (article: Article): Promise<CleanArt
     // Plan said: Move app/api/articles/route.ts (keep) - so it stays at /api/articles
     const content = await apiService.request<CleanArticleContent>('/api/articles', {
       method: 'POST',
-      body: { id: article.id },
+      body: {
+        id: article.id,
+        include_state: options?.includeState,
+      },
     });
     articleCache.set(article.id, content);
     return content;

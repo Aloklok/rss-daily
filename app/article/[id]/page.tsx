@@ -4,6 +4,7 @@ import ArticleDetailClient from '@/components/features/article/ArticleDetailClie
 import { stripTags } from '../../../utils/contentUtils';
 import NotFound from '../../not-found';
 
+// Revert to Static/ISR for best performance
 export const revalidate = false;
 
 export async function generateMetadata({
@@ -49,7 +50,12 @@ export default async function ArticlePage({ params }: { params: Promise<{ id: st
   if (!article) return <NotFound />;
 
   // 2. Fetch full content (FreshRSS) - Server Side
+  // This content is cached by ISR.
   const content = await fetchArticleContentServer(article.id);
+
+  // NOTE: We do NOT fetch state here in ISR mode.
+  // State (Read/Star) is user-specific and dynamic.
+  // It will be hydrated by the client (or existing Store state).
 
   const jsonLd = {
     '@context': 'https://schema.org',

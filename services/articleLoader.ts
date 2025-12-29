@@ -36,12 +36,29 @@ async function mergeWithSupabaseDetails(freshArticles: Article[]): Promise<Artic
 
 // 1. 加载简报文章（已融合）
 // 简报必须融合，因为需要 verdict.importance 进行分组
-export async function fetchBriefingArticles(date: string, slot: string | null): Promise<Article[]> {
-  console.log(`[Loader] Fetching briefing for date: ${date}, slot: ${slot}`);
-  const fetchedReports = await getBriefingReportsByDate(date, slot as any);
+export async function fetchBriefingArticles(
+  date: string,
+  slot: string | null,
+  options?: { includeState?: boolean },
+): Promise<Article[]> {
+  console.log(
+    `[Loader] Fetching briefing for date: ${date}, slot: ${slot}, includeState: ${options?.includeState}`,
+  );
+  const fetchedReports = await getBriefingReportsByDate(date, slot as any, options);
   const supaArticles = fetchedReports.flatMap((report) => Object.values(report.articles).flat());
   if (supaArticles.length === 0) return [];
 
+  // Optimization: If aggregated, skip separate client-side fetch (Waterfall elimination)
+  if (options?.includeState) {
+    return supaArticles.map((supaArticle) => ({
+      ...supaArticle,
+      briefingSection: supaArticle.verdict?.importance || '常规更新',
+      // Tags are already merged by the server aggregation
+      tags: supaArticle.tags || [],
+    }));
+  }
+
+  // Legacy/Fallback behavior: Client-side Waterfall
   const articleIds = supaArticles.map((a) => a.id);
   const statesById = await getArticleStates(articleIds);
 

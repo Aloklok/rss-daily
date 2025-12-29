@@ -17,7 +17,7 @@
 - `.DS_Store` - macOS 系统文件
 - `.vscode/settings.json` - VSCode 设置
 
-## API 目录 (`/api`)
+## API 目录
 
 - `_utils.ts` - API 工具函数
 - `article-states.ts` - 文章状态相关 API
@@ -30,7 +30,7 @@
 - `refresh.ts` - 刷新功能 API
 - `update-state.ts` - 更新文章状态 API
 
-## 组件目录 (`/components`)
+## 组件目录
 
 - `ArticleCard.tsx` - 文章卡片组件
 - `ArticleDetail.tsx` - 文章详情组件
@@ -42,7 +42,7 @@
 - `SettingsPopover.tsx` - 设置弹窗组件
 - `Sidebar.tsx` - 侧边栏组件
 
-## 自定义 Hooks 目录 (`/hooks`)
+## 自定义 Hooks 目录
 
 - `useArticleManagement.ts` - 文章管理相关 Hook
 - `useDataFetching.ts` - 数据获取相关 Hook
@@ -50,15 +50,15 @@
 - `useReader.ts` - 阅读器相关 Hook
 - `useSidebar.ts` - 侧边栏相关 Hook
 
-## 服务目录 (`/services`)
+## 服务目录
 
 - `api.ts` - API 服务模块
 
-## 类型定义目录 (`/types`)
+## 类型定义目录
 
 - `optional-mods.d.ts` - 可选模块类型定义
 
-## 构建输出目录 (`/dist`)
+## 构建输出目录
 
 - `assets/` - 静态资源文件
 - `index.html` - 构建后 HTML 文件

@@ -34,6 +34,7 @@ const ArticleModalActions: React.FC<ArticleModalActionsProps> = ({
         <button
           onClick={() => setIsTagPopoverOpen((prev) => !prev)}
           className="rounded-full bg-sky-600 p-3 text-white shadow-lg transition-all hover:bg-sky-700"
+          aria-label="更多标签"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -63,6 +64,7 @@ const ArticleModalActions: React.FC<ArticleModalActionsProps> = ({
         className={`rounded-full p-3 text-white shadow-lg transition-all ${
           isStarred ? 'bg-amber-500 hover:bg-amber-600' : 'bg-gray-800 hover:bg-gray-950'
         }`}
+        aria-label={isStarred ? '取消收藏' : '收藏'}
       >
         {isStarred ? (
           <svg

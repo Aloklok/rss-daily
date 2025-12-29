@@ -1,4 +1,4 @@
-# 状态管理 (Store)
+# 状态管理
 
 本项目使用 [Zustand](https://github.com/pmndrs/zustand) 进行全局状态管理，为了分离关注点，我们将 Store 拆分为三个独立的部分。
 
@@ -49,8 +49,9 @@
    - **三级状态同步 Hook (`useArticleStateHydration`)**:
      - 负责将预取的 Read/Star 状态合并并分发至 Zustand Store。
      - **自愈机制**: 后台异步对比 FreshRSS 实时状态，若发现静态缓存过时，自动修正 UI 并触发服务端 `revalidate-date` 接口刷新缓存。
-4. **乐观更新 (Optimistic Updates)**:
-   - `updateArticle`: 在 API 确认之前，立即更新本地文章状态 (例如: 标记已读)。
+4. **确认更新 (Confirmed Updates)**:
+   - `updateArticle`: 只有在 API 返回成功（200 OK）后，才更新本地文章状态。
+   - **机制差异**: 放弃了激进的“乐观更新”（Request 前更新），采用稳健的“确认更新”（Response 后更新），配合“Store-First”保护策略，彻底消除回跳闪烁。
    - `calculateNewAvailableTags`: 一个纯函数工具，当文章标签变化时，动态重新计算标签计数。
 
 ### 性能优化

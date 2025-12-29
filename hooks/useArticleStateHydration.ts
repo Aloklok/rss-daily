@@ -20,12 +20,32 @@ export function useArticleStateHydration(
   useEffect(() => {
     if (initialArticles.length === 0) return;
 
-    // 1. Immediate Handover from Server
-    // Merge initial states (star/read) into objects if provided
+    // Access current store state to avoid overwriting fresh client state with stale ISR data
+    const currentStoreArticles = useArticleStore.getState().articlesById;
+
+    // 1. Immediate Handover & Smart Merge
     const merged = initialArticles.map((a) => {
+      // Check if we already have this article in the store
+      const stored = currentStoreArticles[a.id];
+
+      // PROTECTION: If the article exists in Store, we prioritize Store state (Optimistic UI)
+      // over 'initialArticleStates' which might be from a stale ISR/RSC re-fetch.
+      // We rely on the subsequent 'fetchBatch' (Live API) to handle true synchronization.
+      if (stored) {
+        // We might want to update non-state fields (like title fixes),
+        // but strictly preserve tags to avoid "Unstar -> Star" reverting flash.
+        // For now, simply keeping the 'stored' version is safest during a re-hydration.
+        // However, 'initialArticles' might have newer metadata (e.g. AI summary).
+        // Let's merge metadata but KEEP stored tags.
+        return { ...a, tags: stored.tags };
+      }
+
+      // Logic A: Server explicitly provides state (e.g. from sequential SSR fetch)
+      // Only apply this if we didn't match the 'stored' guard above.
       if (initialArticleStates && initialArticleStates[a.id]) {
         return { ...a, tags: initialArticleStates[a.id] };
       }
+
       return a;
     });
 
@@ -33,9 +53,38 @@ export function useArticleStateHydration(
     addArticles(merged);
 
     // 2. Background Sync & Self-Healing
+    // Optimization: Skip sync for articles that already have trusted user state (Aggregated or Hydrated)
     const BATCH_SIZE = 50;
     const MAX_CONCURRENT = 3;
-    const allIds = initialArticles.map((a) => a.id);
+
+    // We only need to sync if:
+    // A. Explicit initialArticleStates were provided (implies potentially stale cached SSR data)
+    // B. The article (after merge) STILL lacks user state tags (so we don't know if it's read/starred)
+    //    AND it's not explicitly 'unread' (FreshRSS returns empty for unread... this is tricky.
+    //    Actually, if we have Aggregated Data, we get explicit tags.
+    //    If we have NO user tags, it MIGHT be unread, OR it might be we just didn't fetch state.
+    //    Ideally, if we trust 'include_state', then "no tags" equals "unread".
+    //    But here 'initialArticles' might be from ISR (which never has tags).
+    //    So we can only skip sync if we positively see user tags.
+
+    const idsToSync = merged
+      .filter((a) => {
+        const hasUserTags = a.tags?.some((t) => t.startsWith('user/-/state'));
+        // If we have explicit user tags, we trust them (Optimized Skip)
+        if (hasUserTags) return false;
+
+        // If we have explicit initialArticleStates, we MUST verify (Stale Check)
+        // (Because even if it matches "empty", it might be stale empty vs new read)
+        if (initialArticleStates && initialArticleStates[a.id]) return true;
+
+        // Default: Sync everything else to be safe
+        return true;
+      })
+      .map((a) => a.id);
+
+    // If everything is optimized away, stop here
+    if (idsToSync.length === 0) return;
+
     let hasMismatch = false;
 
     // Helper to compare tags
@@ -76,8 +125,8 @@ export function useArticleStateHydration(
 
     const processBatches = async () => {
       const chunks = [];
-      for (let i = 0; i < allIds.length; i += BATCH_SIZE) {
-        chunks.push(allIds.slice(i, i + BATCH_SIZE));
+      for (let i = 0; i < idsToSync.length; i += BATCH_SIZE) {
+        chunks.push(idsToSync.slice(i, i + BATCH_SIZE));
       }
 
       const executing: Promise<void>[] = [];
@@ -107,3 +156,4 @@ export function useArticleStateHydration(
     processBatches();
   }, [initialArticles, initialArticleStates, addArticles, date]);
 }
+// End of file

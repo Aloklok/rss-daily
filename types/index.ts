@@ -55,6 +55,7 @@ export interface CleanArticleContent {
   title: string;
   content: string; // Sanitized HTML
   source: string;
+  tags?: string[]; // Aggregated state tags (Read/Star)
 }
 
 export interface AvailableFilters {

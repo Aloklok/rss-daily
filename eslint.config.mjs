@@ -7,7 +7,19 @@ import eslintConfigPrettier from 'eslint-config-prettier';
 
 export default tseslint.config(
   {
-    ignores: ['.next/**', 'node_modules/**', '.vercel/**', 'public/**', 'types/**', 'html/**'],
+    ignores: [
+      '.next/**',
+      'node_modules/**',
+      '.vercel/**',
+      'public/**',
+      'types/**',
+      'html/**',
+      'coverage/**',
+      'playwright-report/**',
+      'test-results/**',
+      '.husky/**',
+      'lint-results.json',
+    ],
   },
   {
     files: ['**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],

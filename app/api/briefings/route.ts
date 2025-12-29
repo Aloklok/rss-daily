@@ -131,5 +131,40 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     groupedArticles[importance].sort((a, b) => (b.verdict?.score || 0) - (a.verdict?.score || 0));
   }
 
+  if (searchParams.get('include_state') === 'true') {
+    const { attachArticleStates } = await import('@/lib/server/dataFetcher');
+
+    // Flatten, attach, and reconstruct would be expensive if we break the grouping structure.
+    // Instead, let's just iterate over the keys.
+    const allArticles: Article[] = [];
+    Object.values(groupedArticles).forEach((list) => allArticles.push(...list));
+
+    if (allArticles.length > 0) {
+      // Batch fetch all states
+      const enrichedAll = await attachArticleStates(allArticles);
+
+      // Re-distribute back to groups (since attachArticleStates returns a new array but order might be preserved?
+      // Actually map preserves order. But we flattened it.
+      // Better approach: Get States Map first using fetchArticleStatesServer then apply locally to avoid re-grouping complexity?
+      // Wait, attachArticleStates IS the helper.
+      // Let's use the helper on the flattened list and then rebuild groups? Or cleaner:
+      // Just fetch states explicitly here using fetchArticleStatesServer to keep it efficient?
+      // The plan said: "await attachArticleStates(groupedArticles)".
+      // But groupedArticles is an object { [key]: Article[] }.
+      // Let's make attachArticleStates powerful or handle it here.
+
+      // Optimization: Let's keep it simple. Flatten -> Enrich -> Re-Group is safe.
+      // Or even better: passing the flat list to attachArticleStates is correct.
+      // We just need to map the enriched articles back to their groups.
+
+      // Let's do:
+      const enrichedMap = new Map(enrichedAll.map((a) => [a.id, a]));
+
+      for (const key in groupedArticles) {
+        groupedArticles[key] = groupedArticles[key].map((a) => enrichedMap.get(a.id) || a);
+      }
+    }
+  }
+
   return NextResponse.json(groupedArticles);
 }

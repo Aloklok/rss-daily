@@ -432,3 +432,25 @@ export async function fetchArticleStatesServer(
     return {};
   }
 }
+
+// 8. 聚合状态辅助函数 (Aggregation Helper)
+export async function attachArticleStates(articles: Article[]): Promise<Article[]> {
+  if (!articles || articles.length === 0) return [];
+
+  // 1. Fetch Request
+  const ids = articles.map((a) => a.id);
+  const statesMap = await fetchArticleStatesServer(ids);
+
+  // 2. Merge Strategies
+  return articles.map((article) => {
+    const freshTags = statesMap[article.id] || [];
+    // Combine existing Supabase tags with FreshRSS tags
+    // Use Set to deduplicate
+    const combinedTags = Array.from(new Set([...(article.tags || []), ...freshTags]));
+
+    return {
+      ...article,
+      tags: combinedTags,
+    };
+  });
+}

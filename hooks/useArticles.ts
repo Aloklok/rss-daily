@@ -33,7 +33,8 @@ export const useBriefingArticles = (
     queryFn: async () => {
       if (!date) return [];
       // queryFn 接收的仍然是原始的 slot (可以是 null)
-      const completeArticles = await fetchBriefingArticles(date, slot);
+      // 【核心优化】开启聚合模式：fetchBriefingArticles 内部会一次性把 Supabase 内容和 FreshRSS 状态取回来
+      const completeArticles = await fetchBriefingArticles(date, slot, { includeState: true });
       addArticles(completeArticles);
       return completeArticles.map((a) => a.id);
     },
@@ -235,16 +236,50 @@ export const useUpdateArticleState = () => {
           console.warn(`[Revalidate] Failed to trigger for ${tag}`, err),
         );
       });
+
+      // 【Optimization】Manual Cache Update for Sidebar
+      // Since we removed invalidateQueries to prevent reversion/redundancy,
+      // we must manually keep the 'starredHeaders' cache in sync with the Store.
+      // This ensures the sidebar list updates instantly.
+      const isStarred = updatedArticle.tags.includes('user/-/state/com.google/starred');
+
+      queryClient.setQueryData<any[]>(['starredHeaders'], (oldData) => {
+        if (!oldData) return oldData;
+
+        if (isStarred) {
+          // Add to list if not present
+          const exists = oldData.some((item) => item.id === updatedArticle.id);
+          if (!exists) {
+            return [
+              {
+                id: updatedArticle.id,
+                title: updatedArticle.title,
+                tags: updatedArticle.tags,
+                // Partial fields safe for header usage
+              },
+              ...oldData,
+            ];
+          }
+          // If exists, maybe update tags?
+          return oldData.map((item) =>
+            item.id === updatedArticle.id ? { ...item, tags: updatedArticle.tags } : item,
+          );
+        } else {
+          // Remove from list
+          return oldData.filter((item) => item.id !== updatedArticle.id);
+        }
+      });
     },
     onError: (err) => {
       console.error('Failed to update article state:', err);
       showToast(err instanceof Error ? err.message : '更新文章状态失败', 'error');
     },
-    onSettled: () => {
-      // 告诉 react-query，所有与“收藏”相关的查询数据都可能已经过时了。
-      // 下一次 useStarredArticles Hook 渲染时，它会自动重新获取最新的头部信息。
-      queryClient.invalidateQueries({ queryKey: ['starredHeaders'] });
-    },
+    // 【Optimization】Confirmed Update Strategy:
+    // We already updated the store in onSuccess (Verified Source of Truth).
+    // We DO NOT invalidate 'starredHeaders' or 'briefing' here because:
+    // 1. It triggers a redundant network request.
+    // 2. It might race with the background ISR revalidation (fetching stale data from server).
+    // The background Revalidate API call in onSuccess is sufficient for eventual consistency.
   });
 };
 
