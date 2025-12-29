@@ -41,7 +41,8 @@ npm run test:report    # 生成静态 HTML 报告 (html/index.html)
 
 1.  **核心阅读体验 (`article.spec.ts`)**:
     - **文章详情**: 点击卡片 -> 模态框弹出 -> API 数据加载 -> 内容渲染。
-    - **Mock 策略**: 拦截 `/api/briefings` 和 `/api/articles`，返回确定性的 Mock 数据，确保测试不依赖外部数据库。
+    - **Mock 策略**: 拦截 `/api/briefings` 和 `/api/articles`，返回确定性的 Mock 数据。
+      - **数据源**: `e2e/mocks/data.ts` (包含真实抓取的 API 样本，用于验证 Tags/Folder 结构)。
 
 2.  **导航与管理 (`sidebar.spec.ts`)**:
     - **侧边栏交互**: 桌面端折叠/展开，移动端汉堡菜单手势。

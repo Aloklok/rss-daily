@@ -286,6 +286,13 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
   const nextDate = currentIndex > 0 ? dates[currentIndex - 1] : null;
   const prevDate = currentIndex < dates.length - 1 ? dates[currentIndex + 1] : null;
 
+  // SSR Tags Prefetching
+  // We fetch tags to hydrate the client-side store (BriefingClient).
+  // Note: Article tags are already sanitized in dataFetcher.ts (using 'tags' field),
+  // so we don't need to filter them here anymore.
+  const { fetchTagsServer } = await import('@/lib/server/tagFetcher');
+  const { tags } = await fetchTagsServer();
+
   return (
     <>
       <script
@@ -300,6 +307,7 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
         isToday={date === today}
         prevDate={prevDate}
         nextDate={nextDate}
+        initialTags={tags}
       />
     </>
   );

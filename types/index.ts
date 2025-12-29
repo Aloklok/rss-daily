@@ -75,6 +75,7 @@ export interface FreshRSSItem {
   origin?: { title: string };
   canonical?: { href: string }[];
   categories?: string[];
+  tags?: string[]; // Validated: contains user labels only
   annotations?: { id: string }[];
   summary?: { content: string };
   content?: { content: string };

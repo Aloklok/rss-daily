@@ -273,6 +273,11 @@ export default async function Home(props: {
   const isDefaultView = !filterType && !filterValue;
   const initialTimeSlot = isDefaultView ? getCurrentTimeSlot() : null;
 
+  // SSR Tags Prefetching
+  // Fetch tags for Client Store hydration
+  const { fetchTagsServer } = await import('@/lib/server/tagFetcher');
+  const { tags } = await fetchTagsServer();
+
   return (
     <>
       {renderSchemas.length > 0 && (
@@ -290,6 +295,7 @@ export default async function Home(props: {
         initialContinuation={initialData.initialContinuation}
         isHomepage={isDefaultView} // Pass true only if no filters are active
         initialTimeSlot={initialTimeSlot}
+        initialTags={tags}
       />
     </>
   );

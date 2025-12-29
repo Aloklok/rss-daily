@@ -26,3 +26,58 @@ export const MOCK_ARTICLE = {
   briefingSection: '重要新闻',
   tags: [],
 };
+
+/**
+ * 真实 FreshRSS API 返回的数据样本 (2025-12-29 抓取，ID: 000646f2c89c729a)
+ * 验证了 "tags" 字段的存在及其与 "categories" 的区别。
+ *
+ * 关键观察：
+ * 1. "tags": ["架构", "前端"] - 仅包含纯文本标签名，这是真正的用户标签。
+ * 2. "categories" 包含混杂数据：
+ *    - 用户标签全名: "user/-/label/架构", "user/-/label/前端"
+ *    - 文件夹/分类: "user/-/label/🖥 前端" (注意它不在 tags 数组中，说明它是文件夹！), "AI编程", "Vue.js"
+ *    - 系统状态: "user/-/state/..."
+ *
+ * 结论：使用 FreshRSS 返回的 `tags` 数组是最准确区分 Tag 和 Folder 的方法，无需额外 API 调用。
+ */
+export const REAL_FRESHRSS_EXAMPLE = {
+  'frss:id': '1766858421990042',
+  id: 'tag:google.com,2005:reader/item/000646f2c89c729a',
+  crawlTimeMsec: '1766858421990',
+  timestampUsec: '1766858421990042',
+  published: 1766733139,
+  title: '【AI 编程实战】第 5 篇：Pinia 状态管理 - 从混乱代码到优雅架构',
+  canonical: [
+    {
+      href: 'https://juejin.cn/post/7587738151658881024',
+    },
+  ],
+  alternate: [
+    {
+      href: 'https://juejin.cn/post/7587738151658881024',
+    },
+  ],
+  categories: [
+    'user/-/state/com.google/reading-list',
+    'user/-/label/🖥 前端',
+    'user/-/state/org.freshrss/main',
+    'user/-/state/com.google/read',
+    'user/-/label/架构',
+    'user/-/label/前端',
+    '前端',
+    'Vue.js',
+    'AI编程',
+  ],
+  origin: {
+    streamId: 'feed/6',
+    htmlUrl: 'https://juejin.im/frontend?sort=weekly_hottest',
+    title: '掘金前端本周最热',
+  },
+  author: 'HashTang',
+  tags: ['架构', '前端'],
+  annotations: [
+    {
+      id: 'user/-/state/com.google/read',
+    },
+  ],
+};

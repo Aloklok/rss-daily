@@ -418,9 +418,20 @@ export async function fetchArticleStatesServer(
     const states: { [key: string]: string[] } = {};
     if (data.items) {
       data.items.forEach((item: FreshRSSItem) => {
-        // Merge categories (folders/labels) and annotations (user states like starred/read)
+        // 1. Extract System States (Read/Starred) from categories
+        // We strictly filter for /state/ to avoid including Folders or Feed Categories
+        const stateTags = (item.categories || []).filter((c) => c.includes('/state/'));
+
+        // 2. Extract User Labels from 'tags' field (Source of Truth)
+        // Normalize to 'user/-/label/TagName' format to match system ID conventions
+        // Note: We use the raw tag name assuming compatibility with categories format observed
+        const userLabelTags = (item.tags || []).map((t) => `user/-/label/${t}`);
+
+        // 3. Annotations (User States override)
         const annotationTags = (item.annotations || []).map((anno) => anno.id).filter(Boolean);
-        const allTags = [...(item.categories || []), ...annotationTags];
+
+        // Merge: States + UserLabels + Annotations
+        const allTags = [...stateTags, ...userLabelTags, ...annotationTags];
         states[item.id] = [...new Set(allTags)];
       });
     }

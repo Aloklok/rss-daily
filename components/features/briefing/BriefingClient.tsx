@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import Briefing from './BriefingView';
-import { Article } from '../../../types';
+import { Article, Tag } from '../../../types';
 import { useArticleStore } from '../../../store/articleStore';
 import { useUIStore } from '../../../store/uiStore';
 import { useUpdateArticleState, useBriefingArticles } from '../../../hooks/useArticles';
@@ -18,6 +18,7 @@ interface BriefingClientProps {
   isToday: boolean;
   prevDate?: string | null;
   nextDate?: string | null;
+  initialTags?: Tag[]; // New Prop
 }
 
 export default function BriefingClient({
@@ -27,12 +28,22 @@ export default function BriefingClient({
   isToday,
   prevDate,
   nextDate,
+  initialTags = [],
 }: BriefingClientProps): React.ReactElement {
   const articlesById = useArticleStore((state) => state.articlesById);
+  const setAvailableFilters = useArticleStore((state) => state.setAvailableFilters);
 
   console.log(
     `[DIAG] BriefingClient: props articles=${articles.length}, store articlesById keys=${Object.keys(articlesById).length}`,
   );
+
+  // Hydrate Tags from SSR
+  useEffect(() => {
+    if (initialTags && initialTags.length > 0) {
+      setAvailableFilters({ tags: initialTags, categories: [] });
+    }
+  }, [initialTags, setAvailableFilters]);
+
   const setActiveFilter = useUIStore((state) => state.setActiveFilter);
   const activeFilter = useUIStore((state) => state.activeFilter);
 

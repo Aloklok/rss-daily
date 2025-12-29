@@ -21,7 +21,7 @@ export const useArticleMetadata = (article: Article | null | undefined) => {
     const defaults = {
       isStarred: false,
       isRead: false,
-      userTagLabels: [],
+      userTagLabels: [] as string[],
     };
 
     // 2. 如果没有文章或文章没有标签，立即返回默认值
@@ -36,13 +36,26 @@ export const useArticleMetadata = (article: Article | null | undefined) => {
     const isRead = tags.includes(READ_TAG);
 
     let userTagLabels: string[] = [];
-    // 确保 availableUserTags 也已加载
+
+    // 1. Store Logic (Preferred when available, handles un-sanitized data)
     if (availableUserTags && availableUserTags.length > 0) {
       const availableUserTagMap = new Map(availableUserTags.map((t) => [t.id, t.label]));
       userTagLabels = tags
         .filter((tagId) => availableUserTagMap.has(tagId))
         .map((tagId) => availableUserTagMap.get(tagId))
-        .filter(Boolean) as string[];
+        .filter((l): l is string => !!l);
+    }
+    // 2. Direct Extraction Fallback (Specifically for SSR)
+    // Since we sanitize article.tags on the server (removing folders),
+    // we can safely parse labels directly during SSR without needing the Store.
+    else {
+      userTagLabels = tags
+        .filter((tagId) => tagId.includes('/label/'))
+        .map((tagId) => {
+          const parts = tagId.split('/');
+          return decodeURIComponent(parts[parts.length - 1]);
+        })
+        .filter(Boolean);
     }
 
     return {

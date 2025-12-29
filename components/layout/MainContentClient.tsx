@@ -15,7 +15,7 @@ import {
   useSearchResults,
   useUpdateArticleState,
 } from '../../hooks/useArticles';
-import { Filter, Article, TimeSlot } from '../../types';
+import { Filter, Article, TimeSlot, Tag } from '../../types';
 import { getArticleTimeSlot } from '@/utils/dateUtils';
 
 import { useQueryClient } from '@tanstack/react-query';
@@ -26,6 +26,7 @@ interface MainContentClientProps {
   initialHeaderImageUrl?: string;
   initialArticles?: Article[];
   initialActiveFilter?: Filter | null;
+  initialTags?: Tag[];
   initialContinuation?: string | null;
   isHomepage?: boolean; // New prop
   initialTimeSlot?: TimeSlot | null;
@@ -39,8 +40,22 @@ export default function MainContentClient({
   initialContinuation,
   isHomepage = false, // Default to false
   initialTimeSlot,
+  initialTags = [], // New prop with default
 }: MainContentClientProps) {
   const storeActiveFilter = useUIStore((state) => state.activeFilter);
+  const setAvailableFilters = useArticleStore((state) => state.setAvailableFilters);
+
+  // Hydrate Tags from SSR to allow correct User Label display
+  useEffect(() => {
+    // Only set if we have initial tags and store might be empty
+    if (initialTags && initialTags.length > 0) {
+      // We use a functional update or just set it.
+      // Since this runs on mount/update, we want to ensure we don't overwrite if not needed?
+      // Actually, for SSR hydration, we want to set it.
+      setAvailableFilters({ tags: initialTags, categories: [] });
+    }
+  }, [initialTags, setAvailableFilters]);
+
   // Use initial props for SSR/Hydration if store is empty
   const activeFilter = storeActiveFilter || initialActiveFilter;
 

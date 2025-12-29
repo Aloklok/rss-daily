@@ -78,7 +78,7 @@ pnpm run dev
 
 # 3. 运行测试
 pnpm test          # 单元测试
-pnpm test:e2e      # E2E 测试
+pnpm test:e2e      # E2E 测试 (参阅 e2e/mocks/data.ts 查看真实数据样本)
 
 # 4. 代码检查
 pnpm run lint
