@@ -4,907 +4,341 @@
  */
 
 export interface paths {
-  '/accounts/ClientLogin': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * 客户端登录 (ClientLogin)
-     * @description Google 传统的登录方式。
-     *     **注意**：此接口返回纯文本格式，包含 `SID`, `LSID`, `Auth`。前端 SDK 需解析换行符。
-     */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/x-www-form-urlencoded': {
-            /** @description 用户名或邮箱 */
-            Email: string;
-            /**
-             * Format: password
-             * @description API 密码
-             */
-            Passwd: string;
-          };
+    "/accounts/ClientLogin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-      responses: {
-        /** @description 登录成功，返回 Auth Token */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'text/plain': string;
-          };
-        };
-        /** @description 请求无效 */
-        400: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content?: never;
-        };
-        /** @description 认证失败 */
-        401: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content?: never;
-        };
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/reader/api/0/token': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * 获取 CSRF Action Token
-     * @description 获取用于修改操作（POST请求）的 Token。
-     *     大多数写操作（如标记已读、订阅）都需要在参数 `T` 中携带此值。
-     */
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description 返回纯文本 Token 字符串 */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'text/plain': string;
-          };
-        };
-        /** @description 未授权 */
-        401: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content?: never;
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/reader/api/0/user-info': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** 获取用户信息 */
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description 用户详细信息 */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'application/json': {
-              userId?: string;
-              userName?: string;
-              userProfileId?: string;
-              userEmail?: string;
+        get?: never;
+        put?: never;
+        /**
+         * 客户端登录 (ClientLogin)
+         * @description 返回纯文本格式，包含 `SID`, `LSID`, `Auth`。
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
             };
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/reader/api/0/unread-count': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** 获取未读计数 */
-    get: {
-      parameters: {
-        query: {
-          /** @description 输出格式，必须为 json */
-          output: 'json';
-        };
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description 各个订阅源和标签的未读数列表 */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'application/json': {
-              /** @description 总未读数 */
-              max?: number;
-              unreadcounts?: components['schemas']['UnreadCount'][];
+            requestBody: {
+                content: {
+                    "application/x-www-form-urlencoded": {
+                        /** @description 用户名 */
+                        Email: string;
+                        /**
+                         * Format: password
+                         * @description API 密码
+                         */
+                        Passwd: string;
+                    };
+                };
             };
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/reader/api/0/subscription/list': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** 获取订阅列表 */
-    get: {
-      parameters: {
-        query: {
-          output: 'json';
-        };
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description 成功 */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'application/json': {
-              subscriptions?: components['schemas']['Subscription'][];
+            responses: {
+                /** @description 成功 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": string;
+                    };
+                };
             };
-          };
         };
-      };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/reader/api/0/subscription/edit': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * 编辑/订阅/退订
-     * @description 管理订阅源。支持通过数组同时操作多个流。
-     */
-    post: {
-      parameters: {
-        query?: {
-          /** @description Action Token (部分客户端可能放在 Query 或 Body 中，推荐检查 Body) */
-          T?: string;
+    "/reader/api/0/token": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: {
-        content: {
-          'application/x-www-form-urlencoded': {
-            /**
-             * @description 操作类型
-             * @enum {string}
-             */
-            ac: 'subscribe' | 'unsubscribe' | 'edit';
-            /** @description Stream ID，例如: feed/http://example.com/rss.xml */
-            s: string[];
-            /** @description 订阅源标题（对应 s 参数） */
-            t?: string[];
-            /** @description 添加到的标签/分类 ID (如 user/-/label/Tech) */
-            a?: string;
-            /** @description 移除出的标签/分类 ID */
-            r?: string;
-            /** @description CSRF Token */
-            T?: string;
-          };
-        };
-      };
-      responses: {
-        /** @description 操作成功 (返回 OK) */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'text/plain': string;
-          };
-        };
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/reader/api/0/subscription/quickadd': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** 快速订阅 */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: {
-        content: {
-          'application/x-www-form-urlencoded': {
-            /** @description RSS URL */
-            quickadd: string;
-            T?: string;
-          };
-        };
-      };
-      responses: {
-        /** @description 添加结果 */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'application/json': {
-              numResults?: number;
-              query?: string;
-              streamId?: string;
-              streamName?: string;
+        /** 获取 CSRF Action Token */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
             };
-          };
-        };
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/reader/api/0/subscription/export': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** 导出 OPML */
-    get: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description OPML 文件内容 */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'application/xml': string;
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/reader/api/0/subscription/import': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** 导入 OPML */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/xml': string;
-          'text/xml': string;
-        };
-      };
-      responses: {
-        /** @description 导入成功 */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'text/plain': string;
-          };
-        };
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/reader/api/0/stream/contents/{streamId}': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * 获取文章流内容
-     * @description 获取指定流（Feed, Label, 状态）的文章列表。
-     *     path 参数 `streamId` 可以是 encoded 的 Feed URL，或者特殊状态如 `user/-/state/com.google/reading-list`。
-     */
-    get: {
-      parameters: {
-        query?: {
-          /** @description 返回条目数量 (默认 20) */
-          n?: number;
-          /** @description 排序 (d=desc 时间倒序, o=asc 时间正序) */
-          r?: 'd' | 'n' | 'o';
-          /** @description Start Time (Unix Timestamp)，仅返回此时间之后的文章 */
-          ot?: number;
-          /** @description Stop Time (Unix Timestamp) */
-          nt?: number;
-          /** @description 排除目标 (Exclude Target)，如排除已读 `user/-/state/com.google/read` */
-          xt?: string;
-          /** @description Continuation Token (分页标记) */
-          c?: string;
-          /** @description 是否排除正文内容（仅返回元数据） */
-          excludeContent?: boolean;
-        };
-        header?: never;
-        path: {
-          /**
-           * @description Stream ID. 示例:
-           *     - `feed/http://example.com/feed`
-           *     - `user/-/state/com.google/reading-list` (所有未读)
-           *     - `user/-/state/com.google/starred` (星标)
-           *     - `user/-/label/MyLabel`
-           */
-          streamId: string;
-        };
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description 文章流响应 */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'application/json': components['schemas']['StreamResponse'];
-          };
-        };
-      };
-    };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/reader/api/0/stream/items/ids': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /**
-     * 获取文章 ID 列表
-     * @description 仅获取文章的 ID，通常用于与 `stream/items/contents` 配合使用或轻量级同步。
-     */
-    get: {
-      parameters: {
-        query: {
-          /** @description Stream ID (如 feed/..., user/-/label/...) */
-          s: string;
-          /** @description 数量限制 */
-          n?: number;
-          /** @description 分页 Token */
-          c?: string;
-        };
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description ID 列表 */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'application/json': {
-              itemRefs?: {
-                id?: string;
-              }[];
-              continuation?: string;
+            requestBody?: never;
+            responses: {
+                /** @description 57位字符的 Token 字符串 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": string;
+                    };
+                };
             };
-          };
         };
-      };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/reader/api/0/stream/items/contents': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** 根据 ID 批量获取文章内容 */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: {
-        content: {
-          'application/x-www-form-urlencoded': {
-            /** @description 文章 ID 列表 (可传入多个 i 参数) */
-            i: string[];
-          };
+    "/reader/api/0/subscription/list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-      responses: {
-        /** @description 文章内容列表 */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'application/json': components['schemas']['StreamResponse'];
-          };
-        };
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/reader/api/0/tag/list': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    /** 获取所有标签/文件夹 */
-    get: {
-      parameters: {
-        query?: {
-          output?: 'json';
-        };
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: never;
-      responses: {
-        /** @description 标签列表 */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'application/json': {
-              tags?: components['schemas']['Tag'][];
+        /** 获取订阅列表 */
+        get: {
+            parameters: {
+                query: {
+                    output: "json";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
             };
-          };
+            requestBody?: never;
+            responses: {
+                /** @description 成功，包含 FreshRSS 优先级元数据 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            subscriptions?: components["schemas"]["Subscription"][];
+                        };
+                    };
+                };
+            };
         };
-      };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/reader/api/0/edit-tag': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /**
-     * 修改文章标签（标记已读/星标/添加标签）
-     * @description 这是执行"标记为已读"、"加星标"或"归档"的核心接口。
-     */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody: {
-        content: {
-          'application/x-www-form-urlencoded': {
-            /** @description 文章 ID 列表 (多个 ID 重复传 i 参数) */
-            i: string[];
-            /**
-             * @description 要添加的标签 (Add)。
-             *     - 标记已读: `user/-/state/com.google/read`
-             *     - 标记星标: `user/-/state/com.google/starred`
-             *     - 自定义标签: `user/-/label/TagName`
-             */
-            a?: string[];
-            /**
-             * @description 要移除的标签 (Remove)。
-             *     - 标记未读: 移除 `user/-/state/com.google/read`
-             */
-            r?: string[];
-            /** @description Token */
-            T: string;
-          };
+    "/reader/api/0/stream/contents/{streamId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-      responses: {
-        /** @description 成功 */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'text/plain': string;
-          };
+        /**
+         * 获取文章流内容
+         * @description 支持流式响应和正文排除功能。
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description 返回数量，LLM 场景建议限制在 15-20 */
+                    n?: number;
+                    /** @description 排序。建议用 `o` (正序) 以支持滑动窗口补课逻辑 */
+                    r?: "d" | "n" | "o";
+                    /** @description 起始时间戳 (Unix Timestamp)，用于位移控制 */
+                    ot?: number;
+                    /** @description 排除目标，如 `user/-/state/com.google/read` (排除已读) */
+                    xt?: string;
+                    /** @description 是否排除正文和摘要（节省流量/Token） */
+                    excludeContent?: boolean;
+                    /** @description Continuation Token (分页) */
+                    c?: string;
+                };
+                header?: never;
+                path: {
+                    /**
+                     * @description Stream ID. 示例:
+                     *     - `user/-/state/com.google/reading-list` (全部未读)
+                     *     - `user/-/state/org.freshrss/important` (FreshRSS 重要文章)
+                     *     - `user/-/label/MyLabel` (文件夹)
+                     */
+                    streamId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description 流式 JSON 响应 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["StreamResponse"];
+                    };
+                };
+            };
         };
-      };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/reader/api/0/rename-tag': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** 重命名标签或文件夹 */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: {
-        content: {
-          'application/x-www-form-urlencoded': {
-            /** @description 原标签 ID (user/-/label/OldName) */
-            s: string;
-            /** @description 新标签 ID (user/-/label/NewName) */
-            dest: string;
-            T: string;
-          };
+    "/reader/api/0/stream/items/contents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-      responses: {
-        /** @description 成功 */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'text/plain': string;
-          };
+        get?: never;
+        put?: never;
+        /** 根据 ID 批量获取文章内容 */
+        post: {
+            parameters: {
+                query?: {
+                    /** @description 是否排除正文 */
+                    excludeContent?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/x-www-form-urlencoded": {
+                        /** @description 文章 ID 列表 */
+                        i: string[];
+                    };
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["StreamResponse"];
+                    };
+                };
+            };
         };
-      };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/reader/api/0/disable-tag': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** 删除标签或文件夹 */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: {
-        content: {
-          'application/x-www-form-urlencoded': {
-            /** @description 标签 ID (user/-/label/Name) */
-            s: string;
-            T: string;
-          };
+    "/reader/api/0/edit-tag": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-      };
-      responses: {
-        /** @description 成功 */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'text/plain': string;
-          };
+        get?: never;
+        put?: never;
+        /**
+         * 修改文章状态（标记已读/星标）
+         * @description 这是实现“处理完即标记已读”的核心接口
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/x-www-form-urlencoded": {
+                        /** @description 文章 ID */
+                        i: string[];
+                        /** @description 添加标签（如 `user/-/state/com.google/read`） */
+                        a?: string[];
+                        /** @description 移除标签 */
+                        r?: string[];
+                        /** @description CSRF Token */
+                        T: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": string;
+                    };
+                };
+            };
         };
-      };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  '/reader/api/0/mark-all-as-read': {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    get?: never;
-    put?: never;
-    /** 标记全部已读 */
-    post: {
-      parameters: {
-        query?: never;
-        header?: never;
-        path?: never;
-        cookie?: never;
-      };
-      requestBody?: {
-        content: {
-          'application/x-www-form-urlencoded': {
-            /** @description Stream ID (Feed ID 或 Label ID) */
-            s: string;
-            /** @description 截止时间戳 (注意：FreshRSS此处要求为纳秒字符串，或非常大的整数) */
-            ts: string;
-            T: string;
-          };
-        };
-      };
-      responses: {
-        /** @description 成功 */
-        200: {
-          headers: {
-            [name: string]: unknown;
-          };
-          content: {
-            'text/plain': string;
-          };
-        };
-      };
-    };
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-  schemas: {
-    Subscription: {
-      /** @description Feed ID (feed/...) */
-      id?: string;
-      title?: string;
-      categories?: {
-        id?: string;
-        label?: string;
-      }[];
-      /** @description XML URL */
-      url?: string;
-      /** @description 网站 URL */
-      htmlUrl?: string;
-      iconUrl?: string;
+    schemas: {
+        Subscription: {
+            id?: string;
+            title?: string;
+            url?: string;
+            htmlUrl?: string;
+            iconUrl?: string;
+            /**
+             * @description FreshRSS 优先级: important, main_stream, category, feed
+             * @enum {string}
+             */
+            "frss:priority"?: "important" | "main_stream" | "category" | "feed";
+        };
+        StreamResponse: {
+            id?: string;
+            updated?: number;
+            continuation?: string;
+            items?: components["schemas"]["Item"][];
+        };
+        Item: {
+            id?: string;
+            title?: string;
+            published?: number;
+            canonical?: {
+                href?: string;
+            }[];
+            alternate?: {
+                href?: string;
+            }[];
+            summary?: {
+                content?: string;
+            };
+            content?: {
+                content?: string;
+            };
+            origin?: {
+                streamId?: string;
+                title?: string;
+            };
+            /** @description 显式输出的文章标签 */
+            tags?: string[];
+        };
     };
-    UnreadCount: {
-      /** @description Feed ID 或 Label ID */
-      id?: string;
-      /** @description 未读数量 */
-      count?: number;
-      /** @description 最新文章时间戳 (微秒) */
-      newestItemTimestampUsec?: string;
-    };
-    Tag: {
-      id?: string;
-      /** @enum {string} */
-      type?: 'folder' | 'tag';
-      unread_count?: number;
-    };
-    StreamResponse: {
-      /** @description 请求的 Stream ID */
-      id?: string;
-      /** @description 更新时间戳 */
-      updated?: number;
-      /** @description 用于获取下一页数据的 Token */
-      continuation?: string;
-      items?: components['schemas']['Item'][];
-    };
-    Item: {
-      /** @description 文章唯一 ID (tag:google.com,2005:reader/item/...) */
-      id?: string;
-      /** @description 抓取时间 (毫秒) */
-      crawlTimeMsec?: string;
-      /** @description 时间戳 (微秒) */
-      timestampUsec?: string;
-      title?: string;
-      /** @description 发布时间戳 */
-      published?: number;
-      updated?: number;
-      canonical?: {
-        href?: string;
-      }[];
-      alternate?: {
-        href?: string;
-        type?: string;
-      }[];
-      summary?: {
-        direction?: string;
-        content?: string;
-      };
-      content?: {
-        direction?: string;
-        content?: string;
-      };
-      /** @description 来源 Feed 信息 */
-      origin?: {
-        streamId?: string;
-        title?: string;
-        htmlUrl?: string;
-      };
-      /** @description 文章所属的标签 (Categories in GReader terms include 'user/-/state/...') */
-      categories?: string[];
-    };
-  };
-  responses: never;
-  parameters: never;
-  requestBodies: never;
-  headers: never;
-  pathItems: never;
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
 }
 export type $defs = Record<string, never>;
 export type operations = Record<string, never>;

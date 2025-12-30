@@ -1,15 +1,14 @@
 openapi: 3.0.3
 info:
-  title: FreshRSS Google Reader API
+  title: FreshRSS Google Reader API (v4 Optimized)
   description: |
-    基于 FreshRSS greader.php 源码生成的 Google Reader API 兼容层文档。
-    该 API 旨在兼容旧版 Google Reader 客户端及现代 RSS 阅读器（如 Reeder, NetNewsWire 等）。
-
-    **主要功能**：
-    - 兼容 Google Reader Level 2 API
-    - 支持订阅管理、文章获取、状态同步（已读/星标）
-    - 生成 TypeScript SDK 时请注意处理纯文本响应的接口。
-  version: 1.0.0
+    基于 FreshRSS greader.php (v4 优化版) 源码生成的 Google Reader API 兼容层文档。
+    
+    **v4 版本核心改进**：
+    - **流式输出 (Streaming)**：采用生成器模式，大幅降低处理大批量文章时的内存占用。
+    - **Token 优化**：支持 `excludeContent` 参数，可排除文章正文，节省 LLM 消耗。
+    - **FreshRSS 增强**：支持 `org.freshrss/important` 等优先级流，并在订阅列表中提供优先级元数据。
+  version: 1.1.0
   contact:
     name: FreshRSS Team
     url: https://freshrss.org
@@ -20,14 +19,10 @@ servers:
 tags:
   - name: Auth
     description: 用户认证与令牌获取
-  - name: User
-    description: 用户信息与基础数据
   - name: Stream
     description: 文章流与内容获取
   - name: Subscription
     description: 订阅源(Feed)管理
-  - name: Tag
-    description: 标签(Label)与文件夹管理
   - name: Action
     description: 状态变更（已读、星标等）
 
@@ -43,9 +38,7 @@ paths:
       tags:
         - Auth
       summary: 客户端登录 (ClientLogin)
-      description: |
-        Google 传统的登录方式。
-        **注意**：此接口返回纯文本格式，包含 `SID`, `LSID`, `Auth`。前端 SDK 需解析换行符。
+      description: 返回纯文本格式，包含 `SID`, `LSID`, `Auth`。
       security: []
       requestBody:
         required: true
@@ -53,107 +46,30 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              required:
-                - Email
-                - Passwd
+              required: [Email, Passwd]
               properties:
-                Email:
-                  type: string
-                  description: 用户名或邮箱
-                Passwd:
-                  type: string
-                  format: password
-                  description: API 密码
+                Email: { type: string, description: 用户名 }
+                Passwd: { type: string, format: password, description: API 密码 }
       responses:
         '200':
-          description: 登录成功，返回 Auth Token
+          description: 成功
           content:
             text/plain:
               schema:
                 type: string
-                example: |
-                  SID=...
-                  LSID=null
-                  Auth=YOUR_AUTH_TOKEN
-        '401':
-          description: 认证失败
-        '400':
-          description: 请求无效
+                example: "SID=...\nLSID=null\nAuth=..."
 
   /reader/api/0/token:
     get:
       tags:
         - Auth
       summary: 获取 CSRF Action Token
-      description: |
-        获取用于修改操作（POST请求）的 Token。
-        大多数写操作（如标记已读、订阅）都需要在参数 `T` 中携带此值。
       responses:
         '200':
-          description: 返回纯文本 Token 字符串
+          description: 57位字符的 Token 字符串
           content:
             text/plain:
-              schema:
-                type: string
-                minLength: 57
-                example: '0123456789abcdef...'
-        '401':
-          description: 未授权
-
-  # ==========================================
-  # User & General Info
-  # ==========================================
-  /reader/api/0/user-info:
-    get:
-      tags:
-        - User
-      summary: 获取用户信息
-      responses:
-        '200':
-          description: 用户详细信息
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  userId:
-                    type: string
-                  userName:
-                    type: string
-                  userProfileId:
-                    type: string
-                  userEmail:
-                    type: string
-
-  /reader/api/0/unread-count:
-    get:
-      tags:
-        - User
-      summary: 获取未读计数
-      parameters:
-        - name: output
-          in: query
-          description: 输出格式，必须为 json
-          required: true
-          schema:
-            type: string
-            enum: [json]
-            default: json
-      responses:
-        '200':
-          description: 各个订阅源和标签的未读数列表
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  max:
-                    type: integer
-                    description: 总未读数
-                  unreadcounts:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/UnreadCount'
+              schema: { type: string, minLength: 57 }
 
   # ==========================================
   # Subscriptions
@@ -167,13 +83,10 @@ paths:
         - name: output
           in: query
           required: true
-          schema:
-            type: string
-            enum: [json]
-            default: json
+          schema: { type: string, enum: [json], default: json }
       responses:
         '200':
-          description: 成功
+          description: 成功，包含 FreshRSS 优先级元数据
           content:
             application/json:
               schema:
@@ -181,135 +94,7 @@ paths:
                 properties:
                   subscriptions:
                     type: array
-                    items:
-                      $ref: '#/components/schemas/Subscription'
-
-  /reader/api/0/subscription/edit:
-    post:
-      tags:
-        - Subscription
-      summary: 编辑/订阅/退订
-      description: 管理订阅源。支持通过数组同时操作多个流。
-      parameters:
-        - name: T
-          in: query
-          description: Action Token (部分客户端可能放在 Query 或 Body 中，推荐检查 Body)
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              required:
-                - ac
-                - s
-              properties:
-                ac:
-                  type: string
-                  enum: [subscribe, unsubscribe, edit]
-                  description: 操作类型
-                s:
-                  type: array
-                  items:
-                    type: string
-                  description: 'Stream ID，例如: feed/http://example.com/rss.xml'
-                t:
-                  type: array
-                  items:
-                    type: string
-                  description: 订阅源标题（对应 s 参数）
-                a:
-                  type: string
-                  description: 添加到的标签/分类 ID (如 user/-/label/Tech)
-                r:
-                  type: string
-                  description: 移除出的标签/分类 ID
-                T:
-                  type: string
-                  description: CSRF Token
-      responses:
-        '200':
-          description: 操作成功 (返回 OK)
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: OK
-
-  /reader/api/0/subscription/quickadd:
-    post:
-      tags:
-        - Subscription
-      summary: 快速订阅
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              required:
-                - quickadd
-              properties:
-                quickadd:
-                  type: string
-                  description: RSS URL
-                T:
-                  type: string
-      responses:
-        '200':
-          description: 添加结果
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  numResults:
-                    type: integer
-                  query:
-                    type: string
-                  streamId:
-                    type: string
-                  streamName:
-                    type: string
-
-  /reader/api/0/subscription/export:
-    get:
-      tags:
-        - Subscription
-      summary: 导出 OPML
-      responses:
-        '200':
-          description: OPML 文件内容
-          content:
-            application/xml:
-              schema:
-                type: string
-                format: binary
-
-  /reader/api/0/subscription/import:
-    post:
-      tags:
-        - Subscription
-      summary: 导入 OPML
-      requestBody:
-        required: true
-        content:
-          application/xml:
-            schema:
-              type: string
-              format: binary
-          text/xml:
-            schema:
-              type: string
-              format: binary
-      responses:
-        '200':
-          description: 导入成功
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: OK
+                    items: { $ref: '#/components/schemas/Subscription' }
 
   # ==========================================
   # Stream (Contents)
@@ -319,452 +104,160 @@ paths:
       tags:
         - Stream
       summary: 获取文章流内容
-      description: |
-        获取指定流（Feed, Label, 状态）的文章列表。
-        path 参数 `streamId` 可以是 encoded 的 Feed URL，或者特殊状态如 `user/-/state/com.google/reading-list`。
+      description: 支持流式响应和正文排除功能。
       parameters:
         - name: streamId
           in: path
           required: true
-          schema:
-            type: string
+          schema: { type: string }
           description: |
             Stream ID. 示例:
-            - `feed/http://example.com/feed`
-            - `user/-/state/com.google/reading-list` (所有未读)
-            - `user/-/state/com.google/starred` (星标)
-            - `user/-/label/MyLabel`
+            - `user/-/state/com.google/reading-list` (全部未读)
+            - `user/-/state/org.freshrss/important` (FreshRSS 重要文章)
+            - `user/-/label/MyLabel` (文件夹)
         - name: n
           in: query
-          description: 返回条目数量 (默认 20)
-          schema:
-            type: integer
-            default: 20
+          description: 返回数量，LLM 场景建议限制在 15-20
+          schema: { type: integer, default: 20 }
         - name: r
           in: query
-          description: 排序 (d=desc 时间倒序, o=asc 时间正序)
-          schema:
-            type: string
-            enum: [d, n, o]
-            default: d
+          description: 排序。建议用 `o` (正序) 以支持滑动窗口补课逻辑
+          schema: { type: string, enum: [d, n, o], default: d }
         - name: ot
           in: query
-          description: Start Time (Unix Timestamp)，仅返回此时间之后的文章
-          schema:
-            type: integer
-        - name: nt
-          in: query
-          description: Stop Time (Unix Timestamp)
-          schema:
-            type: integer
+          description: 起始时间戳 (Unix Timestamp)，用于位移控制
+          schema: { type: integer }
         - name: xt
           in: query
-          description: 排除目标 (Exclude Target)，如排除已读 `user/-/state/com.google/read`
-          schema:
-            type: string
-        - name: c
-          in: query
-          description: Continuation Token (分页标记)
-          schema:
-            type: string
+          description: 排除目标，如 `user/-/state/com.google/read` (排除已读)
+          schema: { type: string }
         - name: excludeContent
           in: query
-          description: 是否排除正文内容（仅返回元数据）
-          schema:
-            type: boolean
-      responses:
-        '200':
-          description: 文章流响应
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StreamResponse'
-
-  /reader/api/0/stream/items/ids:
-    get:
-      tags:
-        - Stream
-      summary: 获取文章 ID 列表
-      description: 仅获取文章的 ID，通常用于与 `stream/items/contents` 配合使用或轻量级同步。
-      parameters:
-        - name: s
-          in: query
-          required: true
-          description: Stream ID (如 feed/..., user/-/label/...)
-          schema:
-            type: string
-        - name: n
-          in: query
-          description: 数量限制
-          schema:
-            type: integer
+          description: 是否排除正文和摘要（节省流量/Token）
+          schema: { type: boolean, default: false }
         - name: c
           in: query
-          description: 分页 Token
-          schema:
-            type: string
+          description: Continuation Token (分页)
+          schema: { type: string }
       responses:
         '200':
-          description: ID 列表
+          description: 流式 JSON 响应
           content:
             application/json:
-              schema:
-                type: object
-                properties:
-                  itemRefs:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                  continuation:
-                    type: string
+              schema: { $ref: '#/components/schemas/StreamResponse' }
 
   /reader/api/0/stream/items/contents:
     post:
       tags:
         - Stream
       summary: 根据 ID 批量获取文章内容
+      parameters:
+        - name: excludeContent
+          in: query
+          description: 是否排除正文
+          schema: { type: boolean }
       requestBody:
         content:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              required:
-                - i
+              required: [i]
               properties:
-                i:
-                  type: array
-                  items:
-                    type: string
-                  description: 文章 ID 列表 (可传入多个 i 参数)
+                i: { type: array, items: { type: string }, description: 文章 ID 列表 }
       responses:
         '200':
-          description: 文章内容列表
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/StreamResponse'
+              schema: { $ref: '#/components/schemas/StreamResponse' }
 
   # ==========================================
-  # Tags & Actions
+  # Actions
   # ==========================================
-  /reader/api/0/tag/list:
-    get:
-      tags:
-        - Tag
-      summary: 获取所有标签/文件夹
-      parameters:
-        - name: output
-          in: query
-          schema:
-            type: string
-            enum: [json]
-            default: json
-      responses:
-        '200':
-          description: 标签列表
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  tags:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Tag'
-
   /reader/api/0/edit-tag:
     post:
       tags:
         - Action
-      summary: 修改文章标签（标记已读/星标/添加标签）
-      description: 这是执行"标记为已读"、"加星标"或"归档"的核心接口。
+      summary: 修改文章状态（标记已读/星标）
+      description: 这是实现“处理完即标记已读”的核心接口
       requestBody:
         required: true
         content:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              required:
-                - i
-                - T
+              required: [i, T]
               properties:
-                i:
+                i: { type: array, items: { type: string }, description: 文章 ID }
+                a: 
                   type: array
-                  items:
-                    type: string
-                  description: 文章 ID 列表 (多个 ID 重复传 i 参数)
-                a:
+                  items: { type: string }
+                  description: 添加标签（如 `user/-/state/com.google/read`）
+                r: 
                   type: array
-                  items:
-                    type: string
-                  description: |
-                    要添加的标签 (Add)。
-                    - 标记已读: `user/-/state/com.google/read`
-                    - 标记星标: `user/-/state/com.google/starred`
-                    - 自定义标签: `user/-/label/TagName`
-                r:
-                  type: array
-                  items:
-                    type: string
-                  description: |
-                    要移除的标签 (Remove)。
-                    - 标记未读: 移除 `user/-/state/com.google/read`
-                T:
-                  type: string
-                  description: Token
+                  items: { type: string }
+                  description: 移除标签
+                T: { type: string, description: CSRF Token }
       responses:
         '200':
-          description: 成功
+          description: OK
           content:
-            text/plain:
-              schema:
-                type: string
-                example: OK
+            text/plain: { schema: { type: string, example: OK } }
 
-  /reader/api/0/rename-tag:
-    post:
-      tags:
-        - Tag
-      summary: 重命名标签或文件夹
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              required:
-                - s
-                - dest
-                - T
-              properties:
-                s:
-                  type: string
-                  description: 原标签 ID (user/-/label/OldName)
-                dest:
-                  type: string
-                  description: 新标签 ID (user/-/label/NewName)
-                T:
-                  type: string
-      responses:
-        '200':
-          description: 成功
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: OK
-
-  /reader/api/0/disable-tag:
-    post:
-      tags:
-        - Tag
-      summary: 删除标签或文件夹
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              required:
-                - s
-                - T
-              properties:
-                s:
-                  type: string
-                  description: 标签 ID (user/-/label/Name)
-                T:
-                  type: string
-      responses:
-        '200':
-          description: 成功
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: OK
-
-  /reader/api/0/mark-all-as-read:
-    post:
-      tags:
-        - Action
-      summary: 标记全部已读
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              required:
-                - s
-                - ts
-                - T
-              properties:
-                s:
-                  type: string
-                  description: Stream ID (Feed ID 或 Label ID)
-                ts:
-                  type: string
-                  description: 截止时间戳 (注意：FreshRSS此处要求为纳秒字符串，或非常大的整数)
-                T:
-                  type: string
-      responses:
-        '200':
-          description: 成功
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: OK
-
-# ==========================================
-# Data Models (Schemas)
-# ==========================================
 components:
   securitySchemes:
     GoogleLoginAuth:
       type: apiKey
       in: header
       name: Authorization
-      description: |
-        Google Reader 认证头。
-        格式通常为: `GoogleLogin auth=YOUR_AUTH_TOKEN`
-        (生成的 Token 来自 /accounts/ClientLogin)
+      description: "格式: GoogleLogin auth=YOUR_AUTH_TOKEN"
 
   schemas:
-    # 订阅源模型
     Subscription:
       type: object
       properties:
-        id:
+        id: { type: string }
+        title: { type: string }
+        url: { type: string }
+        htmlUrl: { type: string }
+        iconUrl: { type: string }
+        frss:priority:
           type: string
-          description: Feed ID (feed/...)
-        title:
-          type: string
-        categories:
-          type: array
-          items:
-            type: object
-            properties:
-              id:
-                type: string
-              label:
-                type: string
-        url:
-          type: string
-          description: XML URL
-        htmlUrl:
-          type: string
-          description: 网站 URL
-        iconUrl:
-          type: string
+          description: "FreshRSS 优先级: important, main_stream, category, feed"
+          enum: [important, main_stream, category, feed]
 
-    # 标签/未读计数模型
-    UnreadCount:
-      type: object
-      properties:
-        id:
-          type: string
-          description: Feed ID 或 Label ID
-        count:
-          type: integer
-          description: 未读数量
-        newestItemTimestampUsec:
-          type: string
-          description: 最新文章时间戳 (微秒)
-
-    # 标签列表项
-    Tag:
-      type: object
-      properties:
-        id:
-          type: string
-        type:
-          type: string
-          enum: [folder, tag]
-        unread_count:
-          type: integer
-
-    # 文章流响应
     StreamResponse:
       type: object
       properties:
-        id:
-          type: string
-          description: 请求的 Stream ID
-        updated:
-          type: integer
-          description: 更新时间戳
-        continuation:
-          type: string
-          description: 用于获取下一页数据的 Token
+        id: { type: string }
+        updated: { type: integer }
+        continuation: { type: string }
         items:
           type: array
-          items:
-            $ref: '#/components/schemas/Item'
+          items: { $ref: '#/components/schemas/Item' }
 
-    # 单篇文章模型
-    # 注意：具体字段依赖于 entry->toGReader 的实现，这里基于标准 GReader API 补全
     Item:
       type: object
       properties:
-        id:
-          type: string
-          description: 文章唯一 ID (tag:google.com,2005:reader/item/...)
-        crawlTimeMsec:
-          type: string
-          description: 抓取时间 (毫秒)
-        timestampUsec:
-          type: string
-          description: 时间戳 (微秒)
-        title:
-          type: string
-        published:
-          type: integer
-          description: 发布时间戳
-        updated:
-          type: integer
+        id: { type: string }
+        title: { type: string }
+        published: { type: integer }
         canonical:
           type: array
-          items:
-            type: object
-            properties:
-              href:
-                type: string
+          items: { type: object, properties: { href: { type: string } } }
         alternate:
           type: array
-          items:
-            type: object
-            properties:
-              href:
-                type: string
-              type:
-                type: string
+          items: { type: object, properties: { href: { type: string } } }
+        # 以下字段在 excludeContent=true 时会被排除
         summary:
           type: object
-          properties:
-            direction:
-              type: string
-            content:
-              type: string
+          properties: { content: { type: string } }
         content:
           type: object
-          properties:
-            direction:
-              type: string
-            content:
-              type: string
+          properties: { content: { type: string } }
         origin:
           type: object
-          description: 来源 Feed 信息
-          properties:
-            streamId:
-              type: string
-            title:
-              type: string
-            htmlUrl:
-              type: string
-        categories:
+          properties: { streamId: { type: string }, title: { type: string } }
+        tags:
           type: array
-          description: 文章所属的标签 (Categories in GReader terms include 'user/-/state/...')
-          items:
-            type: string
+          items: { type: string }
+          description: "显式输出的文章标签"
