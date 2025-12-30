@@ -52,9 +52,30 @@
     - Afternoon: 12:00 - 18:59
     - Evening: 19:00 - 23:59 (上海时间)
 
+- **`shanghaiDayToUtcWindow(date: string): { startIso: string; endIso: string }`**
+  - 将上海本地日期 `YYYY-MM-DD` 映射为对应的 UTC 时间窗口（用于 Supabase 查询）。
+  - **映射逻辑**:
+    - Shanghai 00:00:00 = UTC previous day 16:00:00
+    - Shanghai 23:59:59.999 = UTC same day 15:59:59.999
+  - **用途**: 在 `fetchBriefingData` 中用于按日期范围查询文章。
+  - **示例**: `shanghaiDayToUtcWindow('2025-12-30')` 返回 `{ startIso: '2025-12-29T16:00:00.000Z', endIso: '2025-12-30T15:59:59.999Z' }`
+
+- **`shanghaiDateSlotToUtcWindow(date: string, slot?: TimeSlot | null): { startIso: string; endIso: string }`**
+  - 支持时间槽的上海日期 → UTC 窗口映射。
+  - **参数**:
+    - `date`: 上海本地日期（`YYYY-MM-DD`）
+    - `slot`: 可选的时间槽（`'morning'` | `'afternoon'` | `'evening'`），若为 `undefined` 则返回全天窗口
+  - **用途**: 在 `app/api/briefings/route.ts` 中支持按时间槽查询文章。
+
 - **`getTodayInShanghai(): string`**
   - 获取当前上海日期的字符串格式 `YYYY-MM-DD`。
   - 用于 SSR 默认展示 "今天" 的数据。
+
+- **`getShanghaiHour(): number`**
+  - 返回当前上海时区的小时数（0-23）。
+
+- **`getCurrentTimeSlot(hour?: number): TimeSlot`**
+  - 根据提供的小时数（或当前上海时间）返回对应的时段。
 
 ---
 

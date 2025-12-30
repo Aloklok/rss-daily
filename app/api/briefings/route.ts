@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseClient } from '@/lib/server/apiUtils';
 import { Article } from '@/types'; // Adjust path as needed
+import { shanghaiDateSlotToUtcWindow } from '@/utils/dateUtils';
 
 export const dynamic = 'force-dynamic'; // Ensure this runs dynamically
 
@@ -55,45 +56,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const supabase = getSupabaseClient();
   let query = supabase.from('articles').select('*');
 
-  // Use UTC construction to match the logic in original file (which used string construction +08:00)
-  // But since we are in Node environment, Date parsing with timezone offset works if the string is correct.
-  // Original: new Date(`${date}T00:00:00.000+08:00`)
-  // We can replicate this logic or use the robust Date.UTC method we used elsewhere.
-  // Let's stick to the original logic for consistency unless it was broken (which we fixed elsewhere).
-  // Actually, we fixed it in `app/lib/data.ts` using Date.UTC. Let's use that robust approach here too.
+  // Use unified Shanghai date + slot → UTC window mapping
+  const { startIso, endIso } = shanghaiDateSlotToUtcWindow(date, slot as any);
 
-  const [year, month, day] = date.split('-').map(Number);
-
-  // Shanghai is UTC+8.
-  // 00:00:00 Shanghai = 16:00:00 UTC (previous day)
-  let startHourUtc = 0 - 8;
-  let endHourUtc = 23 - 8;
-  const startMinute = 0;
-  const endMinute = 59;
-  const startSecond = 0;
-  const endSecond = 59;
-
-  if (slot === 'morning') {
-    // 00:00 - 11:59 Shanghai
-    startHourUtc = 0 - 8;
-    endHourUtc = 11 - 8;
-  } else if (slot === 'afternoon') {
-    // 12:00 - 18:59 Shanghai
-    startHourUtc = 12 - 8;
-    endHourUtc = 18 - 8;
-  } else if (slot === 'evening') {
-    // 19:00 - 23:59 Shanghai
-    startHourUtc = 19 - 8;
-    endHourUtc = 23 - 8;
-  }
-
-  const startDate = new Date(
-    Date.UTC(year, month - 1, day, startHourUtc, startMinute, startSecond, 0),
-  );
-  const endDate = new Date(Date.UTC(year, month - 1, day, endHourUtc, endMinute, endSecond, 999));
-
-  query = query.gte('n8n_processing_date', startDate.toISOString());
-  query = query.lte('n8n_processing_date', endDate.toISOString());
+  query = query.gte('n8n_processing_date', startIso);
+  query = query.lte('n8n_processing_date', endIso);
 
   const { data: articles, error } = await query;
 

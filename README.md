@@ -6,7 +6,7 @@
   <h3>基于 AI 的现代化 RSS 每日简报平台</h3>
 
   <p>
-    <a href="https://github.com/Alok/alok-rss-daily/actions"><img src="https://github.com/Alok/alok-rss-daily/workflows/CI/CD%20Pipeline/badge.svg" alt="CI Status"></a>
+    <a href="https://github.com/Alok/alok-rss-daily/actions"><img src="https://github.com/Alok/alok-rss-daily/actions/workflows/CI.yml/badge.svg" alt="CI Status"></a>
     <img src="https://img.shields.io/badge/Next.js-16-black" alt="Next.js 16">
     <img src="https://img.shields.io/badge/React-19-blue" alt="React 19">
     <img src="https://img.shields.io/badge/TypeScript-5-blue" alt="TypeScript">
@@ -18,6 +18,13 @@
 **Briefing Hub** 是一个基于 **Next.js App Router** 构建的现代化阅读器。它不只是简单的 RSS 聚合，而是通过 **混合渲染架构 (SSR/ISR)** 和 **AI 增强**，将碎片化的信息重组为高质量的“每日简报”。
 
 ## 📚 文档中心 (Documentation)
+
+### 👋 新开发者？ → 从这里开始
+
+1. **[AGENT.md](./AGENT.md)** - AI/开发者快速导航卡片（5分钟定向）
+2. **[docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)** - 理解整体架构
+
+### 📖 按专题深入学习
 
 我们将详细的技术文档拆分为了以下专题，方便深入查阅：
 
@@ -78,11 +85,22 @@ pnpm run dev
 
 # 3. 运行测试
 pnpm test          # 单元测试
-pnpm test:e2e      # E2E 测试 (参阅 e2e/mocks/data.ts 查看真实数据样本)
+pnpm test:e2e      # E2E 测试（参阅下方的"模拟数据"部分）
 
 # 4. 代码检查
 pnpm run lint
 ```
+
+### 模拟数据 (Mock Data)
+
+E2E 测试使用预定义的模拟数据，避免对外部服务的依赖：
+
+- **文件位置**: [e2e/mocks/data.ts](./e2e/mocks/data.ts)
+- **包含内容**:
+  - `REAL_FRESHRSS_EXAMPLE`: FreshRSS 文章返回格式示例
+  - `MOCK_FRESHRSS_TAG_LIST`: 真实 FreshRSS API `/tag/list` 返回的分类和标签数据（8 个文件夹 + 14 个标签）
+
+**提示**: 如需了解如何使用这些数据，参考 [docs/TESTING.md](./docs/TESTING.md)。
 
 ## 🚀 部署
 

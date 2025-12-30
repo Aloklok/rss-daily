@@ -90,6 +90,21 @@
 | **过滤器** (Filters) | FreshRSS API | `unstable_cache` (24h) | 极少变动,强制缓存实现秒开           |
 | **收藏夹** (Starred) | FreshRSS API | **No-Store**           | 用户一致性优先,实时请求保证刷新即变 |
 
+### 4.6 侧边栏"分类"数据流
+
+- **获取端点**: `/api/meta/tags` (由 `lib/server/tagFetcher.ts` 提供)
+- **FreshRSS 响应分类**:
+  - `item.type === 'folder'` → 分类（目录）
+  - `item.type === 'tag'` 或其他 → 标签
+- **计数字段兼容**:
+  - 尝试获取 `count` 字段（文件夹使用）
+  - 回退到 `unread_count` 字段（标签使用）
+  - 确保不同版本的 FreshRSS 都能正确显示计数
+- **过滤规则**:
+  - 排除内部系统状态（`/state/com.google/`, `/state/org.freshrss/`）
+  - 保留用户创建的自定义分类和标签
+  - 按标签名 (label) 按中文排序
+
 ## 5. 性能与 UX 优化
 
 ### 5.1 消除内容闪烁

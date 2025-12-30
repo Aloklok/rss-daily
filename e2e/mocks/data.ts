@@ -81,3 +81,114 @@ export const REAL_FRESHRSS_EXAMPLE = {
     },
   ],
 };
+
+/**
+ * 真实 FreshRSS /tag/list API 返回的数据 (2025-12-30 抓取)
+ * 用于测试侧边栏"分类"和"标签"的获取与展示
+ *
+ * 数据结构说明：
+ * - type === 'folder': 文件夹（分类），通常无 count/unread_count
+ * - type === 'tag': 标签，通常有 unread_count
+ * - 系统状态（/state/com.google/ 和 /state/org.freshrss/）已在客户端过滤
+ */
+export const MOCK_FRESHRSS_TAG_LIST = {
+  tags: [
+    // 系统状态（应被过滤掉）
+    {
+      id: 'user/-/state/com.google/starred',
+    },
+    {
+      id: 'user/-/state/com.google/reading-list',
+    },
+    {
+      id: 'user/-/state/org.freshrss/main',
+    },
+    {
+      id: 'user/-/state/org.freshrss/important',
+    },
+    // 用户创建的分类（文件夹）
+    {
+      id: 'user/-/label/未分类',
+      type: 'folder',
+    },
+    {
+      id: 'user/-/label/☁️ 基础设施',
+      type: 'folder',
+    },
+    {
+      id: 'user/-/label/🌏 图',
+      type: 'folder',
+    },
+    {
+      id: 'user/-/label/🎙️ 播客',
+      type: 'folder',
+    },
+    {
+      id: 'user/-/label/🏗️ 架构设计',
+      type: 'folder',
+    },
+    {
+      id: 'user/-/label/📦 工程实践',
+      type: 'folder',
+    },
+    {
+      id: 'user/-/label/🖥 前端',
+      type: 'folder',
+    },
+    {
+      id: 'user/-/label/🤖 AI 大数据',
+      type: 'folder',
+    },
+    // 用户创建的标签
+    {
+      id: 'user/-/label/AI',
+      type: 'tag',
+      unread_count: 0,
+    },
+    {
+      id: 'user/-/label/PM&数据',
+      type: 'tag',
+      unread_count: 0,
+    },
+    {
+      id: 'user/-/label/云',
+      type: 'tag',
+      unread_count: 0,
+    },
+    {
+      id: 'user/-/label/前端',
+      type: 'tag',
+      unread_count: 0,
+    },
+    {
+      id: 'user/-/label/后端',
+      type: 'tag',
+      unread_count: 0,
+    },
+    {
+      id: 'user/-/label/安全',
+      type: 'tag',
+      unread_count: 0,
+    },
+    {
+      id: 'user/-/label/架构',
+      type: 'tag',
+      unread_count: 0,
+    },
+    {
+      id: 'user/-/label/案例',
+      type: 'tag',
+      unread_count: 0,
+    },
+    {
+      id: 'user/-/label/知识点',
+      type: 'tag',
+      unread_count: 0,
+    },
+    {
+      id: 'user/-/label/趋势',
+      type: 'tag',
+      unread_count: 0,
+    },
+  ],
+};

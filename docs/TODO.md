@@ -147,6 +147,8 @@
 - [x] **图片自适应代理**: 通过 Weserv.nl 动态压缩/缩放外链图片，节省 80%+ 流量。
 - [x] **API 响应聚合**: 通过 `include_state` 参数合并文章详情与用户状态接口，消除了客户端的瀑布流请求。（注：Article SSR 仍保持 ISR 静态缓存模式）。
 - [x] **Hydration 逻辑精简**: 复查 `useArticleStateHydration`，在已通过 `include_state` 获取状态的场景下，进一步减少或跳过初始化的后台同步请求，避免冗余 fetch。
+- [x] **将时区映射封装为单一工具**: 在 `utils/dateUtils.ts` 中实现 `shanghaiDayToUtcWindow` 与 `shanghaiDateSlotToUtcWindow`；迁移了 `lib/server/dataFetcher.ts` 与 `app/api/briefings/route.ts` 中的重复时区映射逻辑。
+- [x] **修复分类数据获取**: 修复 `lib/server/tagFetcher.ts` 中的 `count` 字段识别，支持 `count` 和 `unread_count` 两种格式。
 
 ---
 

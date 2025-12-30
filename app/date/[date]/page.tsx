@@ -1,10 +1,7 @@
 import React from 'react';
 import { Metadata } from 'next';
-import {
-  fetchBriefingData,
-  fetchAvailableDates,
-  getTodayInShanghai,
-} from '@/lib/server/dataFetcher';
+import { fetchBriefingData, fetchAvailableDates } from '@/lib/server/dataFetcher';
+import { getTodayInShanghai } from '@/utils/dateUtils';
 
 import BriefingClient from '@/components/features/briefing/BriefingClient';
 import { resolveBriefingImage } from '@/utils/imageUtils';

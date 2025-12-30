@@ -22,14 +22,18 @@ export async function fetchTagsServer(): Promise<{ categories: Tag[]; tags: Tag[
       data.tags.forEach((item) => {
         const label = decodeURIComponent(item.id.split('/').pop() || '');
 
+        // Skip internal states (Google/FreshRSS system states)
         if (item.id.includes('/state/com.google/') || item.id.includes('/state/org.freshrss/')) {
           return;
         }
 
+        // FreshRSS returns 'unread_count' for tags, and no count for folders
+        const itemCount = (item as any).count || (item as any).unread_count;
+
         if (item.type === 'folder') {
-          categories.push({ id: item.id, label, count: item.count });
+          categories.push({ id: item.id, label, count: itemCount });
         } else {
-          tags.push({ id: item.id, label, count: item.count });
+          tags.push({ id: item.id, label, count: itemCount });
         }
       });
     }
