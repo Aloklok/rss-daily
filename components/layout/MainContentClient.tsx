@@ -62,15 +62,12 @@ export default function MainContentClient({
   const selectedArticleId = useUIStore((state) => state.selectedArticleId);
   const storeTimeSlot = useUIStore((state) => state.timeSlot);
 
-  // Track if component is mounted to differentiate hydration from post-mount user interaction
-  const [mounted, setMounted] = React.useState(false);
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // Track if Store has been synced with Server State
+  const [isSynced, setIsSynced] = React.useState(false);
 
-  // Use initialTimeSlot fallback ONLY during the initial mount or when store is empty.
-  // We prioritize storeTimeSlot but allow initialTimeSlot to bridge the hydration period.
-  const timeSlot = storeTimeSlot || (mounted ? null : initialTimeSlot) || null;
+  // Use initialTimeSlot fallback UNTIL store is synced.
+  // We prioritize storeTimeSlot only after synchronization to prevent race conditions (flicker).
+  const timeSlot = isSynced ? storeTimeSlot : initialTimeSlot || null;
 
   const setTimeSlot = useUIStore((state) => state.setTimeSlot);
   const articlesById = useArticleStore((state) => state.articlesById);
@@ -97,6 +94,9 @@ export default function MainContentClient({
     if (isHomepage && initialTimeSlot && !slotState.timeSlot) {
       slotState.setTimeSlot(initialTimeSlot);
     }
+
+    // Mark synchronization as complete
+    setIsSynced(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run strictly once on mount
 

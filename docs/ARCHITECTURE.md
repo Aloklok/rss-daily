@@ -110,6 +110,7 @@
 ### 5.1 消除内容闪烁
 
 - **全量注入**: 服务端预计算 `initialTimeSlot` 消除首屏跳变
+- **同步水合 (Synchronized Hydration)**: 引入 `isSynced` 状态标识，确保在 Store 完成初始化前始终信任服务端预计算状态，消除因 `mounted` 状态引起的竞争条件闪烁
 - **选择性水合**: 客户端启动时将 SSR 数据分发至 React Query 缓存
 - **数据一致性**: 统一使用 `n8n_processing_date` 作为时段判定标准
 - **实时保鲜**: 首页数据设置 10 分钟 `staleTime`

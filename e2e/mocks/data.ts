@@ -1,31 +1,67 @@
 export const REAL_ID = '1001';
 
-export const MOCK_ARTICLE = {
-  id: REAL_ID,
-  title:
-    '超越 IP 列表：机器人和代理的注册表格式 - Beyond IP lists: a registry format for bots and agents',
-  link: 'https://blog.cloudflare.com/agent-registry/',
+// 基础模板
+const BASE_ARTICLE = {
   sourceName: 'Cloudflare 博客',
-  published: '2025-01-01T04:00:00+08:00',
-  n8n_processing_date: '2025-01-01T04:00:00+08:00',
   category: 'AI与前沿科技',
-  keywords: ['加密认证', '机器人注册表', 'AI代理', 'Web Bot Auth', 'Cloudflare'],
-  verdict: {
-    type: '知识洞察型',
-    score: 8,
-    importance: '重要新闻',
-  },
-  summary:
-    '这篇文章提出了一个解决机器人和AI代理身份认证和发现的**行业标准新方向**。Cloudflare正尝试通过“Web Bot Auth”协议和配套的注册表格式，让网站运营者能更可靠地识别和管理流量。',
-  content:
-    '<p>这是真实抓取的文章内容模拟。Cloudflare 提出的 <strong>Web Bot Auth</strong> 协议旨在解决 AI 时代的机器人识别问题。</p><p>核心技术包括：</p><ul><li>加密签名</li><li>元数据注册表</li><li>速率控制策略</li></ul>',
+  keywords: ['加密认证', '机器人注册表', 'AI代理', 'Web Bot Auth'],
+  summary: 'Cloudflare 提出的 Web Bot Auth 协议旨在解决 AI 时代的机器人识别问题。',
+  content: '<p>这是真实抓取的文章内容模拟。</p>',
   highlights: '核心是**从脆弱的IP/User-Agent识别转向加密认证**。',
-  critiques: '这玩意儿要真正普及起来，需要**整个生态的共同努力**。',
-  marketTake: '机器流量的识别与管理将成为未来两年的核心挑战。',
-  tldr: 'Cloudflare提出机器人和代理的加密认证注册表格式。',
-  briefingSection: '重要新闻',
+  critiques: '需要生态共同努力。',
+  marketTake: '机器流量管理是未来挑战。',
+  // 必须包含 tags 数组
   tags: [],
 };
+
+// 辅助函数：生成不同时段和类型的文章
+const createArticle = (
+  id: string,
+  slot: 'morning' | 'afternoon' | 'evening',
+  type: 'insight' | 'news',
+) => {
+  // 映射时间 (假设测试日期为 2025-01-01)
+  // Morning: 08:00, Afternoon: 14:00, Evening: 20:00 (CST)
+  const timeMap = {
+    morning: '2025-01-01T08:00:00+08:00',
+    afternoon: '2025-01-01T14:00:00+08:00',
+    evening: '2025-01-01T20:00:00+08:00',
+  };
+
+  const verdictMap = {
+    insight: { type: '知识洞察型', score: 8, importance: '深度关注' },
+    news: { type: '时事新闻与更新', score: 5, importance: '常规更新' },
+  };
+
+  return {
+    ...BASE_ARTICLE,
+    id: id,
+    title: `[${slot.toUpperCase()}] ${type === 'insight' ? '深度洞察' : '时事新闻'}: 文章标题示例`,
+    link: `https://example.com/${id}`,
+    published: timeMap[slot],
+    n8n_processing_date: timeMap[slot],
+    verdict: verdictMap[type],
+    briefingSection: type === 'insight' ? '深度知识与洞察' : '时事新闻与更新',
+    tldr: `这是 ${slot} 的 ${type} 文章 TLDR。`,
+  };
+};
+
+export const MOCK_ARTICLES_POOL = {
+  // Morning
+  morning_insight: createArticle('id-morning-insight', 'morning', 'insight'),
+  morning_news: createArticle('id-morning-news', 'morning', 'news'),
+
+  // Afternoon
+  afternoon_insight: createArticle('id-afternoon-insight', 'afternoon', 'insight'),
+  afternoon_news: createArticle('id-afternoon-news', 'afternoon', 'news'),
+
+  // Evening
+  evening_insight: createArticle('id-evening-insight', 'evening', 'insight'),
+  evening_news: createArticle('id-evening-news', 'evening', 'news'),
+};
+
+// 保持向下兼容 (很多旧测试用了 MOCK_ARTICLE)
+export const MOCK_ARTICLE = MOCK_ARTICLES_POOL.morning_insight;
 
 /**
  * 真实 FreshRSS API 返回的数据样本 (2025-12-29 抓取，ID: 000646f2c89c729a)

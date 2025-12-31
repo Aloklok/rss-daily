@@ -62,7 +62,34 @@ npm run test:e2e
 
 # 仅运行特定文件 (推荐调试用)
 pnpm exec playwright test e2e/tests/sidebar.spec.ts
+
+4.  **首页交互与筛选 (`homepage-interactions.spec.ts`)**:
+    - **加载稳定性**: 验证首页默认选中正确时段且无闪烁。
+    - **多维筛选**: 验证 [时段] + [类型] (例如：中午 + 洞察) 的组合筛选准确性。
+    - **批量操作**: 验证 "Mark All as Read" 仅针对当前筛选结果生效 (通过 Mock API 拦截验证 Payload)。
 ```
+
+### E2E 最佳实践 (针对本项目环境)
+
+由于项目采用 SSR (服务端渲染) 优化且在本地开发环境下存在频繁重绘，编写 E2E 测试时应遵循以下准则以避免 **Timeout** 和 **Flakiness**:
+
+1.  **处理 SSR 优化与 API 拦截**:
+    - **现象**: 当页面已包含 SSR 数据时，客户端可能跳过 API 请求。
+    - **策略**: 使用未来日期（如 `/date/2099-12-31`）访问，强制 SSR 返回空数据，从而“诱导”客户端发起 API 请求，确保拦截器 (`waitForResponse`) 生效。
+
+2.  **应对响应式组件的 DOM 复用**:
+    - **现象**: 由于 Mobile 和 Desktop 副本共存，Playwright 可能会找到多个匹配（其中一个可能是隐藏的），导致 `strict mode` 报错或选中了不可点击的元素。
+    - **策略**: 始终在定位器后链式调用 `.filter({ visible: true }).first()`。
+
+3.  **开发环境下的动作稳定性**:
+    - **现象**: `next dev` 模式下的组件重绘会导致原生 `.click()` 动作在布局抖动时判定失败。
+    - **策略**:
+      - 使用 `click({ force: true })` 强制触发。
+      - 在关键状态变更点击后，增加 `await page.waitForTimeout(2000)` 给 Zustand 状态同步和 DOM 重刷留出缓冲。
+      - 为断言增加显式超时，例如 `expect(...).toBeVisible({ timeout: 15000 })`。
+
+4.  **避免 `networkidle`**:
+    - **建议**: 尽量使用 `waitUntil: 'domcontentloaded'` 或默认状态。在包含第三方分析脚本（Analytics）的环境下，`networkidle` 可能导致无限期挂起直到 60s 超时。
 
 ---
 

@@ -2,6 +2,30 @@ import { NextResponse } from 'next/server';
 
 export function proxy(request: Request) {
   const url = new URL(request.url);
+
+  // 0. Redirect: Fix 404s for legacy/external links with long Google Reader IDs
+  // Pattern: /article/tag:google.com,2005:reader/item/<short_id> -> /article/<short_id>
+  // This handles unencoded slashes in the path that break Next.js routing
+  if (url.pathname.includes('tag:google.com')) {
+    const LONG_ID_PREFIX = 'tag:google.com,2005:reader/item/';
+    const decodedPath = decodeURIComponent(url.pathname);
+
+    if (decodedPath.includes(LONG_ID_PREFIX)) {
+      const parts = decodedPath.split(LONG_ID_PREFIX);
+      // Ensure we have a valid split and get the part after the prefix
+      if (parts.length > 1) {
+        const shortId = parts[1];
+        if (shortId && !shortId.includes('/')) {
+          // valid shortId shouldn't have more slashes ideally, but let's be permissive or strict?
+          // If shortId has slashes, it might be another nested structure, but here we assume it's the ID.
+          // Let's just redirect.
+          const newUrl = new URL(url);
+          newUrl.pathname = `/article/${shortId}`;
+          return NextResponse.redirect(newUrl, { status: 301 });
+        }
+      }
+    }
+  }
   const userAgent = request.headers.get('user-agent') || '';
 
   // 0. Anti-Scraping: Block specific AI bots and scrapers

@@ -344,7 +344,10 @@ const Briefing: React.FC<BriefingProps> = ({
                       return (
                         <button
                           key={slotOption}
-                          onClick={() => onTimeSlotChange(isSelected ? null : slotOption)}
+                          onClick={() => {
+                            console.log(`[DIAG] Clicked Slot: ${slotOption}`);
+                            onTimeSlotChange(isSelected ? null : slotOption);
+                          }}
                           className={`flex size-9 items-center justify-center rounded-full border border-white/20 font-serif text-sm transition-all duration-300 ${
                             isSelected
                               ? 'scale-110 border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)] dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900 dark:shadow-[0_0_15px_rgba(251,191,36,0.6)]'

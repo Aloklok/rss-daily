@@ -1,5 +1,5 @@
 import { Page } from '@playwright/test';
-import { MOCK_ARTICLE } from '../mocks/data';
+import { MOCK_ARTICLE, MOCK_ARTICLES_POOL } from '../mocks/data';
 
 /**
  * 模拟完整的应用 API
@@ -23,31 +23,56 @@ export async function mockFullApp(page: Page) {
 
       // 1. 简报 (GET) /api/briefings
       if (pathname === '/api/briefings') {
-        // 兜底：无论请求什么日期或时段，都返回我们的 MOCK_ARTICLE，确保页面不为空
+        const slot = urlObj.searchParams.get('slot');
+        const allArticles = Object.values(MOCK_ARTICLES_POOL);
+        console.log(
+          `[MockAPI] /api/briefings request. Slot: ${slot}, IDs requested: ${urlObj.searchParams.getAll('articleIds')}`,
+        );
+
+        // 如果明确请求特定的 ID 集合 (e.g. 详情页刷新)
         if (urlObj.searchParams.has('articleIds')) {
           const requestedIds = urlObj.searchParams.getAll('articleIds');
           const response: Record<string, any> = {};
+
           requestedIds.forEach((id) => {
-            response[id] = { ...MOCK_ARTICLE, id: id };
+            // 尝试在 Pool 中查找，找不到则回退到默认
+            const found = allArticles.find((a) => a.id === id) || MOCK_ARTICLE;
+            response[id] = { ...found, id };
           });
+
           return route.fulfill({
             status: 200,
             contentType: 'application/json',
             body: JSON.stringify(response),
           });
-        } else {
-          // 返回完整的分组数据，包含分类好的 Mock
-          const jsonResponse = {
-            [MOCK_ARTICLE.briefingSection]: [MOCK_ARTICLE],
-            必知要闻: [],
-            常规更新: [],
-          };
-          return route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify(jsonResponse),
-          });
         }
+
+        // 常规列表请求：根据 Slot 过滤
+        let filteredArticles = allArticles;
+        if (slot) {
+          // 简单的过滤逻辑：假设我们的 Mock ID 包含 slot 名称 (e.g. 'id-morning-insight')
+          // 或者根据 published 时间判断，但用 ID 更稳健
+          filteredArticles = allArticles.filter((a) => a.id.includes(slot));
+        }
+
+        // 按 Section 分组构造响应
+        const jsonResponse: Record<string, any[]> = {
+          深度知识与洞察: [],
+          时事新闻与更新: [],
+          常规更新: [],
+        };
+
+        filteredArticles.forEach((article) => {
+          const section = article.briefingSection || '常规更新';
+          if (!jsonResponse[section]) jsonResponse[section] = [];
+          jsonResponse[section].push(article);
+        });
+
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(jsonResponse),
+        });
       }
 
       // 2. 文章内容 (POST) /api/articles

@@ -101,6 +101,7 @@ export default function BriefingClient({
   // 1. Optimized Fetch Logic:
   // - If we already have articles (SSR hydrated), we stick to 'all' and filter locally to avoid unnecessary network requests.
   // - If articles are empty (e.g. Test environment without SSR data, or empty state), we try fetching specific slot to force a check.
+  // 1. Optimized Fetch Logic:
   const shouldUseSpecificSlot = articles.length === 0 && !!timeSlot;
   const querySlot = shouldUseSpecificSlot ? timeSlot : 'all';
 
