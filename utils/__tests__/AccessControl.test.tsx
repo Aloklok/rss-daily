@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { vi, describe, it, expect } from 'vitest';
 import { useUIStore } from '@/store/uiStore';
 import ArticleDetail from '@/components/features/article/ArticlePage';
 import { MOCK_ARTICLE } from './mockData';

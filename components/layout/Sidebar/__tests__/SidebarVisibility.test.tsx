@@ -47,7 +47,7 @@ describe('侧边栏可见性 (Sidebar Visibility)', () => {
     await page.viewport(1280, 720);
 
     // Mock store state
-    (useUIStore as any).mockImplementation((selector) => {
+    (useUIStore as any).mockImplementation((selector: any) => {
       const state = {
         activeFilter: null,
         timeSlot: 'morning',

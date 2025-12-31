@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw';
-import { MOCK_ARTICLES_POOL, MOCK_FRESHRSS_TAG_LIST } from './data';
+import { MOCK_ARTICLES_POOL, MOCK_FRESHRSS_TAG_LIST } from './mockData';
 
 export const handlers = [
   // Mock available dates
@@ -19,7 +19,7 @@ export const handlers = [
 
     let articles = Object.values(MOCK_ARTICLES_POOL);
     if (slot) {
-      articles = articles.filter((a) => a.id.includes(slot));
+      articles = articles.filter((a: any) => a.id.includes(slot));
     }
 
     return HttpResponse.json(articles);
