@@ -55,6 +55,17 @@ jobs:
           ACCESS_TOKEN: 'test-admin-token'
           NEXT_DISABLE_CACHE: '1'
 
+      # --- 构建步骤 (新增) ---
+
+      - name: Build Application
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:9999'
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: 'mock-key'
+          SUPABASE_URL: 'http://127.0.0.1:9999'
+          SUPABASE_SERVICE_ROLE_KEY: 'mock-service-role-key'
+          SENTRY_AUTH_TOKEN: 'mock-token' # 避免 Sentry 上传 sourcemap 报错 (如果配置了)
+
       # --- 端到端测试 ---
 
       - name: Run E2E Tests
