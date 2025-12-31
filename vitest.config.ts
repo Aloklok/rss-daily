@@ -14,14 +14,12 @@ export default defineConfig({
       '**/node_modules/**',
       '**/dist/**',
       'e2e/**',
-      'utils/__tests__/serverSanitize.test.ts'
+      'utils/__tests__/serverSanitize.test.ts',
     ],
     browser: {
       enabled: true,
       provider: playwright(),
-      instances: [
-        { browser: 'chromium' },
-      ],
+      instances: [{ browser: 'chromium' }],
     },
     setupFiles: ['./vitest.setup.ts'],
     coverage: {

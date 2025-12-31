@@ -8,70 +8,70 @@ import { useUIStore } from '../../../../store/uiStore';
 import { vi } from 'vitest';
 
 vi.mock('../../../../store/uiStore', async (importOriginal) => {
-    const actual = await importOriginal();
-    return {
-        ...(actual as object),
-        useUIStore: vi.fn(),
-    };
+  const actual = await importOriginal();
+  return {
+    ...(actual as object),
+    useUIStore: vi.fn(),
+  };
 });
 
 // Mock hooks to avoid errors
 vi.mock('../../../../hooks/useArticles', () => ({
-    useBriefingArticles: () => ({ data: [], isFetching: false }),
-    useFilteredArticles: () => ({ data: null }),
-    useSearchResults: () => ({ data: null }),
-    useStarredArticles: () => ({ data: [] }),
+  useBriefingArticles: () => ({ data: [], isFetching: false }),
+  useFilteredArticles: () => ({ data: null }),
+  useSearchResults: () => ({ data: null }),
+  useStarredArticles: () => ({ data: [] }),
 }));
 vi.mock('next/navigation', () => ({
-    useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
-    usePathname: () => '/',
-    useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+  usePathname: () => '/',
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 describe('侧边栏可见性 (Sidebar Visibility)', () => {
-    const defaultProps = {
-        isInitialLoading: false,
-        isRefreshingFilters: false,
-        availableMonths: ['2023-01'],
-        selectedMonth: '2023-01',
-        onMonthChange: vi.fn(),
-        datesForMonth: [],
-        dailyStatuses: {},
-        onToggleDailyStatus: vi.fn(),
-        availableFilters: { categories: [], tags: [] },
-        initialStarredHeaders: [],
-    };
+  const defaultProps = {
+    isInitialLoading: false,
+    isRefreshingFilters: false,
+    availableMonths: ['2023-01'],
+    selectedMonth: '2023-01',
+    onMonthChange: vi.fn(),
+    datesForMonth: [],
+    dailyStatuses: {},
+    onToggleDailyStatus: vi.fn(),
+    availableFilters: { categories: [], tags: [] },
+    initialStarredHeaders: [],
+  };
 
-    it('在桌面端应正常显示 (Desktop Render)', async () => {
-        // Set viewport to desktop
-        await page.viewport(1280, 720);
+  it('在桌面端应正常显示 (Desktop Render)', async () => {
+    // Set viewport to desktop
+    await page.viewport(1280, 720);
 
-        // Mock store state
-        (useUIStore as any).mockImplementation((selector) => {
-            const state = {
-                activeFilter: null,
-                timeSlot: 'morning',
-                sidebarOpen: true, // Assuming default desktop is open or controlled by CSS
-                setSidebarOpen: vi.fn(),
-            };
-            return selector ? selector(state) : state;
-        });
-        (useUIStore as any).setState = vi.fn();
-
-        render(<SidebarView {...defaultProps} />);
-
-        // Verify sidebar is visible
-        // We look for the <aside> or a container with specific class
-        // SidebarView typically renders a <div className="..."> or <aside>
-        // Let's verify by text content or role if possible.
-        // Sidebar usually contains navigation items like "Briefing", "Sources"
-
-        // Try to find by role 'complementary' or 'navigation' if semantic HTML is used
-        // Or generic visibility of a known element
-        const sidebar = screen.getByText(/Briefing|Sources/i);
-        // Note: SidebarView might only render the *content* depending on how it's structured.
-        // But the test asked for "Sidebar in Desktop should be visible".
-
-        await expect.element(sidebar).toBeVisible();
+    // Mock store state
+    (useUIStore as any).mockImplementation((selector) => {
+      const state = {
+        activeFilter: null,
+        timeSlot: 'morning',
+        sidebarOpen: true, // Assuming default desktop is open or controlled by CSS
+        setSidebarOpen: vi.fn(),
+      };
+      return selector ? selector(state) : state;
     });
+    (useUIStore as any).setState = vi.fn();
+
+    render(<SidebarView {...defaultProps} />);
+
+    // Verify sidebar is visible
+    // We look for the <aside> or a container with specific class
+    // SidebarView typically renders a <div className="..."> or <aside>
+    // Let's verify by text content or role if possible.
+    // Sidebar usually contains navigation items like "Briefing", "Sources"
+
+    // Try to find by role 'complementary' or 'navigation' if semantic HTML is used
+    // Or generic visibility of a known element
+    const sidebar = screen.getByText(/Briefing|Sources/i);
+    // Note: SidebarView might only render the *content* depending on how it's structured.
+    // But the test asked for "Sidebar in Desktop should be visible".
+
+    await expect.element(sidebar).toBeVisible();
+  });
 });
