@@ -1,118 +1,137 @@
-# 测试指南
+# 测试体系文档
 
-本项目采用 **双层测试金字塔 (Two-Layer Testing Pyramid)** 策略，结合 Vitest 和 Playwright，旨在确保从底层业务逻辑到顶层用户流程的全面稳定性。
-
-## 1. 测试体系概览
-
-| 层级             | 工具       | 关注点                                 | 运行频率          | 覆盖范围                   |
-| :--------------- | :--------- | :------------------------------------- | :---------------- | :------------------------- |
-| **端到端 (E2E)** | Playwright | 真实浏览器交互、集成流程、视觉回归     | CI (Pull Request) | 核心用户路径 (18 Tests)    |
-| **单元/集成**    | Vitest     | 业务逻辑、状态管理、工具函数、边界情况 | Pre-commit        | 工具函数 > 80%, 核心 Store |
+本项目采用 **三层分域测试 (Three-Layer Functional Testing)** 策略。为了平衡 **Vibe Coding** 的开发节奏与系统稳定性，我们将测试按“功能域”划分为三个层级，并明确各层级的职责。
 
 ---
 
-## 2. 单元测试
 
-侧重于**高价值、高风险**的逻辑覆盖，运行速度极快。
 
-### 核心覆盖区域
+## 1. 核心功能域测试矩阵 & 命名规范 (Naming Convention)
 
-| 模块类型           | 测试重点                                   | 状态    | 关键文件示例                               |
-| :----------------- | :----------------------------------------- | :------ | :----------------------------------------- |
-| **Utils (工具库)** | HTML 清洗 pipeline, 日期格式化, 正则匹配   | ✅ 完成 | `lib/server/__tests__/dataFetcher.test.ts` |
-| **Stores (状态)**  | 乐观更新 UI, 异步 Admin 检查, 状态回滚     | ✅ 完成 | `store/__tests__/uiStore.test.ts`          |
-| **Server (数据)**  | Fetch 降级逻辑, 超时熔断 (10s), 跨时区计算 | ✅ 完成 | `dataFetcher.test.ts`                      |
+### 📏 测试文件命名规范
+为了清晰区分测试职责，请严格遵守以下命名规则：
 
-### 运行命令
+| 测试类型 | 文件后缀 | 适用场景 | 示例 |
+| :--- | :--- | :--- | :--- |
+| **逻辑单元测试 (Unit)** | `*.test.ts` | 纯函数、Hook 逻辑、Store 状态 | `dateUtils.test.ts` |
+| **组件集成测试 (Integration)** | `*.test.tsx` | React 组件渲染、交互验证 | `ArticleReaderView.test.tsx` |
+| **端到端测试 (E2E)** | `*.spec.ts` | 完整用户流程 (Playwright) | `smoke-home.spec.ts` |
 
-```bash
-npm run test           # 运行所有单元测试
-npm run test:coverage  # 生成覆盖率报告 (coverage/index.html)
-npm run test:report    # 生成静态 HTML 报告 (html/index.html)
+### 🔍 搜索与标签 (Search & Tags)
+1. **关键词提取**：验证系统能否从复杂的非结构化文本中准确提取出核心标签。
+2. **搜索输入交互**：验证搜索框输入内容后，URL 参数是否正确更新，且页面无需刷新即可响应。
+3. **标签标准化**：验证同义但不同形的标签（如 "AI" 和 "Artificial Intelligence"）是否能被归一化处理。
+
+### 📅 导航与布局 (Navigation & Layout)
+1. **侧边栏状态同步**：验证在移动端点击菜单按钮时，侧边栏能否正确展开和收起，且遮罩层交互正常。
+2. **日期选中状态**：验证在日历中选择特定日期后，侧边栏对应日期项是否保持高亮选中状态。
+3. **响应式显示**：验证在桌面端侧边栏常驻显示，而在移动端默认隐藏并通过汉堡菜单触发。
+4. **搜索与跳转**：验证搜索框输入与回车后的路由跳转逻辑。
+5. **文章卡片交互**：验证点击文章标题是否正确触发阅读模式弹窗。
+
+### 📰 简报流与过滤 (Briefing & Filtering)
+1. **时段筛选逻辑**：验证点击“早/午/晚”时段切换按钮后，列表是否严格只显示对应时间段的文章。
+2. **全部已读交互**：验证"全部已读"按钮的状态（基于未读数）及点击后的 API 触发逻辑。
+3. **数据映射准确性**：验证后端返回的原始文章数据，是否完整且正确地映射到了前端卡片的标题、来源和摘要字段。
+
+### ❤️ 交互与状态 (Interaction & State)
+1. **即时反馈 (Optimistic UI)**：验证点击“已读”或“收藏”按钮时，UI 图标是否立即改变颜色/状态，无需等待网络请求返回。
+2. **主题切换持久化**：验证切换深色/浅色模式后，刷新页面或重新打开浏览器，主题设置是否依然保持。
+3. **全局状态同步**：验证在不同页面间跳转时，用户的管理员身份状态和当前选中的文章 ID 是否保持一致。
+
+### 📖 文章详情与安全 (Article View & Security)
+1. **详情页完整渲染**：验证文章详情弹窗打开后，标题、正文、来源信息和 AI 生成的摘要/标签是否全部正确加载。
+2. **XSS 安全过滤**：验证文章正文中包含的恶意脚本（如 `<script>` 标签）是否被自动清除，防止安全漏洞。
+3. **外部链接处理**：验证文章内的外部链接点击后，是否在新标签页打开，且包含必要的安全属性 (`rel="noopener"`).
+
+### 🛡️ 访问控制 (Access Control)
+1. **公共用户视图**：验证未登录的普通用户访问时，文章卡片上**不显示**“收藏”、“打标签”和“重新生成简报”等管理专用按钮。
+2. **管理员视图**：验证管理员登录后，上述所有管理按钮均可见且可交互。
+
+### 🛠️ 核心工具 (Core Utilities)
+1. **ID 兼容性转换**：验证系统能否正确处理 FreshRSS 返回的长格式 ID，并将其转换为 URL 友好的短 ID。
+2. **日期格式化**：验证不同时区的日期字符串能否被统一格式化为本地易读时间显示。
+3. **断网容错**：验证在网络请求超时或失败时，系统是否显示友好的错误提示或骨架屏，而不是页面崩溃。
+
+---
+
+
+
+## 2. 开发避坑指南
+
+### 🚫 禁止在 Browser 测试中引用 Node 模块
+Vitest **Browser Mode** 运行在真实浏览器环境中。**严禁**在测试代码中引用 `path`, `fs`, `os` 等模块。
+- *解决方案*: 所有的 Mock 数据必须通过标准的 `import` 导入。
+
+### 🧩 必须 Mock Next.js 导航 Hooks
+组件强依赖 `next/navigation`。在 `vitest.setup.ts` 中已全局 Mock 了 `useRouter` 等钩子。若组件报错 `useContext...null`，请检查 Mock 是否生效。
+
+为了确保测试的高效运行且不报诡异错误，请遵循以下开发规范：
+
+### 🧩 组件测试必须包裹 Providers
+如果被测组件使用了 React Query (如 `useArticleContent`)，必须在测试中包裹 `QueryClientProvider`。
+```tsx
+const queryClient = createTestQueryClient();
+render(
+    <QueryClientProvider client={queryClient}>
+        <YourComponent />
+    </QueryClientProvider>
+);
 ```
 
----
+### 🚫 禁止在 Browser 测试中引用 Node 模块
+Vitest **Browser Mode** 运行在真实浏览器环境中。**严禁**在测试代码或被测的客户端组件中 import `path`, `fs`, `os` 等模块。
+- *报错示例*: `Module "path" has been externalized...`
+- *对策*: 
+  1. 所有的 Mock 数据必须通过标准的 ES Import 导入 `.ts`/`.json` 文件。
+  2. 纯服务端逻辑（如 `serverSanitize.ts`）若包含 Node 依赖，必须在 `vitest.config.ts` 中通过 `exclude` 排除，或使用 `// @vitest-environment node` (仅限非 Browser 模式)。
 
-## 3. 端到端测试 (E2E Testing)
+### 📍 必须使用路径别名 (Path Alias)
+**拒绝路径深渊！** 严禁使用 `../../../../` 这种脆弱的相对路径，这会导致重构困难且极易出错。
+- *正确做法*: 始终使用 `@/` 开头。
+  ```typescript
+  // ✅ Good
+  import ArticleCard from '@/components/features/article/ArticleCard';
+  
+  // ❌ Bad
+  import ArticleCard from '../../../../components/features/article/ArticleCard';
+  ```
 
-使用 Playwright 在真实浏览器 (Chromium, Firefox, Mobile Chrome) 中模拟用户操作，涵盖了应用的**生命线功能**。
+### 🧟 进程管理 (Process Hygiene)
+Vitest 默认开启监听模式 (`Watch Mode`)。
+- **One Process Rule**: 同一时间只允许运行**一个** `pnpm run test` 实例。
+- **现象**: 如果发现电脑卡顿或测试行为诡异，请立即执行 `pkill -f vitest` 清理僵尸进程。
+- **习惯**: 看完报错后，要么利用 Watch 模式自动重跑，要么 `q` 退出后再开新的，不要保留多个终端窗口挂着测试。
 
-### 当前覆盖范围 (18 Verified Tests)
+### 🧩 必须 Mock Next.js 导航 Hooks
+Sidebar 等组件强依赖 `next/navigation`。在 `vitest.setup.ts` 中已全局 Mock 了 `useRouter` 等钩子。若组件报错 `useContext...null`，请检查 Mock 是否生效。
 
-1.  **核心阅读体验 (`article.spec.ts`)**:
-    - **文章详情**: 点击卡片 -> 模态框弹出 -> API 数据加载 -> 内容渲染。
-    - **Mock 策略**: 拦截 `/api/briefings` 和 `/api/articles`，返回确定性的 Mock 数据。
-      - **数据源**: `e2e/mocks/data.ts` (包含真实抓取的 API 样本，用于验证 Tags/Folder 结构)。
+### 🌐 严禁直接改写 `global.fetch`
+为了不破坏测试底层的通讯链路，请使用 **MSW (Mock Service Worker)** 在 `handlers.ts` 中进行路由拦截，严禁手动 `global.fetch = vi.fn()`。
 
-2.  **导航与管理 (`sidebar.spec.ts`)**:
-    - **侧边栏交互**: 桌面端折叠/展开，移动端汉堡菜单手势。
-    - **维度切换**: "日历" (按日期浏览) vs "分类" (按 Topic 浏览) 的 Tab 切换。
-    - **管理员搜索**: 模拟 Admin 登录 (Cookie注入) -> 输入关键词 -> URL 跳转 (`?filter=search`) -> 结果展示。
-
-3.  **页面展示与布局 (`home.spec.ts`)**:
-    - **首页渲染**: 标题、Logo、核心组件可见性。
-    - **时段筛选**: 切换 "早/午/晚" 时段，验证列表刷新。
-    - **响应式**: 验证 Mobile View下的布局适配。
-
-### 运行命令
-
-```bash
-# 运行完整测试套件 (在本地如果不带参数会启动所有浏览器，较慢)
-npm run test:e2e
-
-# 仅运行特定文件 (推荐调试用)
-pnpm exec playwright test e2e/tests/sidebar.spec.ts
-
-4.  **首页交互与筛选 (`homepage-interactions.spec.ts`)**:
-    - **加载稳定性**: 验证首页默认选中正确时段且无闪烁。
-    - **多维筛选**: 验证 [时段] + [类型] (例如：中午 + 洞察) 的组合筛选准确性。
-    - **批量操作**: 验证 "Mark All as Read" 仅针对当前筛选结果生效 (通过 Mock API 拦截验证 Payload)。
-```
-
-### E2E 最佳实践 (针对本项目环境)
-
-由于项目采用 SSR (服务端渲染) 优化且在本地开发环境下存在频繁重绘，编写 E2E 测试时应遵循以下准则以避免 **Timeout** 和 **Flakiness**:
-
-1.  **处理 SSR 优化与 API 拦截**:
-    - **现象**: 当页面已包含 SSR 数据时，客户端可能跳过 API 请求。
-    - **策略**: 使用未来日期（如 `/date/2099-12-31`）访问，强制 SSR 返回空数据，从而“诱导”客户端发起 API 请求，确保拦截器 (`waitForResponse`) 生效。
-
-2.  **应对响应式组件的 DOM 复用**:
-    - **现象**: 由于 Mobile 和 Desktop 副本共存，Playwright 可能会找到多个匹配（其中一个可能是隐藏的），导致 `strict mode` 报错或选中了不可点击的元素。
-    - **策略**: 始终在定位器后链式调用 `.filter({ visible: true }).first()`。
-
-3.  **开发环境下的动作稳定性**:
-    - **现象**: `next dev` 模式下的组件重绘会导致原生 `.click()` 动作在布局抖动时判定失败。
-    - **策略**:
-      - 使用 `click({ force: true })` 强制触发。
-      - 在关键状态变更点击后，增加 `await page.waitForTimeout(2000)` 给 Zustand 状态同步和 DOM 重刷留出缓冲。
-      - 为断言增加显式超时，例如 `expect(...).toBeVisible({ timeout: 15000 })`。
-
-4.  **避免 `networkidle`**:
-    - **建议**: 尽量使用 `waitUntil: 'domcontentloaded'` 或默认状态。在包含第三方分析脚本（Analytics）的环境下，`networkidle` 可能导致无限期挂起直到 60s 超时。
+### 💧 水合错误 (Hydration Mismatch) 自动检测
+我们在 `vitest.setup.ts` 中集成了全局检测机制。
+- **机制**: 自动监听 `console.error`。
+- **行为**: 一旦发现输出包含 `Hydration failed` 或 `hydration mismatch`，测试将立即失败。
+- **目的**: 杜绝因服务器/客户端时区不一致或随机数生成差异导致的隐性渲染 Bug。
 
 ---
 
+## 3. 自动化与提交规范 (Automation & Pre-commit)
+
+我们配置了 **Husky** + **Pro-commit** 钩子，确保每一行代码在提交前都经过质量门禁。
+
+### � 提交前自动检查 (Pre-commit)
+当你执行 `git commit` 时，系统会自动触发：
+1. **Lint-staged**: 仅针对本次暂存区 (`staged`) 的文件。
+2. **ESLint & Prettier**: 自动修复格式问题。
+   - *注意*: 单元测试 (`Vitest`) 已移至 CI 流水线运行，以保证本地提交的极致速度。
+
 ---
 
-## 4. CI/CD 集成策略
+## 4. 常用命令速查
 
-为了平衡开发效率与代码质量，我们实施了 **"快慢分离"** 的自动化策略。
-
-### 本地开发 (Husky + Lint-staged)
-
-- **触发时机**: `git commit`
-- **执行任务**:
-  - ❌ **不运行** E2E 测试 (太慢)。
-  - ✅ **运行** Lint (ESLint)。
-  - ✅ **运行** Format (Prettier)。
-  - ✅ **运行** Type Check (TSC)。
-  - _(可选)_ 运行受影响文件的单元测试。
-
-### 云端流水线 (GitHub Actions)
-
-- **触发时机**: `push main` 或 `Pull Request`
-- **配置文件**: `.github/workflows/ci.yml`
-- **流程**:
-  1.  **Fast Checks Job**: 并行运行 Lint, Type Check, Unit Tests。
-  2.  **E2E Job**: **仅当** Fast Checks 通过后，启动 Playwright 容器，并发运行所有 E2E 测试。
+- **本地可视化开发**: `vitest --ui` (推荐 Vibe Coding 模式)
+- **单元与集成测试**: `pnpm run test` (Vitest 持续监听)
+- **极致冒烟测试**: `pnpm run test:e2e -- --project=chromium`
+- **生产环境验证**: `pnpm build` -> `pnpm run start` -> `pnpm run test:e2e`

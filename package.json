@@ -48,11 +48,16 @@
     "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4.1.18",
     "@tailwindcss/typography": "^0.5.19",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.1",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20.19.27",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@types/sanitize-html": "^2.16.0",
     "@vercel/node": "^5.5.15",
+    "@vitest/browser": "^4.0.16",
+    "@vitest/browser-playwright": "^4.0.16",
     "@vitest/coverage-v8": "^4.0.16",
     "@vitest/ui": "^4.0.16",
     "babel-plugin-react-compiler": "^1.0.0",
@@ -65,7 +70,9 @@
     "globals": "^16.5.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
+    "msw": "^2.12.7",
     "openapi-typescript": "^7.10.1",
+    "playwright": "^1.57.0",
     "postcss": "^8.4.38",
     "prettier": "^3.7.4",
     "prettier-plugin-tailwindcss": "^0.7.2",
@@ -73,6 +80,7 @@
     "typescript": "^5.4.5",
     "typescript-eslint": "^8.50.0",
     "vite-tsconfig-paths": "^6.0.3",
-    "vitest": "^4.0.16"
+    "vitest": "^4.0.16",
+    "webdriverio": "^9.22.0"
   }
 }

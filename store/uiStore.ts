@@ -91,9 +91,13 @@ export const useUIStore = create<UIStoreState>((set) => ({
   setAdminStatus: (isAdmin) => set({ isAdmin }),
   checkAdminStatus: async () => {
     try {
-      const res = await fetch('/api/auth/check');
-      const data = await res.json();
-      set({ isAdmin: data.isAdmin });
+      const res = await fetch('/api/auth/status');
+      if (res.ok) {
+        const data = await res.json();
+        set({ isAdmin: !!data.isAdmin });
+      } else {
+        set({ isAdmin: false });
+      }
     } catch (error) {
       console.error('Failed to check admin status:', error);
       set({ isAdmin: false });

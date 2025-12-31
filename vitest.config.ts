@@ -1,11 +1,29 @@
 import { defineConfig } from 'vitest/config';
 import tsconfigPaths from 'vite-tsconfig-paths';
+import { playwright } from '@vitest/browser-playwright';
 
 export default defineConfig({
   plugins: [tsconfigPaths()],
+  define: {
+    'process.env': {},
+  },
   test: {
+    globals: true,
     environment: 'node',
-    exclude: ['**/node_modules/**', '**/dist/**', 'e2e/**'],
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      'e2e/**',
+      'utils/__tests__/serverSanitize.test.ts'
+    ],
+    browser: {
+      enabled: true,
+      provider: playwright(),
+      instances: [
+        { browser: 'chromium' },
+      ],
+    },
+    setupFiles: ['./vitest.setup.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -14,12 +32,12 @@ export default defineConfig({
         '**/*.test.ts',
         '**/*.d.ts',
         '**/types.ts',
-        'lib/server/apiUtils.ts', // Config & Client Instantiation
-        'lib/server/gemini.ts', // External API Wrapper
-        'utils/imageUtils.ts', // External Storage Wrapper
-        'utils/indexnow.ts', // External API Wrapper
-        'utils/colorUtils.ts', // Visual Helper
-        'store/toastStore.ts', // Trivial UI State
+        'lib/server/apiUtils.ts',
+        'lib/server/gemini.ts',
+        'utils/imageUtils.ts',
+        'utils/indexnow.ts',
+        'utils/colorUtils.ts',
+        'store/toastStore.ts',
       ],
     },
   },

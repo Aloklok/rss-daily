@@ -97,6 +97,19 @@ export async function mockFullApp(page: Page) {
         });
       }
 
+      // 3.1 批量标记已读 (POST) /api/articles/mark-as-read
+      if (pathname === '/api/articles/mark-as-read') {
+        const body = route.request().postDataJSON();
+        console.log(`[MockAPI] /mark-as-read payload:`, body);
+        return route.fulfill({ status: 200, body: JSON.stringify({ success: true }) });
+      }
+
+      // 3.2 全量标记已读 (POST) /api/articles/mark-all-as-read (Legacy fallback)
+      if (pathname === '/api/articles/mark-all-as-read') {
+        console.log(`[MockAPI] /mark-all-as-read called`);
+        return route.fulfill({ status: 200, body: JSON.stringify({ success: true }) });
+      }
+
       // 4. 元数据
       if (pathname === '/api/meta/available-dates') {
         const today = new Date().toISOString().split('T')[0];

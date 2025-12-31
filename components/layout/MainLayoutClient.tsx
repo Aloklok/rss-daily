@@ -26,7 +26,7 @@ export default function MainLayoutClient({
   const toggleMobileSidebar = useUIStore((state) => state.toggleMobileSidebar);
   const toggleDesktopSidebar = useUIStore((state) => state.toggleDesktopSidebar);
 
-  const setAdminStatus = useUIStore((state) => state.setAdminStatus);
+  const checkAdminStatus = useUIStore((state) => state.checkAdminStatus);
   const isAdmin = useUIStore((state) => state.isAdmin);
   const modalArticleId = useUIStore((state) => state.modalArticleId);
 
@@ -46,21 +46,8 @@ export default function MainLayoutClient({
 
   // Fetch admin status on mount (Client-Side Only to avoid Cookie Dynamic Opt-out)
   useEffect(() => {
-    const checkAdminStatus = async () => {
-      try {
-        const res = await fetch('/api/auth/status');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.isAdmin) {
-            setAdminStatus(true);
-          }
-        }
-      } catch (e) {
-        console.error('Failed to check admin status:', e);
-      }
-    };
     checkAdminStatus();
-  }, [setAdminStatus]);
+  }, [checkAdminStatus]);
 
   // Handle body overflow for mobile sidebar only
   useEffect(() => {
@@ -84,9 +71,8 @@ export default function MainLayoutClient({
       {/* Mobile Overlay: Hidden on Desktop (md:hidden) */}
       {/* Only show if Mobile Sidebar is Open */}
       <div
-        className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 md:hidden ${
-          isMobileOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
-        }`}
+        className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 md:hidden ${isMobileOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+          }`}
         onClick={() => setMobileSidebarOpen(false)}
         aria-hidden="true"
       />
