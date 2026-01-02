@@ -137,7 +137,10 @@ export const getArticlesDetails = (
   articleIds.forEach((id) => params.append('articleIds', String(id)));
 
   // Use /api/briefings for details fetching as well (reusing logic)
-  return apiService.request<Record<string, Article>>(`/api/briefings?${params.toString()}`);
+  const timestamp = Date.now().toString();
+  return apiService.request<Record<string, Article>>(
+    `/api/briefings?${params.toString()}&_t=${timestamp}`,
+  );
 };
 
 // markAllAsRead

@@ -66,12 +66,12 @@ const ArticleBriefingView: React.FC<ArticleBriefingViewProps> = ({
             id: article.id,
           };
 
-          // 1. Update Zustrand Store
+          // 1. Update Zustand Store (Immediately updates UI across app)
           updateArticle(updatedArticle);
 
-          // 2. Invalidate React Query Cache to ensure fresh data persistence
-          // 'article', 'details', id is used by useBriefingDetails
-          queryClient.invalidateQueries({ queryKey: ['article', 'details', article.id] });
+          // 2. Precisely update React Query cache to keep it in sync with store
+          // This prevents a triggered GET request from fetching stale data
+          queryClient.setQueryData(['article', 'details', article.id], updatedArticle);
 
           // Force re-evaluation of 'hasBriefingData' might happen automatically
           // if UnifiedArticleModal re-renders.
