@@ -54,8 +54,6 @@ export async function generateBriefingWithGemini(articleData: any) {
   // metadata removed as it was unused
 
   // 4. Parse Result
-  // The prompt asks for a JSON array `[...]`.
-  // We need to extract the JSON from the text (it might be wrapped in ```json ... ```)
   const cleanJson = cleanGeminiJson(text);
 
   try {
@@ -72,8 +70,19 @@ export async function generateBriefingWithGemini(articleData: any) {
         citationMetadata: response.candidates?.[0]?.citationMetadata,
       },
     };
-  } catch (error) {
-    console.error('Failed to parse Gemini response:', text, error);
-    throw new Error('Invalid JSON response from Gemini');
+  } catch (error: any) {
+    console.error('====================================================');
+    console.error('GEMINI JSON PARSE FAILED');
+    console.error('--- ERROR MESSAGE ---');
+    console.error(error.message);
+    console.error('--- CLEANED OUTPUT (attempted) ---');
+    console.error(cleanJson);
+    console.error('--- TOTAL LENGTH ---');
+    console.error(text.length);
+    console.error('--- RAW TEXT ---');
+    console.log(text); // Use console.log for large blobs, sometimes error handles it differently
+    console.error('====================================================');
+
+    throw new Error(`Gemini JSON 解析失败: ${error.message}. 请检查 Vercel 日志获取原始输出。`);
   }
 }

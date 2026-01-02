@@ -108,7 +108,21 @@ export function cleanAIContent(input: string | any[] | undefined | null): string
  */
 export function cleanGeminiJson(text: string): string {
   if (!text) return '';
-  return text
+
+  // 1. Try to find the inner content of a markdown code block first
+  const codeBlockMatch = text.match(/```json?\s*([\s\S]*?)\s*```/);
+  const coreContent = codeBlockMatch ? codeBlockMatch[1] : text;
+
+  // 2. Find the first occurrence of '[' or '{' and the last occurrence of ']' or '}'
+  const startBracket = coreContent.search(/[[{]/);
+  const endBracket = coreContent.lastIndexOf(coreContent.match(/[\]}]/)?.[0] || '');
+
+  if (startBracket !== -1 && endBracket !== -1 && endBracket >= startBracket) {
+    return coreContent.slice(startBracket, endBracket + 1).trim();
+  }
+
+  // Fallback: strip backticks and trim if no brackets found (unlikely for valid JSON)
+  return coreContent
     .replace(/```json/g, '')
     .replace(/```/g, '')
     .trim();
