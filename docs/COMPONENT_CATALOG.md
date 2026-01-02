@@ -30,6 +30,7 @@
 - **`layout.tsx`**: 全局根布局。定义了 `<html>`, `<body>`，引入了全局样式和 `Providers`。
 - **`page.tsx`**: 首页路由。重定向或渲染最新日期的页面。
 - **`date/[date]/page.tsx`**: **每日简报页** (SSR)。负责获取当日简报数据，并渲染 `BriefingClient`。
+- **`archive/page.tsx`**: **内容归档页** (SSR)。全站历史入口，核心 SEO 推理页。
 - **`article/[id]/page.tsx`**: **文章详情页** (SSR)。服务端直出文章内容，利于 SEO。
 - **`stream/[id]/page.tsx`**: **流视图页** (ISR)。用于展示分类或标签下的文章列表。
 - **`sources/page.tsx`**: **按源浏览页** (Dynamic SSR)。提供基于订阅源维度的文章筛选入口。

@@ -25,12 +25,12 @@ async function pullPrompt() {
 
   const { data, error } = await supabase
     .from('app_config')
-    .select('value')
+    .select('value, updated_at')
     .eq('key', 'gemini_briefing_prompt')
     .single();
 
   if (error) {
-    console.error('❌ Error fetching prompt from Supabase:', error.message);
+    console.error('❌ Error fetching from Supabase:', error.message);
     process.exit(1);
   }
 
@@ -43,6 +43,9 @@ async function pullPrompt() {
   fs.writeFileSync(filePath, data.value);
 
   console.log(`✅ Successfully pulled prompt to ${filePath}`);
+  if (data.updated_at) {
+    console.log(`🕒 Prompt Last Updated at: ${data.updated_at}`);
+  }
 }
 
 pullPrompt();

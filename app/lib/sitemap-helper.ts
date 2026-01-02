@@ -79,6 +79,12 @@ export async function getSitemapUrls(): Promise<SitemapURL[]> {
       changefreq: 'daily',
       priority: '1.0',
     },
+    {
+      url: `${baseUrl}/archive`,
+      lastmod: dates.length > 0 ? dates[0] : undefined, // Archive updates with any new content
+      changefreq: 'daily',
+      priority: '0.7',
+    },
     ...dates.map((date) => {
       // Check if it's today (simple string comparison works because dates array is YYYY-MM-DD strings)
       // We need to get "Today" in Shanghai timezone to match the data format.

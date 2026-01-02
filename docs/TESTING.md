@@ -135,6 +135,14 @@ Sidebar 等组件强依赖 `next/navigation`。在 `vitest.setup.ts` 中已全�
 - **行为**: 一旦发现输出包含 `Hydration failed` 或 `hydration mismatch`，测试将立即失败。
 - **目的**: 杜绝因服务器/客户端时区不一致或随机数生成差异导致的隐性渲染 Bug。
 
+### 🕸️ SSR 兼容性与 No-JS 抓取验证
+
+针对 SEO 核心页面，我们需要确保在浏览器完全禁用 JavaScript 的情况下，爬虫依然能捕获关键链接。
+
+- **工具**: 使用 `react-dom/server` 中的 `renderToString`。
+- **策略**: 在 Vitest 环境中将组件渲染为纯 HTML 字符串，通过 `expect(html).toContain(...)` 验证关键的 `<a>` 标签和 `href` 属性。
+- **示例**: 参阅 `ArchiveLink.test.tsx` 与 `SSR.test.tsx`。
+
 ---
 
 ## 3. 自动化与提交规范 (Automation & Pre-commit)

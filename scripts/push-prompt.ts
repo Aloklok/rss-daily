@@ -35,6 +35,7 @@ async function pushPrompt() {
     {
       key: 'gemini_briefing_prompt',
       value: promptContent,
+      updated_at: new Date().toISOString().split('T')[0], // 格式：YYYY-MM-DD
     },
     { onConflict: 'key' }, // 明确指定根据 'key' 字段判断冲突
   );
@@ -44,7 +45,7 @@ async function pushPrompt() {
     process.exit(1);
   }
 
-  console.log('✅ Successfully synced prompt to Supabase (key: gemini_briefing_prompt).');
+  console.log('✅ Successfully synced prompt (with updated_at) to Supabase.');
 }
 
 pushPrompt();
