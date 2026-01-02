@@ -31,7 +31,7 @@ export default async function ArchivePage() {
   return (
     <main className="mx-auto max-w-4xl px-4 py-12">
       <div className="mb-12 text-center">
-        <h1 className="mb-4 font-serif text-4xl font-bold text-stone-900 dark:text-stone-100">
+        <h1 className="mb-4 font-serif text-4xl font-bold text-stone-900 dark:text-stone-900">
           内容归档
         </h1>
         <p className="text-lg text-stone-600 dark:text-stone-400">
@@ -50,7 +50,7 @@ export default async function ArchivePage() {
           return (
             <section key={month} className="relative">
               <div className="mb-6 py-2">
-                <h2 className="font-serif text-2xl font-bold text-stone-800 dark:text-stone-200">
+                <h2 className="font-serif text-2xl font-bold text-stone-800 dark:text-stone-800">
                   {displayMonth}
                 </h2>
               </div>
