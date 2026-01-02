@@ -116,7 +116,10 @@ export const getBriefingReportsByDate = async (
   if (options?.includeState) params.include_state = 'true';
 
   try {
-    const data = await apiService.request<GroupedArticles>('/api/briefings', { params });
+    const timestamp = Date.now().toString();
+    const data = await apiService.request<GroupedArticles>('/api/briefings', {
+      params: { ...params, _t: timestamp },
+    });
     if (!data || Object.values(data).every((arr) => arr.length === 0)) return [];
 
     const reportTitle = `${new Date(date).toLocaleString('zh-CN', { month: 'long', day: 'numeric' })} 简报`;
@@ -252,10 +255,15 @@ export const getArticlesByLabel = (
 
 // getAvailableFilters
 export const getAvailableFilters = (): Promise<AvailableFilters> => {
-  return apiService.request<AvailableFilters>('/api/meta/tags').catch((error) => {
-    console.error('Failed to fetch available filters:', error);
-    return { categories: [], tags: [] };
-  });
+  const timestamp = Date.now().toString();
+  return apiService
+    .request<AvailableFilters>('/api/meta/tags', {
+      params: { _t: timestamp },
+    })
+    .catch((error) => {
+      console.error('Failed to fetch available filters:', error);
+      return { categories: [], tags: [] };
+    });
 };
 
 // getDailyStatuses
@@ -266,8 +274,9 @@ export const getDailyStatuses = async (startDate: string, endDate: string) => {
   // User Plan: Merge `app/api/article-states` and `update-state`.
   // Wait, `app/api/daily-statuses` exists? I should check if it exists.
   // If not moved, keep as is.
+  const timestamp = Date.now().toString();
   return apiService.request<Record<string, boolean>>('/api/daily-statuses', {
-    params: { start_date: startDate, end_date: endDate },
+    params: { start_date: startDate, end_date: endDate, _t: timestamp },
   });
 };
 // updateDailyStatus
