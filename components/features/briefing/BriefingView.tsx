@@ -216,11 +216,9 @@ const Briefing: React.FC<BriefingProps> = ({
         const storeArticle = articlesById[String(id)];
 
         if (propsArticle) {
-          // 如果 Store 有更新的状态,使用 Store 的 tags 覆盖
-          if (storeArticle?.tags) {
-            return { ...propsArticle, tags: storeArticle.tags };
-          }
-          return propsArticle;
+          // Robust Merge: Start with SSR data, but let Store data (AI updates, tags) win.
+          // This ensures that 'summary', 'tldr', 'verdict', etc. update live after regeneration.
+          return { ...propsArticle, ...storeArticle };
         }
         // Fallback 到 Store (用于动态加载的文章)
         return storeArticle;

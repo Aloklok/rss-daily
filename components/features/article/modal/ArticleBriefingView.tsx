@@ -73,6 +73,16 @@ const ArticleBriefingView: React.FC<ArticleBriefingViewProps> = ({
           // This prevents a triggered GET request from fetching stale data
           queryClient.setQueryData(['article', 'details', article.id], updatedArticle);
 
+          // 3. Trigger Server-Side Revalidation (for SSR consistency)
+          const dateStr = updatedArticle.n8n_processing_date || updatedArticle.published;
+          if (dateStr) {
+            const date = dateStr.split('T')[0];
+            fetch('/api/system/revalidate-date', {
+              method: 'POST',
+              body: JSON.stringify({ date }),
+            }).catch((err) => console.warn(`[Revalidate] Failed for date: ${date}`, err));
+          }
+
           // Force re-evaluation of 'hasBriefingData' might happen automatically
           // if UnifiedArticleModal re-renders.
           // If UnifiedArticleModal receives 'article' prop from a parent list that reads from store, it works.
