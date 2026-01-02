@@ -23,7 +23,7 @@ function groupDates(dates: string[]) {
   return groups;
 }
 
-export default async function ArchivePage(): Promise<JSX.Element> {
+export default async function ArchivePage() {
   const dates = await fetchAvailableDates();
   const grouped = groupDates(dates);
   const months = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
