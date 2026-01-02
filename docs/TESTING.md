@@ -14,6 +14,7 @@
 | :----------------------------- | :----------- | :---------------------------- | :--------------------------- |
 | **逻辑单元测试 (Unit)**        | `*.test.ts`  | 纯函数、Hook 逻辑、Store 状态 | `dateUtils.test.ts`          |
 | **组件集成测试 (Integration)** | `*.test.tsx` | React 组件渲染、交互验证      | `ArticleReaderView.test.tsx` |
+| **回归测试 (Regression)**      | `*.test.tsx` | 针对特定复杂 Bug 的防护网     | `MainContentClient.test.tsx` |
 | **端到端测试 (E2E)**           | `*.spec.ts`  | 完整用户流程 (Playwright)     | `smoke-home.spec.ts`         |
 
 ### 🔍 搜索与标签 (Search & Tags)

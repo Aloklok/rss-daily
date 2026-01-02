@@ -115,6 +115,9 @@
 - **选择性水合**: 客户端启动时将 SSR 数据分发至 React Query 缓存
 - **数据一致性**: 统一使用 `n8n_processing_date` 作为时段判定标准
 - **实时保鲜**: 首页数据设置 10 分钟 `staleTime`
+- **跨天数据防护 (Cross-Day Safety)**:
+  - **问题**: 客户端可能因状态持久化将 `dateToUse` 计算为“今天”，但 SSR 因缓存或生成延迟返回“昨天”的 `initialArticles`。
+  - **防污机制**: 在 `MainContentClient.tsx` 中实施严格校验，只有当 `dateToUse === initialDate` 时才执行 Payload Hydration，防止旧数据污染今日缓存 Key。
 
 ### 5.2 API 响应聚合
 

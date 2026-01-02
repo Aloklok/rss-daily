@@ -113,7 +113,10 @@ export default function MainContentClient({
   useEffect(() => {
     if (initialArticles.length > 0) {
       // Update React Query Cache (ID List)
-      if (activeFilter?.type === 'date' && dateToUse) {
+      // CRITICAL FIX: Only hydrate if the client date matches the server initial date.
+      // Otherwise, we might accidentally hydrate "Yesterday's" initialArticles into "Today's" query key
+      // if the Store has persisted a different date or activeFilter logic diverges.
+      if (activeFilter?.type === 'date' && dateToUse && dateToUse === initialDate) {
         // ALWAYS hydrate the 'all' key
         queryClient.setQueryData(
           ['briefing', dateToUse, 'all'],
@@ -150,6 +153,7 @@ export default function MainContentClient({
         }
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialArticles, queryClient, dateToUse, activeFilter, initialContinuation, isHomepage]);
 
   // Memoize initial IDs for hook
