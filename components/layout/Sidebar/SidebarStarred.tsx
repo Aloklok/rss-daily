@@ -76,6 +76,7 @@ const SidebarStarred: React.FC<SidebarStarredProps> = ({
         ) : (
           articles.map((article) => (
             <Link
+              prefetch={false}
               key={article.id}
               href={`/article/${toShortId(String(article.id))}?view=page`}
               onClick={(_e) => {

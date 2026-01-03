@@ -138,6 +138,7 @@ const SidebarBriefing: React.FC<SidebarBriefingProps> = ({
 
             return (
               <Link
+                prefetch={false}
                 key={date}
                 href={`/date/${date}`}
                 onClick={() => onDateSelect(date)}

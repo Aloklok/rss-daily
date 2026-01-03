@@ -110,6 +110,7 @@ export default async function ArchivePage() {
                         const day = date.split('-')[2];
                         return (
                           <Link
+                            prefetch={false}
                             key={date}
                             href={`/date/${date}`}
                             className="group flex aspect-square flex-col items-center justify-center rounded-lg border border-stone-100 bg-stone-50/50 p-1 transition-all hover:bg-white hover:shadow-md hover:ring-1 hover:ring-indigo-500/30 dark:border-stone-800 dark:bg-stone-900/50 dark:hover:bg-stone-800"
@@ -145,6 +146,7 @@ export default async function ArchivePage() {
               <div className="flex flex-wrap gap-2">
                 {allCategories.map((cat) => (
                   <Link
+                    prefetch={false}
                     key={cat.id}
                     href={`/stream/${encodeURIComponent(cat.id)}`}
                     className="rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-sm font-medium text-stone-600 transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-400"
@@ -170,6 +172,7 @@ export default async function ArchivePage() {
                     <div className="flex flex-wrap gap-1.5">
                       {groupedSources[catName].map((source) => (
                         <Link
+                          prefetch={false}
                           key={source.id}
                           href={`/sources?source=${encodeURIComponent(source.id)}`}
                           className="rounded-md border border-stone-100 bg-stone-100/30 px-2 py-0.5 text-xs font-medium text-stone-500 transition-all hover:border-stone-300 hover:bg-white hover:text-stone-900 dark:border-stone-800 dark:bg-stone-800/50 dark:hover:border-stone-700 dark:hover:text-stone-300"
@@ -191,6 +194,7 @@ export default async function ArchivePage() {
               <div className="flex flex-wrap gap-1.5">
                 {topTags.map((tag) => (
                   <Link
+                    prefetch={false}
                     key={tag.id}
                     href={`/stream/${encodeURIComponent(tag.id)}`}
                     className="rounded-md px-2 py-0.5 text-xs font-medium text-stone-400 transition-all hover:bg-stone-200 hover:text-stone-900 dark:hover:bg-stone-800 dark:hover:text-stone-300"

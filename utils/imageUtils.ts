@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const BUCKET_NAME = 'public-assets';
 const FOLDER_NAME = 'daily-covers';
-const RETENTION_DAYS = 30;
+const RETENTION_DAYS = 365;
 
 // Singleton Admin Client (Lazy Init)
 let supabaseAdmin: ReturnType<typeof createClient> | null = null;
