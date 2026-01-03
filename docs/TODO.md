@@ -41,6 +41,7 @@
 ### 🔄 架构备选方案
 
 - [ ] **FreshRSS 客户端渲染回归**: 若 SSR 压力过大或 FreshRSS 响应极慢，准备好将 `BriefingClient` 切换回纯客户端 Fetch 模式。改动难度：中，性能提升：中（缩短白屏时间，但引入 UI 闪烁）。
+- [ ] **Edge 聚合中间层 (BFF)**: 在 Vercel Edge Function 上实现轻量级聚合端点，一次性完成 Storage 检查、DB 读取和 Metadata 组装，合并跨洋 RTT。改动难度：高，性能提升：高（显著减少冷启动 RTT，适合全球化部署）。
 
 ---
 
@@ -150,6 +151,7 @@
 - [x] **将时区映射封装为单一工具**: 在 `utils/dateUtils.ts` 中实现 `shanghaiDayToUtcWindow` 与 `shanghaiDateSlotToUtcWindow`；迁移了 `lib/server/dataFetcher.ts` 与 `app/api/briefings/route.ts` 中的重复时区映射逻辑。
 - [x] **修复分类数据获取**: 修复 `lib/server/tagFetcher.ts` 中的 `count` 字段识别，支持 `count` 和 `unread_count` 两种格式。
 - [x] **Google 索引专项优化**: 创建了 `/archive` 归档页并提供全站静态链接入口，彻底解决了 GSC 中“已发现 - 尚未编入索引”对应的孤儿页面问题。
+- [x] **Baidu 爬虫专项优化**: 修复了 `/date/[date]` 页面的超时问题。实施方案包括 `React.cache` 请求去重、WebP 格式切换以及 GitHub Actions 每日自动预热 (Today + Last 7 Days)。
 
 ---
 

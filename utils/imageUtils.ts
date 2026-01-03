@@ -81,19 +81,20 @@ import {
   BRIEFING_IMAGE_RESOLUTION_SUFFIX,
 } from '../lib/constants';
 
-export async function resolveBriefingImage(date: string): Promise<string> {
+const resolveBriefingImageRequest = async (date: string): Promise<string> => {
   // --- 1. Build Time Optimization ---
   // If we are in the CI/Build phase, DO NOT fetch/upload images to avoid timeouts.
   // Instead, return a placeholder or the raw Picsum URL (Next.js will just use it).
   // This prevents "Miss for date..." logs spamming the build logs and timing out Vercel.
   if (process.env.CI || process.env.NEXT_PHASE === 'phase-production-build') {
     // console.log(`[ImageCache] Skipping for ${date} during build.`);
-    return `https://picsum.photos/seed/${date}/${BRIEFING_IMAGE_WIDTH}/${BRIEFING_IMAGE_HEIGHT}`;
+    return `https://picsum.photos/seed/${date}/${BRIEFING_IMAGE_WIDTH}/${BRIEFING_IMAGE_HEIGHT}.webp`;
   }
 
   const admin = getStorageAdmin();
   // Changed to include resolution to bust cache if needed
-  const fileName = `${FOLDER_NAME}/${date}_${BRIEFING_IMAGE_RESOLUTION_SUFFIX}.jpg`;
+  // Switch to .webp for better performance
+  const fileName = `${FOLDER_NAME}/${date}_${BRIEFING_IMAGE_RESOLUTION_SUFFIX}.webp`;
 
   // 0. Ensure Bucket (Lazy check)
   // We skip this check usually to be fast.
@@ -102,7 +103,7 @@ export async function resolveBriefingImage(date: string): Promise<string> {
   // List with search is the most accurate existence check without downloading
   const { data: existingFiles } = await admin.storage
     .from(BUCKET_NAME)
-    .list(FOLDER_NAME, { search: `${date}_${BRIEFING_IMAGE_RESOLUTION_SUFFIX}.jpg` });
+    .list(FOLDER_NAME, { search: `${date}_${BRIEFING_IMAGE_RESOLUTION_SUFFIX}.webp` });
 
   // If exists, return Public URL immediately
   if (existingFiles && existingFiles.length > 0) {
@@ -118,7 +119,8 @@ export async function resolveBriefingImage(date: string): Promise<string> {
   // Ensure bucket exists before we try to upload (Only on Miss)
   await ensureBucketExists(admin);
 
-  const picsumUrl = `https://picsum.photos/seed/${date}/${BRIEFING_IMAGE_WIDTH}/${BRIEFING_IMAGE_HEIGHT}`;
+  // Use .webp suffix for Picsum to get WebP format directly
+  const picsumUrl = `https://picsum.photos/seed/${date}/${BRIEFING_IMAGE_WIDTH}/${BRIEFING_IMAGE_HEIGHT}.webp`;
 
   try {
     const res = await fetch(picsumUrl, { redirect: 'follow' });
@@ -127,9 +129,9 @@ export async function resolveBriefingImage(date: string): Promise<string> {
     const arrayBuffer = await res.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Upload
+    // Upload as WebP
     const { error: uploadError } = await admin.storage.from(BUCKET_NAME).upload(fileName, buffer, {
-      contentType: 'image/jpeg',
+      contentType: 'image/webp',
       upsert: true,
     });
 
@@ -151,4 +153,11 @@ export async function resolveBriefingImage(date: string): Promise<string> {
     console.error('[ImageCache] Fallback to Picsum due to error:', e);
     return picsumUrl;
   }
-}
+};
+
+/**
+ * Cache Request Memoization
+ * Ensures we only calculate/fetch the image ONCE per server request (Metadata + Page).
+ */
+import { cache } from 'react';
+export const resolveBriefingImage = cache(resolveBriefingImageRequest);

@@ -1,0 +1,52 @@
+name: Daily & Post-Deploy Warmup
+
+on:
+  schedule:
+    # Beijing Time 00:05 = UTC 16:05 (Previous Day)
+    - cron: '5 16 * * *'
+  # Trigger when a deployment is successful (e.g. Vercel)
+  deployment_status:
+  workflow_dispatch:
+
+jobs:
+  warmup:
+    # Only run on successful deployment or schedule
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success')
+    name: Warm Up Recent Pages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Calculate Dates (Shanghai)
+        id: dates
+        run: |
+          # Loop 7 days
+          for i in {0..6}; do
+             DATE=$(date -d "-$i days" +%Y-%m-%d)
+             # Adjust for Shanghai Time approximately if running on UTC runner
+             # Actually, best to use strict TZ
+             DATE_SH=$(TZ='Asia/Shanghai' date -d "-$i days" +%Y-%m-%d)
+             echo "Adding $DATE_SH to targets"
+             echo "$DATE_SH" >> targets.txt
+          done
+
+      - name: Warm Up Homepage
+        run: |
+          echo "Warming up Homepage..."
+          curl -s -o /dev/null -w "%{http_code}\n" https://www.alok-rss.top/
+
+      - name: Warm Up Last 7 Days
+        run: |
+          while read DATE; do
+            URL="https://www.alok-rss.top/date/$DATE"
+            echo "--------------------------------"
+            echo "Target: $URL"
+            
+            # 1. Warm Up Request
+            # We use a longer timeout (30s) to allow critical path generation
+            http_code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "$URL")
+            echo "Status: $http_code"
+            
+            if [ "$http_code" -ne 200 ]; then
+                echo "Warning: Non-200 status code returned."
+            fi
+            
+          done < targets.txt
