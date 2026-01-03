@@ -176,6 +176,7 @@ const Sidebar = React.memo<SidebarProps>(
               className="dark:hover:bg-midnight-card flex cursor-pointer items-center justify-center rounded-full p-1.5 text-gray-500 transition-colors hover:bg-gray-200 dark:text-gray-400"
               title="查看历史归档"
               aria-label="查看历史归档"
+              prefetch={false}
             >
               <svg
                 className="h-5 w-5"

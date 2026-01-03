@@ -224,7 +224,7 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
   const groupedArticles = await fetchBriefingData(date);
 
   // Flatten articles for BriefingClient
-  let allArticles = Object.values(groupedArticles).flat();
+  const allArticles = Object.values(groupedArticles).flat();
 
   // Prefetch header image
   const headerImageUrl = await resolveBriefingImage(date);
@@ -232,21 +232,12 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
   // Consistent High Density Description
   const description = generateHighDensityDescription(date, allArticles);
 
-  // [Optimization] Server-Side State Merging for Article States
-  // Since /date/[date] cache is invalidated on every user action (revalidate-date),
-  // we can directly merge states into articles for zero-flicker first paint.
-  // This is different from /article/[id] which needs to keep content cache separate from user state.
-  if (allArticles.length > 0) {
-    const { fetchArticleStatesServer } = await import('@/lib/server/dataFetcher');
-    const articleIds = allArticles.map((a) => a.id);
-    const articleStates = await fetchArticleStatesServer(articleIds);
-
-    // Merge states directly into articles
-    allArticles = allArticles.map((article) => ({
-      ...article,
-      tags: articleStates[article.id] || article.tags || [],
-    }));
-  }
+  // Consistently generate BriefingClient
+  // Articles are passed without user-specific states (read/starred).
+  // These states will be hydrated on the client-side via useArticleStateHydration
+  // to ensure aggressive caching (ISR) and fast initial response for SEO.
+  // [Refactor] Scheme C: Pure Static Content + Client Async State
+  // We explicitly REMOVED fetchArticleStatesServer here to avoid blocking rendering with slow FreshRSS calls.
 
   const jsonLd = {
     '@context': 'https://schema.org',
