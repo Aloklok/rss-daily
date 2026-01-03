@@ -15,6 +15,7 @@ import {
   useSearchResults,
   useUpdateArticleState,
 } from '../../hooks/useArticles';
+import { useArticleStateHydration } from '../../hooks/useArticleStateHydration';
 import { Filter, Article, TimeSlot, Tag } from '../../types';
 import { getArticleTimeSlot } from '@/utils/dateUtils';
 
@@ -107,6 +108,7 @@ export default function MainContentClient({
 
   // Hydrate store and sync states in background
   // Hydrate store with SSR articles (states already merged in SSR)
+  useArticleStateHydration(initialArticles, undefined, dateToUse || today);
 
   // Sync React Query cache with server-fetched IDs
   useEffect(() => {

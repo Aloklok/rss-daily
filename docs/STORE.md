@@ -47,11 +47,13 @@
 3. **同步与修正 (Synchronization)**:
    - **服务端状态预取**: 在 SSR 阶段获取 `initialArticleStates` 并注入。
    - **三级状态同步 Hook (`useArticleStateHydration`)**:
+     - **强制性**: 任何渲染 `Article` 列表的顶级入口客户端组件（如 `MainContentClient`, `BriefingClient`）**必须**调用此 Hook，以确保 SSR 数据被安全水合至 Store。
      - 负责将预取的 Read/Star 状态合并并分发至 Zustand Store。
      - **自愈机制**: 后台异步对比 FreshRSS 实时状态，若发现静态缓存过时，自动修正 UI 并触发服务端 `revalidate-date` 接口刷新缓存。
 4. **确认更新 (Confirmed Updates)**:
    - `updateArticle`: 只有在 API 返回成功（200 OK）后，才更新本地文章状态。
    - **机制差异**: 放弃了激进的“乐观更新”（Request 前更新），采用稳健的“确认更新”（Response 后更新），配合“Store-First”保护策略，彻底消除回跳闪烁。
+   - **【重要】防闭包陷阱**: 在 `useMutation` 的 `mutationFn` 中，**禁止**直接依赖组件渲染时捕获的 `articlesById`。由于 Store 可能会在后台异步触发 `hydration` 或 `sync`，闭包数据可能已经过时。必须在 `mutationFn` 内部通过 `useArticleStore.getState()` 获取最新的 Store 状态，以防出现 "Article not found" 错误。
    - `calculateNewAvailableTags`: 一个纯函数工具，当文章标签变化时，动态重新计算标签计数。
 
 ### 性能优化

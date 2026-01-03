@@ -164,7 +164,24 @@ Sidebar 等组件强依赖 `next/navigation`。在 `vitest.setup.ts` 中已全�
 
 ---
 
-## 3. 技术避坑教训 (Lessons Learned)
+## 3. 测试最佳实践 (Best Practices)
+
+### 📊 优先使用标准化 Mock 数据 (Standardized Mock Data)
+
+**原则**：为了确保测试的一致性和维护性，严禁在测试文件中自行构造复杂的文章对象。
+
+- **统一入口**: 所有的文章 Mock 数据必须从 `@/e2e/mocks/data.ts` 导入。
+- **MOCK_ARTICLE**: 适用于大多数单一文章展示和交互测试。
+- **MOCK_ARTICLES_POOL**: 包含不同时间段（早/中/晚）和类型（深度洞察/时事新闻）的文章，适用于列表筛选测试。
+
+**为什么必须这样做？**
+
+1. **结构同步**: 真实的文章对象包含数十个字段（summary, highlights, critiques 等），自行构造极易遗漏关键字段导致渲染或逻辑错误。
+2. **场景完备**: `e2e/mocks/data.ts` 已平衡了 ID 格式、日期偏移和分类逻辑，能更好地模拟真实业务。
+
+---
+
+## 4. 技术避坑教训 (Lessons Learned)
 
 ### 🚨 CI 环境下的 Vitest Mock 失效 (Component rendering error)
 
@@ -185,9 +202,14 @@ vi.mock('next/script', () => ({
 }));
 ```
 
+### 🚨 测试隔离与初始化 (Mock Data Prioritization)
+
+**教训**: 在编写 `ArticleActions.test.tsx` 时，初版使用了手动构造的 `sampleArticle`。这导致了与业务逻辑的偏离（如 ID 格式不统一），并增加了维护负担。
+**反思**: 在进行任何功能域测试前，必须首先检索 `e2e/mocks` 或 `__mocks__` 目录，优先复用已有的“事实来源”数据。
+
 ---
 
-## 4. 自动化与提交规范 (Automation & Pre-commit)
+## 5. 自动化与提交规范 (Automation & Pre-commit)
 
 我们配置了 **Husky** + **Pro-commit** 钩子，确保每一行代码在提交前都经过质量门禁。
 

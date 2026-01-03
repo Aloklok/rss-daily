@@ -150,7 +150,6 @@ export const useStarredArticles = (
 export const useUpdateArticleState = () => {
   const queryClient = useQueryClient();
   const updateArticle = useArticleStore((state) => state.updateArticle);
-  const articlesById = useArticleStore((state) => state.articlesById);
   const showToast = useToastStore((state) => state.showToast);
 
   return useMutation({
@@ -191,7 +190,8 @@ export const useUpdateArticleState = () => {
       // 只有当所有请求都成功时，才会继续往下执行
       await Promise.all(apiPromises);
 
-      // API 成功后，计算并返回最新的文章对象
+      // Access CURRENT store state inside the mutation function to avoid stale closures
+      const articlesById = useArticleStore.getState().articlesById;
       const articleToUpdate = articlesById[articleId];
       if (!articleToUpdate) throw new Error('Article not found in store');
 

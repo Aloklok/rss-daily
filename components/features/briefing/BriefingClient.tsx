@@ -7,6 +7,7 @@ import { Article, Tag } from '../../../types';
 import { useArticleStore } from '../../../store/articleStore';
 import { useUIStore } from '../../../store/uiStore';
 import { useUpdateArticleState, useBriefingArticles } from '../../../hooks/useArticles';
+import { useArticleStateHydration } from '../../../hooks/useArticleStateHydration';
 import { getArticleTimeSlot } from '../../../utils/dateUtils';
 
 interface BriefingClientProps {
@@ -31,9 +32,9 @@ export default function BriefingClient({
   const articlesById = useArticleStore((state) => state.articlesById);
   const setAvailableFilters = useArticleStore((state) => state.setAvailableFilters);
 
-  console.log(
-    `[DIAG] BriefingClient: props articles=${articles.length}, store articlesById keys=${Object.keys(articlesById).length}`,
-  );
+  // Hydrate store and sync states in background
+  // This ensures that articles from SSR are added to the Zustand store
+  useArticleStateHydration(articles, undefined, date);
 
   // Hydrate Tags from SSR
   useEffect(() => {
