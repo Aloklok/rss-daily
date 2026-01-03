@@ -30,6 +30,7 @@ interface MainContentClientProps {
   initialContinuation?: string | null;
   isHomepage?: boolean; // New prop
   initialTimeSlot?: TimeSlot | null;
+  today: string; // Required prop for hydration consistency
 }
 
 export default function MainContentClient({
@@ -41,6 +42,7 @@ export default function MainContentClient({
   isHomepage = false, // Default to false
   initialTimeSlot,
   initialTags = [], // New prop with default
+  today,
 }: MainContentClientProps) {
   const storeActiveFilter = useUIStore((state) => state.activeFilter);
   const setAvailableFilters = useArticleStore((state) => state.setAvailableFilters);
@@ -101,7 +103,6 @@ export default function MainContentClient({
   }, []); // Run strictly once on mount
 
   // Determine which date to use (active filter or initial default)
-  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Shanghai' });
   const dateToUse =
     activeFilter?.type === 'date' ? activeFilter.value : activeFilter ? null : initialDate || today;
 

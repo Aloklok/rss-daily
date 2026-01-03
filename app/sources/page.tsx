@@ -7,7 +7,8 @@ export const metadata: Metadata = {
   description: 'Browse articles by RSS source subscription.',
 };
 
-// Force dynamic rendering because we rely on searchParams and external API data
+// Force dynamic rendering because we rely on external FreshRSS API data
+// which might not be available during build-time prerendering.
 export const dynamic = 'force-dynamic';
 
 export default async function SourcesPage() {

@@ -241,18 +241,14 @@ const Briefing: React.FC<BriefingProps> = ({
     return [{ id: 1, title: 'Daily Briefing', articles: groupedArticles }];
   }, [articleIds, articlesById, articles]);
 
-  // Use Shanghai hour by default (consistent with SSR)
-  const [currentHour, setCurrentHour] = React.useState<number | null>(getShanghaiHour());
+  // Use null as initial state to ensure SSR/Hydration consistency.
+  // The first render will use the server-provided Shanghai hour (via getGreeting fallback or null).
+  const [currentHour, setCurrentHour] = React.useState<number | null>(null);
 
   React.useEffect(() => {
-    // After mount, check local time
-    if (typeof window !== 'undefined') {
-      const localHour = new Date().getHours();
-      if (localHour !== currentHour) {
-        setCurrentHour(localHour);
-      }
-    }
-  }, [currentHour]);
+    // After mount, set correct local hour to trigger a safe client-side update
+    setCurrentHour(new Date().getHours());
+  }, []);
 
   const getGreeting = () => {
     const hour = currentHour ?? getShanghaiHour();

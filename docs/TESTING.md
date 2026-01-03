@@ -6,6 +6,10 @@
 
 ## 1. 核心功能域测试矩阵 & 命名规范 (Naming Convention)
 
+### 📏 测试规范与语言
+
+- **语言强制性**: 为了保持文档和业务理解的高度一致，**所有测试用例 (describe, it, test) 必须使用中文编写**。拒绝英文用例，除非是变量名或技术术语。
+
 ### 📏 测试文件命名规范
 
 为了清晰区分测试职责，请严格遵守以下命名规则：
@@ -142,7 +146,21 @@ Sidebar 等组件强依赖 `next/navigation`。在 `vitest.setup.ts` 中已全�
 
 - **工具**: 使用 `react-dom/server` 中的 `renderToString`。
 - **策略**: 在 Vitest 环境中将组件渲染为纯 HTML 字符串，通过 `expect(html).toContain(...)` 验证关键的 `<a>` 标签和 `href` 属性。
-- **示例**: 参阅 `ArchiveLink.test.tsx` 与 `SSR.test.tsx`。
+
+### ⚡ 性能指标与 SSR 优化检测
+
+为了防止性能无意识回退（如引入 `cookies()` 导致静态失效），可以通过以下方式自查：
+
+1. **构建日志审计**:
+   - 运行 `pnpm build`。
+   - 检查控制台输出的路由列表。
+   - **预期**: `/` (首页) 旁边必须出现 `○` (Static) 或 `●` (SSG) 符号，禁用 JS 的页面必须保持这种状态。
+   - **异常**: 首页出现 `λ` (Dynamic) 符号，通常意味着 `RootLayout` 触发了 Dynamic Opt-out。
+2. **首屏加载分析**:
+   - 使用 Chrome DevTools 的 Network 面板。
+   - 查看第一个 HTML 文档请求的 `TTFB` (Time to First Byte)。
+   - **预期**: 对于静态/ISR 页面，TTFB 应在 100ms 以内（由 Vercel Edge 提供）。
+   - **异常**: TTFB 超过 500ms，说明服务端在运行时执行了阻塞逻辑（如等待 Auth API）。
 
 ---
 

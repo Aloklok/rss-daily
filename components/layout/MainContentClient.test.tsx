@@ -10,6 +10,7 @@ vi.mock('../features/article/ArticleDetailClient', () => ({
   default: () => <div data-testid="mock-article-detail">Article Detail</div>,
 }));
 vi.mock('../features/briefing/BriefingView', () => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   default: ({ isLoading }: any) => (
     <div data-testid="mock-briefing">{isLoading ? 'Loading...' : 'Briefing View'}</div>
   ),
@@ -54,11 +55,11 @@ vi.mock('../../hooks/useArticleStateHydration', () => ({
   useArticleStateHydration: vi.fn(),
 }));
 
-describe('MainContentClient Integration (Cross-Day Hydration)', () => {
+describe('MainContentClient 集成测试 (跨天水合)', () => {
   let queryClient: QueryClient;
 
   beforeEach(() => {
-    // Reset QueryClient for each test
+    // 为每个测试重置 QueryClient
     queryClient = new QueryClient({
       defaultOptions: {
         queries: {
@@ -67,11 +68,11 @@ describe('MainContentClient Integration (Cross-Day Hydration)', () => {
       },
     });
 
-    // Reset Stores
+    // 重置 Store
     useUIStore.setState({ activeFilter: null, timeSlot: null, selectedArticleId: null });
     useArticleStore.setState({ articlesById: {} });
 
-    // Mock Date to be "Today" (2026-01-03)
+    // Mock 当前日期为 "今天" (2026-01-03)
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-01-03T10:00:00+08:00'));
   });
@@ -81,16 +82,17 @@ describe('MainContentClient Integration (Cross-Day Hydration)', () => {
     vi.clearAllMocks();
   });
 
-  it('SHOULD NOT hydrate initialArticles into cache if client date (Today) differs from server date (Yesterday)', async () => {
-    // Scenario:
-    // Client Time: 2026-01-03 ("Today")
-    // SSR Props: initialDate="2026-01-02" ("Yesterday"), with some articles
-    // Expected: The component calculates dateToUse="2026-01-03", which !== initialDate.
-    //           Therefore, it MUST NOT inject the 01-02 articles into the 'briefing', '2026-01-03' cache key.
+  it('如果 [客户端日期(今天)] 与 [服务端日期(昨天)] 不符，则不应将 initialArticles 水合进缓存', async () => {
+    // 场景：
+    // 客户端时间：2026-01-03 ("今天")
+    // SSR 属性：initialDate="2026-01-02" ("昨天")，并携带了一些文章
+    // 预期：组件计算出的 dateToUse 为 "2026-01-03"，这与 initialDate 不符。
+    //      因此，它绝不能将 01-02 的文章注入到 'briefing', '2026-01-03' 的缓存键中。
 
     const yesterday = '2026-01-02';
     const today = '2026-01-03';
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mockInitialArticles: any[] = [
       { id: '1', title: 'Yesterday News', n8n_processing_date: `${yesterday}T12:00:00Z` },
     ];
@@ -99,31 +101,28 @@ describe('MainContentClient Integration (Cross-Day Hydration)', () => {
       <QueryClientProvider client={queryClient}>
         <MainContentClient
           initialDate={yesterday}
-          initialArticles={mockInitialArticles} // These belong to yesterday!
-          // Force client to think it's viewing "Today" (01-03), while SSR gave "Yesterday" (01-02)
+          initialArticles={mockInitialArticles} // 这些属于昨天！
+          // 强制客户端认为正在查看 "今天" (01-03)，即使 SSR 给了 "昨天" (01-02)
           initialActiveFilter={{ type: 'date', value: today }}
           isHomepage={true}
+          today={today}
         />
       </QueryClientProvider>,
     );
 
-    // Assert: Check Query Cache for TODAY'S key
-    // The component defaults to showing "Today" (Briefing View)
+    // 断言：检查“今天”的查询缓存
     expect(screen.getByTestId('mock-briefing')).toBeInTheDocument();
 
-    // CRITICAL CHECK: The cache for Today should be EMPTY (undefined)
-    // because we prevented the pollution.
+    // 关键检查：今天的缓存必须是空的（undefined），因为我们阻止了污染。
     const todayCache = queryClient.getQueryData(['briefing', today, 'all']);
     expect(todayCache).toBeUndefined();
-
-    // Verify: The cache for Yesterday is also not set (because we didn't ask for yesterday view)
-    // Actually, logic only sets cache if dateToUse matches.
   });
 
-  it('SHOULD hydrate initialArticles if client date matches server date (Normal Case)', async () => {
-    // Scenario: Normal hydration (SSR matches Client)
+  it('如果 [客户端日期] 与 [服务端日期] 匹配，则应正常进行 initialArticles 水合（正常情况）', async () => {
+    // 场景：正常水合（SSR 与客户端匹配）
     const today = '2026-01-03';
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mockInitialArticles: any[] = [
       { id: '2', title: 'Today News', n8n_processing_date: `${today}T12:00:00Z` },
     ];
@@ -135,37 +134,40 @@ describe('MainContentClient Integration (Cross-Day Hydration)', () => {
           initialArticles={mockInitialArticles}
           initialActiveFilter={{ type: 'date', value: today }}
           isHomepage={true}
+          today={today}
         />
       </QueryClientProvider>,
     );
 
-    // Assert: Check Query Cache for TODAY'S key
+    // 断言：检查“今天”的查询缓存
     const todayCache = queryClient.getQueryData(['briefing', today, 'all']);
-    expect(todayCache).toEqual(['2']); // Should contain the ID
+    expect(todayCache).toEqual(['2']); // 应该包含 ID
   });
 
-  it('SHOULD NOT hydrate if active filter overrides date (e.g. Search Mode)', async () => {
-    // Scenario: User accesses a Search URL directly
-    // SSR might return some initialDate/articles, but activeFilter is 'search'
+  it('如果 [当前过滤器] 覆盖了日期（例如搜索模式），则不应进行水合', async () => {
+    // 场景：用户直接访问搜索 URL
+    // SSR 可能会返回一些 initialDate/articles，但此时 activeFilter 是 'search'
     const today = '2026-01-03';
 
-    // Set store state to simulate Search Mode active
+    // 设置 Store 状态以模拟搜索模式激活
     useUIStore.setState({ activeFilter: { type: 'search', value: 'AI' } });
 
     render(
       <QueryClientProvider client={queryClient}>
         <MainContentClient
           initialDate={today}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           initialArticles={[{ id: '3', title: 'Unused' } as any]}
           initialActiveFilter={{ type: 'search', value: 'AI' }}
           isHomepage={false}
+          today={today}
         />
       </QueryClientProvider>,
     );
 
     expect(screen.getByTestId('mock-search-list')).toBeInTheDocument();
 
-    // Assert: Briefing cache should not be touched
+    // 断言：简报缓存不应被修改
     const briefingCache = queryClient.getQueryData(['briefing', today, 'all']);
     expect(briefingCache).toBeUndefined();
   });

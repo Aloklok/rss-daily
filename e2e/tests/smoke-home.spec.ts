@@ -3,6 +3,14 @@ import { mockFullApp } from '../utils/mock-api';
 
 test.describe('核心流程冒烟测试 (存活验证)', () => {
   test.beforeEach(async ({ page }) => {
+    // 监听控制台错误，捕获水合失败等运行时异常
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        // 排除掉一些已知的可忽略错误（如果有的话），目前全量报错
+        throw new Error(`[Browser Console Error]: ${msg.text()}`);
+      }
+    });
+
     await mockFullApp(page);
   });
 

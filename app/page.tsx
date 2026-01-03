@@ -6,7 +6,7 @@ import { Metadata } from 'next';
 import { Filter } from '../types';
 import { BRIEFING_IMAGE_WIDTH, BRIEFING_IMAGE_HEIGHT } from '@/lib/constants';
 import { toShortId } from '@/utils/idHelpers';
-import { getCurrentTimeSlot } from '@/utils/dateUtils';
+import { getCurrentTimeSlot, getTodayInShanghai } from '@/utils/dateUtils';
 
 export const dynamic = 'force-dynamic';
 
@@ -296,6 +296,7 @@ export default async function Home(props: {
         isHomepage={isDefaultView} // Pass true only if no filters are active
         initialTimeSlot={initialTimeSlot}
         initialTags={tags}
+        today={getTodayInShanghai()}
       />
     </>
   );

@@ -24,6 +24,7 @@ interface UIStoreState {
 
   // Admin State
   isAdmin: boolean;
+  adminStatusChecked: boolean;
   setAdminStatus: (isAdmin: boolean) => void;
   checkAdminStatus: () => Promise<void>;
 
@@ -88,19 +89,20 @@ export const useUIStore = create<UIStoreState>((set) => ({
 
   // Admin State
   isAdmin: false,
-  setAdminStatus: (isAdmin) => set({ isAdmin }),
+  adminStatusChecked: false,
+  setAdminStatus: (isAdmin) => set({ isAdmin, adminStatusChecked: true }),
   checkAdminStatus: async () => {
     try {
       const res = await fetch('/api/auth/status');
       if (res.ok) {
         const data = await res.json();
-        set({ isAdmin: !!data.isAdmin });
+        set({ isAdmin: !!data.isAdmin, adminStatusChecked: true });
       } else {
-        set({ isAdmin: false });
+        set({ isAdmin: false, adminStatusChecked: true });
       }
     } catch (error) {
       console.error('Failed to check admin status:', error);
-      set({ isAdmin: false });
+      set({ isAdmin: false, adminStatusChecked: true });
     }
   },
 
