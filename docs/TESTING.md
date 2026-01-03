@@ -164,11 +164,34 @@ Sidebar 等组件强依赖 `next/navigation`。在 `vitest.setup.ts` 中已全�
 
 ---
 
-## 3. 自动化与提交规范 (Automation & Pre-commit)
+## 3. 技术避坑教训 (Lessons Learned)
+
+### 🚨 CI 环境下的 Vitest Mock 失效 (Component rendering error)
+
+**问题现象**: 本地测试 100% 通过，但在 GitHub Actions (CI) 环境中报错：`Error: Element type is invalid: expected a string... but got: object`.
+
+**原因分析**:
+
+- 在 CI 这种更严格的 Node.js/ESM 环境下，Vitest 对自动 Mock 的处理可能无法正确识别默认导出 (Default Export)。
+- React 在渲染时收到的不是一个组件函数，而是一个包含 `default` 属性的包装对象。
+
+**解决方案**:
+在 `vi.mock` 返回的对象中显式增加 `__esModule: true` 声明：
+
+```typescript
+vi.mock('next/script', () => ({
+  default: ({ id }: any) => <div data-testid={id} />,
+  __esModule: true, // 核心修复：强制声明为 ES 模块
+}));
+```
+
+---
+
+## 4. 自动化与提交规范 (Automation & Pre-commit)
 
 我们配置了 **Husky** + **Pro-commit** 钩子，确保每一行代码在提交前都经过质量门禁。
 
-### � 提交前自动检查 (Pre-commit)
+### 提交前自动检查 (Pre-commit)
 
 当你执行 `git commit` 时，系统会自动触发：
 
@@ -179,7 +202,7 @@ Sidebar 等组件强依赖 `next/navigation`。在 `vitest.setup.ts` 中已全�
 
 ---
 
-## 4. 常用命令速查
+## 5. 常用命令速查
 
 - **本地可视化开发**: `vitest --ui` (推荐 Vibe Coding 模式)
 - **单元与集成测试**: `pnpm run test` (Vitest 持续监听)

@@ -172,7 +172,7 @@ export default function MainLayoutClient({
       {/* Main Content Area */}
       <div
         ref={mainContentRef}
-        className={`dark:bg-midnight-bg bg-paper-texture flex min-w-0 flex-1 flex-col bg-neutral-50 dark:bg-none ${transitionClass}`}
+        className={`dark:bg-midnight-bg bg-paper-texture flex min-w-0 flex-1 flex-col bg-neutral-50 dark:bg-none`}
       >
         <div className="mx-auto w-full max-w-3xl px-2 pt-2 md:px-8 md:pt-4">{children}</div>
         <FloatingActionButtons isAdmin={isAdmin} />

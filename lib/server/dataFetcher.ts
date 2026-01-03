@@ -309,12 +309,9 @@ export const getAvailableFilters = unstable_cache(
         });
       }
 
-      const sortByName = (a: { label: string }, b: { label: string }) =>
-        a.label.localeCompare(b.label, 'zh-Hans-CN');
-
       return {
-        categories: categories.sort(sortByName),
-        tags: tags.sort(sortByName),
+        categories: categories, // Return raw order from FreshRSS
+        tags: tags, // Return raw order
       };
     } catch (e) {
       console.error('SERVER Error fetching filters:', e);

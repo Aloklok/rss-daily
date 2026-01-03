@@ -9,6 +9,7 @@ import { useUIStore } from '../../../store/uiStore';
 import { useArticleMetadata } from '../../../hooks/useArticleMetadata';
 import ArticleTitleStar from '../article/ArticleTitleStar';
 import { getRandomColorClass } from '../../../utils/colorUtils';
+import { CATEGORY_ORDER, UNCATEGORIZED_LABEL } from '../../../lib/constants';
 
 interface Subscription {
   id: string;
@@ -19,6 +20,11 @@ interface Subscription {
 interface SourceFilterClientProps {
   subscriptions: Subscription[];
 }
+
+const getOrderIndex = (name: string) => {
+  const cleanName = (name || '').trim().toLowerCase();
+  return CATEGORY_ORDER.findIndex((keyword) => cleanName.includes(keyword.toLowerCase()));
+};
 
 // Custom Card with Summary on Right (matching SearchListItem style)
 const SourceListItem: React.FC<{ articleId: string | number }> = ({ articleId }) => {
@@ -117,7 +123,7 @@ export default function SourceFilterClient({ subscriptions }: SourceFilterClient
   const groupedSubscriptions = React.useMemo(() => {
     const groups: Record<string, Subscription[]> = {};
     subscriptions.forEach((sub) => {
-      const cat = sub.category || '未分类';
+      const cat = sub.category || UNCATEGORIZED_LABEL;
       if (!groups[cat]) {
         groups[cat] = [];
       }
@@ -128,42 +134,26 @@ export default function SourceFilterClient({ subscriptions }: SourceFilterClient
 
   const sortedCategories = React.useMemo(() => {
     const categories = Object.keys(groupedSubscriptions);
-    // console.log('SourceFilterClient: Available Categories:', categories);
 
-    const ORDER = [
-      '前端',
-      'AI',
-      '工程',
-      '架构',
-      '基础设施',
-      '图', // Image
-      '播客', // Podcast
-    ];
+    return categories.sort((a, b) => {
+      // Special case: '未分类' or similar should always be last
+      const isUncategorizedA =
+        a === UNCATEGORIZED_LABEL || a.toLowerCase().includes('uncategorized');
+      const isUncategorizedB =
+        b === UNCATEGORIZED_LABEL || b.toLowerCase().includes('uncategorized');
 
-    const getOrderIndex = (name: string) => {
-      const lowerName = name.toLowerCase();
-      // Find the index of the first keyword that appears in the category name
-      return ORDER.findIndex((keyword) => lowerName.includes(keyword.toLowerCase()));
-    };
+      if (isUncategorizedA && !isUncategorizedB) return 1;
+      if (!isUncategorizedA && isUncategorizedB) return -1;
 
-    return categories
-      .filter((cat) => cat !== '未分类')
-      .sort((a, b) => {
-        const indexA = getOrderIndex(a);
-        const indexB = getOrderIndex(b);
+      const indexA = getOrderIndex(a);
+      const indexB = getOrderIndex(b);
 
-        // If both are in the matched list, sort by the predefined order
-        if (indexA !== -1 && indexB !== -1) {
-          return indexA - indexB;
-        }
+      if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+      if (indexA !== -1) return -1;
+      if (indexB !== -1) return 1;
 
-        // Matched categories come before unmatched ones
-        if (indexA !== -1) return -1;
-        if (indexB !== -1) return 1;
-
-        // If neither matches, sort alphabetically
-        return a.localeCompare(b, 'zh-Hans-CN');
-      });
+      return a.localeCompare(b, 'zh-Hans-CN');
+    });
   }, [groupedSubscriptions]);
 
   const handleSourceChange = useCallback(

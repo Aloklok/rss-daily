@@ -10,3 +10,6 @@ export const BRIEFING_SECTIONS = {
   MUST_KNOW: '必知要闻',
   REGULAR: '常规更新',
 } as const;
+
+export const CATEGORY_ORDER = ['前端', 'AI', '工程', '架构', '基础设施', '图', '播客'];
+export const UNCATEGORIZED_LABEL = '未分类';

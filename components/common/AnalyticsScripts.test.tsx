@@ -1,3 +1,4 @@
+import React from 'react';
 import { render } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import AnalyticsScripts from './AnalyticsScripts';
@@ -6,13 +7,16 @@ import { useUIStore } from '../../store/uiStore';
 // Mock Next/Vercel components to verify their presence in DOM
 vi.mock('@vercel/speed-insights/next', () => ({
   SpeedInsights: () => <div data-testid="speed-insights" />,
+  __esModule: true,
 }));
 vi.mock('@vercel/analytics/react', () => ({
   Analytics: () => <div data-testid="vercel-analytics" />,
+  __esModule: true,
 }));
 vi.mock('next/script', () => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   default: ({ id }: any) => <div data-testid={`next-script-${id || 'cloudflare'}`} />,
+  __esModule: true,
 }));
 
 describe('AnalyticsScripts 分析脚本组件 (条件渲染)', () => {
