@@ -10,10 +10,9 @@ vi.mock('../features/article/ArticleDetailClient', () => ({
   default: () => <div data-testid="mock-article-detail">Article Detail</div>,
 }));
 vi.mock('../features/briefing/BriefingView', () => ({
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: ({ isLoading }: any) => (
+  default: vi.fn(({ isLoading }: any) => (
     <div data-testid="mock-briefing">{isLoading ? 'Loading...' : 'Briefing View'}</div>
-  ),
+  )),
 }));
 vi.mock('../features/search/SearchList', () => ({
   default: () => <div data-testid="mock-search-list">Search List</div>,
@@ -170,5 +169,37 @@ describe('MainContentClient 集成测试 (跨天水合)', () => {
     // 断言：简报缓存不应被修改
     const briefingCache = queryClient.getQueryData(['briefing', today, 'all']);
     expect(briefingCache).toBeUndefined();
+  });
+
+  it('Bug 复现：点击类型过滤器时，应同步更新 Global UIStore 的 verdictFilter 状态', async () => {
+    // 场景：在首页点击 "新闻" 过滤器
+    // 预期：MainContentClient 应该调用 uiStore.setVerdictFilter，以便 FloatingActionButtons 能够感知。
+    const today = '2026-01-03';
+
+    // 1. 获取 Briefing 组件的 Mock
+    const BriefingMock = (await import('../features/briefing/BriefingView')).default as any;
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MainContentClient
+          initialDate={today}
+          initialArticles={[]}
+          today={today}
+          isHomepage={true}
+        />
+      </QueryClientProvider>,
+    );
+
+    // 2. 模拟点击 “新闻” (id: '新闻事件型')
+    // 我们在 Mock 中可以直接调用 prop
+    const briefingProps = BriefingMock.mock.calls[0][0];
+    expect(briefingProps.onVerdictFilterChange).toBeDefined();
+
+    // 执行点击动作（触发回调）
+    briefingProps.onVerdictFilterChange('新闻事件型');
+
+    // 3. 断言：Global UIStore 应该被更新了
+    // 注意：目前的实现只更新了 MainContentClient 的本地 useState，所以这里预期会失败！
+    expect(useUIStore.getState().verdictFilter).toBe('新闻事件型');
   });
 });

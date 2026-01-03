@@ -79,8 +79,9 @@ export default function MainContentClient({
   const queryClient = useQueryClient();
   const { mutateAsync: updateArticleState } = useUpdateArticleState();
 
-  // Verdict Filter State (Local)
-  const [verdictFilter, setVerdictFilter] = React.useState<string | null>(null);
+  // Verdict Filter State (Migrated to uiStore for global sync)
+  const verdictFilter = useUIStore((state) => state.verdictFilter);
+  const setVerdictFilter = useUIStore((state) => state.setVerdictFilter);
 
   // Sync initial state (Filter & TimeSlot) to store ONLY ONCE on mount
   useEffect(() => {

@@ -18,6 +18,7 @@
 
 - **`activeFilter`**: 当前的视图筛选条件 (例如: 日期, 标签, 搜索关键词)。
 - **`timeSlot`**: 简报视图中选中的时间段 (早报/午报/晚报)。
+- **`verdictFilter`**: 进一步筛选文章类型 (新闻事件型/知识洞察型)。
 - **`modalArticleId` / `modalInitialMode`**: 控制统一文章模态框的显示。
 - **`settings`**: 主题 (深色/浅色) 和 排版偏好设置。
 

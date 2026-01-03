@@ -207,6 +207,18 @@ vi.mock('next/script', () => ({
 **教训**: 在编写 `ArticleActions.test.tsx` 时，初版使用了手动构造的 `sampleArticle`。这导致了与业务逻辑的偏离（如 ID 格式不统一），并增加了维护负担。
 **反思**: 在进行任何功能域测试前，必须首先检索 `e2e/mocks` 或 `__mocks__` 目录，优先复用已有的“事实来源”数据。
 
+### 🚨 警惕局部状态导致的全局不同步 (State Sync Desync)
+
+**问题现象**: “全部已读”按钮在应用了“新闻/洞察”过滤器后，依然会标记不可见的文章。
+**原因分析**:
+
+- 过滤器使用了组件局部 `useState` 维护状态。
+- 操作按钮（位于 `FloatingActionButtons`）通过 `uiStore` 读取状态。
+- **结果**: 交互组件与操作组件产生“感知断层”。
+  **解决方案**:
+- 对于影响多个独立组件（如 Filter 影响 Action Button）的状态，**必须**提升至 Zustand Global Store。
+- **测试规避**: 编写集成测试（如 `MainContentClient.test.tsx`）时，除了验证渲染结果，还必须通过 `expect(useUIStore.getState()....)` 显式验证全局状态是否同步更新。
+
 ---
 
 ## 5. 自动化与提交规范 (Automation & Pre-commit)
