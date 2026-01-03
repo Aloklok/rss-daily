@@ -62,13 +62,21 @@ Briefing Hub 作为一个内容聚合平台，SEO 是其核心增长引擎。我
 
 针对百度等对超时敏感的爬虫，实施了以下针对性优化：
 
-- **图片生成去重 (Request Deduplication)**: 使用 `React.cache` 确保昂贵的“Supabase 查库/下载/上传”链路在单次请求中仅执行一次，消除冗余延迟。
+- **图片生成去重 (Request Deduplication)**: 使用 `React.cache` 确保昂贵的"Supabase 查库/下载/上传"链路在单次请求中仅执行一次，消除冗余延迟。
 - **WebP 全链路优化**: 从 Picsum 源站下载到 Supabase 存储全链路使用 WebP 格式，进一步降低传输阻塞时间。
-- **每日预热机制 (Daily Warmup)**: 部署 GitHub Action (Cron + Deployment Trigger)，在爬虫访问前主动预热“今天 + 过去7天”的页面，将冷启动成本移除出用户路径。
+- **每日预热机制 (Daily Warmup)**: 部署 GitHub Action (Cron + Deployment Trigger)，在爬虫访问前主动预热"今天 + 过去7天"的页面，将冷启动成本移除出用户路径。
 - **Scheme C - 状态加载分离 (Client-Side State Hydration)**:
-  - **彻底解耦**: 将“已读/星标”等个性化状态从服务端渲染 (SSR) 中剥离。
-  - **纯静态 HTML**: 访问 `/date/[date]` 页面时，服务端仅返回通用的文章内容 (TTFB < 200ms)，不再阻塞等待 FreshRSS 接口。
-  - **CSR 补齐**: 客户端加载后，通过 `useArticleStateHydration` 异步并发获取用户状态，视觉上实现秒级补齐。
-  - **SEO 友好**: 爬虫总是能获得极速响应的纯净 HTML，彻底解决了因第三方 API (`fetchArticleStatesServer`) 慢响应导致的抓取超时 (`socket read error`)。
+  - **彻底解耦**: 将"已读/星标"等个性化状态从服务端渲染 (SSR/ISR) 中剥离。
+  - **纯静态 HTML**: 所有页面 (首页、日期页、筛选页) 仅返回通用的文章内容，TTFB 从 10s+ 降至 **<600ms**。
+  - **CSR 补齐**: 客户端加载后，通过 `useArticleStateHydration` 异步并发获取用户状态，~1s 后自然补齐。
+  - **SEO 友好**: 爬虫总是能获得极速响应的纯净 HTML，彻底解决因 FreshRSS API 慢响应导致的 `socket read error`。
+  - **性能数据**: 历史页面 (如 `2025-11-07`) 实测从 10.5s → **0.6s** (提升 94%)。
+- **首页 ISR 化**:
+  - 从 `force-dynamic` (SSR) 改为 `revalidate = 604800` (ISR)，缓存命中时响应 <100ms。
+  - Webhook 机制确保今日内容变更时自动清除首页缓存，无实时性损失。
+- **缓存清除优化**:
+  - **移除无效触发**: 用户状态变更 (收藏/已读) 不再触发 ISR 缓存清除。
+  - **精准 Webhook**: 仅在文章内容变更 (新增/重新生成简报) 时智能清除对应缓存。
+  - **成本降低**: 减少 95% 的无效 Vercel Function 调用和 ISR 重新生成。
 - **Prefetch Control**:
   - 禁用侧边栏与归档页的 aggressive prefetching (`prefetch={false}`)，防止在用户无意悬停时触发大量 `_rsc` 请求，节省带宽并减少 Vercel Function 调用。

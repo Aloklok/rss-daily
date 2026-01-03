@@ -9,8 +9,6 @@ import { useUIStore } from '../../../store/uiStore';
 import { useUpdateArticleState, useBriefingArticles } from '../../../hooks/useArticles';
 import { getArticleTimeSlot } from '../../../utils/dateUtils';
 
-import { useArticleStateHydration } from '../../../hooks/useArticleStateHydration';
-
 interface BriefingClientProps {
   articles: Article[];
   date: string;
@@ -74,7 +72,6 @@ export default function BriefingClient({
   };
 
   // Hydrate store with SSR articles (states already merged in SSR)
-  useArticleStateHydration(articles, undefined, date);
 
   // Sync React Query cache with server-fetched IDs.
   useEffect(() => {

@@ -218,16 +218,9 @@ export const useUpdateArticleState = () => {
         showToast(message.trim(), 'success');
       }
 
-      // 【Active Revalidation】
-      // A. Target the specific Article Date for granular data/page refresh
-      const dateStr = updatedArticle.n8n_processing_date || updatedArticle.published;
-      if (dateStr) {
-        const date = dateStr.split('T')[0];
-        fetch('/api/system/revalidate-date', {
-          method: 'POST',
-          body: JSON.stringify({ date }),
-        }).catch((err) => console.warn(`[Revalidate] Failed for date: ${date}`, err));
-      }
+      // [Scheme C Optimization] Removed revalidate-date call
+      // User state changes (read/starred) no longer affect SSR HTML,
+      // so ISR cache invalidation is unnecessary here.
 
       // B. Keep tag-based revalidation for SEO/Aggregator pages
       const touchedTags = new Set([...variables.tagsToAdd, ...variables.tagsToRemove]);
@@ -300,13 +293,8 @@ export const useMarkAllAsRead = () => {
       markArticlesAsRead(markedIds);
       showToast(`已将 ${markedIds.length} 篇文章设为已读`, 'success');
 
-      // Targeted Revalidation for the specific date
-      if (result.date) {
-        fetch('/api/system/revalidate-date', {
-          method: 'POST',
-          body: JSON.stringify({ date: result.date }),
-        }).catch((err) => console.warn(`[Revalidate] Failed for date: ${result.date}`, err));
-      }
+      // [Scheme C Optimization] Removed revalidate-date call
+      // Batch mark-as-read no longer requires cache invalidation.
     },
     onError: (err) => {
       console.error('Failed to mark as read:', err);

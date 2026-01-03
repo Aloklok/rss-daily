@@ -19,7 +19,6 @@ import { Filter, Article, TimeSlot, Tag } from '../../types';
 import { getArticleTimeSlot } from '@/utils/dateUtils';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { useArticleStateHydration } from '../../hooks/useArticleStateHydration';
 
 interface MainContentClientProps {
   initialDate?: string;
@@ -108,7 +107,6 @@ export default function MainContentClient({
 
   // Hydrate store and sync states in background
   // Hydrate store with SSR articles (states already merged in SSR)
-  useArticleStateHydration(initialArticles, undefined, dateToUse || undefined);
 
   // Sync React Query cache with server-fetched IDs
   useEffect(() => {

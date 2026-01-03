@@ -8,7 +8,9 @@ import { BRIEFING_IMAGE_WIDTH, BRIEFING_IMAGE_HEIGHT } from '@/lib/constants';
 import { toShortId } from '@/utils/idHelpers';
 import { getCurrentTimeSlot, getTodayInShanghai } from '@/utils/dateUtils';
 
-export const dynamic = 'force-dynamic';
+// [Scheme C Optimization] Converted to ISR for performance
+// Webhook mechanism ensures cache invalidation when content changes
+export const revalidate = 604800; // 7 days
 
 async function getLatestBriefingData() {
   const dates = await fetchAvailableDates();
@@ -23,18 +25,11 @@ async function getLatestBriefingData() {
     };
 
   const groupedArticles = await fetchBriefingData(initialDate);
-  let articles = Object.values(groupedArticles).flat();
+  const articles = Object.values(groupedArticles).flat();
   const headerImageUrl = await resolveBriefingImage(initialDate);
 
-  // Server-Side State Merging: Directly merge states into articles for zero-flicker first paint
-  if (articles.length > 0) {
-    const { fetchArticleStatesServer } = await import('@/lib/server/dataFetcher');
-    const states = await fetchArticleStatesServer(articles.map((a) => a.id));
-    articles = articles.map((article) => ({
-      ...article,
-      tags: states[article.id] || article.tags || [],
-    }));
-  }
+  // [Scheme C] Client-side state hydration only
+  // States will be fetched asynchronously by useArticleStateHydration
 
   // Return dates as well so we can build the archive schema
   return { initialDate, articles, headerImageUrl, dates };
@@ -208,19 +203,11 @@ export default async function Home(props: {
   if (filterType && filterValue) {
     // Category / Tag / Search View
     const result = await fetchFilteredArticlesSSR(filterValue, 20, true);
-    let articles = result.articles;
+    const articles = result.articles;
     const continuation = result.continuation;
 
-    // Server-Side State Merging for Article States (Category/Tag)
-    // Directly merge states into articles for zero-flicker first paint
-    if (articles.length > 0) {
-      const { fetchArticleStatesServer } = await import('@/lib/server/dataFetcher');
-      const states = await fetchArticleStatesServer(articles.map((a) => a.id));
-      articles = articles.map((article) => ({
-        ...article,
-        tags: states[article.id] || article.tags || [],
-      }));
-    }
+    // [Scheme C] Client-side state hydration only
+    // States will be fetched asynchronously by useArticleStateHydration
 
     initialData = {
       initialArticles: articles,

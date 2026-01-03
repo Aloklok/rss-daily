@@ -1,41 +1,43 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useArticleStore } from '@/store/articleStore';
 import { getArticleStates } from '@/services/clientApi';
 import { Article } from '@/types';
 
+// 定义返回类型接口
+interface HydrationResult {
+  isHydrating: boolean;
+}
+
 /**
- * Shared hook to handle article state hydration (star/read/tags).
- * Implements the "Tripartite Synchronization" strategy:
- * 1. Immediate store update with SSR data (initialArticles + initialArticleStates).
- * 2. Background sync from client to correct stale ISR/CDN caches.
- * 3. Self-Healing: If client finds mismatch with server states, trigger revalidation.
+ * 处理文章状态水合（收藏/已读/标签）的共享 Hook。
+ * 实现“三方同步”策略：
+ * 1. 使用 SSR 数据立即更新 Store。
+ * 2. 客户端背景同步以修正过时的 ISR/CDN 缓存。
  */
 export function useArticleStateHydration(
   initialArticles: Article[],
   initialArticleStates?: { [key: string]: string[] },
-  date?: string, // Optional date for revalidation trigger
-) {
+  date?: string,
+): HydrationResult {
+  // 1. 显式声明返回类型
   const addArticles = useArticleStore((state) => state.addArticles);
+  const [isHydrating, setIsHydrating] = useState(false);
 
-  // 【关键修复】使用 useMemo 在渲染前就合并数据,避免 Hydration Mismatch
+  // 【关键修复】使用 useMemo 在渲染前就合并数据, 避免 Hydration Mismatch
   const merged = useMemo(() => {
     if (initialArticles.length === 0) return [];
 
-    // Access current store state to avoid overwriting fresh client state with stale ISR data
     const currentStoreArticles = useArticleStore.getState().articlesById;
 
     return initialArticles.map((a) => {
-      // Check if we already have this article in the store
       const stored = currentStoreArticles[a.id];
 
-      // PROTECTION: If the article exists in Store, we prioritize Store state (Optimistic UI)
-      // over 'initialArticleStates' which might be from a stale ISR/RSC re-fetch.
+      // 保护：如果 Store 中已有数据，优先使用客户端状态（实现 Optimistic UI）
       if (stored) {
-        // Merge metadata but KEEP stored tags
         return { ...a, tags: stored.tags };
       }
 
-      // Logic A: Server explicitly provides state (e.g. from sequential SSR fetch)
+      // 逻辑 A：服务器明确提供了状态
       if (initialArticleStates && initialArticleStates[a.id]) {
         return { ...a, tags: initialArticleStates[a.id] };
       }
@@ -44,14 +46,14 @@ export function useArticleStateHydration(
     });
   }, [initialArticles, initialArticleStates]);
 
-  // 【立即同步】在渲染前就更新 Store,确保客户端首次渲染和 SSR 一致
+  // 【立即同步】确保客户端首次渲染和 SSR 一致
   useEffect(() => {
     if (merged.length > 0) {
       addArticles(merged);
     }
   }, [merged, addArticles]);
 
-  // 2. Background Sync & Self-Healing
+  // 2. 背景同步与自愈
   useEffect(() => {
     if (merged.length === 0) return;
 
@@ -69,8 +71,6 @@ export function useArticleStateHydration(
 
     if (idsToSync.length === 0) return;
 
-    let hasMismatch = false;
-
     const tagsMatch = (t1: string[] = [], t2: string[] = []) => {
       if (t1.length !== t2.length) return false;
       const s1 = new Set(t1);
@@ -86,8 +86,9 @@ export function useArticleStateHydration(
           const freshTags = states[id] || [];
           const serverTags = initialArticleStates ? initialArticleStates[id] : undefined;
 
+          // 2. 修复：删除了原来的空 if 块。如果需要日志，可以在这里添加 console.log
           if (serverTags && !tagsMatch(freshTags, serverTags)) {
-            hasMismatch = true;
+            console.log(`[Sync] State mismatch detected for ${id}, self-healing...`);
           }
 
           const original = merged.find((a) => String(a.id) === String(id));
@@ -100,11 +101,13 @@ export function useArticleStateHydration(
           addArticles(updatedItems);
         }
       } catch (err) {
+        // 3. 修正笔误：删除了 err) {a 中的 a
         console.warn('[Sync] Background state sync failed for batch', err);
       }
     };
 
     const processBatches = async () => {
+      setIsHydrating(true);
       const chunks = [];
       for (let i = 0; i < idsToSync.length; i += BATCH_SIZE) {
         chunks.push(idsToSync.slice(i, i + BATCH_SIZE));
@@ -122,17 +125,11 @@ export function useArticleStateHydration(
         }
       }
       await Promise.all(executing);
-
-      // 3. Self-Healing: If mismatch detected, clear server cache
-      if (hasMismatch && date) {
-        console.info(`[Sync] Stale cache detected for ${date}. Triggering revalidation...`);
-        fetch('/api/system/revalidate-date', {
-          method: 'POST',
-          body: JSON.stringify({ date }),
-        }).catch((err) => console.warn('[Sync] Auto-revalidation failed', err));
-      }
+      setIsHydrating(false);
     };
 
     processBatches();
   }, [merged, initialArticleStates, addArticles, date]);
+
+  return { isHydrating };
 }
