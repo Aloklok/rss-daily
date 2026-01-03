@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { revalidateTag, revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { prewarmCache } from '@/lib/server/prewarm';
+import { generateEmbedding } from '@/lib/server/embeddings';
+import { createClient } from '@supabase/supabase-js';
+
+// Init Supabase Client for updating embeddings
+const supabaseUrl = process.env.SUPABASE_URL!;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 // In-memory simple cache to throttle rapid-fire revalidates for the same date
 // (e.g. n8n pushing 50 rows in a row)
@@ -34,8 +41,27 @@ async function handleRevalidate(request: NextRequest): Promise<NextResponse> {
     console.log('[Webhook] Received revalidation request from Supabase');
 
     // Extract article data from Supabase Webhook structure
-    // Usually: { record: { ... }, old_record: { ... }, type: 'INSERT/UPDATE' }
-    const article = body.record || body; // Fallback to direct body if it's simple
+    const article = body.record || body;
+
+    // --- NEW: Auto-Embedding for n8n/Manual pushes ---
+    // If embedding is missing and we have enough content, generate it
+    if (!article.embedding) {
+      const keywordsStr = Array.isArray(article.keywords) ? article.keywords.join(' ') : '';
+      const contentToEmbed =
+        `${article.title || ''} ${article.category || ''} ${keywordsStr} ${article.summary || ''} ${article.tldr || ''}`.trim();
+      if (contentToEmbed.length > 10) {
+        try {
+          console.log(`[Webhook] Auto-generating embedding for: ${article.title}`);
+          const embedding = await generateEmbedding(contentToEmbed, 'RETRIEVAL_DOCUMENT');
+          if (embedding) {
+            await supabase.from('articles').update({ embedding }).eq('id', String(article.id));
+            console.log(`[Webhook] Successfully updated embedding for ${article.id}`);
+          }
+        } catch (embedError) {
+          console.error('[Webhook] Failed to auto-generate embedding:', embedError);
+        }
+      }
+    }
 
     // Use n8n_processing_date or published to determine the date page
     const dateStr = article.n8n_processing_date || article.published;

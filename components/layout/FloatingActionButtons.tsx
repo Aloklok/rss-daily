@@ -105,7 +105,7 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
     });
   });
 
-  const { isStarred } = useArticleMetadata(selectedArticle);
+  const { isStarred, userTagLabels } = useArticleMetadata(selectedArticle);
 
   return (
     <div className="fixed right-8 bottom-8 z-20 flex flex-col-reverse items-center gap-y-3">
@@ -141,7 +141,11 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
             <div className="relative" onClick={(e) => e.stopPropagation()}>
               <button
                 onClick={() => setIsTagPopoverOpen((prev) => !prev)}
-                className="cursor-pointer rounded-full bg-sky-600 p-3 text-white shadow-lg transition-all hover:bg-sky-700"
+                className={`cursor-pointer rounded-full p-3 text-white shadow-lg transition-all ${
+                  userTagLabels.length > 0
+                    ? 'bg-sky-600 hover:bg-sky-700'
+                    : 'bg-gray-800 hover:bg-gray-950'
+                }`}
                 aria-label="Tag article"
               >
                 <svg

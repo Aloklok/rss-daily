@@ -51,10 +51,12 @@ export default function MainContentClient({
   useEffect(() => {
     // Only set if we have initial tags and store might be empty
     if (initialTags && initialTags.length > 0) {
-      // We use a functional update or just set it.
-      // Since this runs on mount/update, we want to ensure we don't overwrite if not needed?
-      // Actually, for SSR hydration, we want to set it.
-      setAvailableFilters({ tags: initialTags, categories: [] });
+      // Preserve existing categories when hydrating tags from SSR
+      const currentFilters = useArticleStore.getState().availableFilters;
+      setAvailableFilters({
+        ...currentFilters,
+        tags: initialTags,
+      });
     }
   }, [initialTags, setAvailableFilters]);
 

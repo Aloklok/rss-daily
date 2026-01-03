@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { createClient } from '@supabase/supabase-js';
 import { cleanGeminiJson } from '../../utils/contentUtils';
+import { generateEmbedding } from './embeddings';
 
 // Init Supabase Client (Admin Access required for reading app_config if RLS is tight,
 // using Service Key is safest for server-side operations)
@@ -61,8 +62,22 @@ export async function generateBriefingWithGemini(articleData: any) {
     // Expecting an array with 1 item
     const briefing = Array.isArray(parsed) ? parsed[0] : parsed;
 
+    // 4.5 生成向量 (语义指纹) - 包含分类与关键词以增强检索维度
+    const keywordsStr = Array.isArray(briefing.keywords) ? briefing.keywords.join(' ') : '';
+    const contentToEmbed =
+      `${briefing.title || articleData.title || ''} ${briefing.category || ''} ${keywordsStr} ${briefing.summary || ''} ${briefing.tldr || ''}`.trim();
+    let embedding = null;
+    try {
+      embedding = await generateEmbedding(contentToEmbed, 'RETRIEVAL_DOCUMENT');
+    } catch (e) {
+      console.error('Failed to generate embedding during briefing:', e);
+    }
+
     return {
-      briefing,
+      briefing: {
+        ...briefing,
+        embedding,
+      },
       metadata: {
         usageMetadata: response.usageMetadata,
         safetyRatings: response.candidates?.[0]?.safetyRatings,

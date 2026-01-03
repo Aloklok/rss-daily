@@ -87,6 +87,7 @@ export async function generateBriefingAction(article: Article, clientContent?: s
         published: article.published,
         // AI Fields
         ...finalBriefing,
+        embedding: (briefing as any).embedding,
         // Preserve existing processing date if available (to keep it in its original daily timeline)
         // If missing (new generation), use the original published date to place it in the correct history context
         // Fallback to NOW only if both are missing

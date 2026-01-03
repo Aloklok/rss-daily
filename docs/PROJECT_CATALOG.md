@@ -1,81 +1,66 @@
-## 项目根目录
+# 项目目录索引 (Project Catalog)
 
-- `App.tsx` - 主应用组件
-- `README.md` - 项目文档
-- `eslint.config.ts` - ESLint 配置
-- `index.css` - 全局样式
-- `index.html` - HTML 入口文件
-- `index.tsx` - TypeScript 入口文件
-- `metadata.json` - 项目元数据
-- `package.json` - 项目依赖配置
-- `package-lock.json` - 依赖锁定文件
-- `postcss.config.js` - PostCSS 配置
-- `tailwind.config.js` - Tailwind CSS 配置
-- `tsconfig.json` - TypeScript 配置
-- `types.ts` - TypeScript 类型定义
-- `vite.config.ts` - Vite 构建配置
-- `.DS_Store` - macOS 系统文件
-- `.vscode/settings.json` - VSCode 设置
+本文档映射了 Briefing Hub 核心目录的功能职责，帮助开发者快速定位代码。
 
-## API 目录
+## 1. 核心应用入口 (`app/`)
 
-- `_utils.ts` - API 工具函数
-- `article-states.ts` - 文章状态相关 API
-- `articles-categories-tags.ts` - 文章分类标签 API
-- `articles.ts` - 文章相关 API
-- `get-available-dates.ts` - 获取可用日期 API
-- `get-briefings.ts` - 获取简报 API
-- `list-categories-tags.ts` - 列出分类标签 API
-- `readability.ts.bak` - Readability 备份文件
-- `refresh.ts` - 刷新功能 API
-- `update-state.ts` - 更新文章状态 API
+采用 Next.js App Router 架构，负责路由定义、SSR 数据获取及 API。
 
-## 组件目录
+- **`layout.tsx`**: 全局根布局，包含 Providers 和全局 UI。
+- **`page.tsx`**: 首页入口（Force Dynamic），处理时段预选。
+- **`date/[date]/page.tsx`**: 每日简报页（ISR 7d）。
+- **`article/[id]/page.tsx`**: 文章详情页（ISR）。
+- **`archive/page.tsx`**: 归档索引页（SSR）。
+- **`sources/page.tsx`**: 订阅源浏览页（Force Dynamic）。
+- **`stream/`**: 分类与标签列表页。
+- **`api/`**: 路由处理程序 (Route Handlers)。
+  - `articles/search/`: 混合向量搜索接口。
+  - `briefings/`: 简报数据接口。
+  - `system/revalidate/`: 自动化缓存碎冰接口。
 
-- `ArticleCard.tsx` - 文章卡片组件
-- `ArticleDetail.tsx` - 文章详情组件
-- `ArticleGroup.tsx` - 文章分组组件
-- `ArticleList.tsx` - 文章列表组件
-- `ArticlePreviewModal.tsx` - 文章预览模态框
-- `Briefing.tsx` - 简报主视图组件
-- `ReaderView.tsx` - 阅读器视图组件
-- `SettingsPopover.tsx` - 设置弹窗组件
-- `Sidebar.tsx` - 侧边栏组件
+## 2. 业务功能组件 (`components/features/`)
 
-## 自定义 Hooks 目录
+按领域内聚的业务逻辑组件。
 
-- `useArticleManagement.ts` - 文章管理相关 Hook
-- `useDataFetching.ts` - 数据获取相关 Hook
-- `useFilters.ts` - 筛选器相关 Hook
-- `useReader.ts` - 阅读器相关 Hook
-- `useSidebar.ts` - 侧边栏相关 Hook
+- **`article/`**: 文章交互核心。
+  - `ArticlePage.tsx`: 独立页阅读器。
+  - `ArticleReaderView.tsx`: 弹窗式阅读器。
+  - `UnifiedArticleModal.tsx`: 统一文章模态框容器。
+- **`briefing/`**: 简报渲染核心。
+  - `BriefingClient.tsx`: 客户端逻辑与同步。
+  - `BriefingView.tsx`: 渲染 UI 布局。
+- **`search/`**: 搜索与过滤组件。
+- **`stream/`**: 无限滚动列表组件。
 
-## 服务目录
+## 3. 全局布局与基础 (`components/`)
 
-- `api.ts` - API 服务模块
+- **`layout/`**: 应用骨架。
+  - `MainLayoutClient.tsx`: 响应式侧边栏容器。
+  - `Sidebar/`: 包含日历、分类树导航。
+  - `FloatingActionButtons.tsx`: 全局悬浮组件。
+- **`common/`**: 通用 UI 基座。
+  - `Providers.tsx`: Context 聚合。
+  - `ui/`: 标准原子组件（Button, Spinner, Toast 等）。
 
-## 类型定义目录
+## 4. 逻辑与数据层
 
-- `optional-mods.d.ts` - 可选模块类型定义
+- **`store/`**: Zustand 全局状态。
+  - `articleStore.ts`: 文章领域模型与归一化缓存。
+  - `uiStore.ts`: 交互状态（选中项、侧边栏开关）。
+- **`lib/`**: 核心库实现。
+  - `server/`: 仅限服务端的工具（Data Fetcher, Embeddings）。
+- **`services/`**: API 抽象层。
+  - `clientApi.ts`: 供客户端调用的 Fetch 封装。
+- **`utils/`**: 纯函数工具库（具体见 [UTILS.md](./UTILS.md)）。
 
-## 构建输出目录
+## 5. 配置与工具
 
-- `assets/` - 静态资源文件
-- `index.html` - 构建后 HTML 文件
-- `manifest.json` - 构建后清单文件
-- `robots.txt` - 构建后 robots 文件
-- `sw.js` - Service Worker 文件
+- **`e2e/`**: Playwright 测试用例与 Mock 数据。
+- **`scripts/`**: 维护脚本（如向量数据回填 backfill）。
+- **`.agent/`**: AI 助手的工作流定义。
+- **`docs/`**: 项目详细技术文档（本项目文档中心）。
 
-## 公共资源目录 (`/public`)
+---
 
-- `manifest.json` - PWA 清单文件
-- `robots.txt` - robots 文件
-- `sw.js` - Service Worker 文件
-
-## 配置文件说明
-
-- 项目采用 React + TypeScript + Vite 架构
-- 使用 Tailwind CSS 作为样式框架
-- 通过 Supabase 和 FreshRSS 作为后端服务
-- 实现了 PWA 功能支持离线访问
-- 使用 Vercel Serverless Functions 作为后端 API
+> [!NOTE]
+> 详细的技术架构请参考 [ARCHITECTURE.md](./ARCHITECTURE.md)；状态同步细节请参考 [STORE.md](./STORE.md)。

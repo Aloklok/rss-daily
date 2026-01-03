@@ -20,6 +20,8 @@
     "gen:freshrss-types": "npx openapi-typescript types/freshrss-greader.yaml -o types/freshrss-greader.ts",
     "prompt:pull": "npx tsx scripts/pull-prompt.ts",
     "prompt:push": "npx tsx scripts/push-prompt.ts",
+    "search:backfill": "npx tsx scripts/backfill-embeddings.ts",
+    "search:update": "npx tsx scripts/update-search-rpc.ts",
     "prepare": "husky"
   },
   "browserslist": [

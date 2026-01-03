@@ -39,7 +39,12 @@ export default function BriefingClient({
   // Hydrate Tags from SSR
   useEffect(() => {
     if (initialTags && initialTags.length > 0) {
-      setAvailableFilters({ tags: initialTags, categories: [] });
+      // Preserve existing categories when hydrating tags from SSR
+      const currentFilters = useArticleStore.getState().availableFilters;
+      setAvailableFilters({
+        ...currentFilters,
+        tags: initialTags,
+      });
     }
   }, [initialTags, setAvailableFilters]);
 

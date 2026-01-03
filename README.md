@@ -89,6 +89,10 @@ pnpm test:e2e      # E2E 测试（参阅下方的"模拟数据"部分）
 
 # 4. 代码检查
 pnpm run lint
+
+# 5. 搜索维护 (向量化与算法)
+pnpm run search:backfill   # 批量补全缺失向量 (--force 强制刷新)
+pnpm run search:update     # 零停机同步搜索算法 RPC 到 Supabase
 ```
 
 ### 模拟数据 (Mock Data)
