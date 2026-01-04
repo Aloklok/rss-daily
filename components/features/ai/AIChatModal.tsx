@@ -19,14 +19,13 @@ const UNICODE_MAP: Record<string, string> = {
   '⁹': '9',
   '⁰': '0',
 };
- 
+
 const CITATION_REGEX = /(\[\s*\d+\s*\]|[¹²³⁴⁵⁶⁷⁸⁹⁰]+)/g;
 
 /**
  * 辅助：从原始内容片段中提取数字索引字符串
  */
 const getOriginalIndex = (raw: string): string => {
-   
   const match = raw.match(/^\[\s*(\d+)\s*\]$/);
   const unicodeMatch = raw.match(/^[¹²³⁴⁵⁶⁷⁸⁹⁰]+$/);
   if (match) return match[1];
