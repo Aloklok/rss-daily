@@ -117,9 +117,15 @@ export async function fetchStarredArticleHeaders(): Promise<
 export async function fetchSearchResults(
   query: string,
   page: number = 1,
-): Promise<{ articles: Article[]; continuation?: number }> {
-  const supaArticles = await searchArticlesByKeyword(query, page);
-  if (supaArticles.length === 0) return { articles: [] };
+): Promise<{
+  articles: Article[];
+  continuation?: number;
+  isFallback?: boolean;
+  errorSnippet?: string;
+}> {
+  const result = await searchArticlesByKeyword(query, page);
+  const supaArticles = result.articles;
+  if (supaArticles.length === 0) return { ...result, articles: [] };
 
   const articleIds = supaArticles.map((a) => a.id);
   const statesById = await getArticleStates(articleIds);
@@ -129,11 +135,11 @@ export async function fetchSearchResults(
     tags: statesById[supaArticle.id] || [],
   }));
 
-  // 如果返回的数量等于分页大小 (20)，说明可能还有下一页
-  // 简单起见，我们假设满页就有下一页
+  // 如果返回的数量等于分页大小 (20)
   const hasNextPage = supaArticles.length === 20;
 
   return {
+    ...result,
     articles: mergedArticles,
     continuation: hasNextPage ? page + 1 : undefined,
   };

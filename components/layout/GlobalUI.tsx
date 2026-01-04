@@ -7,6 +7,7 @@ import { useArticleStore } from '../../store/articleStore';
 import { useUIStore } from '../../store/uiStore';
 import UnifiedArticleModal from '../features/article/modal/UnifiedArticleModal';
 import { useUpdateArticleState } from '../../hooks/useArticles';
+import AIChatModal from '../features/ai/AIChatModal';
 
 export default function GlobalUI() {
   const { toast, hideToast } = useAppToast();
@@ -47,6 +48,7 @@ export default function GlobalUI() {
           initialMode={modalInitialMode}
         />
       )}
+      <AIChatModal />
     </div>
   );
 }

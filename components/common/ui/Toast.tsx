@@ -52,28 +52,32 @@ const Toast: React.FC<ToastProps> = ({ message, isVisible, onClose, type = 'info
     );
 
   return (
-    <div
-      className={`fixed bottom-8 left-1/2 z-50 flex -translate-x-1/2 transform items-center rounded-lg p-4 text-white shadow-lg transition-all duration-300 ${bgColor}`}
-      style={{
-        opacity: isVisible ? 1 : 0,
-        transform: `translate(-50%, ${isVisible ? '0' : '20px'})`,
-      }}
-    >
-      {icon}
-      <span className="ml-3 font-medium">{message}</span>
-      <button
-        onClick={onClose}
-        className="-mr-1 ml-4 rounded-full p-1.5 transition-colors hover:bg-white/20"
+    <div className="pointer-events-none fixed inset-x-0 bottom-10 z-[100] flex justify-center px-4">
+      <div
+        className={`pointer-events-auto flex w-full max-w-md items-start gap-3 overflow-hidden rounded-2xl p-4 text-white shadow-2xl backdrop-blur-xl transition-all duration-500 md:max-w-xl ${bgColor}`}
+        style={{
+          opacity: isVisible ? 1 : 0,
+          transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(40px) scale(0.95)',
+        }}
       >
-        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M6 18L18 6M6 6l12 12"
-          ></path>
-        </svg>
-      </button>
+        <div className="mt-0.5 shrink-0">{icon}</div>
+        <div className="flex-1 overflow-hidden">
+          <p className="text-sm leading-relaxed font-bold tracking-wide break-words">{message}</p>
+        </div>
+        <button
+          onClick={onClose}
+          className="-mt-1 -mr-1 shrink-0 rounded-full p-1.5 transition-colors hover:bg-white/20"
+        >
+          <svg className="h-4.5 w-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2.5"
+              d="M6 18L18 6M6 6l12 12"
+            ></path>
+          </svg>
+        </button>
+      </div>
     </div>
   );
 };

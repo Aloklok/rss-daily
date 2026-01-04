@@ -25,14 +25,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const to = from + pageSize - 1;
 
   try {
-    // 1. 为搜索词生成向量 (带容错)
     let queryEmbedding: number[] | null = null;
+    let embedErrorMsg: string | undefined = undefined;
     try {
       queryEmbedding = await generateEmbedding(query);
-    } catch (embedErr) {
-      console.warn('Embedding generation failed, falling back to keyword-only search:', embedErr);
-      // 注意：这里我们不抛出错误，而是让 queryEmbedding 保持为 null
-      // 下方的 RPC 已经更新，可以处理 null embedding 并只进行关键词匹配
+    } catch (embedErr: any) {
+      console.warn(
+        'Embedding generation failed, falling back to keyword-only search:',
+        embedErr.message,
+      );
+      embedErrorMsg = embedErr.message;
     }
 
     // 2. 调用混合搜索 RPC
@@ -67,7 +69,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       });
     }
 
-    return NextResponse.json(data || []);
+    // 3. 返回结构化响应
+    return NextResponse.json({
+      articles: data || [],
+      isFallback: queryEmbedding === null,
+      errorSnippet:
+        queryEmbedding === null
+          ? `Gemini 向量生成失败 (${embedErrorMsg})，已自动切换为关键词搜索。`
+          : undefined,
+    });
   } catch (err: unknown) {
     console.error('Unexpected server error during search:', err);
     return NextResponse.json(

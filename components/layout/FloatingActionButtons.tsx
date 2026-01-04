@@ -260,6 +260,38 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
           </>
         ))}
 
+      {/* --- AI 助手入口 (仅管理员可见) --- */}
+      {isAdmin && (
+        <button
+          onClick={async () => {
+            const { useChatStore } = await import('../../store/chatStore');
+            const { setIsOpen, isOpen } = useChatStore.getState();
+            setIsOpen(!isOpen);
+          }}
+          className="group relative cursor-pointer rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 p-3 text-white shadow-lg transition-all hover:scale-110 hover:shadow-indigo-500/25 active:scale-95"
+          aria-label="Open AI Assistant"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+            />
+          </svg>
+          {/* Tooltip hint */}
+          <span className="absolute right-full mr-3 rounded-md bg-gray-900 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100">
+            架构师助手 (Cmd+J)
+          </span>
+        </button>
+      )}
+
       {/* --- 共享按钮：始终显示 --- */}
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}

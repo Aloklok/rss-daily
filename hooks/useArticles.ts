@@ -307,6 +307,7 @@ export const useMarkAllAsRead = () => {
 // 2. 【增加】搜索 Hook (升级为 Infinite Query)
 export const useSearchResults = (query: string | null) => {
   const addArticles = useArticleStore((state) => state.addArticles);
+  const showToast = useToastStore((state) => state.showToast);
 
   return useInfiniteQuery({
     queryKey: ['search', query],
@@ -316,9 +317,24 @@ export const useSearchResults = (query: string | null) => {
       const result = await fetchSearchResults(query, pageParam as number);
       addArticles(result.articles);
 
+      // 如果发生了 Fallback，且是第一页，则给管理员提示
+      if (result.isFallback && pageParam === 1 && result.errorSnippet) {
+        console.error('🔍 [Search Fallback] Gemini Embedding Failed:', result.errorSnippet);
+
+        // 尝试从 errorSnippet 中提取 Status Code 和 Key 信息
+        const statusCode = result.errorSnippet.match(/429|403|400|500/)?.[0] || 'Error';
+        const keyInfo = result.errorSnippet.match(/Key: [A-Z0-9_]+/)?.[0] || 'Unknown Key';
+
+        const displayStatus = statusCode === '429' ? '429 Too Many Requests' : statusCode;
+        showToast(`AI 搜索失败 [${displayStatus}]，已降级为关键词搜索 | ${keyInfo}`, 'error');
+      }
+
       return {
         articles: result.articles.map((a) => a.id),
         continuation: result.continuation,
+        // 同时透传这些信息，以便 UI 层可能需要
+        isFallback: result.isFallback,
+        errorSnippet: result.errorSnippet,
       };
     },
     initialPageParam: 1,

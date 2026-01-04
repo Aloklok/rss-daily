@@ -291,11 +291,12 @@ export const updateDailyStatus = async (date: string, isCompleted: boolean) => {
 };
 
 // searchArticlesByKeyword
-export const searchArticlesByKeyword = (query: string, page: number = 1): Promise<Article[]> => {
+export const searchArticlesByKeyword = (
+  query: string,
+  page: number = 1,
+): Promise<{ articles: Article[]; isFallback: boolean; errorSnippet?: string }> => {
   const timestamp = Date.now().toString();
-  return apiService
-    .request<Article[]>('/api/articles/search', {
-      params: { query, page: String(page), _t: timestamp },
-    })
-    .catch(() => []);
+  return apiService.request('/api/articles/search', {
+    params: { query, page: String(page), _t: timestamp },
+  });
 };
