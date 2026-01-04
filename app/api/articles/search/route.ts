@@ -25,15 +25,22 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const to = from + pageSize - 1;
 
   try {
-    // 1. 为搜索词生成向量
-    const queryEmbedding = await generateEmbedding(query);
+    // 1. 为搜索词生成向量 (带容错)
+    let queryEmbedding: number[] | null = null;
+    try {
+      queryEmbedding = await generateEmbedding(query);
+    } catch (embedErr) {
+      console.warn('Embedding generation failed, falling back to keyword-only search:', embedErr);
+      // 注意：这里我们不抛出错误，而是让 queryEmbedding 保持为 null
+      // 下方的 RPC 已经更新，可以处理 null embedding 并只进行关键词匹配
+    }
 
     // 2. 调用混合搜索 RPC
     // 我们按照规划：关键词优先（match_priority 1），语义推荐随后（match_priority 2）
     const { data, error } = await supabase
       .rpc('hybrid_search_articles', {
         query_text: query.trim(),
-        query_embedding: queryEmbedding,
+        query_embedding: queryEmbedding, // 可能是 null
         match_count: 50, // 增加召回数量以保证混合效果
       })
       .range(from, to);
@@ -50,7 +57,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     if (data && data.length > 0) {
-      console.log(`🔍 Search Results for "${query}":`);
+      console.log(
+        `🔍 Search Results for "${query}" (Embedding: ${queryEmbedding ? 'YES' : 'FALLBACK TO KEYWORD'}):`,
+      );
       data.forEach((item: any, index: number) => {
         console.log(
           `  [${index + 1}] Similarity: ${item.similarity?.toFixed(4)}, Priority: ${item.match_priority}, Title: ${item.title?.slice(0, 50)}`,
@@ -60,7 +69,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(data || []);
   } catch (err: unknown) {
-    console.error('Unexpected server error', err);
+    console.error('Unexpected server error during search:', err);
     return NextResponse.json(
       {
         message: 'Unexpected server error',

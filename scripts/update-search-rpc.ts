@@ -71,22 +71,23 @@ BEGIN
     a."marketTake",
     a.verdict,
     a.keywords,
-    1 - (a.embedding <=> query_embedding) AS similarity,
+    (CASE WHEN query_embedding IS NOT NULL THEN 1 - (a.embedding <=> query_embedding) ELSE 0 END) AS similarity,
     CASE 
       WHEN 
         a.title ILIKE '%' || query_text || '%'      -- 命中了标题
         OR a.category ILIKE '%' || query_text || '%'   -- 命中了 AI 分类
         OR a.keywords::text ILIKE '%' || query_text || '%' -- 命中了 AI 关键词 (jsonb cast)
       THEN ${CONFIG.rank_keyword_match} 
-      WHEN (1 - (a.embedding <=> query_embedding) > 0.75) THEN ${CONFIG.rank_high_similarity} -- 极度相关 (固定 0.75 门槛)
-      ELSE ${CONFIG.rank_normal_similarity} -- 普通语义相关
+      WHEN (query_embedding IS NOT NULL AND (1 - (a.embedding <=> query_embedding) > 0.75)) THEN ${CONFIG.rank_high_similarity} -- 极度相关
+      WHEN (query_embedding IS NOT NULL) THEN ${CONFIG.rank_normal_similarity} -- 普通语义相关
+      ELSE 4 -- 兜底：仅在语义失败且没命中关键词时（理论上 WHERE 会过滤掉，但保留以防万一）
     END AS match_priority
   FROM articles a
   WHERE 
     a.title ILIKE '%' || query_text || '%'
     OR a.category ILIKE '%' || query_text || '%'
     OR a.keywords::text ILIKE '%' || query_text || '%'
-    OR (1 - (a.embedding <=> query_embedding) > ${CONFIG.semantic_threshold})
+    OR (query_embedding IS NOT NULL AND (1 - (a.embedding <=> query_embedding) > ${CONFIG.semantic_threshold}))
   ORDER BY match_priority ASC, similarity DESC
   LIMIT match_count;
 END;
