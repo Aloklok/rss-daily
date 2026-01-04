@@ -28,6 +28,7 @@ export default defineConfig({
       include: ['utils/**/*.ts', 'lib/**/*.ts', 'store/**/*.ts'],
       exclude: [
         '**/*.test.ts',
+        'utils/__tests__/**',
         '**/*.d.ts',
         '**/types.ts',
         'lib/server/apiUtils.ts',
