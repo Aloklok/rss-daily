@@ -31,12 +31,13 @@
 
 ## �️ 核心文件速查
 
-| 文件                                                     | 职责                                |
-| -------------------------------------------------------- | ----------------------------------- |
-| [lib/server/dataFetcher.ts](./lib/server/dataFetcher.ts) | 获取文章数据（Supabase + FreshRSS） |
-| [lib/server/tagFetcher.ts](./lib/server/tagFetcher.ts)   | 获取分类和标签                      |
-| [utils/dateUtils.ts](./utils/dateUtils.ts)               | 时区转换（上海↔UTC）                |
-| [e2e/mocks/data.ts](./e2e/mocks/data.ts)                 | 测试用 mock 数据                    |
+| 文件                                                           | 职责                                |
+| -------------------------------------------------------------- | ----------------------------------- |
+| [lib/server/dataFetcher.ts](./lib/server/dataFetcher.ts)       | 获取文章数据（Supabase + FreshRSS） |
+| [scripts/update-search-rpc.ts](./scripts/update-search-rpc.ts) | 维护 PGroonga 混合搜索逻辑 (RPC)    |
+| [docs/AI.md](./docs/AI.md)                                     | AI 架构、RAG 召回与语义搜索规划     |
+| [utils/imageUtils.ts](./utils/imageUtils.ts)                   | 封面图生成、缓存与延迟处理逻辑      |
+| [e2e/mocks/data.ts](./e2e/mocks/data.ts)                       | 测试用 mock 数据                    |
 
 **更多文件详情**: 见 [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)
 
@@ -47,9 +48,10 @@
 | 问题            | 排查文档                                                        |
 | --------------- | --------------------------------------------------------------- |
 | 分类/标签不显示 | [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md#侧边栏分类数据流) |
+| 搜索不准/很慢   | [docs/AI.md](./docs/AI.md#4-召回阶段-recall-phase)              |
 | 文章时间不对    | [docs/UTILS.md](./docs/UTILS.md#时区转换)                       |
 | API 返回 401    | [docs/API.md](./docs/API.md#环境配置)                           |
-| 图片加载失败    | [docs/UTILS.md](./docs/UTILS.md#图片处理)                       |
+| 图片加载失败    | [utils/imageUtils.ts](./utils/imageUtils.ts)                    |
 
 **完整问题诊断**: 见 [docs/TESTING.md](./docs/TESTING.md#常见问题)
 
@@ -59,6 +61,8 @@
 
 快速定位代码的关键词：
 
+- **搜索**: `hybrid_search_articles`, `&@~` (PGroonga), `match_priority`
+- **AI 性能**: `pgmq`, `embeddings.ts`, `Gemini`
 - **时区**: `shanghaiDayToUtcWindow`, `dateUtils`
 - **FreshRSS**: `tagFetcher`, `/tag/list`
 - **内容清洗**: `cleanHtml`, `extractImages`
@@ -116,8 +120,7 @@
 
 ## ✅ 提交代码前清单
 
-- [ ] `pnpm lint` 通过
-- [ ] `pnpm test` 通过
+- [ ] `pnpm build` 通过 (包含 Lint & TS 类型检查)
 - [ ] 相关文档已更新 (docs/ 文件夹)
 - [ ] 如有 mock 数据变更，已更新 [e2e/mocks/data.ts](./e2e/mocks/data.ts)
 
@@ -134,4 +137,4 @@ pnpm run lint     # 检查
 
 ---
 
-_Last Updated: 2025-12-30_
+_Last Updated: 2026-01-06_

@@ -22,6 +22,10 @@ function getStorageAdmin() {
 // In-memory flag to avoid redundant bucket checks (Optimization)
 let bucketVerified = false;
 
+// In-memory cache for verified image dates to reduce Storage API calls (Optimization)
+// This is essential to prevent repeated 'list' calls on every page landing (e.g. from monitors).
+const verifiedDates = new Set<string>();
+
 // 1. Ensure Bucket Exists (Idempotent + Cached)
 async function ensureBucketExists(client: ReturnType<typeof createClient>) {
   if (bucketVerified) return;
@@ -92,25 +96,29 @@ const resolveBriefingImageRequest = async (date: string): Promise<string> => {
   }
 
   const admin = getStorageAdmin();
-  // Changed to include resolution to bust cache if needed
-  // Switch to .webp for better performance
   const fileName = `${FOLDER_NAME}/${date}_${BRIEFING_IMAGE_RESOLUTION_SUFFIX}.webp`;
 
-  // 0. Ensure Bucket (Lazy check)
-  // We skip this check usually to be fast.
-
-  // Strategy: Try to find file efficiently
-  // List with search is the most accurate existence check without downloading
-  const { data: existingFiles } = await admin.storage
-    .from(BUCKET_NAME)
-    .list(FOLDER_NAME, { search: `${date}_${BRIEFING_IMAGE_RESOLUTION_SUFFIX}.webp` });
-
-  // If exists, return Public URL immediately
-  if (existingFiles && existingFiles.length > 0) {
+  const buildPublicUrl = () => {
     const {
       data: { publicUrl },
     } = admin.storage.from(BUCKET_NAME).getPublicUrl(fileName);
     return publicUrl;
+  };
+
+  // 0. Memory Cache Hit (Fast Path: 0 requests)
+  if (verifiedDates.has(date)) {
+    return buildPublicUrl();
+  }
+
+  // 1. Try to find if the file exists in Storage (Slow Path: 1 request)
+  const { data: existingFiles } = await admin.storage
+    .from(BUCKET_NAME)
+    .list(FOLDER_NAME, { search: `${date}_${BRIEFING_IMAGE_RESOLUTION_SUFFIX}.webp` });
+
+  // If exists, return Public URL immediately and cache the hit
+  if (existingFiles && existingFiles.length > 0) {
+    verifiedDates.add(date);
+    return buildPublicUrl();
   }
 
   // --- Cache Miss ---
@@ -140,6 +148,9 @@ const resolveBriefingImageRequest = async (date: string): Promise<string> => {
       // Fallback to source
       return picsumUrl;
     }
+
+    // Cache the newly created image in memory
+    verifiedDates.add(date);
 
     // Trigger cleanup async
     cleanUpOldImages(admin);

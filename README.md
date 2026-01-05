@@ -6,7 +6,6 @@
   <h3>基于 AI 的现代化 RSS 每日简报平台</h3>
 
   <p>
-    <a href="https://github.com/Alok/alok-rss-daily/actions"><img src="https://github.com/Alok/alok-rss-daily/actions/workflows/CI.yml/badge.svg" alt="CI Status"></a>
     <img src="https://img.shields.io/badge/Next.js-16-black" alt="Next.js 16">
     <img src="https://img.shields.io/badge/React-19-blue" alt="React 19">
     <img src="https://img.shields.io/badge/TypeScript-5-blue" alt="TypeScript">
@@ -37,6 +36,7 @@
 | **🛠️ [API 架构](./docs/API.md)**               | 服务端路由、Hooks 封装及数据流向详解。                               |
 | **📦 [Store 状态](./docs/STORE.md)**           | Zustand 客户端状态管理、分片逻辑与数据同步。                         |
 | **🔨 [工具库](./docs/UTILS.md)**               | 通用工具函数说明 (日期处理、HTML 清洗等)。                           |
+| **🧠 [AI 架构](./docs/AI.md)**                 | RAG 召回策略、PGroonga 优化与向量化工作流。                          |
 | **📝 [任务清单](./docs/TODO.md)**              | 待优化技术点、备选架构方案及历史优化记录。                           |
 
 ## ✨ 核心亮点
@@ -51,11 +51,12 @@
 </details>
 
 <details>
-<summary><b>🤖 AI 驱动的增长引擎</b> (点击展开)</summary>
+<summary><b>🤖 智能化内容引擎</b> (点击展开)</summary>
 
-- **智能摘要**: 每日简报集成 AI 生成的 "一句话精华"，提升阅读效率。
-- **动态标题**: 自动分析当日内容权重，动态生成包含 Top 2 头条的页面标题 (Title Party)。
-- **Sitemap 自动化**: 自动提交高频更新的分类页和活跃标签页。
+- **混合搜索 (Hybrid Search)**: 深度集成 **PGroonga** 与 **Vector Embedding**，实现“关键词高精准 + 语义全覆盖”的三级召回机制。
+- **智能摘要**: 每日简报集成 AI 生成的 "一句话精华"，支持中英文混合的高性能检索。
+- **动态 SEO**: 自动分析当日内容权重，动态生成包含 Top 2 头条的标题 (Title Party) 与结构化摘要。
+- **异步任务队列**: 预留 **PGMQ** 架构，支持大规模文章抓取后的异步向量化与 AI 分析。
 
 </details>
 
@@ -92,7 +93,7 @@ pnpm run lint
 
 # 5. 搜索维护 (向量化与算法)
 pnpm run search:backfill   # 批量补全缺失向量 (--force 强制刷新)
-pnpm run search:update     # 零停机同步搜索算法 RPC 到 Supabase
+pnpm run search:update     # 同步搜搜算法 (PGroonga/Ranking) 到 Supabase 数据库
 ```
 
 ### 模拟数据 (Mock Data)

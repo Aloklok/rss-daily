@@ -241,6 +241,18 @@ const Briefing: React.FC<BriefingProps> = ({
     return [{ id: 1, title: 'Daily Briefing', articles: groupedArticles }];
   }, [articleIds, articlesById, articles]);
 
+  // Image fallback state must be at the top level of the component to follow Hook rules
+  const seed = date;
+  const initialBgImage =
+    headerImageUrl ||
+    `https://picsum.photos/seed/${seed}/${BRIEFING_IMAGE_WIDTH}/${BRIEFING_IMAGE_HEIGHT}`;
+  const [imgSrc, setImgSrc] = React.useState(initialBgImage);
+
+  // Sync image when headerImageUrl or date changes (though key={date} usually handles this via remount)
+  React.useEffect(() => {
+    setImgSrc(initialBgImage);
+  }, [initialBgImage]);
+
   // Use null as initial state to ensure SSR/Hydration consistency.
   // The first render will use the server-provided Shanghai hour (via getGreeting fallback or null).
   const [currentHour, setCurrentHour] = React.useState<number | null>(null);
@@ -268,18 +280,12 @@ const Briefing: React.FC<BriefingProps> = ({
       const datePart = dateObj.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });
       const weekdayPart = dateObj.toLocaleDateString('zh-CN', { weekday: 'long' });
 
-      // Use the date string as a seed for the random image to ensure it stays the same for that date
-      const seed = date;
-      const bgImage =
-        headerImageUrl ||
-        `https://picsum.photos/seed/${seed}/${BRIEFING_IMAGE_WIDTH}/${BRIEFING_IMAGE_HEIGHT}`;
-
       return (
         <header className="group relative mb-8 overflow-hidden rounded-2xl shadow-md transition-all duration-500 hover:shadow-xl">
           {/* Background Image with Overlay */}
           <div className="absolute inset-0 z-0">
             <Image
-              src={bgImage}
+              src={imgSrc}
               alt="RSS简报封面背景"
               fill
               priority
@@ -287,6 +293,13 @@ const Briefing: React.FC<BriefingProps> = ({
               unoptimized={process.env.NODE_ENV === 'development'}
               sizes="(max-width: 768px) 100vw, (max-width: 1536px) 80vw, 1152px"
               className="object-cover transition-transform duration-700 will-change-transform backface-hidden group-hover:scale-105"
+              onError={() => {
+                const fallback = `https://picsum.photos/seed/${seed}/${BRIEFING_IMAGE_WIDTH}/${BRIEFING_IMAGE_HEIGHT}.webp`;
+                if (imgSrc !== fallback) {
+                  console.warn(`[Image] Cover 404 for ${date}, falling back to Picsum.`);
+                  setImgSrc(fallback);
+                }
+              }}
             />
             {/* Dark Gradient Overlay for Text Readability: Adjusted to be lighter (Moderate) */}
             <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-black/10"></div>
