@@ -149,16 +149,29 @@ const renderCitations = (
 };
 
 // --- 辅助：清洗 Markdown 内容 (去除加粗内部的冗余符号) ---
+// --- 辅助：清洗 Markdown 内容 (去除加粗内部的冗余符号 + 拆分合并的引用) ---
 const cleanMessageContent = (content: string): string => {
   if (!content) return '';
-  // 核心逻辑：把 **“文字”** 替换为 **文字**
+
+  let cleaned = content;
+
+  // 1. 拆分合并的引用：将 [1, 3] 或 [1, 3, 5] 拆分为 [1][3][5]
+  // 这样后续的 CITATION_REGEX 就能正确识别每个引用了
+  cleaned = cleaned.replace(/\[((?:\d+\s*,\s*)+\d+)\]/g, (match, inner) => {
+    return inner
+      .split(',')
+      .map((n: string) => `[${n.trim()}]`)
+      .join('');
+  });
+
+  // 2. 核心逻辑：把 **“文字”** 替换为 **文字**
   // 正则解析：
   // \*\*       -> 匹配开始的加粗
   // ["“\(（]    -> 匹配开头的一个特殊符号 (引号或括号)
   // (.*?)      -> 非贪婪匹配中间的内容
   // ["”\)）]    -> 匹配结尾的一个特殊符号
   // \*\*       -> 匹配结束的加粗
-  return content.replace(/\*\*["“(\uFF08](.*?)["”)\uFF09]\*\*/g, '**$1**');
+  return cleaned.replace(/\*\*["“(\uFF08](.*?)["”)\uFF09]\*\*/g, '**$1**');
 };
 
 // --- 性能优化：消息项 Memo 化 ---
