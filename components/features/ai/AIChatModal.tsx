@@ -209,6 +209,9 @@ const ChatMessageItem = React.memo(
           </blockquote>
         ),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        li: ({ children }: any) => <li className="mb-1">{wrap(children)}</li>,
+         
+
         a: ({ node: _node, ...props }: any) => (
           <a
             {...props}
