@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useUIStore } from '../../../store/uiStore';
+import { useArticleStore } from '../../../store/articleStore';
 import { useChatStore, ChatMessage } from '../../../store/chatStore';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -20,13 +21,13 @@ const UNICODE_MAP: Record<string, string> = {
   '⁰': '0',
 };
 
-const CITATION_REGEX = /(\[\s*\d+\s*\]|[¹²³⁴⁵⁶⁷⁸⁹⁰]+)/g;
+const CITATION_REGEX = /(\[\s*\d+(?:\.\d+)?\s*\]|[¹²³⁴⁵⁶⁷⁸⁹⁰]+)/g;
 
 /**
  * 辅助：从原始内容片段中提取数字索引字符串
  */
 const getOriginalIndex = (raw: string): string => {
-  const match = raw.match(/^\[\s*(\d+)\s*\]$/);
+  const match = raw.match(/^\[\s*(\d+(?:\.\d+)?)\s*\]$/);
   const unicodeMatch = raw.match(/^[¹²³⁴⁵⁶⁷⁸⁹⁰]+$/);
   if (match) return match[1];
   if (unicodeMatch)
@@ -80,7 +81,7 @@ const renderCitations = (
   citations: ChatMessage['citations'],
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   sessionMetadata: any[],
-  openArticleModal: (id: string | number) => void,
+  openArticleModal: (article: any) => void,
   isInteractive: boolean = true,
   displayMapping?: Map<string, string>,
   seenIndices?: Set<string>,
@@ -115,7 +116,7 @@ const renderCitations = (
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                openArticleModal(meta.id);
+                openArticleModal(meta);
               }}
               className="font-bold text-indigo-500 transition-colors hover:text-indigo-600 active:scale-95"
             >
@@ -155,9 +156,9 @@ const cleanMessageContent = (content: string): string => {
 
   let cleaned = content;
 
-  // 1. 拆分合并的引用：将 [1, 3] 或 [1, 3, 5] 拆分为 [1][3][5]
+  // 1. 拆分合并的引用：将 [1, 3] 或 [1.1, 1.2] 拆分为 [1.1][1.2]
   // 这样后续的 CITATION_REGEX 就能正确识别每个引用了
-  cleaned = cleaned.replace(/\[((?:\d+\s*,\s*)+\d+)\]/g, (match, inner) => {
+  cleaned = cleaned.replace(/\[((?:\d+(?:\.\d+)?\s*,\s*)+\d+(?:\.\d+)?\s*)\]/g, (match, inner) => {
     return inner
       .split(',')
       .map((n: string) => `[${n.trim()}]`)
@@ -179,13 +180,13 @@ const ChatMessageItem = React.memo(
   ({
     msg,
     sessionMetadata,
-    openArticleModal,
+    handleOpenArticle,
     isExpanded,
   }: {
     msg: ChatMessage;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     sessionMetadata: any[];
-    openArticleModal: (id: string | number) => void;
+    handleOpenArticle: (article: any) => void;
     isExpanded: boolean;
   }) => {
     // 预处理内容：清洗冗余符号
@@ -215,7 +216,7 @@ const ChatMessageItem = React.memo(
             child,
             msg.citations,
             sessionMetadata,
-            openArticleModal,
+            handleOpenArticle,
             true,
             displayMapping,
             seenIndices,
@@ -249,7 +250,7 @@ const ChatMessageItem = React.memo(
           />
         ),
       };
-    }, [msg.citations, sessionMetadata, openArticleModal, displayMapping]);
+    }, [msg.citations, sessionMetadata, handleOpenArticle, displayMapping]);
 
     return (
       <div className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'} `}>
@@ -265,7 +266,7 @@ const ChatMessageItem = React.memo(
           >
             {/* Main Content Area */}
             <div
-              className={`text-sm leading-relaxed ${isExpanded && msg.role === 'model' ? 'w-full max-w-xl' : ''} ${msg.role === 'user' ? '' : 'prose prose-sm dark:prose-invert prose-p:leading-relaxed prose-pre:bg-stone-100 dark:prose-pre:bg-stone-900/50 dark:prose-headings:!text-white dark:prose-p:!text-stone-100 dark:prose-strong:!text-indigo-300 dark:prose-code:!text-indigo-200 dark:prose-code:!bg-indigo-500/20 max-w-none dark:!text-stone-100'} `}
+              className={`text-sm leading-relaxed ${isExpanded && msg.role === 'model' ? 'w-full max-w-xl' : ''} ${msg.role === 'user' ? '' : 'prose prose-sm dark:prose-invert ai-chat-content prose-p:leading-relaxed prose-pre:bg-stone-100 dark:prose-pre:bg-stone-900/50 dark:prose-headings:!text-white dark:prose-p:!text-stone-100 dark:prose-strong:!text-indigo-300 dark:prose-code:!text-indigo-200 dark:prose-code:!bg-indigo-500/20 max-w-none dark:!text-stone-100'} `}
             >
               {msg.role === 'user' ? (
                 <p className="whitespace-pre-wrap">{msg.content}</p>
@@ -316,15 +317,16 @@ const ChatMessageItem = React.memo(
                               [{displayIdx}]
                             </span>
                             <div className="min-w-0 flex-1 leading-snug">
-                              <a
-                                href={article?.link || '#'}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline font-medium text-stone-600 transition-colors hover:text-indigo-600 hover:underline dark:text-stone-300 dark:hover:text-indigo-400"
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenArticle(article);
+                                }}
+                                className="inline cursor-pointer text-left font-medium text-stone-600 transition-colors hover:text-indigo-600 hover:underline dark:text-stone-300 dark:hover:text-indigo-400"
                                 title={article?.title}
                               >
                                 {article?.title}
-                              </a>
+                              </button>
                               {dateStr && (
                                 <span className="ml-1.5 inline-block font-mono text-[9px] whitespace-nowrap text-stone-400 opacity-50">
                                   {dateStr}
@@ -356,14 +358,30 @@ ChatMessageItem.displayName = 'ChatMessageItem';
 const StreamingResponse = React.memo(
   ({
     isExpanded,
-    openArticleModal,
+    handleOpenArticle,
   }: {
     isExpanded: boolean;
-    openArticleModal: (id: string | number) => void;
+    handleOpenArticle: (article: any) => void;
   }) => {
     const streamingContent = useChatStore((state) => state.streamingContent);
+    const isStreaming = useChatStore((state) => state.isStreaming);
 
-    if (!streamingContent) return null;
+    if (!isStreaming) return null;
+
+    // 如果正在流式传输但内容为空，显示加载动画
+    if (!streamingContent) {
+      return (
+        <div className="flex justify-start">
+          <div className="animate-pulse rounded-2xl border border-stone-200 bg-white px-5 py-3 dark:border-white/10 dark:bg-stone-800">
+            <div className="flex gap-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-stone-400"></span>
+              <span className="h-1.5 w-1.5 rounded-full bg-stone-400 delay-100"></span>
+              <span className="h-1.5 w-1.5 rounded-full bg-stone-400 delay-200"></span>
+            </div>
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div className="flex justify-start">
@@ -371,7 +389,7 @@ const StreamingResponse = React.memo(
           className={`flex items-start ${isExpanded ? 'w-full flex-row justify-center gap-8' : 'flex-col'} `}
         >
           <div
-            className={`${isExpanded ? 'w-full max-w-xl' : ''} prose prose-sm dark:prose-invert prose-p:leading-relaxed dark:prose-headings:!text-white dark:prose-p:!text-stone-100 dark:prose-strong:!text-indigo-300 max-w-none dark:!text-stone-100`}
+            className={`${isExpanded ? 'w-full max-w-xl' : ''} prose prose-sm dark:prose-invert ai-chat-content prose-p:leading-relaxed dark:prose-headings:!text-white dark:prose-p:!text-stone-100 dark:prose-strong:!text-indigo-300 max-w-none dark:!text-stone-100`}
           >
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
@@ -380,7 +398,7 @@ const StreamingResponse = React.memo(
                 p: ({ children }: any) => (
                   <p className="mb-4 last:mb-0">
                     {React.Children.map(children, (c) =>
-                      renderCitations(c, [], [], openArticleModal, false),
+                      renderCitations(c, [], [], handleOpenArticle, false),
                     )}
                   </p>
                 ),
@@ -388,7 +406,7 @@ const StreamingResponse = React.memo(
                 li: ({ children }: any) => (
                   <li className="mb-1">
                     {React.Children.map(children, (c) =>
-                      renderCitations(c, [], [], openArticleModal, false),
+                      renderCitations(c, [], [], handleOpenArticle, false),
                     )}
                   </li>
                 ),
@@ -426,13 +444,13 @@ const MessageList = React.memo(
   ({
     messages,
     sessionMetadata,
-    openArticleModal,
+    handleOpenArticle,
     isExpanded,
   }: {
     messages: ChatMessage[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     sessionMetadata: any[];
-    openArticleModal: (id: string | number) => void;
+    handleOpenArticle: (article: any) => void;
     isExpanded: boolean;
   }) => {
     return (
@@ -442,7 +460,7 @@ const MessageList = React.memo(
             key={msg.id}
             msg={msg}
             sessionMetadata={sessionMetadata}
-            openArticleModal={openArticleModal}
+            handleOpenArticle={handleOpenArticle}
             isExpanded={isExpanded}
           />
         ))}
@@ -453,33 +471,39 @@ const MessageList = React.memo(
 MessageList.displayName = 'MessageList';
 
 const AIChatModal: React.FC = () => {
-  const {
-    isOpen,
-    setIsOpen,
-    messages,
-    addMessage,
-    isStreaming,
-    setStreaming,
-    streamingContent,
-    setStreamingContent,
-    sessionMetadata,
-    setSessionMetadata,
-    clearHistory,
-    searchGroundingEnabled,
-    toggleSearchGrounding,
-    selectedModel,
-    setSelectedModel,
-    isExpanded,
-    setIsExpanded,
-  } = useChatStore();
+  // 1. 静态 / 低频改变的状态 (使用解构即可)
+  const isOpen = useChatStore((state) => state.isOpen);
+  const setIsOpen = useChatStore((state) => state.setIsOpen);
+  const messages = useChatStore((state) => state.messages);
+  const addMessage = useChatStore((state) => state.addMessage);
+  const isStreaming = useChatStore((state) => state.isStreaming);
+  const setStreaming = useChatStore((state) => state.setStreaming);
+  const setStreamingContent = useChatStore((state) => state.setStreamingContent);
+  const sessionMetadata = useChatStore((state) => state.sessionMetadata);
+  const setSessionMetadata = useChatStore((state) => state.setSessionMetadata);
+  const clearHistory = useChatStore((state) => state.clearHistory);
+  const searchGroundingEnabled = useChatStore((state) => state.searchGroundingEnabled);
+  const toggleSearchGrounding = useChatStore((state) => state.toggleSearchGrounding);
+  const selectedModel = useChatStore((state) => state.selectedModel);
+  const setSelectedModel = useChatStore((state) => state.setSelectedModel);
+  const isExpanded = useChatStore((state) => state.isExpanded);
+  const setIsExpanded = useChatStore((state) => state.setIsExpanded);
+
+  // 2. 高频改变的状态 (StreamingContent) - 只要这个组件不读取它，主容器就不会因为打字而重绘
+  // const streamingContent = useChatStore((state) => state.streamingContent); // 这一行被注释，主容器不再订阅这个极其活跃的状态
 
   const openArticleModalStore = useUIStore((state) => state.openModal);
+  const addArticlesToStore = useArticleStore((state) => state.addArticles);
 
-  const openArticleModal = React.useCallback(
-    (id: string | number) => {
-      openArticleModalStore(id);
+  const handleOpenArticle = React.useCallback(
+    (article: any) => {
+      if (!article?.id) return;
+      // 1. 注入元数据到仓库，确保 GlobalUI 能根据 ID 渲染模态框
+      addArticlesToStore([article]);
+      // 2. 触发模态框显示
+      openArticleModalStore(article.id);
     },
-    [openArticleModalStore],
+    [addArticlesToStore, openArticleModalStore],
   );
 
   const [inputValue, setInputValue] = useState('');
@@ -500,7 +524,8 @@ const AIChatModal: React.FC = () => {
     isScrollingAtBottom.current = scrollHeight - scrollTop - clientHeight < 50;
   };
 
-  // Auto-scroll to bottom (only if user hasn't scrolled up)
+  // 3. 这里的 Auto-scroll 需要直接订阅内容变化，但局部化
+  const streamingContent = useChatStore((state) => state.streamingContent);
   useEffect(() => {
     if (scrollRef.current && isScrollingAtBottom.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -666,7 +691,7 @@ const AIChatModal: React.FC = () => {
 
   return (
     <div
-      className={`ease -in -out fixed inset-0 z-50 flex items-center justify-center transition-all duration-500 ${isExpanded ? 'p-0' : 'p-4 sm:p-6'} `}
+      className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-500 ease-in-out ${isExpanded ? 'p-0' : 'p-4 sm:p-6'} `}
     >
       {/* Backdrop */}
       <div
@@ -806,23 +831,15 @@ const AIChatModal: React.FC = () => {
             <MessageList
               messages={messages}
               sessionMetadata={sessionMetadata}
-              openArticleModal={openArticleModal}
+              handleOpenArticle={handleOpenArticle}
               isExpanded={isExpanded}
             />
 
-            <StreamingResponse isExpanded={isExpanded} openArticleModal={openArticleModal} />
-
-            {isStreaming && !streamingContent && (
-              <div className="flex justify-start">
-                <div className="animate-pulse rounded-2xl border border-stone-200 bg-white px-5 py-3 dark:border-white/10 dark:bg-stone-800">
-                  <div className="flex gap-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-stone-400"></span>
-                    <span className="h-1.5 w-1.5 rounded-full bg-stone-400 delay-100"></span>
-                    <span className="h-1.5 w-1.5 rounded-full bg-stone-400 delay-200"></span>
-                  </div>
-                </div>
-              </div>
+            {isStreaming && (
+              <StreamingResponse isExpanded={isExpanded} handleOpenArticle={handleOpenArticle} />
             )}
+
+            {/* Streaming Pulse 逻辑已移入 StreamingResponse 内部以减少主容器重绘 */}
           </div>
         </div>
 

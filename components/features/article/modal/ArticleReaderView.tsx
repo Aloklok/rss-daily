@@ -166,7 +166,7 @@ const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
       <div
         id="article-reader-content"
         ref={contentRef}
-        className="prose prose-lg dark:prose-invert dark:text-midnight-text-reader max-w-none leading-relaxed text-gray-800 select-text"
+        className="prose prose-lg max-w-none leading-relaxed text-gray-800 select-text"
         dangerouslySetInnerHTML={{
           // Content is already sanitized by the server (fetchArticleContentServer)
           // removeEmptyParagraphs is also applied on server, but idempotent if applied again.
