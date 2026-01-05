@@ -68,7 +68,9 @@
 
 - **递归解析**: 系统的引用按钮采用深度递归解析方案。虽然功能强大（支持嵌套在加粗/斜体内），但计算效率受对话长度影响。
 - **对话锁定**: `ChatStore` 会根据记忆窗口（默认 8 轮）自动管理。如需更长历史，需在 `chatStore.ts` 中调整以平衡内存与性能。
-- **组件持久化 (Critical)**: `ChatMessageItem` 必须声明在 **顶层作用域**（即模态框主组件外部）。严禁在 `AIChatModal` 内部动态声明组件，否则 React 每次 Render 都会认为其是新组件，强制卸载旧 DOM 并重新挂载，这将使 `React.memo` 完全失效并导致剧烈卡顿。
+- **组件持久化 (Critical)**:
+  - **组件隔离**: `MessageList` 已被抽离为独立的 `React.memo` 组件，确保在流式输出（Partial Streaming）触发高频重绘时，只有最后一条消息在更新，上百条历史消息保持静态。这是防止多轮对话 CPU 飙升的关键。
+  - **顶层声明**: `ChatMessageItem` 和 `MessageList` 必须声明在 **顶层作用域**（即模态框主组件外部）。严禁在 `AIChatModal` 内部动态声明组件，否则 React 每次 Render 都会认为其是新组件，强制卸载旧 DOM 并重新挂载，这将使 `React.memo` 完全失效并导致剧烈卡顿。
 
 ### 2. 模型配额与 API 隔离
 

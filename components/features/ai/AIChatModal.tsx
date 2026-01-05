@@ -421,6 +421,37 @@ const StreamingResponse = React.memo(
 );
 StreamingResponse.displayName = 'StreamingResponse';
 
+// --- 性能优化：消息列表组件 (隔离渲染) ---
+const MessageList = React.memo(
+  ({
+    messages,
+    sessionMetadata,
+    openArticleModal,
+    isExpanded,
+  }: {
+    messages: ChatMessage[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    sessionMetadata: any[];
+    openArticleModal: (id: string | number) => void;
+    isExpanded: boolean;
+  }) => {
+    return (
+      <>
+        {messages.map((msg) => (
+          <ChatMessageItem
+            key={msg.id}
+            msg={msg}
+            sessionMetadata={sessionMetadata}
+            openArticleModal={openArticleModal}
+            isExpanded={isExpanded}
+          />
+        ))}
+      </>
+    );
+  },
+);
+MessageList.displayName = 'MessageList';
+
 const AIChatModal: React.FC = () => {
   const {
     isOpen,
@@ -429,6 +460,10 @@ const AIChatModal: React.FC = () => {
     addMessage,
     isStreaming,
     setStreaming,
+    streamingContent,
+    setStreamingContent,
+    sessionMetadata,
+    setSessionMetadata,
     clearHistory,
     searchGroundingEnabled,
     toggleSearchGrounding,
@@ -448,8 +483,6 @@ const AIChatModal: React.FC = () => {
   );
 
   const [inputValue, setInputValue] = useState('');
-  const [streamingContent, setStreamingContent] = useState('');
-  const [sessionMetadata, setSessionMetadata] = useState<any[]>([]);
   const [isModelMenuOpen, setIsModelMenuOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -505,6 +538,8 @@ const AIChatModal: React.FC = () => {
     setInputValue('');
     addMessage({ role: 'user', content: userMsg });
     setStreaming(true);
+    setStreamingContent(''); // Reset global stream content
+    setSessionMetadata([]); // Reset global session metadata
 
     try {
       const response = await fetch('/api/ai/chat', {
@@ -768,15 +803,12 @@ const AIChatModal: React.FC = () => {
               </div>
             )}
 
-            {messages.map((msg) => (
-              <ChatMessageItem
-                key={msg.id}
-                msg={msg}
-                sessionMetadata={sessionMetadata}
-                openArticleModal={openArticleModal}
-                isExpanded={isExpanded}
-              />
-            ))}
+            <MessageList
+              messages={messages}
+              sessionMetadata={sessionMetadata}
+              openArticleModal={openArticleModal}
+              isExpanded={isExpanded}
+            />
 
             <StreamingResponse isExpanded={isExpanded} openArticleModal={openArticleModal} />
 
