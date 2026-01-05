@@ -154,12 +154,14 @@ export async function generateBriefingWithGemini(articleData: any) {
  * 整合了重排逻辑，减少一次 API 请求以节省配额。
  */
 export async function chatWithGemini(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   messages: any[],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   articles: any[],
   query: string,
   useSearch: boolean = true,
   modelName: string = 'gemini-2.0-flash',
-) {
+): Promise<any> {
   if (!apiKey) throw new Error(`API Key (${apiKeyName}) is not defined`);
 
   // 内部补丁：对已知失效或别名模型进行最后一次纠偏
@@ -171,8 +173,10 @@ export async function chatWithGemini(
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
     model: effectiveModel,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     tools: useSearch ? [{ googleSearch: {} } as any] : [],
     systemInstruction: CHAT_SYSTEM_INSTRUCTION,
+     
     safetySettings: [
       { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
       { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
@@ -186,14 +190,24 @@ export async function chatWithGemini(
     articles.length > 0
       ? articles
           .map((a, i) => {
-            const snippet =
-              a.summary || (a.content ? a.content.slice(0, 300) + '...' : '（无内容摘要）');
+            const dateStr = new Date(a.published).toLocaleDateString();
+            const keywordsStr = Array.isArray(a.keywords) ? a.keywords.join(', ') : '';
+            const verdictStr = a.verdict
+              ? `Score:${a.verdict.score || '?'}/10 (${a.verdict.importance || 'Normal'})`
+              : '';
+
             return `【文章索引：[${i + 1}]】
 标题: ${a.title}
-日期: ${new Date(a.published).toLocaleDateString()}
-摘要: ${snippet}`;
+来源: ${a.sourceName || 'Unknown'} | ${verdictStr}
+日期: ${dateStr}
+分类: ${a.category || '未分类'} | 关键词: ${keywordsStr}
+TLDR: ${a.tldr || '无'}
+摘要: ${a.summary || '无'}
+技术亮点: ${a.highlights || '无'}
+犀利点评: ${a.critiques || '无'}
+市场观点: ${a.marketTake || '无'}`;
           })
-          .join('\n\n')
+          .join('\n\n---\n\n')
       : '（未匹配到相关本地文章）';
 
   const contextPrompt = CHAT_CONTEXT_PROMPT_TEMPLATE.replace(
@@ -222,6 +236,7 @@ export async function chatWithGemini(
   try {
     const result = await chat.sendMessageStream(contextPrompt);
     return result.stream;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error(
       `[chatWithGemini Error] ID: ${requestId} | Key: ${apiKeyName} | Query: "${query.slice(0, 30)}..."`,
@@ -235,6 +250,7 @@ export async function chatWithGemini(
  * [新功能] Gemini 重排 (Re-rank): 从 50 篇中精选 10-15 篇，并进行语义去重
  */
 export async function reRankArticles(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   articles: any[],
   query: string,
   modelId: string = 'gemini-2.0-flash',
@@ -250,10 +266,13 @@ export async function reRankArticles(
   });
 
   const articleList = articles
-    .map(
-      (a) =>
-        `ID: ${a.id} | Date: ${a.published} | Source: ${a.sourceName} | Title: ${a.title} | Summary: ${a.summary}`,
-    )
+    .map((a) => {
+      const keywordsStr = Array.isArray(a.keywords) ? a.keywords.slice(0, 5).join(', ') : '';
+      return `ID: ${a.id} | Date: ${a.published} | Source: ${a.sourceName}
+Title: ${a.title}
+Category: ${a.category || 'N/A'} | Keywords: [${keywordsStr}]
+Summary: ${a.summary || 'N/A'}`;
+    })
     .join('\n---\n');
 
   const reRankPrompt = `你是一位专业的资讯分析师。请根据用户的问题 "${query}"，从以下 50 篇文章中选出最相关、最有价值且时效性最强的 10-15 篇。
@@ -270,6 +289,7 @@ ${articleList}`;
     const text = result.response.text();
     const parsed = JSON.parse(text);
     return parsed.selected_ids || [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (e: any) {
     const isQuotaError = e.message.includes('429') || e.message.includes('quota');
 

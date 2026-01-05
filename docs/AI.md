@@ -6,7 +6,15 @@
 
 系统的执行链路分为三个阶段：
 
-### 1. 级联式召回管道 (Cascading RAG 2.0)
+### 0. 向量化 (Vectorization)
+
+在进入 RAG 流程前，所有文章均通过 `scripts/backfill-embeddings.ts` 或 `gemini.ts` 进行向量化预处理。我们采用**混合语义指纹**策略，而非单纯的正文切片。
+
+- **Embedding 模型**: `gemini-embedding-001`
+- **向量化字段**: `title` + `category` + `keywords` + `summary` + `tldr`
+- **逻辑**: 通过将分类和关键词硬编码进向量内容，确保了语义搜索时不仅能匹配到内容相似，还能匹配到“分类正确”的文章，大幅提升召回准确率。
+
+### 1. 召回阶段 (Recall Phase)
 
 为了平衡召回率与引用的精确度，系统采用两阶段过滤：
 
@@ -14,19 +22,20 @@
   - **交互**: 利用向量搜索 (Supabase RPC `hybrid_search_articles`) 提取 **Top 50** 篇相关文章。
   - **阈值**: 自动过滤 `similarity < 0.5` 的低相关噪音。
 - **第二阶段（精选/重排）**：
+  - **输入**: 将 Top 50 篇的 `id, title, published, sourceName, summary, category, keywords` 组装为 Prompt。
   - **交互**: 调用 Gemini (2.0 Flash) 执行语义重排 (`reRankArticles`)。
-  - **逻辑**: 输入 `id, title, published, sourceName, summary`，由模型剔除内容重复或时效性差的篇目。
+  - **逻辑**: 模型基于 User Query 剔除内容重复或时效性差的篇目。
   - **结果**: 选出最相关的 **Top 10-15** 篇作为最终上下文。这极大降低了模型的“注意力发散”，提高了引用的准确度。
 
 ### 2. 增强上下文生成 (Context Enrichment)
 
 在精选出 Top 15 后，系统会构建一个高度浓缩的背景列表供模型处理：
 
-- **字段提取**: 从数据库中提取 `id`, `title`, `published`, `summary`, `content` 以及原始 `link`。
-- **深度采样 (Depth Sampling)**:
-  - 优先使用 AI 生成的 `summary`（摘要）。
-  - 若无摘要，则截取 `content`（正文）的 **前 300 字符**。
-  - 确保模型能结合原文细节而非仅仅是标题，同时严格控制输入 Token，避免长推文或长文干扰。
+- **字段提取**: 从数据库中提取以下核心元数据：
+  - **基础**: `id`, `title`, `published`, `link`, `sourceName`
+  - **分类**: `category`, `keywords`
+  - **摘要**: `tldr` (一句话总结), `summary`
+  - **深度分析**: `verdict` (评分与重要性), `highlights` (技术亮点), `critiques` (犀利吐槽), `marketTake` (市场观点)
 - **注入 Persona**: 注入“首席架构师” Persona，强制执行差异化引用逻辑（见下文）。
 
 ### 3. 流式渲染与交互 (Streaming & UX)

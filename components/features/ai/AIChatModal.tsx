@@ -148,6 +148,19 @@ const renderCitations = (
   return node;
 };
 
+// --- 辅助：清洗 Markdown 内容 (去除加粗内部的冗余符号) ---
+const cleanMessageContent = (content: string): string => {
+  if (!content) return '';
+  // 核心逻辑：把 **“文字”** 替换为 **文字**
+  // 正则解析：
+  // \*\*       -> 匹配开始的加粗
+  // ["“\(（]    -> 匹配开头的一个特殊符号 (引号或括号)
+  // (.*?)      -> 非贪婪匹配中间的内容
+  // ["”\)）]    -> 匹配结尾的一个特殊符号
+  // \*\*       -> 匹配结束的加粗
+  return content.replace(/\*\*["“(\uFF08](.*?)["”)\uFF09]\*\*/g, '**$1**');
+};
+
 // --- 性能优化：消息项 Memo 化 ---
 const ChatMessageItem = React.memo(
   ({
@@ -162,12 +175,15 @@ const ChatMessageItem = React.memo(
     openArticleModal: (id: string | number) => void;
     isExpanded: boolean;
   }) => {
+    // 预处理内容：清洗冗余符号
+    const cleanContent = React.useMemo(() => cleanMessageContent(msg.content), [msg.content]);
+
     // 改为使用顶层的通用渲染函数
     // 动态生成显示映射：按引用在正文中出现的先后顺序重新编号 [1], [2], [3]...
     const displayMapping = React.useMemo(() => {
       const map = new Map<string, string>();
       let nextIndex = 1;
-      const matches = [...msg.content.matchAll(CITATION_REGEX)];
+      const matches = [...cleanContent.matchAll(CITATION_REGEX)];
       for (const match of matches) {
         const originalIndex = getOriginalIndex(match[0]);
         if (originalIndex && !map.has(originalIndex)) {
@@ -175,7 +191,7 @@ const ChatMessageItem = React.memo(
         }
       }
       return map;
-    }, [msg.content]);
+    }, [cleanContent]);
 
     const components = React.useMemo(() => {
       const seenIndices = new Set<string>();
@@ -210,7 +226,6 @@ const ChatMessageItem = React.memo(
         ),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         li: ({ children }: any) => <li className="mb-1">{wrap(children)}</li>,
-         
 
         a: ({ node: _node, ...props }: any) => (
           <a
@@ -243,7 +258,7 @@ const ChatMessageItem = React.memo(
                 <p className="whitespace-pre-wrap">{msg.content}</p>
               ) : (
                 <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
-                  {msg.content}
+                  {cleanContent}
                 </ReactMarkdown>
               )}
             </div>
@@ -375,7 +390,7 @@ const StreamingResponse = React.memo(
                 ),
               }}
             >
-              {streamingContent}
+              {cleanMessageContent(streamingContent)}
             </ReactMarkdown>
           </div>
           {isExpanded && (
