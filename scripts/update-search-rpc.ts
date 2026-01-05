@@ -30,16 +30,19 @@ async function updateRPC() {
   const sql = `
 -- 0. 确保扩展已开启
 CREATE EXTENSION IF NOT EXISTS pgroonga;
+-- 1. 创建 PGroonga 专用索引
+DROP INDEX IF EXISTS ix_articles_pgroonga_content;
+DROP INDEX IF EXISTS ix_articles_pgroonga_keywords;
 
--- 1. 创建 PGroonga 专用索引 (修复多列索引不支持 JSONB 的问题)
--- 拆分为两个索引：
--- 索引 A: 文本字段 (Text)
-CREATE INDEX IF NOT EXISTS ix_articles_pgroonga_content 
-ON articles USING pgroonga (title, summary, category);
+-- 索引 A: 文本字段 (Text) - 增加 NormalizerAuto 处理大小写、全半角及简繁体
+CREATE INDEX ix_articles_pgroonga_content 
+ON articles USING pgroonga (title, summary, category)
+WITH (tokenizer = 'TokenBigram', normalizer = 'NormalizerAuto');
 
--- 索引 B: JSONB 字段 (Keywords)
-CREATE INDEX IF NOT EXISTS ix_articles_pgroonga_keywords 
-ON articles USING pgroonga (keywords);
+-- 索引 B: JSONB 字段 (Keywords) - 使用专属操作符类，自带全文搜索优化
+CREATE INDEX ix_articles_pgroonga_keywords 
+ON articles USING pgroonga (keywords pgroonga_jsonb_full_text_search_ops_v2)
+WITH (normalizer = 'NormalizerAuto');
 
 -- 2. 重建 RPC 函数
 DROP FUNCTION IF EXISTS hybrid_search_articles(text, vector, integer);
@@ -92,7 +95,7 @@ BEGIN
       WHEN (
         a.title &@~ query_text 
         OR a.summary &@~ query_text
-        -- 注意：PGroonga 支持直接搜索 JSONB，不需要 cast ::text，否则无法走索引
+        OR a.category &@~ query_text
         OR a.keywords &@~ query_text
       ) THEN 1
       
@@ -100,20 +103,23 @@ BEGIN
       WHEN (query_embedding IS NOT NULL AND (1 - (a.embedding <=> query_embedding) > 0.80)) THEN 2
       
       -- 3. 向量中等相似度 (Rank 3)
-      WHEN (query_embedding IS NOT NULL) THEN 3
+      WHEN (query_embedding IS NOT NULL AND (1 - (a.embedding <=> query_embedding) > ${CONFIG.semantic_threshold})) THEN 3
       
       ELSE 4
     END AS match_priority
   FROM articles a
   WHERE 
-    -- 混合筛选
+    -- 混合筛选：满足关键字全文匹配 OR 满足语义门槛
     (
-      a.title &@~ query_text 
-      OR a.summary &@~ query_text
-      OR a.keywords &@~ query_text
+      (query_text IS NOT NULL AND query_text <> '' AND (
+        a.title &@~ query_text 
+        OR a.summary &@~ query_text
+        OR a.category &@~ query_text
+        OR a.keywords &@~ query_text
+      ))
+      OR 
+      (query_embedding IS NOT NULL AND (1 - (a.embedding <=> query_embedding) > ${CONFIG.semantic_threshold}))
     )
-    OR 
-    (query_embedding IS NOT NULL AND (1 - (a.embedding <=> query_embedding) > ${CONFIG.semantic_threshold}))
   ORDER BY match_priority ASC, similarity DESC
   LIMIT match_count;
 END;
