@@ -28,7 +28,20 @@ async function updateRPC() {
   );
 
   const sql = `
--- 先删除旧函数，防止因为返回类型变动导致的 42P13 错误
+-- 0. 确保扩展已开启
+CREATE EXTENSION IF NOT EXISTS pgroonga;
+
+-- 1. 创建 PGroonga 专用索引 (修复多列索引不支持 JSONB 的问题)
+-- 拆分为两个索引：
+-- 索引 A: 文本字段 (Text)
+CREATE INDEX IF NOT EXISTS ix_articles_pgroonga_content 
+ON articles USING pgroonga (title, summary, category);
+
+-- 索引 B: JSONB 字段 (Keywords)
+CREATE INDEX IF NOT EXISTS ix_articles_pgroonga_keywords 
+ON articles USING pgroonga (keywords);
+
+-- 2. 重建 RPC 函数
 DROP FUNCTION IF EXISTS hybrid_search_articles(text, vector, integer);
 
 CREATE OR REPLACE FUNCTION hybrid_search_articles(
@@ -53,6 +66,8 @@ RETURNS TABLE (
   similarity FLOAT,
   match_priority INT
 )
+-- 明确设置 search_path，确保无论 extension 在哪个 schema 都能被找到
+SET search_path = public, extensions
 LANGUAGE plpgsql
 AS $$
 BEGIN
@@ -73,21 +88,32 @@ BEGIN
     a.keywords,
     (CASE WHEN query_embedding IS NOT NULL THEN 1 - (a.embedding <=> query_embedding) ELSE 0 END) AS similarity,
     CASE 
-      WHEN 
-        a.title ILIKE '%' || query_text || '%'      -- 命中了标题
-        OR a.category ILIKE '%' || query_text || '%'   -- 命中了 AI 分类
-        OR a.keywords::text ILIKE '%' || query_text || '%' -- 命中了 AI 关键词 (jsonb cast)
-      THEN ${CONFIG.rank_keyword_match} 
-      WHEN (query_embedding IS NOT NULL AND (1 - (a.embedding <=> query_embedding) > 0.75)) THEN ${CONFIG.rank_high_similarity} -- 极度相关
-      WHEN (query_embedding IS NOT NULL) THEN ${CONFIG.rank_normal_similarity} -- 普通语义相关
-      ELSE 4 -- 兜底：仅在语义失败且没命中关键词时（理论上 WHERE 会过滤掉，但保留以防万一）
+      -- 1. PGroonga 全文匹配 (Rank 1)
+      WHEN (
+        a.title &@~ query_text 
+        OR a.summary &@~ query_text
+        -- 注意：PGroonga 支持直接搜索 JSONB，不需要 cast ::text，否则无法走索引
+        OR a.keywords &@~ query_text
+      ) THEN 1
+      
+      -- 2. 向量高相似度 (Rank 2)
+      WHEN (query_embedding IS NOT NULL AND (1 - (a.embedding <=> query_embedding) > 0.80)) THEN 2
+      
+      -- 3. 向量中等相似度 (Rank 3)
+      WHEN (query_embedding IS NOT NULL) THEN 3
+      
+      ELSE 4
     END AS match_priority
   FROM articles a
   WHERE 
-    a.title ILIKE '%' || query_text || '%'
-    OR a.category ILIKE '%' || query_text || '%'
-    OR a.keywords::text ILIKE '%' || query_text || '%'
-    OR (query_embedding IS NOT NULL AND (1 - (a.embedding <=> query_embedding) > ${CONFIG.semantic_threshold}))
+    -- 混合筛选
+    (
+      a.title &@~ query_text 
+      OR a.summary &@~ query_text
+      OR a.keywords &@~ query_text
+    )
+    OR 
+    (query_embedding IS NOT NULL AND (1 - (a.embedding <=> query_embedding) > ${CONFIG.semantic_threshold}))
   ORDER BY match_priority ASC, similarity DESC
   LIMIT match_count;
 END;
