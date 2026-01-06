@@ -939,7 +939,7 @@ const AIChatModal: React.FC = () => {
                       onClick={() => setIsModelMenuOpen(false)}
                     />
 
-                    <div className="absolute bottom-full left-0 mb-3 w-64 overflow-hidden rounded-2xl border border-white/20 bg-white/90 shadow-2xl backdrop-blur-2xl dark:bg-stone-900/90">
+                    <div className="scrollbar-thin scrollbar-thumb-stone-300 dark:scrollbar-thumb-white/10 absolute bottom-full left-0 mb-3 max-h-[400px] w-64 overflow-y-auto rounded-2xl border border-white/20 bg-white/90 shadow-2xl backdrop-blur-2xl dark:bg-stone-900/90">
                       <div className="space-y-1 p-2">
                         {MODELS.map((m) => (
                           <button

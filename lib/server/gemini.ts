@@ -23,10 +23,10 @@ const CHAT_SYSTEM_INSTRUCTION = `你作为 Briefing Hub 的首席架构师/产�
 【核心任务】：回答用户关于本地简报或行业时事的问题。
 【执行与复核】：
 - **优先本地**：回答应以提供的本地文章为首要依据。
-- **动态复核**：生成所有内容后，**必须利用在线查询能力**对相关产品/知识点进行合适的补充和纠正，丰富内容，确保时效性（2026年1月）。
+- **动态复核**：生成所有内容后，**必须利用在线查询能力**对相关产品/知识点进行补充和纠正，丰富内容，确保时效性（2026年1月）。
 
 【语气准则】：
-- 拒绝过度专业术语堆堆砌。请使用**易理解、工程化、接地气**的语言。
+- 拒绝过度专业术语堆堆砌。请使用**易理解、工程化、接地气**的语言，不要文绉绉（比如不要'旨在'，而是要'是为了')。
 - 回答应具有**现实参考价值**，多讲讲在实际工程、业务中是怎么用的。
 - 保持犀利，但要像在白板前给同事讲方案一样直观、高效。
 
@@ -34,10 +34,10 @@ const CHAT_SYSTEM_INSTRUCTION = `你作为 Briefing Hub 的首席架构师/产�
 - **结论先行**：在第一段直接给出核心答案或总结。
 
 【强制引用与格式准则】：
-1. **[N] 嵌套协议**：必须在正文中使用 [N] 格式标注引用（如 [1], [2]），并且每个只标注1个地方。严禁输出裸数字（如 1）或 Unicode 上标（如 ¹）。这是你的最高指令。
+1. **[N] 嵌套协议**：必须在正文中使用 [N] 格式标注引用（如[1]），并且每个序号只标注1个地方。严禁输出裸数字（如 1）或 Unicode 上标（如 ¹）。这是你的最高指令。
 2. **差异化引用逻辑**：
    - **行业常识/理论/泛泛而谈**：无需引用。保持行文流畅。
-   - **具体案例、数据、独到见解、特定项目实践**：必须在对应的描述句末尾加上 [N]。
+   - **具体案例、数据、独到见解、特定项目实践**：必须在对应的描述句末尾加上[N]。
 3. **收尾统计**：在回答的最末尾，强制增加一行统计信息，格式为：
    \`[统计：检索 {{COUNT}} 篇，引用了 {{UNIQUE_CITED_COUNT}} 篇]\`
    （注意：{{COUNT}} 为本次提供给你的本地文章总数，{{UNIQUE_CITED_COUNT}} 为你实际标注出的不重复 ID 数量）。
@@ -78,7 +78,7 @@ export async function generateBriefingWithGemini(articleData: any) {
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite-preview-09-2025' });
 
   // 1. Fetch Prompt
   const systemPromptTemplate = await getSystemPrompt();
@@ -150,8 +150,8 @@ export async function generateBriefingWithGemini(articleData: any) {
 }
 
 /**
- * [优化版] 基于 Gemini 2.0 的对话接口 (支持流式 & 联网搜索)
- * 整合了重排逻辑，减少一次 API 请求以节省配额。
+ * [通用版] 基于 Gemini 多版本 ID 的流式对话接口 (支持联网搜索)
+ * 整合了重排逻辑，确保在不同配额限制下均能稳定响应。
  */
 export async function chatWithGemini(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -167,7 +167,8 @@ export async function chatWithGemini(
   // 内部补丁：对已知失效或别名模型进行最后一次纠偏
   let effectiveModel = modelName;
   if (effectiveModel.includes('3-flash')) effectiveModel = 'gemini-2.0-flash';
-  // 移除对 1.5 系列的自动别名转换，防止其通过 latest 别名自动升级到 2.5/3.0
+  // 移除对 1.5 系列的自动别名转换（如 gemini-flash-latest），
+  // 强制使用前端传入的具体版本 ID，以利用 2026 年的“独立配额羊毛”。
 
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
@@ -246,13 +247,13 @@ TLDR: ${a.tldr || '无'}
 }
 
 /**
- * [新功能] Gemini 重排 (Re-rank): 从 50 篇中精选 10-15 篇，并进行语义去重
+ * [语义层] Gemini 重排 (Re-rank): 从召回的 50 篇中精选 10-15 篇，并进行语义去重
  */
 export async function reRankArticles(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   articles: any[],
   query: string,
-  modelId: string = 'gemini-2.0-flash',
+  modelId: string = 'gemini-2.5-flash-lite-preview-09-2025', // 默认使用高额度羊毛模型，避免损耗 2.0 旗舰配额
 ): Promise<string[]> {
   if (!apiKey || articles.length === 0) return [];
 
@@ -291,13 +292,14 @@ ${articleList}`;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (e: any) {
     const isQuotaError = e.message.includes('429') || e.message.includes('quota');
+    const sheepModel = 'gemini-2.5-flash-lite-preview-09-2025';
 
-    // 同步策略：如果 2.0 超速，尝试自动切换到 1.5 重新筛选
-    if (modelId === 'gemini-2.0-flash' && isQuotaError) {
+    // 鲁棒性降级策略：如果当前使用的不是“强力羊毛”且超速，则尝试用羊毛模型补救
+    if (modelId !== sheepModel && isQuotaError) {
       console.warn(
-        `[reRankArticles Fallback] 2.0 Quota exceeded, retrying with 1.5-flash for query: "${query.slice(0, 20)}..."`,
+        `[reRankArticles Fallback] ${modelId} Quota exceeded, retrying with ${sheepModel} for query: "${query.slice(0, 20)}..."`,
       );
-      return reRankArticles(articles, query, 'gemini-1.5-flash');
+      return reRankArticles(articles, query, sheepModel);
     }
 
     console.error(
