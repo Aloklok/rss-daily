@@ -44,32 +44,60 @@ const getOriginalIndex = (raw: string): string => {
 
 const MODELS = [
   {
-    id: 'gemini-2.5-flash',
-    name: 'Gemini 2.5 Flash',
-    desc: '新代次高效率',
+    id: 'gemini-2.5-flash-lite-preview-09-2025',
+    name: 'Gemini 2.5 Flash-Lite (Sep)',
+    desc: '2025.09 版，100 RPD 强力羊毛',
     hasSearch: true,
-    quota: '1500 RPM/2K RPD',
+    quota: '15 RPM / 100 RPD',
+  },
+  {
+    id: 'gemini-flash-lite-latest',
+    name: 'Gemini 1.5 Flash-Lite (Latest)',
+    desc: '经典低负载，100 RPD 稳定羊毛',
+    hasSearch: true,
+    quota: '15 RPM / 100 RPD',
+  },
+  {
+    id: 'gemini-3-flash-preview',
+    name: 'Gemini 3.0 Flash (Preview)',
+    desc: '最强下一代，目前独立池子',
+    hasSearch: true,
+    quota: '15 RPM / 独立 RPD',
+  },
+  {
+    id: 'gemini-robotics-er-1.5-preview',
+    name: 'Gemini 1.5 Robotics (Rare)',
+    desc: '罕见 1.5 具身智能推理，独立池子',
+    hasSearch: true,
+    quota: '15 RPM / 独立 RPD',
+  },
+  {
+    id: 'gemini-2.5-flash-lite',
+    name: 'Gemini 2.5 Flash-Lite',
+    desc: '响应最快，额外独立池子',
+    hasSearch: true,
+    quota: '15 RPM / 独立 RPD',
+  },
+  {
+    id: 'gemini-2.0-flash-lite-preview-02-05',
+    name: 'Gemini 2.0 Flash-Lite (Old)',
+    desc: '2.0 早期预览版，辅助独立池子',
+    hasSearch: true,
+    quota: '15 RPM / 独立 RPD',
   },
   {
     id: 'gemini-2.0-flash',
     name: 'Gemini 2.0 Flash',
-    desc: '目前最强方案',
+    desc: '全能旗舰，共用每日 20 次',
     hasSearch: true,
-    quota: '1500 RPM/1M TPM',
+    quota: '1500 RPM / 20 RPD',
   },
   {
-    id: 'gemini-flash-latest',
-    name: 'Gemini 1.5 Flash (Latest)',
-    desc: '稳定高性价比',
+    id: 'gemini-2.5-pro',
+    name: 'Gemini 2.5 Pro',
+    desc: '最强智力，极低 RPD 池',
     hasSearch: true,
-    quota: '15 RPM/1M TPM',
-  },
-  {
-    id: 'gemini-pro-latest',
-    name: 'Gemini 1.5 Pro (Latest)',
-    desc: '超长上下文专家',
-    hasSearch: true,
-    quota: '2 RPM/50 RPD',
+    quota: '2 RPM / 50 RPD',
   },
 ];
 
@@ -935,7 +963,7 @@ const AIChatModal: React.FC = () => {
                                   </span>
                                 )}
                                 <span
-                                  className={`rounded px-1 py-0.5 text-[8px] font-bold tracking-widest uppercase ${selectedModel === m.id ? 'bg-white/20 text-white/80' : 'bg-stone-100 text-stone-400 dark:bg-white/10 dark:text-stone-500'} `}
+                                  className={`rounded-md px-1.5 py-0.5 text-[9px] font-black tracking-tight uppercase shadow-sm ${selectedModel === m.id ? 'bg-white/30 text-white' : 'bg-indigo-50 text-indigo-600 dark:bg-white/10 dark:text-indigo-400'} `}
                                 >
                                   {m.quota}
                                 </span>

@@ -21,8 +21,7 @@ export async function POST(req: NextRequest) {
     let model = requestedModel || 'gemini-2.0-flash';
 
     if (model === 'gemini-3-flash') model = 'gemini-2.0-flash';
-    if (model === 'gemini-1.5-flash') model = 'gemini-flash-latest';
-    if (model === 'gemini-1.5-pro') model = 'gemini-pro-latest';
+    // 移除将 1.5 模型自动升级到 latest 别名的逻辑，避免 1.5 自动升级到 2.5
 
     // 最终兜底
     if (!model.startsWith('gemini-') && !model.startsWith('gemma-')) {

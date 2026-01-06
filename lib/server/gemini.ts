@@ -167,8 +167,7 @@ export async function chatWithGemini(
   // 内部补丁：对已知失效或别名模型进行最后一次纠偏
   let effectiveModel = modelName;
   if (effectiveModel.includes('3-flash')) effectiveModel = 'gemini-2.0-flash';
-  if (effectiveModel.includes('1.5-flash')) effectiveModel = 'gemini-flash-latest';
-  if (effectiveModel.includes('1.5-pro')) effectiveModel = 'gemini-pro-latest';
+  // 移除对 1.5 系列的自动别名转换，防止其通过 latest 别名自动升级到 2.5/3.0
 
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
