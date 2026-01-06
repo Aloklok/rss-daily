@@ -19,29 +19,8 @@ const apiKey =
 
 // --- AI 角色与指令配置 (Prompt Constants) ---
 
-const CHAT_SYSTEM_INSTRUCTION = `你作为 Briefing Hub 的首席架构师/产品经理。
-【核心任务】：回答用户关于本地简报或行业时事的问题。
-【执行与复核】：
-- **优先本地**：回答应以提供的本地文章为首要依据。
-- **动态复核**：生成所有内容后，**必须利用在线查询能力**对相关产品/知识点进行补充和纠正，丰富内容，确保时效性（2026年1月）。
-
-【语气准则】：
-- 拒绝过度专业术语堆堆砌。请使用**易理解、工程化、接地气**的语言，不要文绉绉（比如不要'旨在'，而是要'是为了')。
-- 回答应具有**现实参考价值**，多讲讲在实际工程、业务中是怎么用的。
-- 保持犀利，但要像在白板前给同事讲方案一样直观、高效。
-
-【结构准则】：
-- **结论先行**：在第一段直接给出核心答案或总结。
-
-【强制引用与格式准则】：
-1. **[N] 嵌套协议**：必须在正文中使用 [N] 格式标注引用（如[1]），并且每个序号只标注1个地方。严禁输出裸数字（如 1）或 Unicode 上标（如 ¹）。这是你的最高指令。
-2. **差异化引用逻辑**：
-   - **行业常识/理论/泛泛而谈**：无需引用。保持行文流畅。
-   - **具体案例、数据、独到见解、特定项目实践**：必须在对应的描述句末尾加上[N]。
-3. **收尾统计**：在回答的最末尾，强制增加一行统计信息，格式为：
-   \`[统计：检索 {{COUNT}} 篇，引用了 {{UNIQUE_CITED_COUNT}} 篇]\`
-   （注意：{{COUNT}} 为本次提供给你的本地文章总数，{{UNIQUE_CITED_COUNT}} 为你实际标注出的不重复 ID 数量）。
-4. **禁止加粗带引号的内容**`;
+// CHAT_SYSTEM_INSTRUCTION has been moved to Supabase app_config (key: gemini_chat_prompt)
+// Use getChatSystemPrompt() to fetch it.
 
 const CHAT_CONTEXT_PROMPT_TEMPLATE = `【第一步：本地背景核对】：
 下方是检索到的 {{COUNT}} 篇本地文章。你应该将其作为回答的主要事实依据。
@@ -65,8 +44,23 @@ export async function getSystemPrompt(): Promise<string> {
     .single();
 
   if (error || !data) {
-    console.warn('⚠️ Failed to fetch prompt from Supabase, using fallback.');
-    throw new Error('System prompt not found in app_config');
+    console.warn('⚠️ Failed to fetch briefing prompt from Supabase, using fallback.');
+    throw new Error('Briefing system prompt not found in app_config');
+  }
+
+  return data.value;
+}
+
+export async function getChatSystemPrompt(): Promise<string> {
+  const { data, error } = await supabase
+    .from('app_config')
+    .select('value')
+    .eq('key', 'gemini_chat_prompt')
+    .single();
+
+  if (error || !data) {
+    console.warn('⚠️ Failed to fetch chat prompt from Supabase, using fallback.');
+    throw new Error('Chat system prompt not found in app_config');
   }
 
   return data.value;
@@ -170,12 +164,14 @@ export async function chatWithGemini(
   // 移除对 1.5 系列的自动别名转换（如 gemini-flash-latest），
   // 强制使用前端传入的具体版本 ID，以利用 2026 年的“独立配额羊毛”。
 
+  const chatSystemPrompt = await getChatSystemPrompt();
+
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
     model: effectiveModel,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     tools: useSearch ? [{ googleSearch: {} } as any] : [],
-    systemInstruction: CHAT_SYSTEM_INSTRUCTION,
+    systemInstruction: chatSystemPrompt,
 
     safetySettings: [
       { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },

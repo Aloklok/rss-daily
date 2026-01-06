@@ -20,6 +20,12 @@
 
 ---
 
+- **渲染性能优化 (Performance Optimization)**:
+  - **状态订阅分离**: `AIChatModal` 采用深度解耦架构。主容器仅订阅显隐状态。
+  - **流更新局部化**: 打字机输出仅触发 `StreamingResponse` 局部重绘。
+  - **输入隔离**: 打字输入由 `ChatInputArea` 局部管理，避免整屏重绘。
+  - **自动滚动优化**: 重写滚动侦测逻辑，仅在用户处于底端时自动探底，极大降低 CPU 开销。
+
 ## 30秒项目概览
 
 - **项目**: Briefing Hub (RSS 阅读器)
@@ -29,7 +35,7 @@
 
 ---
 
-## �️ 核心文件速查
+## ️ 核心文件速查
 
 | 文件                                                           | 职责                                |
 | -------------------------------------------------------------- | ----------------------------------- |
@@ -62,6 +68,10 @@
 快速定位代码的关键词：
 
 - **搜索**: `hybrid_search_articles`, `&@~` (PGroonga), `match_priority`
+- **AI Prompt 动态管理**:
+  - **简报 Prompt**: 存储在 Supabase `app_config` (key: `gemini_briefing_prompt`)。
+  - **对话 Prompt**: 存储在 Supabase `app_config` (key: `gemini_chat_prompt`)。
+  - **操作脚本**: `pnpm prompt:push/pull` 和 `pnpm chat-prompt:push/pull` 用于本地同步。
 - **AI 性能**: `pgmq`, `embeddings.ts`, `Gemini`
 - **时区**: `shanghaiDayToUtcWindow`, `dateUtils`
 - **FreshRSS**: `tagFetcher`, `/tag/list`
