@@ -112,7 +112,6 @@ const renderCitations = (
   openArticleModal: (article: any) => void,
   isInteractive: boolean = true,
   displayMapping?: Map<string, string>,
-  seenIndices?: Set<string>,
 ): React.ReactNode => {
   if (typeof node === 'string') {
     if (!node.trim()) return node;
@@ -122,11 +121,6 @@ const renderCitations = (
 
       if (originalIndex && /^\d+$/.test(originalIndex)) {
         // 如果开启了唯一性检查且该索引在本消息中已出现过，则不再重复渲染为交互角标（仅保留占位以维持文本完整性）
-        if (seenIndices) {
-          if (seenIndices.has(originalIndex)) return '';
-          seenIndices.add(originalIndex);
-        }
-
         const displayIndex = displayMapping?.get(originalIndex) || originalIndex;
         const citation = citations?.find((c) => c.index.toString() === originalIndex);
         const meta = citation || (sessionMetadata && sessionMetadata[parseInt(originalIndex) - 1]);
@@ -169,7 +163,6 @@ const renderCitations = (
           openArticleModal,
           isInteractive,
           displayMapping,
-          seenIndices,
         ),
       ),
     });
@@ -193,14 +186,19 @@ const cleanMessageContent = (content: string): string => {
       .join('');
   });
 
-  // 2. 核心逻辑：把 **“文字”** 替换为 **文字**
-  // 正则解析：
-  // \*\*       -> 匹配开始的加粗
-  // ["“\(（]    -> 匹配开头的一个特殊符号 (引号或括号)
-  // (.*?)      -> 非贪婪匹配中间的内容
-  // ["”\)）]    -> 匹配结尾的一个特殊符号
-  // \*\*       -> 匹配结束的加粗
-  return cleaned.replace(/\*\*["“(\uFF08](.*?)["”)\uFF09]\*\*/g, '**$1**');
+  // 2. 核心逻辑：分别去除加粗内容首尾的特殊符号 (支持非成对情况)
+
+  // Rule A: 去除加粗内部的成对引用符号，即使后面还有文字
+  // 例子: **“AI落地”这条主线** -> **AI落地这条主线**
+  // 逻辑: 匹配 ** [冒号/括号] (内容) [冒号/括号] (后缀) ** -> 替换为 **(内容)(后缀)**
+  cleaned = cleaned.replace(/\*\*["“(\uFF08](.*?)["”)\uFF09](.*?)\*\*/g, '**$1$2**');
+
+  // Rule B (Fallback): 只要加粗内容开头是符号就去除，结尾是符号也去除，互不影响
+  // 之前的逻辑要求必须成对 (如 **"文字"**) 才会去除，导致 **“文字”内容** 这种情况失效
+  cleaned = cleaned.replace(/\*\*["“(\uFF08]+/g, '**');
+  cleaned = cleaned.replace(/["”)\uFF09]+\*\*/g, '**');
+
+  return cleaned;
 };
 
 // --- 性能优化：消息项 Memo 化 ---
@@ -236,7 +234,6 @@ const ChatMessageItem = React.memo(
     }, [cleanContent]);
 
     const components = React.useMemo(() => {
-      const seenIndices = new Set<string>();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const wrap = (children: any) =>
         React.Children.map(children, (child) =>
@@ -247,7 +244,6 @@ const ChatMessageItem = React.memo(
             handleOpenArticle,
             true,
             displayMapping,
-            seenIndices,
           ),
         );
 
@@ -426,54 +422,56 @@ const StreamingResponse = React.memo(
     }
 
     return (
-      <div className="flex justify-start">
-        <div
-          className={`flex items-start ${isExpanded ? 'w-full flex-row justify-center gap-8' : 'flex-col'} `}
-        >
+      <div className="flex w-full justify-start">
+        <div className="w-full max-w-xl rounded-2xl border border-stone-200 bg-white px-6 py-4 text-stone-800 shadow-lg dark:border-white/10 dark:bg-stone-800 dark:shadow-xl">
           <div
-            className={`${isExpanded ? 'w-full max-w-xl' : ''} prose prose-sm dark:prose-invert ai-chat-content prose-p:leading-relaxed dark:prose-headings:!text-white dark:prose-p:!text-stone-100 dark:prose-strong:!text-indigo-300 max-w-none dark:!text-stone-100`}
+            className={`flex items-start ${isExpanded ? 'w-full flex-row justify-center gap-8' : 'flex-col'} `}
           >
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              components={{
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                p: ({ children }: any) => (
-                  <p className="mb-4 last:mb-0">
-                    {React.Children.map(children, (c) =>
-                      renderCitations(c, [], [], handleOpenArticle, false),
-                    )}
-                  </p>
-                ),
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                li: ({ children }: any) => (
-                  <li className="mb-1">
-                    {React.Children.map(children, (c) =>
-                      renderCitations(c, [], [], handleOpenArticle, false),
-                    )}
-                  </li>
-                ),
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                a: ({ ...props }: any) => (
-                  <a
-                    {...props}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-indigo-400 underline hover:text-indigo-300"
-                  />
-                ),
-              }}
+            <div
+              className={`${isExpanded ? 'w-full max-w-xl' : ''} prose prose-sm dark:prose-invert ai-chat-content prose-p:leading-relaxed dark:prose-headings:!text-white dark:prose-p:!text-stone-100 dark:prose-strong:!text-indigo-300 max-w-none dark:!text-stone-100`}
             >
-              {cleanMessageContent(streamingContent)}
-            </ReactMarkdown>
-          </div>
-          {isExpanded && (
-            <div className="flex w-64 flex-shrink-0 flex-col gap-2 border-l border-stone-100 pl-8 dark:border-white/5">
-              <span className="text-[10px] font-bold tracking-widest text-stone-400 uppercase">
-                正在分析文献...
-              </span>
-              <div className="h-1 animate-pulse rounded-full bg-stone-100 dark:bg-white/5" />
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  p: ({ children }: any) => (
+                    <p className="mb-4 last:mb-0">
+                      {React.Children.map(children, (c) =>
+                        renderCitations(c, [], [], handleOpenArticle, false),
+                      )}
+                    </p>
+                  ),
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  li: ({ children }: any) => (
+                    <li className="mb-1">
+                      {React.Children.map(children, (c) =>
+                        renderCitations(c, [], [], handleOpenArticle, false),
+                      )}
+                    </li>
+                  ),
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  a: ({ ...props }: any) => (
+                    <a
+                      {...props}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-indigo-400 underline hover:text-indigo-300"
+                    />
+                  ),
+                }}
+              >
+                {cleanMessageContent(streamingContent)}
+              </ReactMarkdown>
             </div>
-          )}
+            {isExpanded && (
+              <div className="flex w-64 flex-shrink-0 flex-col gap-2 border-l border-stone-100 pl-8 dark:border-white/5">
+                <span className="text-[10px] font-bold tracking-widest text-stone-400 uppercase">
+                  正在分析文献...
+                </span>
+                <div className="h-1 animate-pulse rounded-full bg-stone-100 dark:bg-white/5" />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );
