@@ -188,15 +188,15 @@ const cleanMessageContent = (content: string): string => {
 
   // 2. 核心逻辑：分别去除加粗内容首尾的特殊符号 (支持非成对情况)
 
-  // Rule A: 去除加粗内部的成对引用符号，即使后面还有文字
-  // 例子: **“AI落地”这条主线** -> **AI落地这条主线**
-  // 逻辑: 匹配 ** [冒号/括号] (内容) [冒号/括号] (后缀) ** -> 替换为 **(内容)(后缀)**
-  cleaned = cleaned.replace(/\*\*["“(\uFF08](.*?)["”)\uFF09](.*?)\*\*/g, '**$1$2**');
+  // Rule A: 去除加粗内部的成对引用符号，即使后面还有文字 (支持内部空格)
+  // 例子: ** “AI落地”这条主线** -> **AI落地这条主线**
+  // 逻辑: 匹配 ** [空格] [冒号/括号] (内容) [冒号/括号] (后缀) ** -> 替换为 **(内容)(后缀)**
+  cleaned = cleaned.replace(/\*\*\s*["“(\uFF08](.*?)["”)\uFF09](.*?)\*\*/g, '**$1$2**');
 
-  // Rule B (Fallback): 只要加粗内容开头是符号就去除，结尾是符号也去除，互不影响
+  // Rule B (Fallback): 只要加粗内容开头是符号就去除，结尾是符号也去除，互不影响 (支持内部空格)
   // 之前的逻辑要求必须成对 (如 **"文字"**) 才会去除，导致 **“文字”内容** 这种情况失效
-  cleaned = cleaned.replace(/\*\*["“(\uFF08]+/g, '**');
-  cleaned = cleaned.replace(/["”)\uFF09]+\*\*/g, '**');
+  cleaned = cleaned.replace(/\*\*\s*["“(\uFF08]+/g, '**');
+  cleaned = cleaned.replace(/["”)\uFF09]+\s*\*\*/g, '**');
 
   return cleaned;
 };
@@ -704,13 +704,13 @@ const ChatInputArea = React.memo(
     };
 
     return (
-      <div className="border-t border-stone-200 p-6 dark:border-white/10">
+      <div className="border-t border-stone-200 px-6 py-4 dark:border-white/10">
         <div className="flex items-center gap-3">
           <input
             ref={inputRef}
             type="text"
             placeholder="向 AI 咨询任何简报内容..."
-            className="flex-1 rounded-xl border border-stone-200 bg-white/50 px-4 py-3 text-sm transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none dark:border-white/10 dark:bg-stone-900/50 dark:text-white"
+            className="flex-1 rounded-xl border border-stone-200 bg-white/50 px-4 py-2.5 text-sm transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none dark:border-white/10 dark:bg-stone-900/50 dark:text-white"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && onSend()}
@@ -719,7 +719,7 @@ const ChatInputArea = React.memo(
           <button
             onClick={onSend}
             disabled={isStreaming || !inputValue.trim()}
-            className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg transition-all hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg transition-all hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -737,7 +737,7 @@ const ChatInputArea = React.memo(
             </svg>
           </button>
         </div>
-        <div className="mt-3 flex items-center justify-between px-1">
+        <div className="mt-2 flex items-center justify-between px-1">
           <div className="flex items-center gap-3">
             <div className="relative flex items-center gap-2">
               <div className="h-2 w-2 animate-pulse rounded-full bg-green-500"></div>
