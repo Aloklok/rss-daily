@@ -137,3 +137,35 @@
 - **[架构建议] 引入 PGMQ**: 当前系统采用同步生成 Embedding，适合单条数据流。若未来扩展至**批量抓取**场景（如一次导入 500 篇），强烈建议引入 `pgmq`（Supabase 扩展）：
   - **流程**: 爬虫入库 -> 写入 PGMQ 队列 -> Worker 消费队列 -> 调用 Gemini 生成向量 -> 异步回写 DB。
   - **收益**: 解耦 AI 处理的长耗时（5s+）与入库的短耗时（ms级），防止 API 超时。
+
+---
+
+## 🛠 如果您是 Prompt 工程师 (Operations)
+
+为了支持 Prompt 的快速迭代与版本回滚，项目内置了以下工程化脚本：
+
+### 1. 拉取最新 Prompt (`pull`)
+
+将线上的 Prompt 配置同步到本地 `CHAT_PROMPT.MD` 文件中。
+
+```bash
+pnpm chat-prompt:pull
+```
+
+### 2. 推送 Prompt 更新 (`push`)
+
+将本地 `CHAT_PROMPT.MD` 的修改推送到 Supabase 生产环境。
+
+**常规更新（覆盖模式）**：
+适用于微调错别字或小优化，不改变 Key。
+
+```bash
+pnpm chat-prompt:push
+```
+
+**版本迭代（备份模式）**：
+适用于重大逻辑变更。该命令会自动将线上当前的 Prompt 备份为 `gemini_chat_prompt_YYYYMMDD`，然后再覆盖写入新版。
+
+```bash
+pnpm chat-prompt:push --new
+```

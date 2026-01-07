@@ -47,5 +47,6 @@ playwright-report
 test-results
 
 Prompt.MD
+CHAT_PROMPT.MD
 supabase
 

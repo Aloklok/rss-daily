@@ -186,17 +186,15 @@ const cleanMessageContent = (content: string): string => {
       .join('');
   });
 
-  // 2. 核心逻辑：分别去除加粗内容首尾的特殊符号 (支持非成对情况)
-
-  // Rule A: 去除加粗内部的成对引用符号，即使后面还有文字 (支持内部空格)
-  // 例子: ** “AI落地”这条主线** -> **AI落地这条主线**
-  // 逻辑: 匹配 ** [空格] [冒号/括号] (内容) [冒号/括号] (后缀) ** -> 替换为 **(内容)(后缀)**
-  cleaned = cleaned.replace(/\*\*\s*["“(\uFF08](.*?)["”)\uFF09](.*?)\*\*/g, '**$1$2**');
-
-  // Rule B (Fallback): 只要加粗内容开头是符号就去除，结尾是符号也去除，互不影响 (支持内部空格)
-  // 之前的逻辑要求必须成对 (如 **"文字"**) 才会去除，导致 **“文字”内容** 这种情况失效
-  cleaned = cleaned.replace(/\*\*\s*["“(\uFF08]+/g, '**');
-  cleaned = cleaned.replace(/["”)\uFF09]+\s*\*\*/g, '**');
+  // 2. 核心逻辑：移除加粗内容内部的特殊符号 (支持中英文双引号、括号)
+  // 之前的逻辑只去除首尾，无法处理 "数据中心（对标..." 这种符号在中间的情况
+  // 现在改为：匹配所有 **...** 块，并将内部的所有指定符号移除
+  cleaned = cleaned.replace(/\*\*(.*?)\*\*/g, (match, innerContent) => {
+    // 移除字符并用空格代替，防止语义粘连 (如 "A(B)" -> "A B")
+    // 最后 trim() 去除首尾多余空格
+    const cleanInner = innerContent.replace(/["“(\uFF08"”)\uFF09]/g, ' ').trim();
+    return `**${cleanInner}**`;
+  });
 
   return cleaned;
 };

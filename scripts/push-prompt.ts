@@ -19,6 +19,8 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function pushPrompt() {
   const filePath = path.join(process.cwd(), 'PROMPT.MD');
+  const args = process.argv.slice(2);
+  const isNewVersion = args.includes('--new');
 
   if (!fs.existsSync(filePath)) {
     console.error(`❌ Error: ${filePath} not found.`);
@@ -27,6 +29,44 @@ async function pushPrompt() {
 
   console.log(`📖 Reading from ${filePath}...`);
   const promptContent = fs.readFileSync(filePath, 'utf-8');
+
+  // 如果是新版本模式，先备份旧数据
+  if (isNewVersion) {
+    console.log('📦 Detect --new flag. Fetching current prompt for backup...');
+    const { data: currentData, error: fetchError } = await supabase
+      .from('app_config')
+      .select('value')
+      .eq('key', 'gemini_briefing_prompt')
+      .single();
+
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      console.error('❌ Error fetching current prompt:', fetchError.message);
+      process.exit(1);
+    }
+
+    if (currentData) {
+      const today = new Date().toISOString().split('T')[0].replace(/-/g, '');
+      const backupKey = `gemini_briefing_prompt_${today}`;
+      console.log(`💾 Backing up current prompt to key: ${backupKey}...`);
+
+      const { error: backupError } = await supabase.from('app_config').upsert(
+        {
+          key: backupKey,
+          value: currentData.value,
+          updated_at: new Date().toISOString().split('T')[0],
+        },
+        { onConflict: 'key' },
+      );
+
+      if (backupError) {
+        console.error('❌ Error backing up prompt:', backupError.message);
+        process.exit(1);
+      }
+      console.log('✅ Backup successful.');
+    } else {
+      console.log('⚠️ No existing prompt found to backup. Skipping.');
+    }
+  }
 
   console.log('🔄 Upserting to Supabase...');
 
