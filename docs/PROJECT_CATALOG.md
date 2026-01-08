@@ -12,6 +12,8 @@
 - **`article/[id]/page.tsx`**: 文章详情页（ISR）。
 - **`archive/page.tsx`**: 归档索引页（SSR）。
 - **`sources/page.tsx`**: 订阅源浏览页（Force Dynamic）。
+- **`admin/`**: 管理后台。
+  - `briefing/`: 简报补录面板。
 - **`stream/`**: 分类与标签列表页。
 - **`api/`**: 路由处理程序 (Route Handlers)。
   - `articles/search/`: 混合向量搜索接口。
@@ -30,7 +32,10 @@
   - `BriefingClient.tsx`: 客户端逻辑与同步。
   - `BriefingView.tsx`: 渲染 UI 布局。
 - **`search/`**: 搜索与过滤组件。
+- **`search/`**: 搜索与过滤组件。
 - **`stream/`**: 无限滚动列表组件。
+- **`admin/`**: 后台管理组件。
+  - `BackfillPanel.tsx`: 简报批量生成与状态监控。
 
 ## 3. 全局布局与基础 (`components/`)
 

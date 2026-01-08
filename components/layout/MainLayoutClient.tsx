@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import { useUIStore } from '../../store/uiStore';
 import { useArticleStore } from '../../store/articleStore'; // Import article store
 import SidebarClient from './Sidebar/SidebarContainer';
@@ -25,6 +26,7 @@ export default function MainLayoutClient({
   const setMobileSidebarOpen = useUIStore((state) => state.setMobileSidebarOpen);
   const toggleMobileSidebar = useUIStore((state) => state.toggleMobileSidebar);
   const toggleDesktopSidebar = useUIStore((state) => state.toggleDesktopSidebar);
+  const pathname = usePathname();
 
   const checkAdminStatus = useUIStore((state) => state.checkAdminStatus);
   const isAdmin = useUIStore((state) => state.isAdmin);
@@ -71,9 +73,8 @@ export default function MainLayoutClient({
       {/* Mobile Overlay: Hidden on Desktop (md:hidden) */}
       {/* Only show if Mobile Sidebar is Open */}
       <div
-        className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 md:hidden ${
-          isMobileOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
-        }`}
+        className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 md:hidden ${isMobileOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+          }`}
         onClick={() => setMobileSidebarOpen(false)}
         aria-hidden="true"
       />
@@ -174,7 +175,12 @@ export default function MainLayoutClient({
         ref={mainContentRef}
         className={`dark:bg-midnight-bg bg-paper-texture flex min-w-0 flex-1 flex-col bg-neutral-50 dark:bg-none`}
       >
-        <div className="mx-auto w-full max-w-3xl px-2 pt-2 md:px-8 md:pt-4">{children}</div>
+        <div
+          className={`mx-auto w-full px-2 pt-2 md:px-8 md:pt-4 ${pathname === '/admin/briefing' ? 'max-w-7xl' : 'max-w-3xl'
+            }`}
+        >
+          {children}
+        </div>
         <FloatingActionButtons isAdmin={isAdmin} />
       </div>
     </div>

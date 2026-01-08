@@ -132,3 +132,119 @@ export async function generateBriefingAction(article: Article, clientContent?: s
     return { success: false, error: error.message };
   }
 }
+
+/**
+ * [真·批量] 批量生成简报动作
+ * 1. 并发获取文章正文
+ * 2. 构造数组 Payload 调用 Gemini
+ * 3. 结果合并后执行单次批量 Upsert
+ */
+export async function generateBulkBriefingAction(articles: Article[], modelId?: string) {
+  try {
+    console.log(`[BulkAction] Starting for ${articles.length} articles using model: ${modelId}`);
+
+    // 1. 获取所有文章的正文 (由串行/并发请求改为真·批量请求)
+    const { fetchMultipleArticleContentsServer } = await import('@/lib/server/dataFetcher');
+    const titleMap = new Map<string, string>();
+    articles.forEach(a => titleMap.set(String(a.id), a.title));
+
+    const contentMap = await fetchMultipleArticleContentsServer(
+      articles.map(a => a.id),
+      titleMap
+    );
+
+    const { stripTags } = await import('@/utils/contentUtils');
+
+    const payloads = articles.map((article) => {
+      const fullContentData = contentMap.get(String(article.id));
+      const rawContent = fullContentData?.content || article.summary || '';
+      const cleanContent = stripTags(rawContent);
+
+      return {
+        id: article.id,
+        title: article.title,
+        link: article.link,
+        sourceName: article.sourceName,
+        published: article.published,
+        content: cleanContent,
+        n8n_processing_date: article.n8n_processing_date,
+      };
+    });
+
+    // 2. 调用重构后的 Gemini 批量接口
+    const result = await generateBriefingWithGemini(payloads, modelId);
+    const { briefings, metadata } = result;
+
+    if (!briefings || !Array.isArray(briefings)) {
+      throw new Error('Gemini did not return an array of briefings in bulk mode');
+    }
+
+    // 3. 构造批量 Upsert 数据
+    const upsertItems = briefings.map((briefing: any) => {
+      const originalArticle = articles.find((a) => String(a.id) === String(briefing.articleId));
+
+      const finalAIFields = {
+        summary: cleanAIContent(briefing.summary),
+        tldr: cleanAIContent(briefing.tldr),
+        category: cleanAIContent(briefing.category),
+        keywords: Array.isArray(briefing.keywords) ? briefing.keywords : [],
+        verdict: briefing.verdict,
+        highlights: cleanAIContent(briefing.highlights),
+        critiques: cleanAIContent(briefing.critiques),
+        marketTake: cleanAIContent(briefing.marketTake),
+        title: briefing.title || originalArticle?.title,
+      };
+
+      return {
+        id: String(briefing.articleId),
+        link: originalArticle?.link,
+        sourceName: originalArticle?.sourceName,
+        published: originalArticle?.published,
+        // AI Generated Fields
+        ...finalAIFields,
+        embedding: briefing.embedding,
+        // 时间戳修正
+        n8n_processing_date:
+          originalArticle?.n8n_processing_date ||
+          originalArticle?.published ||
+          new Date().toISOString(),
+      };
+    });
+
+    // 4. 执行单次批量 Upsert 并获取结果用于验证
+    const { data: savedItems, error: updateError } = await supabase
+      .from('articles')
+      .upsert(upsertItems, { onConflict: 'id' })
+      .select('id');
+
+    if (updateError) {
+      console.error('[BulkAction] Upsert Error:', updateError);
+      throw updateError;
+    }
+
+    // 5. 触发批量 Revalidate
+    const datesToRevalidate = new Set<string>();
+    upsertItems.forEach((item) => {
+      const d = item.n8n_processing_date.split('T')[0];
+      if (d) datesToRevalidate.add(d);
+    });
+
+    for (const date of datesToRevalidate) {
+      revalidatePath(`/date/${date}`);
+    }
+
+    return {
+      success: true,
+      saved: savedItems?.length || 0,
+      total: articles.length,
+      results: upsertItems.map(item => ({ id: item.id, title: item.title })), // 返回 ID 与标题的映射
+      metadata,
+    };
+  } catch (error: any) {
+    console.error('[BulkAction] Error:', error);
+    // 尝试提取状态码 (例如 429, 500)
+    const statusMatch = error.message?.match(/\b(\d{3})\b/);
+    const statusCode = statusMatch ? ` ${statusMatch[1]}` : '';
+    return { success: false, error: `[BulkAction${statusCode}] ${error.message}` };
+  }
+}

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 
 import TagPopover from '../common/ui/TagPopover';
@@ -24,8 +24,12 @@ interface FloatingActionButtonsProps {
 
 const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }) => {
   const router = useRouter();
+  const pathname = usePathname();
   const queryClient = useQueryClient();
   const [isTagPopoverOpen, setIsTagPopoverOpen] = useState(false);
+
+  // Determine if we are on an admin page
+  const isAdminPage = pathname?.startsWith('/admin');
 
   // Store State
   const activeFilter = useUIStore((state) => state.activeFilter);
@@ -133,19 +137,18 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
         </svg>
       </button>
 
-      {/* --- 条件渲染块：根据是否有选中文章来显示不同的按钮 --- */}
-      {isAdmin &&
+      {/* --- 条件渲染块：仅在非 Admin 页面显示文章操作按钮 --- */}
+      {!isAdminPage && isAdmin &&
         (selectedArticle ? (
           <>
             {/* 仅在有选中文章时显示：标签和收藏按钮 */}
             <div className="relative" onClick={(e) => e.stopPropagation()}>
               <button
                 onClick={() => setIsTagPopoverOpen((prev) => !prev)}
-                className={`cursor-pointer rounded-full p-3 text-white shadow-lg transition-all ${
-                  userTagLabels.length > 0
-                    ? 'bg-sky-600 hover:bg-sky-700'
-                    : 'bg-gray-800 hover:bg-gray-950'
-                }`}
+                className={`cursor-pointer rounded-full p-3 text-white shadow-lg transition-all ${userTagLabels.length > 0
+                  ? 'bg-sky-600 hover:bg-sky-700'
+                  : 'bg-gray-800 hover:bg-gray-950'
+                  }`}
                 aria-label="Tag article"
               >
                 <svg
@@ -178,9 +181,8 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
                 );
               }}
               disabled={isUpdatingArticle}
-              className={`cursor-pointer rounded-full p-3 text-white shadow-lg transition-all disabled:bg-gray-500 ${
-                isStarred ? 'bg-amber-500 hover:bg-amber-600' : 'bg-gray-800 hover:bg-gray-950'
-              }`}
+              className={`cursor-pointer rounded-full p-3 text-white shadow-lg transition-all disabled:bg-gray-500 ${isStarred ? 'bg-amber-500 hover:bg-amber-600' : 'bg-gray-800 hover:bg-gray-950'
+                }`}
               aria-label={isStarred ? 'Remove from favorites' : 'Add to favorites'}
             >
               {isStarred ? (
@@ -268,7 +270,7 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
             const { setIsOpen, isOpen } = useChatStore.getState();
             setIsOpen(!isOpen);
           }}
-          className="group relative cursor-pointer rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 p-3 text-white shadow-lg transition-all hover:scale-110 hover:shadow-indigo-500/25 active:scale-95"
+          className="group relative cursor-pointer rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 p-3 text-white shadow-lg transition-all hover:scale-105 hover:shadow-indigo-500/25 active:scale-95 mb-2"
           aria-label="Open AI Assistant"
         >
           <svg

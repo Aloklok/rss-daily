@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { vi, describe, it, expect } from 'vitest';
@@ -7,6 +8,7 @@ import FloatingActionButtons from '@/components/layout/FloatingActionButtons';
 import AIChatModal from '@/components/features/ai/AIChatModal';
 import { MOCK_ARTICLE } from './mockData';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import BackfillPanel from '@/components/features/admin/BackfillPanel';
 import { useChatStore } from '@/store/chatStore';
 
 // We mock the store to control isAdmin state
@@ -40,8 +42,22 @@ vi.mock('../../services/clientApi', () => ({
   getArticlesDetails: vi.fn(), // Might be needed too
 }));
 // ChatStore mock for AIChatModal
+// Mock server-side Gemini/Supabase client to prevent initialization error
+vi.mock('../../lib/server/gemini', () => ({
+  default: {},
+  getSupabaseClient: vi.fn(),
+  generateBriefingWithGemini: vi.fn(),
+}));
+
 vi.mock('../../store/chatStore', () => ({
   useChatStore: vi.fn(),
+}));
+
+// Mock Server Actions used by BackfillPanel
+vi.mock('@/app/actions/backfill', () => ({
+  fetchBackfillCandidates: vi.fn(),
+  generateBatchBriefing: vi.fn(),
+  getSubscriptionList: vi.fn(),
 }));
 
 const createTestQueryClient = () =>
@@ -176,6 +192,37 @@ describe('AccessControl 组件级权限验证', () => {
         </QueryClientProvider>,
       );
 
+      expect(container).toBeEmptyDOMElement();
+    });
+  });
+
+  describe('管理后台路由保护 (Admin Route Protection)', () => {
+    // 模拟 BriefingAdminPage 组件行为
+    // 注意：实际的 Page 组件通常包含 redirect() 调用，这是 Server Component 逻辑。
+    // 但在 Client Component 测试中，我们主要验证"即使渲染组件也不显示内容"或"触发重定向"。
+    // 这里我们假设 BriefingAdminPage 内部有权限检查。
+    // 如果是 Server Component，Browser Test 难以直接测试，通常 E2E 测试更合适。
+    // 但用户要求在这里加，我们假设目标组件包含客户端权限检查逻辑。
+    // 如果目标是纯 Server Component，我们可能需要测试其引用的 Client wrapper。
+
+    // 假设我们要测试的是 BackfillPanel (这是 Client Component)
+
+    it('非管理员无法查看补录面板 (BackfillPanel)', async () => {
+      // 1. 模拟非管理员
+      (useUIStore as any).mockImplementation((selector: any) =>
+        selector({ isAdmin: false })
+      );
+
+      const queryClient = createTestQueryClient();
+
+      // 2. 尝试渲染 BackfillPanel
+      const { container } = render(
+        <QueryClientProvider client={queryClient}>
+          <BackfillPanel />
+        </QueryClientProvider>
+      );
+
+      // 3. 验证主要内容不渲染
       expect(container).toBeEmptyDOMElement();
     });
   });

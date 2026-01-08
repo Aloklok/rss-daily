@@ -35,11 +35,21 @@
 - **`stream/[id]/page.tsx`**: **流视图页** (ISR)。用于展示分类或标签下的文章列表。
 - **`sources/page.tsx`**: **按源浏览页** (Dynamic SSR)。提供基于订阅源维度的文章筛选入口。
 - **`trends/page.tsx`**: **趋势页** (SSG)。静态生成的趋势分析页面。
+- **`admin/briefing/page.tsx`**: **简报管理后台** (CSR)。用于手动触发批量补录、监控生成状态。
 - **`api/`**: 后端 API 路由 (Next.js Route Handlers)。
 
 ### `components/features/`
 
 业务逻辑的核心所在。每个子目录对应一个具体的业务领域。
+
+#### `admin/` (管理后台)
+
+- **`BackfillPanel.tsx`**: 简报补录与批量生成面板。
+  - _Features_:
+    - 支持按月份、订阅源筛选历史文章。
+    - **批量生成**: 支持多模型选择，实时显示生成的标题列表 (序号格式 1. 2. 3.)。
+    - **严谨筛选**: 提供 "勾选未生成" (Strict Pending) 功能，仅当选中纯未生成文章时高亮。
+    - **错误监控**: 集成 Gemini API 状态码提取 (e.g., 429 Quota Exceeded)。
 
 #### `briefing/` (每日简报)
 

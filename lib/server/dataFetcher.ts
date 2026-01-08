@@ -147,7 +147,22 @@ export const fetchArticleContentServer = async (
     const source =
       item.origin?.title ||
       (item.canonical?.[0]?.href ? new URL(item.canonical[0].href).hostname : '');
-    const title = item.title;
+
+    // 【修改】标题来源优化：优先尝试从 Supabase 获取 AI 优化后的标题
+    let title = item.title;
+    try {
+      const supabase = getSupabaseClient();
+      const { data: dbArticle } = await supabase
+        .from('articles')
+        .select('title')
+        .eq('id', id)
+        .single();
+      if (dbArticle?.title) {
+        title = dbArticle.title;
+      }
+    } catch (e) {
+      console.warn(`[fetchArticleContentServer] Could not fetch Supabase title for ${id}, using FreshRSS fallback.`);
+    }
 
     // Apply strict sanitization order:
     // 1. Strip redundant title (text operation)
@@ -166,6 +181,56 @@ export const fetchArticleContentServer = async (
     console.error('fetchArticleContentServer error:', error);
     return null;
   }
+};
+
+/**
+ * 【批量优化】一次性获取多篇文章的正文
+ * 减少对 FreshRSS 的 HTTP 请求次数
+ */
+export const fetchMultipleArticleContentsServer = async (
+  ids: (string | number)[],
+  titles?: Map<string, string>,
+): Promise<Map<string, CleanArticleContent>> => {
+  const result = new Map<string, CleanArticleContent>();
+  if (!ids || ids.length === 0) return result;
+
+  try {
+    const freshRss = getFreshRssClient();
+    const formData = new URLSearchParams();
+    ids.forEach((id) => formData.append('i', String(id)));
+
+    // FreshRSS GReader API 支持一次传多个 i 参数
+    const data = await freshRss.post<{ items: FreshRSSItem[] }>(
+      '/stream/items/contents?output=json',
+      formData,
+    );
+
+    if (data.items) {
+      data.items.forEach((item) => {
+        const contentHtml = item.summary?.content || item.content?.content || '';
+        const source =
+          item.origin?.title ||
+          (item.canonical?.[0]?.href ? new URL(item.canonical[0].href).hostname : '');
+
+        // 这里的 title 逻辑简化：优先使用传入的 titles，否则用 FreshRSS 的
+        const currentTitle = titles?.get(String(item.id)) || item.title || '';
+
+        const cleanedHtml = stripLeadingTitle(contentHtml, currentTitle);
+        const preSanitized = removeEmptyParagraphs(cleanedHtml);
+        const finalHtml = sanitizeHtml(preSanitized);
+
+        result.set(String(item.id), {
+          title: currentTitle,
+          content: finalHtml,
+          source: source,
+        });
+      });
+    }
+  } catch (error) {
+    console.error('[fetchMultipleArticleContentsServer] Error:', error);
+  }
+
+  return result;
 };
 
 // Helper to fetch directly from FreshRSS as fallback

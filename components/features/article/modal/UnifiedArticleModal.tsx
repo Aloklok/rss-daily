@@ -45,20 +45,20 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({
   }, [article]);
 
   // 1. Hook: Fetch Briefing Data (if missing)
-  const { isLoading: isLoadingBriefing } = useBriefingDetails(article, hasBriefingData, {
+  const { data: enrichedArticle, isLoading: isLoadingBriefing } = useBriefingDetails(article, hasBriefingData, {
     enabled: viewMode === 'briefing',
   });
 
+  // Use enriched data if available to ensure AI title/content overrides FreshRSS
+  const displayArticle = enrichedArticle || article;
+
   // 2. Hook: Fetch Reader Content
   // No initialData passed here because Modal is client-only entry.
-  const { data: readerContent, isLoading: isLoadingReader } = useArticleContent(article, null, {
+  const { data: readerContent, isLoading: isLoadingReader } = useArticleContent(displayArticle, null, {
     enabled: viewMode === 'reader',
   });
 
-  // Reset view mode on article change (Handled by parent key prop now)
-  // useEffect(() => {
-  //   setViewMode(initialMode);
-  // }, [article.id, initialMode]);
+  // ... (rest of effects)
 
   // Lock body scroll when modal is open
   useScrollLock(true);
@@ -77,22 +77,11 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({
   // Update document title when modal is open
   useEffect(() => {
     const originalTitle = document.title;
-    document.title = `${article.title} - RSS Briefing Hub`;
+    document.title = `${displayArticle.title} - RSS Briefing Hub`;
     return () => {
       document.title = originalTitle;
     };
-  }, [article.title]);
-
-  // ...
-
-  // Update document title when modal is open
-  useEffect(() => {
-    const originalTitle = document.title;
-    document.title = `${article.title} - RSS Briefing Hub`;
-    return () => {
-      document.title = originalTitle;
-    };
-  }, [article.title]);
+  }, [displayArticle.title]);
 
   return (
     <>
@@ -134,7 +123,7 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({
         <div className="dark:bg-midnight-bg grow overflow-x-hidden overflow-y-auto bg-neutral-50">
           {viewMode === 'briefing' ? (
             <ArticleBriefingView
-              article={article}
+              article={displayArticle}
               readerContent={readerContent}
               isLoading={isLoadingBriefing}
               hasBriefingData={hasBriefingData}
@@ -143,7 +132,7 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({
             />
           ) : (
             <ArticleReaderView
-              article={article}
+              article={displayArticle}
               readerContent={readerContent ?? null}
               isLoading={isLoadingReader}
               userTagLabels={userTagLabels}
@@ -152,7 +141,7 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({
         </div>
 
         <ArticleModalActions
-          article={article}
+          article={displayArticle}
           isStarred={isStarred}
           onStateChange={onStateChange}
           isTagPopoverOpen={isTagPopoverOpen}

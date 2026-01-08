@@ -42,64 +42,7 @@ const getOriginalIndex = (raw: string): string => {
   return '';
 };
 
-const MODELS = [
-  {
-    id: 'gemini-2.5-flash-lite-preview-09-2025',
-    name: 'Gemini 2.5 Flash-Lite (Sep)',
-    desc: '2025.09 版，100 RPD 强力羊毛',
-    hasSearch: true,
-    quota: '15 RPM / 100 RPD',
-  },
-  {
-    id: 'gemini-flash-lite-latest',
-    name: 'Gemini 1.5 Flash-Lite (Latest)',
-    desc: '经典低负载，100 RPD 稳定羊毛',
-    hasSearch: true,
-    quota: '15 RPM / 100 RPD',
-  },
-  {
-    id: 'gemini-3-flash-preview',
-    name: 'Gemini 3.0 Flash (Preview)',
-    desc: '最强下一代，目前独立池子',
-    hasSearch: true,
-    quota: '15 RPM / 独立 RPD',
-  },
-  {
-    id: 'gemini-robotics-er-1.5-preview',
-    name: 'Gemini 1.5 Robotics (Rare)',
-    desc: '罕见 1.5 具身智能推理，独立池子',
-    hasSearch: true,
-    quota: '15 RPM / 独立 RPD',
-  },
-  {
-    id: 'gemini-2.5-flash-lite',
-    name: 'Gemini 2.5 Flash-Lite',
-    desc: '响应最快，额外独立池子',
-    hasSearch: true,
-    quota: '15 RPM / 独立 RPD',
-  },
-  {
-    id: 'gemini-2.0-flash-lite-preview-02-05',
-    name: 'Gemini 2.0 Flash-Lite (Old)',
-    desc: '2.0 早期预览版，辅助独立池子',
-    hasSearch: true,
-    quota: '15 RPM / 独立 RPD',
-  },
-  {
-    id: 'gemini-2.0-flash',
-    name: 'Gemini 2.0 Flash',
-    desc: '全能旗舰，共用每日 20 次',
-    hasSearch: true,
-    quota: '1500 RPM / 20 RPD',
-  },
-  {
-    id: 'gemini-2.5-pro',
-    name: 'Gemini 2.5 Pro',
-    desc: '最强智力，极低 RPD 池',
-    hasSearch: true,
-    quota: '2 RPM / 50 RPD',
-  },
-];
+import { ModelSelector, MODELS } from './ModelSelector';
 
 /**
  * 递归处理文本节点中的引用标签，将其转换为交互按钮
@@ -277,11 +220,10 @@ const ChatMessageItem = React.memo(
     return (
       <div className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'} `}>
         <div
-          className={`rounded-2xl px-6 py-4 shadow-lg ${isExpanded ? (msg.role === 'user' ? 'max-w-2xl' : msg.citations?.length ? 'w-full max-w-5xl' : 'w-full max-w-xl') : 'max-w-[92%]'} ${
-            msg.role === 'user'
-              ? 'bg-indigo-600 text-white shadow-indigo-500/20'
-              : 'border border-stone-200 bg-white text-stone-800 dark:border-white/10 dark:bg-stone-800 dark:shadow-xl'
-          } `}
+          className={`rounded-2xl px-6 py-4 shadow-lg ${isExpanded ? (msg.role === 'user' ? 'max-w-2xl' : msg.citations?.length ? 'w-full max-w-5xl' : 'w-full max-w-xl') : 'max-w-[92%]'} ${msg.role === 'user'
+            ? 'bg-indigo-600 text-white shadow-indigo-500/20'
+            : 'border border-stone-200 bg-white text-stone-800 dark:border-white/10 dark:bg-stone-800 dark:shadow-xl'
+            } `}
         >
           <div
             className={`flex ${isExpanded && msg.role === 'model' && msg.citations?.length ? 'flex-row items-stretch justify-center gap-8' : 'flex-col items-start'} `}
@@ -302,11 +244,10 @@ const ChatMessageItem = React.memo(
             {/* Citations Area */}
             {msg.role === 'model' && (msg.citations?.length || msg.contextCount) && (
               <div
-                className={`flex flex-col gap-2 ${
-                  isExpanded && msg.citations?.length
-                    ? 'w-64 flex-shrink-0 border-l border-stone-100 pl-8 dark:border-white/5'
-                    : 'mt-4 w-full max-w-xl border-t border-stone-100 pt-3 dark:border-white/5'
-                } `}
+                className={`flex flex-col gap-2 ${isExpanded && msg.citations?.length
+                  ? 'w-64 flex-shrink-0 border-l border-stone-100 pl-8 dark:border-white/5'
+                  : 'mt-4 w-full max-w-xl border-t border-stone-100 pt-3 dark:border-white/5'
+                  } `}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold tracking-widest whitespace-nowrap text-stone-400 uppercase">
@@ -692,7 +633,6 @@ const ChatInputArea = React.memo(
     activeModel: any;
   }) => {
     const [inputValue, setInputValue] = useState('');
-    const [isModelMenuOpen, setIsModelMenuOpen] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
 
     const onSend = () => {
@@ -737,85 +677,20 @@ const ChatInputArea = React.memo(
         </div>
         <div className="mt-2 flex items-center justify-between px-1">
           <div className="flex items-center gap-3">
-            <div className="relative flex items-center gap-2">
-              <div className="h-2 w-2 animate-pulse rounded-full bg-green-500"></div>
-              <button
-                onClick={() => setIsModelMenuOpen(!isModelMenuOpen)}
-                disabled={isStreaming}
-                className="flex items-center gap-1 text-[10px] font-bold tracking-widest text-stone-500 uppercase transition-colors hover:text-indigo-600 disabled:opacity-50"
-              >
-                {activeModel?.name || selectedModel}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className={`h-3 w-3 transition-transform ${isModelMenuOpen ? 'rotate-180' : ''} `}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={3}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </button>
-
-              {isModelMenuOpen && !isStreaming && (
-                <>
-                  <div className="fixed inset-0 z-[-1]" onClick={() => setIsModelMenuOpen(false)} />
-                  <div className="scrollbar-thin scrollbar-thumb-stone-300 dark:scrollbar-thumb-white/10 absolute bottom-full left-0 mb-3 max-h-[400px] w-64 overflow-y-auto rounded-2xl border border-white/20 bg-white/90 shadow-2xl backdrop-blur-2xl dark:bg-stone-900/90">
-                    <div className="space-y-1 p-2">
-                      {MODELS.map((m) => (
-                        <button
-                          key={m.id}
-                          onClick={() => {
-                            setSelectedModel(m.id);
-                            setIsModelMenuOpen(false);
-                          }}
-                          className={`flex w-full flex-col items-start rounded-xl px-4 py-3 text-left transition-all ${
-                            selectedModel === m.id
-                              ? 'bg-indigo-600 text-white'
-                              : 'text-stone-700 hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-white/5'
-                          } `}
-                        >
-                          <div className="flex w-full items-center justify-between">
-                            <span className="text-xs font-bold">{m.name}</span>
-                            <div className="flex items-center gap-1.5">
-                              {m.hasSearch && (
-                                <span className="rounded bg-black/10 px-1 py-0.5 text-[8px] font-black tracking-widest text-black/40 uppercase dark:bg-white/10 dark:text-white/40">
-                                  Search
-                                </span>
-                              )}
-                              <span
-                                className={`rounded-md px-1.5 py-0.5 text-[9px] font-black tracking-tight uppercase shadow-sm ${selectedModel === m.id ? 'bg-white/30 text-white' : 'bg-indigo-50 text-indigo-600 dark:bg-white/10 dark:text-indigo-400'} `}
-                              >
-                                {m.quota}
-                              </span>
-                            </div>
-                          </div>
-                          <span
-                            className={`mt-1 text-[10px] ${selectedModel === m.id ? 'text-indigo-100' : 'text-stone-500'} `}
-                          >
-                            {m.desc}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
+            <ModelSelector
+              selectedModel={selectedModel}
+              onSelectModel={setSelectedModel}
+              disabled={isStreaming}
+            />
 
             {/* Search Toggle */}
             <button
               onClick={toggleSearchGrounding}
               disabled={isStreaming || !activeModel?.hasSearch}
-              className={`flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-bold tracking-widest transition-all ${
-                searchGroundingEnabled && activeModel?.hasSearch
-                  ? 'bg-blue-600/10 text-blue-600 shadow-[0_0_15px_-5px_rgba(37,99,235,0.4)] ring-1 ring-blue-600/20'
-                  : 'bg-stone-100 text-stone-400 dark:bg-white/5'
-              } disabled:opacity-30`}
+              className={`flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-bold tracking-widest transition-all ${searchGroundingEnabled && activeModel?.hasSearch
+                ? 'bg-blue-600/10 text-blue-600 shadow-[0_0_15px_-5px_rgba(37,99,235,0.4)] ring-1 ring-blue-600/20'
+                : 'bg-stone-100 text-stone-400 dark:bg-white/5'
+                } disabled:opacity-30`}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"

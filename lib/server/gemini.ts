@@ -66,57 +66,81 @@ export async function getChatSystemPrompt(): Promise<string> {
   return data.value;
 }
 
-export async function generateBriefingWithGemini(articleData: any) {
+export async function generateBriefingWithGemini(
+  articleData: any | any[],
+  modelId: string = 'gemini-2.5-flash-lite-preview-09-2025',
+) {
   if (!apiKey) {
     throw new Error('GOOGLE_GENERATIVE_AI_API_KEY is not defined');
   }
 
+  const isBatch = Array.isArray(articleData);
+  const articles = isBatch ? articleData : [articleData];
+
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite-preview-09-2025' });
+  // Allow dynamic model selection
+  const model = genAI.getGenerativeModel({ model: modelId });
 
   // 1. Fetch Prompt
   const systemPromptTemplate = await getSystemPrompt();
 
   // 2. Hydrate Prompt (Replace {{payload}})
   // The N8N prompt expects a JSON string of an array of articles in 'payload'
-  // We mimic this structure: payload = [article]
-  const payloadStr = JSON.stringify([articleData]);
+  const payloadStr = JSON.stringify(articles);
 
-  // NOTE: If the prompt uses {{payload}}, we replace it.
-  // If the user didn't update the prompt yet, this might fail or produce weird results.
-  // We assume the prompt is compliant as per previous instructions.
   const fullPrompt = systemPromptTemplate.replace('{{payload}}', payloadStr);
 
   // 3. Call Gemini
   const result = await model.generateContent(fullPrompt);
   const response = await result.response;
   const text = response.text();
-  // metadata removed as it was unused
 
   // 4. Parse Result
   const cleanJson = cleanGeminiJson(text);
 
   try {
     const parsed = JSON.parse(cleanJson);
-    // Expecting an array with 1 item
-    const briefing = Array.isArray(parsed) ? parsed[0] : parsed;
+    // Ensure we have an array of briefings matching the input articles
+    const briefings = Array.isArray(parsed) ? parsed : [parsed];
 
-    // 4.5 生成向量 (语义指纹) - 包含分类与关键词以增强检索维度
-    const keywordsStr = Array.isArray(briefing.keywords) ? briefing.keywords.join(' ') : '';
-    const contentToEmbed =
-      `${briefing.title || articleData.title || ''} ${briefing.category || ''} ${keywordsStr} ${briefing.summary || ''} ${briefing.tldr || ''}`.trim();
-    let embedding = null;
-    try {
-      embedding = await generateEmbedding(contentToEmbed, 'RETRIEVAL_DOCUMENT', 'ai');
-    } catch (e) {
-      console.error('Failed to generate embedding during briefing:', e);
+    // 4.5 并发生成向量 (语义指纹) - 包含分类与关键词以增强检索维度
+    const processedBriefings = await Promise.all(
+      briefings.map(async (briefing, index) => {
+        const originalArticle = articles[index] || articles[0];
+        const keywordsStr = Array.isArray(briefing.keywords) ? briefing.keywords.join(' ') : '';
+        const contentToEmbed =
+          `${briefing.title || originalArticle.title || ''} ${briefing.category || ''} ${keywordsStr} ${briefing.summary || ''} ${briefing.tldr || ''}`.trim();
+
+        let embedding = null;
+        try {
+          embedding = await generateEmbedding(contentToEmbed, 'RETRIEVAL_DOCUMENT', 'ai');
+        } catch (e) {
+          console.error(`Failed to generate embedding for article ${originalArticle.id}:`, e);
+        }
+
+        return {
+          ...briefing,
+          embedding,
+          articleId: originalArticle.id, // 关联原始 ID
+        };
+      }),
+    );
+
+    if (isBatch) {
+      return {
+        briefings: processedBriefings,
+        metadata: {
+          usageMetadata: response.usageMetadata,
+          safetyRatings: response.candidates?.[0]?.safetyRatings,
+          finishReason: response.candidates?.[0]?.finishReason,
+          citationMetadata: response.candidates?.[0]?.citationMetadata,
+        },
+      };
     }
 
+    // Single mode: return compatible structure
     return {
-      briefing: {
-        ...briefing,
-        embedding,
-      },
+      briefing: processedBriefings[0],
       metadata: {
         usageMetadata: response.usageMetadata,
         safetyRatings: response.candidates?.[0]?.safetyRatings,
@@ -134,11 +158,11 @@ export async function generateBriefingWithGemini(articleData: any) {
     console.error('--- TOTAL LENGTH ---');
     console.error(text.length);
     console.error('--- RAW TEXT ---');
-    console.log(text); // Use console.log for large blobs, sometimes error handles it differently
+    console.log(text);
     console.error('====================================================');
 
     throw new Error(
-      `Gemini JSON 解析失败 (Key: ${apiKeyName}): ${error.message}. 请检查 Vercel 日志获取原始输出。`,
+      `Gemini JSON 解析失败 (Model: ${modelId}): ${error.message}. 请检查 Vercel 日志获取原始输出。`,
     );
   }
 }
@@ -185,14 +209,14 @@ export async function chatWithGemini(
   const articleList =
     articles.length > 0
       ? articles
-          .map((a, i) => {
-            const dateStr = new Date(a.published).toLocaleDateString();
-            const keywordsStr = Array.isArray(a.keywords) ? a.keywords.join(', ') : '';
-            const verdictStr = a.verdict
-              ? `Score:${a.verdict.score || '?'}/10 (${a.verdict.importance || 'Normal'})`
-              : '';
+        .map((a, i) => {
+          const dateStr = new Date(a.published).toLocaleDateString();
+          const keywordsStr = Array.isArray(a.keywords) ? a.keywords.join(', ') : '';
+          const verdictStr = a.verdict
+            ? `Score:${a.verdict.score || '?'}/10 (${a.verdict.importance || 'Normal'})`
+            : '';
 
-            return `【文章索引：[${i + 1}]】
+          return `【文章索引：[${i + 1}]】
 标题: ${a.title}
 来源: ${a.sourceName || 'Unknown'} | ${verdictStr}
 日期: ${dateStr}
@@ -202,8 +226,8 @@ TLDR: ${a.tldr || '无'}
 技术亮点: ${a.highlights || '无'}
 犀利点评: ${a.critiques || '无'}
 市场观点: ${a.marketTake || '无'}`;
-          })
-          .join('\n\n---\n\n')
+        })
+        .join('\n\n---\n\n')
       : '（未匹配到相关本地文章）';
 
   const contextPrompt = CHAT_CONTEXT_PROMPT_TEMPLATE.replace(

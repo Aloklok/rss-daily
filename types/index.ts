@@ -81,6 +81,15 @@ export interface FreshRSSItem {
   content?: { content: string };
 }
 
+export interface Subscription {
+  id: string;
+  title: string;
+  category?: string;
+  url?: string;
+  htmlUrl?: string;
+  iconUrl?: string;
+}
+
 // Module Declarations
 declare module '@sparticuz/chromium';
 declare module 'puppeteer-core';
