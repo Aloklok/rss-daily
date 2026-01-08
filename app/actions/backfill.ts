@@ -88,7 +88,13 @@ export async function fetchBackfillCandidates(
       params.pub_nt = String(beforeTimestamp); // Max Date (Older Than)
     }
 
-    const safeStreamId = encodeURIComponent(streamId);
+    let requestStreamId = streamId;
+    if (streamId === 'user/-/state/com.google/unread') {
+      requestStreamId = 'user/-/state/com.google/reading-list';
+      params.xt = 'user/-/state/com.google/read'; // Exclude read items = Get unread
+    }
+
+    const safeStreamId = encodeURIComponent(requestStreamId);
     const response = await freshRss.get<{
       id: string;
       updated: number;
