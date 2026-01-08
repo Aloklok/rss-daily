@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { DEFAULT_MODEL_ID } from '@/lib/ai-models';
 
 export interface ChatMessage {
   role: 'user' | 'model' | 'system';
@@ -25,6 +26,7 @@ interface ChatStoreState {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   sessionMetadata: any[];
   searchGroundingEnabled: boolean;
+  isSmallTalkMode: boolean;
 
   // Actions
   addMessage: (msg: Omit<ChatMessage, 'id' | 'timestamp'>) => void;
@@ -36,7 +38,10 @@ interface ChatStoreState {
   clearHistory: () => void;
   setSelectedModel: (model: string) => void;
   setIsExpanded: (expanded: boolean) => void;
+  setSearchGroundingEnabled: (enabled: boolean) => void;
   toggleSearchGrounding: () => void;
+  setIsSmallTalkMode: (enabled: boolean) => void;
+  toggleSmallTalkMode: () => void;
 
   // 辅助函数：消息压缩 (Tapering)
   archiveOldMessages: () => void;
@@ -46,13 +51,14 @@ export const useChatStore = create<ChatStoreState>()(
   persist(
     (set, get) => ({
       messages: [],
-      selectedModel: 'gemini-2.0-flash',
+      selectedModel: DEFAULT_MODEL_ID,
       isExpanded: false,
       isOpen: false,
       isStreaming: false,
       streamingContent: '',
       sessionMetadata: [],
       searchGroundingEnabled: true, // 默认开启 Google Search Grounding
+      isSmallTalkMode: false, // 默认关闭闲聊模式
 
       setIsOpen: (open) => set({ isOpen: open }),
 
@@ -76,9 +82,20 @@ export const useChatStore = create<ChatStoreState>()(
 
       clearHistory: () => set({ messages: [] }),
 
+      setSearchGroundingEnabled: (enabled) => set({ searchGroundingEnabled: enabled }),
+
       toggleSearchGrounding: () =>
         set((state) => ({
           searchGroundingEnabled: !state.searchGroundingEnabled,
+        })),
+
+      setIsSmallTalkMode: (enabled) => set({ isSmallTalkMode: enabled }),
+
+      toggleSmallTalkMode: () =>
+        set((state) => ({
+          isSmallTalkMode: !state.isSmallTalkMode,
+          // 如果开启闲聊模式，默认关闭搜索以提速
+          searchGroundingEnabled: !state.isSmallTalkMode ? false : state.searchGroundingEnabled,
         })),
 
       setSelectedModel: (model) => set({ selectedModel: model }),
@@ -100,6 +117,7 @@ export const useChatStore = create<ChatStoreState>()(
       partialize: (state) => ({
         messages: state.messages,
         searchGroundingEnabled: state.searchGroundingEnabled,
+        isSmallTalkMode: state.isSmallTalkMode,
         selectedModel: state.selectedModel,
       }),
     },

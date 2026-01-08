@@ -13,7 +13,9 @@ import dayjs from 'dayjs';
 import { CATEGORY_ORDER, UNCATEGORIZED_LABEL } from '@/lib/constants';
 import { useUIStore } from '@/store/uiStore';
 import { useArticleStore } from '@/store/articleStore';
-import { ModelSelector, MODELS } from '../ai/ModelSelector';
+import { ModelSelector } from '../ai/ModelSelector';
+import { DEFAULT_MODEL_ID } from '@/lib/ai-models';
+import { useQueryClient } from '@tanstack/react-query';
 
 // --- Types ---
 type ProcessingState = 'idle' | 'fetching_candidates' | 'processing' | 'done';
@@ -30,8 +32,6 @@ interface LogEntry {
 }
 
 // --- Helper Components ---
-
-// 1. Source List Item
 
 // 2. Month Picker Grid (by Year)
 const YearGrid = ({
@@ -90,6 +90,7 @@ const YearGrid = ({
 export default function BackfillPanel({
   initialSubscriptions,
 }: { initialSubscriptions?: Subscription[] } = {}) {
+  const queryClient = useQueryClient();
   const isAdmin = useUIStore((state) => state.isAdmin);
 
   // --- State: Data ---
@@ -103,7 +104,7 @@ export default function BackfillPanel({
   const [batchSize, setBatchSize] = useState<number>(10);
   const openModal = useUIStore((state) => state.openModal);
   const addArticles = useArticleStore((state) => state.addArticles);
-  const [selectedModel, setSelectedModel] = useState<string>(MODELS[0].id);
+  const [selectedModel, setSelectedModel] = useState<string>(DEFAULT_MODEL_ID);
 
   // --- State: UI & Processing ---
   const [processingState, setProcessingState] = useState<ProcessingState>('idle');
@@ -266,6 +267,14 @@ export default function BackfillPanel({
         if (res.success) {
           const batchResults = (res as any).results || [];
           addLog(`批次成功 ${res.saved} 篇:`, 'success');
+
+          // Invalidate queries for these articles so the modal fetches fresh data
+          const processedIds = batchResults.map((r: any) => String(r.id));
+          queryClient.invalidateQueries({
+            queryKey: ['article', 'details'],
+            predicate: (query) => processedIds.includes(String(query.queryKey[2])),
+          });
+
           batchResults.forEach((r: any, idx: number) => {
             addLog(`${idx + 1}. ${r.title}`, 'info');
           });

@@ -35,14 +35,22 @@ const getOriginalIndex = (raw: string): string => {
       .split('')
       .map((char) => UNICODE_MAP[char] || '')
       .join('');
-  if (raw.startsWith('[') && raw.endsWith(']') && raw.length < 10) {
-    // eslint-disable-next-line no-useless-escape
-    return raw.replace(/[\[\]\s]/g, '');
-  }
+
+  // 处理 [¹] 这种混合格式
+  const inner = raw.replace(/[[\]\s]/g, '');
+  if (/^\d+(\.\d+)?$/.test(inner)) return inner;
+
+  const unicodeInner = inner
+    .split('')
+    .map((c) => UNICODE_MAP[c] || c)
+    .join('');
+  if (/^\d+(\.\d+)?$/.test(unicodeInner)) return unicodeInner;
+
   return '';
 };
 
-import { ModelSelector, MODELS } from './ModelSelector';
+import { ModelSelector } from './ModelSelector';
+import { MODELS } from '@/lib/ai-models';
 
 /**
  * 递归处理文本节点中的引用标签，将其转换为交互按钮
@@ -62,7 +70,7 @@ const renderCitations = (
     return parts.map((part, i) => {
       const originalIndex = getOriginalIndex(part);
 
-      if (originalIndex && /^\d+$/.test(originalIndex)) {
+      if (originalIndex && /^\d+(\.\d+)?$/.test(originalIndex)) {
         // 如果开启了唯一性检查且该索引在本消息中已出现过，则不再重复渲染为交互角标（仅保留占位以维持文本完整性）
         const displayIndex = displayMapping?.get(originalIndex) || originalIndex;
         const citation = citations?.find((c) => c.index.toString() === originalIndex);
@@ -205,6 +213,8 @@ const ChatMessageItem = React.memo(
         ),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         li: ({ children }: any) => <li className="mb-1">{wrap(children)}</li>,
+        strong: ({ children }: any) => <strong className="font-bold">{wrap(children)}</strong>,
+        em: ({ children }: any) => <em className="italic">{wrap(children)}</em>,
 
         a: ({ node: _node, ...props }: any) => (
           <a
@@ -243,74 +253,79 @@ const ChatMessageItem = React.memo(
             </div>
 
             {/* Citations Area */}
-            {msg.role === 'model' && (msg.citations?.length || msg.contextCount) && (
-              <div
-                className={`flex flex-col gap-2 ${
-                  isExpanded && msg.citations?.length
-                    ? 'w-64 flex-shrink-0 border-l border-stone-100 pl-8 dark:border-white/5'
-                    : 'mt-4 w-full max-w-xl border-t border-stone-100 pt-3 dark:border-white/5'
-                } `}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold tracking-widest whitespace-nowrap text-stone-400 uppercase">
-                    {msg.citations && msg.citations.length > 0 ? '直接引用文献:' : '结合参考资料:'}
-                  </span>
-                </div>
-                <div className="flex flex-col gap-2.5">
-                  {msg.citations && msg.citations.length > 0 ? (
-                    [...displayMapping.entries()]
-                      .sort((a, b) => parseInt(a[1]) - parseInt(b[1]))
-                      .map(([originalIdx, displayIdx]) => {
-                        const citation = msg.citations?.find(
-                          (c) => c.index.toString() === originalIdx,
-                        );
-                        // 优先从 sessionMetadata 找完整对象，找不到则从消息自带的引用信息中恢复（持久化支持）
-                        const metaFromSession = sessionMetadata.find((m) => m.id === citation?.id);
-                        const article = metaFromSession || citation;
+            {msg.role === 'model' &&
+              ((msg.citations?.length || 0) > 0 || (msg.contextCount || 0) > 0) && (
+                <div
+                  className={`flex flex-col gap-2 ${
+                    isExpanded && msg.citations?.length
+                      ? 'w-64 flex-shrink-0 border-l border-stone-100 pl-8 dark:border-white/5'
+                      : 'mt-4 w-full max-w-xl border-t border-stone-100 pt-3 dark:border-white/5'
+                  } `}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold tracking-widest whitespace-nowrap text-stone-400 uppercase">
+                      {msg.citations && msg.citations.length > 0
+                        ? '直接引用文献:'
+                        : '结合参考资料:'}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-2.5">
+                    {msg.citations && msg.citations.length > 0 ? (
+                      [...displayMapping.entries()]
+                        .sort((a, b) => parseInt(a[1]) - parseInt(b[1]))
+                        .map(([originalIdx, displayIdx]) => {
+                          const citation = msg.citations?.find(
+                            (c) => c.index.toString() === originalIdx,
+                          );
+                          // 优先从 sessionMetadata 找完整对象，找不到则从消息自带的引用信息中恢复（持久化支持）
+                          const metaFromSession = sessionMetadata.find(
+                            (m) => m.id === citation?.id,
+                          );
+                          const article = metaFromSession || citation;
 
-                        if (!article || !article.title) return null;
-                        const dateStr = article.published
-                          ? new Date(article.published).toLocaleDateString()
-                          : '';
+                          if (!article || !article.title) return null;
+                          const dateStr = article.published
+                            ? new Date(article.published).toLocaleDateString()
+                            : '';
 
-                        return (
-                          <div
-                            key={originalIdx}
-                            className="group flex items-start gap-2 text-left text-[11px]"
-                          >
-                            <span className="mt-[0.5px] flex-shrink-0 font-bold text-indigo-500">
-                              [{displayIdx}]
-                            </span>
-                            <div className="min-w-0 flex-1 leading-snug">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleOpenArticle(article);
-                                }}
-                                className="inline cursor-pointer text-left font-medium text-stone-600 transition-colors hover:text-indigo-600 hover:underline dark:text-stone-300 dark:hover:text-indigo-400"
-                                title={article?.title}
-                              >
-                                {article?.title}
-                              </button>
-                              {dateStr && (
-                                <span className="ml-1.5 inline-block font-mono text-[9px] whitespace-nowrap text-stone-400 opacity-50">
-                                  {dateStr}
-                                </span>
-                              )}
+                          return (
+                            <div
+                              key={originalIdx}
+                              className="group flex items-start gap-2 text-left text-[11px]"
+                            >
+                              <span className="mt-[0.5px] flex-shrink-0 font-bold text-indigo-500">
+                                [{displayIdx}]
+                              </span>
+                              <div className="min-w-0 flex-1 leading-snug">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleOpenArticle(article);
+                                  }}
+                                  className="inline cursor-pointer text-left font-medium text-stone-600 transition-colors hover:text-indigo-600 hover:underline dark:text-stone-300 dark:hover:text-indigo-400"
+                                  title={article?.title}
+                                >
+                                  {article?.title}
+                                </button>
+                                {dateStr && (
+                                  <span className="ml-1.5 inline-block font-mono text-[9px] whitespace-nowrap text-stone-400 opacity-50">
+                                    {dateStr}
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        );
-                      })
-                  ) : (
-                    <div className="flex flex-col gap-1 pr-4">
-                      <p className="text-[10px] leading-relaxed text-stone-300 italic">
-                        AI 已综合分析了检索到的 {msg.contextCount} 篇文章。
-                      </p>
-                    </div>
-                  )}
+                          );
+                        })
+                    ) : (
+                      <div className="flex flex-col gap-1 pr-4">
+                        <p className="text-[10px] leading-relaxed text-stone-300 italic">
+                          AI 已综合分析了检索到的 {msg.contextCount} 篇文章。
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
           </div>
         </div>
       </div>
@@ -325,10 +340,12 @@ const StreamingResponse = React.memo(
     isExpanded,
     handleOpenArticle,
     scrollRef,
+    sessionMetadata,
   }: {
     isExpanded: boolean;
     handleOpenArticle: (article: any) => void;
     scrollRef: React.RefObject<HTMLDivElement | null>;
+    sessionMetadata: any[];
   }) => {
     const streamingContent = useChatStore((state) => state.streamingContent);
     const isStreaming = useChatStore((state) => state.isStreaming);
@@ -378,17 +395,58 @@ const StreamingResponse = React.memo(
                   p: ({ children }: any) => (
                     <p className="mb-4 last:mb-0">
                       {React.Children.map(children, (c) =>
-                        renderCitations(c, [], [], handleOpenArticle, false),
+                        renderCitations(c, [], sessionMetadata, handleOpenArticle, false),
                       )}
                     </p>
                   ),
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  h1: ({ children }: any) => (
+                    <h1 className="mb-4 text-xl font-bold">
+                      {React.Children.map(children, (c) =>
+                        renderCitations(c, [], sessionMetadata, handleOpenArticle, false),
+                      )}
+                    </h1>
+                  ),
+                  h2: ({ children }: any) => (
+                    <h2 className="mb-3 text-lg font-bold">
+                      {React.Children.map(children, (c) =>
+                        renderCitations(c, [], sessionMetadata, handleOpenArticle, false),
+                      )}
+                    </h2>
+                  ),
+                  h3: ({ children }: any) => (
+                    <h3 className="mb-2 text-base font-bold">
+                      {React.Children.map(children, (c) =>
+                        renderCitations(c, [], sessionMetadata, handleOpenArticle, false),
+                      )}
+                    </h3>
+                  ),
+                  blockquote: ({ children }: any) => (
+                    <blockquote className="mb-4 border-l-4 border-stone-200 pl-4 italic dark:border-white/10">
+                      {React.Children.map(children, (c) =>
+                        renderCitations(c, [], sessionMetadata, handleOpenArticle, false),
+                      )}
+                    </blockquote>
+                  ),
                   li: ({ children }: any) => (
                     <li className="mb-1">
                       {React.Children.map(children, (c) =>
-                        renderCitations(c, [], [], handleOpenArticle, false),
+                        renderCitations(c, [], sessionMetadata, handleOpenArticle, false),
                       )}
                     </li>
+                  ),
+                  strong: ({ children }: any) => (
+                    <strong className="font-bold">
+                      {React.Children.map(children, (c) =>
+                        renderCitations(c, [], sessionMetadata, handleOpenArticle, false),
+                      )}
+                    </strong>
+                  ),
+                  em: ({ children }: any) => (
+                    <em className="italic">
+                      {React.Children.map(children, (c) =>
+                        renderCitations(c, [], sessionMetadata, handleOpenArticle, false),
+                      )}
+                    </em>
                   ),
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   a: ({ ...props }: any) => (
@@ -503,6 +561,7 @@ const MessageContainer = React.memo(
               isExpanded={isExpanded}
               handleOpenArticle={handleOpenArticle}
               scrollRef={scrollRef}
+              sessionMetadata={sessionMetadata}
             />
           )}
         </div>
@@ -622,17 +681,15 @@ const ChatInputArea = React.memo(
     handleSend,
     selectedModel,
     setSelectedModel,
-    searchGroundingEnabled,
-    toggleSearchGrounding,
-    activeModel,
+    isSmallTalkMode,
+    toggleSmallTalkMode,
   }: {
     isStreaming: boolean;
     handleSend: (val: string) => void;
     selectedModel: string;
     setSelectedModel: (val: string) => void;
-    searchGroundingEnabled: boolean;
-    toggleSearchGrounding: () => void;
-    activeModel: any;
+    isSmallTalkMode: boolean;
+    toggleSmallTalkMode: () => void;
   }) => {
     const [inputValue, setInputValue] = useState('');
     const inputRef = useRef<HTMLInputElement>(null);
@@ -686,14 +743,14 @@ const ChatInputArea = React.memo(
             />
 
             {/* Search Toggle */}
-            <button
+            {/* <button
               onClick={toggleSearchGrounding}
               disabled={isStreaming || !activeModel?.hasSearch}
-              className={`flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-bold tracking-widest transition-all ${
-                searchGroundingEnabled && activeModel?.hasSearch
-                  ? 'bg-blue-600/10 text-blue-600 shadow-[0_0_15px_-5px_rgba(37,99,235,0.4)] ring-1 ring-blue-600/20'
-                  : 'bg-stone-100 text-stone-400 dark:bg-white/5'
-              } disabled:opacity-30`}
+              className={`flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-bold tracking-widest transition-all ${searchGroundingEnabled && activeModel?.hasSearch
+                ? 'bg-blue-600/10 text-blue-600 shadow-[0_0_15px_-5px_rgba(37,99,235,0.4)] ring-1 ring-blue-600/20'
+                : 'bg-stone-100 text-stone-400 dark:bg-white/5'
+                } disabled:opacity-30`}
+              title="联网搜索加速/事实核底"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -710,6 +767,34 @@ const ChatInputArea = React.memo(
                 />
               </svg>
               {searchGroundingEnabled && activeModel?.hasSearch ? 'ON' : 'OFF'}
+            </button> */}
+
+            {/* Small Talk Toggle */}
+            <button
+              onClick={toggleSmallTalkMode}
+              disabled={isStreaming}
+              className={`flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-bold tracking-widest transition-all ${
+                isSmallTalkMode
+                  ? 'bg-purple-600/10 text-purple-600 shadow-[0_0_15px_-5px_rgba(147,51,234,0.4)] ring-1 ring-purple-600/20'
+                  : 'bg-stone-100 text-stone-400 dark:bg-white/5'
+              } disabled:opacity-30`}
+              title="闲聊模式：跳过本地知识库检索，直接对话"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-3 w-3"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.5}
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                />
+              </svg>
+              闲聊 {isSmallTalkMode ? 'ON' : 'OFF'}
             </button>
           </div>
           <span className="text-[10px] text-stone-400">Esc 关闭 | 输入 Enter 发送</span>
@@ -733,11 +818,13 @@ const AIChatModal: React.FC = () => {
   const setSessionMetadata = useChatStore((state) => state.setSessionMetadata);
   const clearHistory = useChatStore((state) => state.clearHistory);
   const searchGroundingEnabled = useChatStore((state) => state.searchGroundingEnabled);
-  const toggleSearchGrounding = useChatStore((state) => state.toggleSearchGrounding);
+  const setSearchGroundingEnabled = useChatStore((state) => state.setSearchGroundingEnabled);
   const selectedModel = useChatStore((state) => state.selectedModel);
   const setSelectedModel = useChatStore((state) => state.setSelectedModel);
   const isExpanded = useChatStore((state) => state.isExpanded);
   const setIsExpanded = useChatStore((state) => state.setIsExpanded);
+  const isSmallTalkMode = useChatStore((state) => state.isSmallTalkMode);
+  const toggleSmallTalkMode = useChatStore((state) => state.toggleSmallTalkMode);
 
   const openArticleModalStore = useUIStore((state) => state.openModal);
   const addArticlesToStore = useArticleStore((state) => state.addArticles);
@@ -758,6 +845,13 @@ const AIChatModal: React.FC = () => {
     () => MODELS.find((m) => m.id === selectedModel),
     [selectedModel],
   );
+
+  // Auto-enable search when switching to a capable model (UX consistency)
+  useEffect(() => {
+    if (activeModel?.hasSearch) {
+      setSearchGroundingEnabled(true);
+    }
+  }, [activeModel?.id, setSearchGroundingEnabled]);
 
   const handleScroll = React.useCallback(() => {
     if (!scrollRef.current) return;
@@ -802,6 +896,7 @@ const AIChatModal: React.FC = () => {
         body: JSON.stringify({
           messages: [...messages, { role: 'user', content: userMsg }],
           useSearch: searchGroundingEnabled,
+          isSmallTalkMode: isSmallTalkMode,
           model: selectedModel,
         }),
       });
@@ -861,7 +956,7 @@ const AIChatModal: React.FC = () => {
       const citationMatches = [...assistantContent.matchAll(CITATION_REGEX)];
       const extractedIndices = citationMatches
         .map((m) => getOriginalIndex(m[0]))
-        .filter((idx) => idx !== '' && /^\d+$/.test(idx));
+        .filter((idx) => idx !== '' && /^\d+(\.\d+)?$/.test(idx));
 
       const uniqueIndices = Array.from(new Set(extractedIndices.map((idx) => parseInt(idx)))).sort(
         (a, b) => a - b,
@@ -939,9 +1034,8 @@ const AIChatModal: React.FC = () => {
           handleSend={handleSend}
           selectedModel={selectedModel}
           setSelectedModel={setSelectedModel}
-          searchGroundingEnabled={searchGroundingEnabled}
-          toggleSearchGrounding={toggleSearchGrounding}
-          activeModel={activeModel}
+          isSmallTalkMode={isSmallTalkMode}
+          toggleSmallTalkMode={toggleSmallTalkMode}
         />
       </div>
     </div>

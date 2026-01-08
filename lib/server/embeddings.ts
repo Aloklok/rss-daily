@@ -10,11 +10,13 @@ export async function generateEmbedding(
   let apiKeyName: string;
 
   if (purpose === 'ai') {
-    apiKey =
-      process.env.GOOGLE_GENERATIVE_AI_API_KEY_CHENG30 || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
-    apiKeyName = process.env.GOOGLE_GENERATIVE_AI_API_KEY_CHENG30
-      ? 'GOOGLE_GENERATIVE_AI_API_KEY_CHENG30'
-      : 'GOOGLE_GENERATIVE_AI_API_KEY';
+    apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY_CHENG30;
+    apiKeyName = 'GOOGLE_GENERATIVE_AI_API_KEY_CHENG30';
+    // 如果没有配置 CHENG30，则尝试用默认 KEY (作为配置层面的兜底，非运行时 Fallback)
+    if (!apiKey) {
+      apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+      apiKeyName = 'GOOGLE_GENERATIVE_AI_API_KEY';
+    }
   } else {
     apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
     apiKeyName = 'GOOGLE_GENERATIVE_AI_API_KEY';
@@ -38,6 +40,7 @@ export async function generateEmbedding(
     const embedding = result.embedding;
     return embedding.values;
   } catch (error: any) {
+    // 移除自动降级策略：不再在运行时自动切换 KEY，确保配额错误能准确反馈到对应的账号上
     console.error(
       `[generateEmbedding Error] Key: ${apiKeyName} | Task: ${taskType} | Text Snippet: "${text.slice(0, 50)}..."`,
     );

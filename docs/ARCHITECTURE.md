@@ -43,6 +43,8 @@
 系统采用 **混合搜索 (Hybrid Search)** 策略，结合了传统关键词匹配与语义理解：
 
 - **技术栈**: Supabase `pgvector` + Gemini `gemini-embedding-001` (2026 新一代模型)。
+- **决策层 (Selection Layer)**:
+  - **AI Router**: 在检索前根据意图（RAG/DIRECT/SEARCH）动态决定是否调用向量数据库，极大降低了非文章咨询类问题的延迟。
 - **算法细节 (Ranking Strategy)**:
   - **非对称匹配 (Asymmetric Matching)**:
     - **Query 路**: 搜索输入使用 `RETRIEVAL_QUERY` 任务类型，提取搜索意图特征。

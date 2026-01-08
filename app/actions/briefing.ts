@@ -12,8 +12,12 @@ const supabaseUrl = process.env.SUPABASE_URL!;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Update: Accept Article + Optional Content from Client
-export async function generateBriefingAction(article: Article, clientContent?: string) {
+// Update: Accept Article + Optional Content from Client + Optional Model ID
+export async function generateBriefingAction(
+  article: Article,
+  clientContent?: string,
+  modelId?: string,
+) {
   try {
     let rawContent = clientContent;
 
@@ -58,7 +62,7 @@ export async function generateBriefingAction(article: Article, clientContent?: s
     console.log(JSON.stringify(payload, null, 2));
     console.log('------------------------------------------------');
 
-    const { briefing, metadata } = await generateBriefingWithGemini(payload);
+    const { briefing, metadata } = await generateBriefingWithGemini(payload, modelId);
 
     console.log('------------ GEMINI RESPONSE BRIEFING ------------');
     console.log(JSON.stringify(briefing, null, 2));
