@@ -8,6 +8,7 @@ vi.mock('next/navigation', () => ({
     push: vi.fn(),
   }),
   usePathname: () => '/',
+  __esModule: true,
 }));
 
 // Mock useSidebar to avoid React Query dependency

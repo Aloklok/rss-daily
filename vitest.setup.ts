@@ -29,6 +29,7 @@ if (typeof window !== 'undefined') {
     }),
     usePathname: () => '/',
     useSearchParams: () => new URLSearchParams(),
+    __esModule: true,
   }));
   // 全局：Hydration 错误检测
   // 监听 console.error，一旦发现 "Hydration failed" 或 "hydration mismatch" 直接让测试失败

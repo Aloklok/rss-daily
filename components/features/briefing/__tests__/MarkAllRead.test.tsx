@@ -47,6 +47,8 @@ vi.mock('@tanstack/react-query', () => ({
 // Mock useRouter
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
+  usePathname: () => '/',
+  __esModule: true,
 }));
 
 describe('全部已读按钮 (Mark All Read)', () => {

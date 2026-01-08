@@ -7,6 +7,7 @@ import { useUIStore } from '../../../../store/uiStore';
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn() }),
   usePathname: () => '/',
+  __esModule: true,
 }));
 
 // Mock useSidebar

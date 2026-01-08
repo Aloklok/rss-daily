@@ -14,6 +14,7 @@ import { useChatStore } from '@/store/chatStore';
 // We mock the store to control isAdmin state
 vi.mock('../../store/uiStore', () => ({
   useUIStore: vi.fn(),
+  __esModule: true,
 }));
 
 // Mocks for Floating Action Buttons dependencies
@@ -51,13 +52,15 @@ vi.mock('../../lib/server/gemini', () => ({
 
 vi.mock('../../store/chatStore', () => ({
   useChatStore: vi.fn(),
+  __esModule: true,
 }));
 
 // Mock Server Actions used by BackfillPanel
 vi.mock('@/app/actions/backfill', () => ({
   fetchBackfillCandidates: vi.fn(),
   generateBatchBriefing: vi.fn(),
-  getSubscriptionList: vi.fn(),
+  getSubscriptionList: vi.fn().mockResolvedValue([]),
+  __esModule: true,
 }));
 
 const createTestQueryClient = () =>
