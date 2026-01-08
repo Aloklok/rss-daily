@@ -160,7 +160,7 @@ export const fetchArticleContentServer = async (
       if (dbArticle?.title) {
         title = dbArticle.title;
       }
-    } catch (e) {
+    } catch (_e) {
       console.warn(`[fetchArticleContentServer] Could not fetch Supabase title for ${id}, using FreshRSS fallback.`);
     }
 
