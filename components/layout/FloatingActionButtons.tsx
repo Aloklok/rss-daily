@@ -288,9 +288,6 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
             />
           </svg>
           {/* Tooltip hint */}
-          <span className="absolute right-full mr-3 rounded-md bg-gray-900 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100">
-            架构师助手 (Cmd+J)
-          </span>
         </button>
       )}
 
