@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { fetchBackfillCandidates, generateBatchBriefing, getSubscriptionList, BackfillCandidate } from '@/app/actions/backfill';
@@ -105,8 +105,6 @@ export default function BackfillPanel({ initialSubscriptions }: { initialSubscri
         setLogs(prev => [{ time: dayjs().format('HH:mm:ss'), message, type }, ...prev]);
     };
 
-    // Security Guard: Prevent rendering for non-admins (Moved after hooks)
-    if (!isAdmin) return null;
 
     // --- Effect: Fetch Subscriptions if not provided ---
     useEffect(() => {
@@ -169,6 +167,9 @@ export default function BackfillPanel({ initialSubscriptions }: { initialSubscri
     }, []);
 
     // --- Action: Fetch Candidates ---
+    // Security Guard: Prevent rendering for non-admins (Moved after all hooks to prevent conditional hook errors)
+    if (!isAdmin) return null;
+
     const handleFetchCandidates = async (sourceId: string, month: string) => {
         if (!sourceId || !month) return;
 
