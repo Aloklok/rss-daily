@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { createClient } from '@supabase/supabase-js';
 import { cleanGeminiJson } from '../../utils/contentUtils';
@@ -79,7 +80,12 @@ export async function generateBriefingWithGemini(
 
   const genAI = new GoogleGenerativeAI(apiKey);
   // Allow dynamic model selection
-  const model = genAI.getGenerativeModel({ model: modelId });
+  const model = genAI.getGenerativeModel({
+    model: modelId,
+    generationConfig: {
+      responseMimeType: 'application/json',
+    }
+  });
 
   // 1. Fetch Prompt
   const systemPromptTemplate = await getSystemPrompt();

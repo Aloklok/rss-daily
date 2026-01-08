@@ -27,28 +27,6 @@ interface LogEntry {
 // --- Helper Components ---
 
 // 1. Source List Item
-const SourceItem = ({
-    sub,
-    isSelected,
-    onClick,
-}: {
-    sub: { id: string; title: string; category?: string };
-    isSelected: boolean;
-    onClick: () => void;
-}) => (
-    <div
-        onClick={onClick}
-        className={`cursor-pointer rounded-md px-3 py-2 text-sm transition-colors ${isSelected
-            ? 'bg-indigo-600 text-white shadow-md'
-            : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800'
-            }`}
-    >
-        <div className="font-medium truncate" title={sub.title}>{sub.title}</div>
-        {sub.category && sub.category !== 'Uncategorized' && (
-            <div className={`text-xs truncate ${isSelected ? 'text-indigo-200' : 'text-gray-500'}`}>{sub.category}</div>
-        )}
-    </div>
-);
 
 // 2. Month Picker Grid (by Year)
 const YearGrid = ({
@@ -104,9 +82,6 @@ const YearGrid = ({
 export default function BackfillPanel({ initialSubscriptions }: { initialSubscriptions?: Subscription[] } = {}) {
     const isAdmin = useUIStore((state) => state.isAdmin);
 
-    // Security Guard: Prevent rendering for non-admins
-    if (!isAdmin) return null;
-
     // --- State: Data ---
     const [subscriptions, setSubscriptions] = useState<Subscription[]>(initialSubscriptions || []);
     const [candidates, setCandidates] = useState<BackfillCandidate[]>([]);
@@ -129,6 +104,9 @@ export default function BackfillPanel({ initialSubscriptions }: { initialSubscri
     const addLog = (message: string, type: 'info' | 'success' | 'error' = 'info') => {
         setLogs(prev => [{ time: dayjs().format('HH:mm:ss'), message, type }, ...prev]);
     };
+
+    // Security Guard: Prevent rendering for non-admins (Moved after hooks)
+    if (!isAdmin) return null;
 
     // --- Effect: Fetch Subscriptions if not provided ---
     useEffect(() => {
