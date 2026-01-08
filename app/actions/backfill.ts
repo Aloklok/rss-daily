@@ -1,6 +1,6 @@
 'use server';
 
- 
+
 import { getFreshRssClient, getSupabaseClient } from '@/lib/server/apiUtils';
 import { generateBriefingAction, generateBulkBriefingAction } from './briefing';
 import { Article, FreshRSSItem } from '@/types';
@@ -223,6 +223,7 @@ export async function generateBatchBriefing(
   saved: number;
   total: number;
   titles?: string[];
+  results?: { id: string; title: string }[];
   errors: string[];
 }> {
   // 映射为 Action 接受的结构
@@ -242,13 +243,12 @@ export async function generateBatchBriefing(
   )) as BulkActionResult;
 
   if (result.success) {
-    // Map results (which contains {id, title}) to just titles array as expected by return type
-    const titles = result.results?.map((r) => r.title) || [];
+    // Pass through the results array which contains {id, title} for UI updates
     return {
       success: true,
       saved: result.saved ?? 0,
       total: candidates.length,
-      titles: titles,
+      results: result.results || [],
       errors: [],
     };
   }
