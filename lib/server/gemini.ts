@@ -179,7 +179,6 @@ export async function generateBriefingWithGemini(
  * 整合了重排逻辑，确保在不同配额限制下均能稳定响应。
  */
 export async function chatWithGemini(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   messages: any[],
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   articles: any[],
