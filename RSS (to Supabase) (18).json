@@ -17,10 +17,7 @@
       },
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [
-        4064,
-        656
-      ],
+      "position": [4064, 656],
       "id": "a145f6d8-9751-4e0e-820f-9349a6d92caa",
       "name": "rawJsonOutput"
     },
@@ -40,10 +37,7 @@
       },
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [
-        4032,
-        0
-      ],
+      "position": [4032, 0],
       "id": "197ede9f-2c21-4e88-ab34-0d5406c90626",
       "name": "rawJsonOutput1"
     },
@@ -51,10 +45,7 @@
       "parameters": {},
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
-      "position": [
-        4592,
-        656
-      ],
+      "position": [4592, 656],
       "id": "e5480468-6eca-4a79-bf50-8ecae32946e4",
       "name": "Merge",
       "alwaysOutputData": true
@@ -67,10 +58,7 @@
       },
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.3,
-      "position": [
-        3040,
-        720
-      ],
+      "position": [3040, 720],
       "id": "0c9157d9-cbfb-4586-aa0e-fd3a69dfb3ae",
       "name": "Switch"
     },
@@ -90,10 +78,7 @@
       },
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [
-        3456,
-        976
-      ],
+      "position": [3456, 976],
       "id": "543bf141-7663-4513-bd66-1e8f59285b20",
       "name": "rawJsonOutput2"
     },
@@ -113,10 +98,7 @@
       },
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [
-        3424,
-        320
-      ],
+      "position": [3424, 320],
       "id": "08fc21f9-21da-4db4-9961-c518ca04feb7",
       "name": "rawJsonOutput3"
     },
@@ -126,10 +108,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        3104,
-        256
-      ],
+      "position": [3104, 256],
       "id": "2545dcd9-e2b0-414c-ab7e-f5edafc73d74",
       "name": "Code in JavaScript1"
     },
@@ -139,10 +118,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        3072,
-        944
-      ],
+      "position": [3072, 944],
       "id": "dd2c3531-35e4-407d-82e7-c5a181a39681",
       "name": "Code in JavaScript2"
     },
@@ -159,10 +135,7 @@
       },
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [
-        -4176,
-        1040
-      ],
+      "position": [-4176, 1040],
       "id": "a608010a-9123-46d2-9b10-cdf6f831f55f",
       "name": "Schedule Trigger"
     },
@@ -189,10 +162,7 @@
       },
       "type": "@n8n/n8n-nodes-langchain.googleGemini",
       "typeVersion": 1,
-      "position": [
-        3328,
-        0
-      ],
+      "position": [3328, 0],
       "id": "f57fba81-9125-4695-8f98-eb715022e150",
       "name": "Message 分析1",
       "alwaysOutputData": true,
@@ -228,10 +198,7 @@
       },
       "type": "@n8n/n8n-nodes-langchain.googleGemini",
       "typeVersion": 1,
-      "position": [
-        3360,
-        528
-      ],
+      "position": [3360, 528],
       "id": "c2eecd97-3ac5-4264-945f-7ede877fd6c0",
       "name": "Message 分析",
       "alwaysOutputData": true,
@@ -254,10 +221,7 @@
       },
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
-      "position": [
-        2688,
-        928
-      ],
+      "position": [2688, 928],
       "id": "2e8c991e-bd47-4e4f-b414-66ba01a21e3e",
       "name": "Basic LLM Chain",
       "alwaysOutputData": true,
@@ -272,10 +236,7 @@
       },
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.7,
-      "position": [
-        2720,
-        224
-      ],
+      "position": [2720, 224],
       "id": "7c749f69-abb8-4785-8241-01bad8ef3062",
       "name": "Basic LLM Chain1",
       "alwaysOutputData": true,
@@ -293,10 +254,7 @@
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
-      "position": [
-        2720,
-        368
-      ],
+      "position": [2720, 368],
       "id": "2b72f582-ac35-4670-b9bd-c2c63a7502db",
       "name": "百炼 qwen-turbo1",
       "credentials": {
@@ -312,10 +270,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        4784,
-        736
-      ],
+      "position": [4784, 736],
       "id": "3b9602e0-e423-407b-80da-3a7fedd27811",
       "name": "JSON序列化"
     },
@@ -333,10 +288,7 @@
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
-      "position": [
-        2736,
-        1088
-      ],
+      "position": [2736, 1088],
       "id": "959a7e55-8078-48f1-a1df-f9305e39e3d6",
       "name": "百炼 qwen-plus",
       "credentials": {
@@ -354,10 +306,7 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        6400,
-        608
-      ],
+      "position": [6400, 608],
       "id": "efff64d3-7414-4cc5-9ebc-5b1b54651a69",
       "name": "推送到BARK"
     },
@@ -368,9 +317,7 @@
         "topic": "alok-n8n-alert",
         "title": "今日简报",
         "tags": {
-          "emojis": [
-            "fox_face"
-          ]
+          "emojis": ["fox_face"]
         },
         "message": "={{ $json.barkSubtitle }}",
         "additionalOptions": {
@@ -379,10 +326,7 @@
       },
       "type": "@jyln/n8n-nodes-ntfy.ntfy",
       "typeVersion": 1,
-      "position": [
-        6448,
-        816
-      ],
+      "position": [6448, 816],
       "id": "c1e4fe08-f3a4-428a-b33c-be87e47812bf",
       "name": "推送到mac NTFY"
     },
@@ -408,10 +352,7 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        -3264,
-        992
-      ],
+      "position": [-3264, 992],
       "id": "d49fa391-eda5-4c23-8f04-4411c8d737a8",
       "name": "HTTP Request3"
     },
@@ -421,10 +362,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        -3456,
-        1008
-      ],
+      "position": [-3456, 1008],
       "id": "290bc98d-b890-4bc3-89d3-a687b4cbbb9f",
       "name": "lastRunTimestamp"
     },
@@ -435,10 +373,7 @@
       },
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
-      "position": [
-        5504,
-        848
-      ],
+      "position": [5504, 848],
       "id": "ddf7fadb-202a-44e8-9599-2e35de78159f",
       "name": "Create a row",
       "credentials": {
@@ -490,10 +425,7 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        -2960,
-        960
-      ],
+      "position": [-2960, 960],
       "id": "2f5e7af8-58c3-453a-96c2-70560f20c682",
       "name": "HTTP Request4"
     },
@@ -505,10 +437,7 @@
       },
       "type": "n8n-nodes-base.splitInBatches",
       "typeVersion": 3,
-      "position": [
-        5328,
-        656
-      ],
+      "position": [5328, 656],
       "id": "0f80e181-3941-4dec-aae4-0c9b879123b0",
       "name": "Loop Over Items"
     },
@@ -540,10 +469,7 @@
       },
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [
-        160,
-        800
-      ],
+      "position": [160, 800],
       "id": "f995b777-24ba-47ba-85da-ed221aef14c4",
       "name": "If"
     },
@@ -553,10 +479,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        6144,
-        560
-      ],
+      "position": [6144, 560],
       "id": "2b23d495-f480-47a1-8640-2ad231529082",
       "name": "生成bark子标题和url"
     },
@@ -566,10 +489,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        6704,
-        592
-      ],
+      "position": [6704, 592],
       "id": "9258ce7c-4c9e-4e9e-8ac6-9714d3569241",
       "name": "写入本次运行时间"
     },
@@ -579,10 +499,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        1424,
-        1056
-      ],
+      "position": [1424, 1056],
       "id": "2075602e-e681-4502-998f-5f859b0abff3",
       "name": "数据重构、清洗、过滤"
     },
@@ -601,10 +518,7 @@
       },
       "type": "n8n-nodes-base.supabase",
       "typeVersion": 1,
-      "position": [
-        -3776,
-        1024
-      ],
+      "position": [-3776, 1024],
       "id": "db98a2a3-bf9c-47b9-8075-9082284a2350",
       "name": "prompt",
       "credentials": {
@@ -620,10 +534,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        2064,
-        1024
-      ],
+      "position": [2064, 1024],
       "id": "35c47ac7-2280-4bfe-a5c3-6b10687709fc",
       "name": "批处理&路由&prompt"
     },
@@ -653,10 +564,7 @@
       },
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [
-        -2720,
-        784
-      ],
+      "position": [-2720, 784],
       "id": "267c80a1-6384-48b6-bc6d-b4a1f4749ebd",
       "name": "If1"
     },
@@ -701,10 +609,7 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        -2240,
-        784
-      ],
+      "position": [-2240, 784],
       "id": "e43b521c-5657-4564-8245-b2405a6a7f27",
       "name": "HTTP Request 补漏"
     },
@@ -723,10 +628,7 @@
       },
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
-      "position": [
-        -1552,
-        944
-      ],
+      "position": [-1552, 944],
       "id": "c8211d7e-403f-4ae7-aa99-c27121f24c16",
       "name": "Aggregate"
     },
@@ -734,10 +636,7 @@
       "parameters": {},
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
-      "position": [
-        -1760,
-        960
-      ],
+      "position": [-1760, 960],
       "id": "1df08900-dc43-450b-8c91-aa52c680f96f",
       "name": "Merge1"
     },
@@ -762,10 +661,7 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        832,
-        1024
-      ],
+      "position": [832, 1024],
       "id": "f098edd5-83b8-4bba-87d0-6bfc9f2eb161",
       "name": "HTTP Request 恢复全文",
       "retryOnFail": true,
@@ -778,10 +674,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        -1328,
-        800
-      ],
+      "position": [-1328, 800],
       "id": "c81ae4ed-508f-41f6-83b8-4eafb33be5ee",
       "name": "提取ID&LINK去重"
     },
@@ -791,10 +684,7 @@
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        -560,
-        816
-      ],
+      "position": [-560, 816],
       "id": "54dfcfac-826e-45ed-a853-16648bc108c7",
       "name": "过滤"
     },
@@ -825,10 +715,7 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        -912,
-        784
-      ],
+      "position": [-912, 784],
       "id": "5a329e2d-d690-4516-9c33-8dde28939557",
       "name": "supabase的link去重",
       "alwaysOutputData": true,
@@ -855,10 +742,7 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        -272,
-        1152
-      ],
+      "position": [-272, 1152],
       "id": "101de9e5-bf56-49cf-8aaa-bff7050ebfa7",
       "name": "FRESHRSS获取操作TOKEN"
     },
@@ -883,10 +767,7 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        -224,
-        1472
-      ],
+      "position": [-224, 1472],
       "id": "47e4ce5a-35b9-428e-ac95-a7ded91c3f89",
       "name": "FRESHRSS已读重复项"
     },
@@ -917,10 +798,7 @@
       },
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [
-        -352,
-        976
-      ],
+      "position": [-352, 976],
       "id": "b36828f8-cfeb-4ccb-ad31-75f3c7911d51",
       "name": "If2"
     }
@@ -972,14 +850,10 @@
       ]
     },
     "rawJsonOutput2": {
-      "main": [
-        []
-      ]
+      "main": [[]]
     },
     "rawJsonOutput3": {
-      "main": [
-        []
-      ]
+      "main": [[]]
     },
     "Code in JavaScript1": {
       "main": [

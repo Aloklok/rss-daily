@@ -45,18 +45,26 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({
   }, [article]);
 
   // 1. Hook: Fetch Briefing Data (if missing)
-  const { data: enrichedArticle, isLoading: isLoadingBriefing } = useBriefingDetails(article, hasBriefingData, {
-    enabled: viewMode === 'briefing',
-  });
+  const { data: enrichedArticle, isLoading: isLoadingBriefing } = useBriefingDetails(
+    article,
+    hasBriefingData,
+    {
+      enabled: viewMode === 'briefing',
+    },
+  );
 
   // Use enriched data if available to ensure AI title/content overrides FreshRSS
   const displayArticle = enrichedArticle || article;
 
   // 2. Hook: Fetch Reader Content
   // No initialData passed here because Modal is client-only entry.
-  const { data: readerContent, isLoading: isLoadingReader } = useArticleContent(displayArticle, null, {
-    enabled: viewMode === 'reader',
-  });
+  const { data: readerContent, isLoading: isLoadingReader } = useArticleContent(
+    displayArticle,
+    null,
+    {
+      enabled: viewMode === 'reader',
+    },
+  );
 
   // ... (rest of effects)
 

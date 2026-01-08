@@ -209,9 +209,7 @@ describe('AccessControl 组件级权限验证', () => {
 
     it('非管理员无法查看补录面板 (BackfillPanel)', async () => {
       // 1. 模拟非管理员
-      (useUIStore as any).mockImplementation((selector: any) =>
-        selector({ isAdmin: false })
-      );
+      (useUIStore as any).mockImplementation((selector: any) => selector({ isAdmin: false }));
 
       const queryClient = createTestQueryClient();
 
@@ -219,7 +217,7 @@ describe('AccessControl 组件级权限验证', () => {
       const { container } = render(
         <QueryClientProvider client={queryClient}>
           <BackfillPanel />
-        </QueryClientProvider>
+        </QueryClientProvider>,
       );
 
       // 3. 验证主要内容不渲染

@@ -161,7 +161,9 @@ export const fetchArticleContentServer = async (
         title = dbArticle.title;
       }
     } catch (_e) {
-      console.warn(`[fetchArticleContentServer] Could not fetch Supabase title for ${id}, using FreshRSS fallback.`);
+      console.warn(
+        `[fetchArticleContentServer] Could not fetch Supabase title for ${id}, using FreshRSS fallback.`,
+      );
     }
 
     // Apply strict sanitization order:

@@ -146,11 +146,11 @@ export async function generateBulkBriefingAction(articles: Article[], modelId?: 
     // 1. 获取所有文章的正文 (由串行/并发请求改为真·批量请求)
     const { fetchMultipleArticleContentsServer } = await import('@/lib/server/dataFetcher');
     const titleMap = new Map<string, string>();
-    articles.forEach(a => titleMap.set(String(a.id), a.title));
+    articles.forEach((a) => titleMap.set(String(a.id), a.title));
 
     const contentMap = await fetchMultipleArticleContentsServer(
-      articles.map(a => a.id),
-      titleMap
+      articles.map((a) => a.id),
+      titleMap,
     );
 
     const { stripTags } = await import('@/utils/contentUtils');
@@ -237,7 +237,7 @@ export async function generateBulkBriefingAction(articles: Article[], modelId?: 
       success: true,
       saved: savedItems?.length || 0,
       total: articles.length,
-      results: upsertItems.map(item => ({ id: item.id, title: item.title })), // 返回 ID 与标题的映射
+      results: upsertItems.map((item) => ({ id: item.id, title: item.title })), // 返回 ID 与标题的映射
       metadata,
     };
   } catch (error: any) {

@@ -1,6 +1,5 @@
 'use server';
 
-
 import { getFreshRssClient, getSupabaseClient } from '@/lib/server/apiUtils';
 import { generateBriefingAction, generateBulkBriefingAction } from './briefing';
 import { Article, FreshRSSItem } from '@/types';

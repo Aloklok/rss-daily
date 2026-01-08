@@ -85,7 +85,7 @@ export async function generateBriefingWithGemini(
     model: modelId,
     generationConfig: {
       responseMimeType: 'application/json',
-    }
+    },
   });
 
   // 1. Fetch Prompt
@@ -180,7 +180,7 @@ export async function generateBriefingWithGemini(
  */
 export async function chatWithGemini(
   messages: any[],
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   articles: any[],
   query: string,
   useSearch: boolean = true,
@@ -199,7 +199,7 @@ export async function chatWithGemini(
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
     model: effectiveModel,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     tools: useSearch ? [{ googleSearch: {} } as any] : [],
     systemInstruction: chatSystemPrompt,
 
@@ -215,14 +215,14 @@ export async function chatWithGemini(
   const articleList =
     articles.length > 0
       ? articles
-        .map((a, i) => {
-          const dateStr = new Date(a.published).toLocaleDateString();
-          const keywordsStr = Array.isArray(a.keywords) ? a.keywords.join(', ') : '';
-          const verdictStr = a.verdict
-            ? `Score:${a.verdict.score || '?'}/10 (${a.verdict.importance || 'Normal'})`
-            : '';
+          .map((a, i) => {
+            const dateStr = new Date(a.published).toLocaleDateString();
+            const keywordsStr = Array.isArray(a.keywords) ? a.keywords.join(', ') : '';
+            const verdictStr = a.verdict
+              ? `Score:${a.verdict.score || '?'}/10 (${a.verdict.importance || 'Normal'})`
+              : '';
 
-          return `【文章索引：[${i + 1}]】
+            return `【文章索引：[${i + 1}]】
 标题: ${a.title}
 来源: ${a.sourceName || 'Unknown'} | ${verdictStr}
 日期: ${dateStr}
@@ -232,8 +232,8 @@ TLDR: ${a.tldr || '无'}
 技术亮点: ${a.highlights || '无'}
 犀利点评: ${a.critiques || '无'}
 市场观点: ${a.marketTake || '无'}`;
-        })
-        .join('\n\n---\n\n')
+          })
+          .join('\n\n---\n\n')
       : '（未匹配到相关本地文章）';
 
   const contextPrompt = CHAT_CONTEXT_PROMPT_TEMPLATE.replace(
@@ -262,7 +262,7 @@ TLDR: ${a.tldr || '无'}
   try {
     const result = await chat.sendMessageStream(contextPrompt);
     return result.stream;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
   } catch (error: any) {
     console.error(
       `[chatWithGemini Error] ID: ${requestId} | Key: ${apiKeyName} | Query: "${query.slice(0, 30)}..."`,
@@ -276,7 +276,7 @@ TLDR: ${a.tldr || '无'}
  * [语义层] Gemini 重排 (Re-rank): 从召回的 50 篇中精选 10-15 篇，并进行语义去重
  */
 export async function reRankArticles(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   articles: any[],
   query: string,
   modelId: string = 'gemini-2.5-flash-lite-preview-09-2025', // 默认使用高额度羊毛模型，避免损耗 2.0 旗舰配额
@@ -315,7 +315,7 @@ ${articleList}`;
     const text = result.response.text();
     const parsed = JSON.parse(text);
     return parsed.selected_ids || [];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
   } catch (e: any) {
     const isQuotaError = e.message.includes('429') || e.message.includes('quota');
     const sheepModel = 'gemini-2.5-flash-lite-preview-09-2025';
