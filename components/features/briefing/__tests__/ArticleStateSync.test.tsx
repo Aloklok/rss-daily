@@ -7,7 +7,7 @@ import userEvent from '@testing-library/user-event';
 
 // Mock useUIStore
 vi.mock('../../../../store/uiStore', () => ({
-  useUIStore: (selector: any) => {
+  useUIStore: (selector: (state: any) => any) => {
     const state = { isAdmin: true };
     return selector(state);
   },
@@ -45,8 +45,8 @@ describe('ArticleCard State Toggle (Vitest Browser)', () => {
       </QueryClientProvider>,
     );
 
-    // 验证标题渲染
-    expect(screen.getByText(MOCK_ARTICLE.title)).toBeInTheDocument();
+    // 验证标题渲染 (由于物理分离方案导致有两个相同文本，需取第一个)
+    expect(screen.getAllByText(MOCK_ARTICLE.title)[0]).toBeInTheDocument();
 
     // 查找收藏按钮 (处理响应式重复)
     // 使用 getAllByRole 并过滤可见的，或者直接点击第一个符合条件的

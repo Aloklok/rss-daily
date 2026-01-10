@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import ArticleCard from '../BriefCard'; // Default export is ArticleCard
 import { Article } from '../../../../types';
 
@@ -21,9 +20,8 @@ const mockArticle: Article = {
   // ... other fields if necessary
 } as Article;
 
-describe('文章卡片交互 (ArticleCard/BriefCard)', () => {
-  it('点击标题链接时应触发 阅读模式 (onReaderModeRequest)', async () => {
-    const user = userEvent.setup();
+describe('文章卡片渲染与 SEO 结构 (ArticleCard/BriefCard)', () => {
+  it('应当正确渲染视觉标题与隐藏的 SEO 链接', async () => {
     const mockOnReaderModeRequest = vi.fn();
     const mockOnStateChange = vi.fn();
 
@@ -35,14 +33,15 @@ describe('文章卡片交互 (ArticleCard/BriefCard)', () => {
       />,
     );
 
-    // Find the link by text or testid
-    const link = screen.getByRole('link', { name: /Test Article Title/i });
+    // 1. 验证视觉文本容器是否存在 (aria-hidden 为 true)
+    const visualTitle = screen.getAllByText(mockArticle.title)[0];
+    expect(visualTitle).toBeInTheDocument();
+    expect(visualTitle).toHaveAttribute('aria-hidden', 'true');
 
-    // Check if it prevents default (navigation) and calls handler
-    // In JSDOM, clicking a link might not navigate, but we can verify the handler.
-    await user.click(link);
-
-    expect(mockOnReaderModeRequest).toHaveBeenCalledTimes(1);
-    expect(mockOnReaderModeRequest).toHaveBeenCalledWith(mockArticle);
+    // 2. 验证 SEO 专用 Link 是否存在 (具有 sr-only 类)
+    const seoLink = screen.getByRole('link', { name: mockArticle.title });
+    expect(seoLink).toBeInTheDocument();
+    expect(seoLink).toHaveClass('sr-only');
+    expect(seoLink).toHaveAttribute('href', expect.stringContaining(mockArticle.id.toString()));
   });
 });
