@@ -73,7 +73,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
       >
         <div className="h-2 w-2 animate-pulse rounded-full bg-green-500"></div>
         {activeModel.name}
-        {alias ? <span className="opacity-50">@{alias.toUpperCase()}</span> : null}
+        {alias ? <span className="hidden opacity-50 sm:inline">@{alias.toUpperCase()}</span> : null}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className={`h-3 w-3 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`}

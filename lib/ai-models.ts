@@ -1,7 +1,7 @@
 export const DEFAULT_MODEL_ID = 'deepseek-ai/DeepSeek-R1-Distill-Qwen-7B';
 
 // --- AI Router Configuration ---
-export const ENABLE_AI_ROUTER = true; // Set to false to disable the AI Router globally
+export const ENABLE_AI_ROUTER = false; // Set to false to disable the AI Router globally
 export const ROUTER_MODEL_ID = 'deepseek-ai/DeepSeek-R1-Distill-Qwen-7B'; // Free model for fast routing
 
 export const MODELS = [

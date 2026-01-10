@@ -237,11 +237,11 @@ const ChatMessageItem = React.memo(
           } `}
         >
           <div
-            className={`flex ${isExpanded && msg.role === 'model' && msg.citations?.length ? 'flex-row items-stretch justify-center gap-8' : 'flex-col items-start'} `}
+            className={`flex ${isExpanded && msg.role === 'model' && msg.citations?.length ? 'flex-col items-stretch justify-center gap-4 lg:flex-row lg:gap-8' : 'flex-col items-start'} `}
           >
             {/* Main Content Area */}
             <div
-              className={`text-sm leading-relaxed ${isExpanded && msg.role === 'model' ? 'w-full max-w-xl' : ''} ${msg.role === 'user' ? '' : 'prose prose-sm dark:prose-invert ai-chat-content prose-p:leading-relaxed prose-pre:bg-stone-100 dark:prose-pre:bg-stone-900/50 dark:prose-headings:!text-white dark:prose-p:!text-stone-100 dark:prose-strong:!text-indigo-300 dark:prose-code:!text-indigo-200 dark:prose-code:!bg-indigo-500/20 max-w-none dark:!text-stone-100'} `}
+              className={`text-sm leading-relaxed ${isExpanded && msg.role === 'model' ? 'w-full lg:max-w-xl' : ''} ${msg.role === 'user' ? '' : 'prose prose-sm dark:prose-invert ai-chat-content prose-p:leading-relaxed prose-pre:bg-stone-100 dark:prose-pre:bg-stone-900/50 dark:prose-headings:!text-white dark:prose-p:!text-stone-100 dark:prose-strong:!text-indigo-300 dark:prose-code:!text-indigo-200 dark:prose-code:!bg-indigo-500/20 max-w-none dark:!text-stone-100'} `}
             >
               {msg.role === 'user' ? (
                 <p className="whitespace-pre-wrap">{msg.content}</p>
@@ -258,7 +258,7 @@ const ChatMessageItem = React.memo(
                 <div
                   className={`flex flex-col gap-2 ${
                     isExpanded && msg.citations?.length
-                      ? 'w-64 flex-shrink-0 border-l border-stone-100 pl-8 dark:border-white/5'
+                      ? 'w-full flex-shrink-0 border-t border-stone-100 pt-4 lg:w-64 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8 dark:border-white/5'
                       : 'mt-4 w-full max-w-xl border-t border-stone-100 pt-3 dark:border-white/5'
                   } `}
                 >
@@ -383,10 +383,10 @@ const StreamingResponse = React.memo(
       <div className="flex w-full justify-start">
         <div className="w-full max-w-xl rounded-2xl border border-stone-200 bg-white px-6 py-4 text-stone-800 shadow-lg dark:border-white/10 dark:bg-stone-800 dark:shadow-xl">
           <div
-            className={`flex items-start ${isExpanded ? 'w-full flex-row justify-center gap-8' : 'flex-col'} `}
+            className={`flex items-start ${isExpanded ? 'w-full flex-col justify-center gap-4 lg:flex-row lg:gap-8' : 'flex-col'} `}
           >
             <div
-              className={`${isExpanded ? 'w-full max-w-xl' : ''} prose prose-sm dark:prose-invert ai-chat-content prose-p:leading-relaxed dark:prose-headings:!text-white dark:prose-p:!text-stone-100 dark:prose-strong:!text-indigo-300 max-w-none dark:!text-stone-100`}
+              className={`${isExpanded ? 'w-full lg:max-w-xl' : ''} prose prose-sm dark:prose-invert ai-chat-content prose-p:leading-relaxed dark:prose-headings:!text-white dark:prose-p:!text-stone-100 dark:prose-strong:!text-indigo-300 max-w-none dark:!text-stone-100`}
             >
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
@@ -463,7 +463,7 @@ const StreamingResponse = React.memo(
               </ReactMarkdown>
             </div>
             {isExpanded && (
-              <div className="flex w-64 flex-shrink-0 flex-col gap-2 border-l border-stone-100 pl-8 dark:border-white/5">
+              <div className="flex w-full flex-shrink-0 flex-col gap-2 border-t border-stone-100 pt-4 lg:w-64 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8 dark:border-white/5">
                 <span className="text-[10px] font-bold tracking-widest text-stone-400 uppercase">
                   正在分析文献...
                 </span>
@@ -794,10 +794,10 @@ const ChatInputArea = React.memo(
                   d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
                 />
               </svg>
-              闲聊 {isSmallTalkMode ? 'ON' : 'OFF'}
+              <span className="hidden sm:inline">闲聊</span> {isSmallTalkMode ? 'ON' : 'OFF'}
             </button>
           </div>
-          <span className="text-[10px] text-stone-400">Esc 关闭 | 输入 Enter 发送</span>
+          <span className="hidden text-[10px] text-stone-400 sm:inline">Esc 关闭 | Enter 发送</span>
         </div>
       </div>
     );

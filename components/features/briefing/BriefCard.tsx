@@ -551,17 +551,14 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             className="relative top-[3px] mr-2 inline-block size-6"
           />
           {/* SEO-Only Link: Behaves like text for users (preventDefault), but href remains for crawlers */}
+          <span className="cursor-text align-middle select-text" aria-hidden="true">
+            {article.title}
+          </span>
           <Link
             href={`/article/${toShortId(String(article.id))}`}
             prefetch={false}
+            className="sr-only"
             data-testid={`article-link-${article.id}`}
-            onClick={(e) => {
-              e.preventDefault();
-              onReaderModeRequest(article);
-            }}
-            onDragStart={(e) => e.preventDefault()}
-            draggable={false}
-            className="align-middle transition-colors hover:no-underline"
           >
             {article.title}
           </Link>
