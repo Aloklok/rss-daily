@@ -2,27 +2,34 @@ name: Daily & Post-Deploy Warmup
 
 on:
   schedule:
-    # Beijing Time 00:05 = UTC 16:05 (Previous Day)
+    # 北京时间 00:05 = UTC 16:05 (前一天)
     - cron: '5 16 * * *'
-  # Trigger when a deployment is successful (e.g. Vercel)
+  # 当 Vercel 部署状态更新时触发
   deployment_status:
   workflow_dispatch:
 
 jobs:
   warmup:
-    # Only run on successful deployment or schedule
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success')
+    # 逻辑优化：只在定时任务、手动触发 或 生产环境部署成功时运行
+    if: |
+      github.event_name == 'schedule' || 
+      github.event_name == 'workflow_dispatch' || 
+      (github.event_name == 'deployment_status' && 
+       github.event.deployment_status.state == 'success' && 
+       github.event.deployment.environment == 'Production')
+    
     name: Warm Up Recent Pages
     runs-on: ubuntu-latest
     steps:
+      - name: Wait for DNS/CDN Propagation
+        if: github.event_name == 'deployment_status'
+        run: sleep 10 # 部署成功后稍等片刻，确保域名切换完成
+
       - name: Calculate Dates (Shanghai)
         id: dates
         run: |
-          # Loop 7 days
+          # 循环过去 7 天的日期
           for i in {0..6}; do
-             DATE=$(date -d "-$i days" +%Y-%m-%d)
-             # Adjust for Shanghai Time approximately if running on UTC runner
-             # Actually, best to use strict TZ
              DATE_SH=$(TZ='Asia/Shanghai' date -d "-$i days" +%Y-%m-%d)
              echo "Adding $DATE_SH to targets"
              echo "$DATE_SH" >> targets.txt
@@ -40,13 +47,11 @@ jobs:
             echo "--------------------------------"
             echo "Target: $URL"
             
-            # 1. Warm Up Request
-            # We use a longer timeout (30s) to allow critical path generation
+            # 预热请求，设置 30s 超时以应对冷启动生成的压力
             http_code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "$URL")
             echo "Status: $http_code"
             
             if [ "$http_code" -ne 200 ]; then
                 echo "Warning: Non-200 status code returned."
             fi
-            
           done < targets.txt
