@@ -16,6 +16,7 @@
 
 - [ ] **自愈机制抖动**: 为后台同步请求增加 0-2s 随机延迟 (Jitter)，应对大流量时的惊群效应，保护服务器。改动难度：低，性能提升：低（侧重稳定性）。
 - [ ] **DataFetcher 拆分**: `lib/server/dataFetcher.ts` 职责过重（~400行），建议拆分为 `briefingFetcher.ts` 和 `articleFetcher.ts`，提升文件可维护性。改动难度：低，性能提升：无。
+- [ ] **CI/CD 构建成本优化**: 断开 Vercel 的原生 GitHub 自动构建，改为在 `ci.yml` 的测试通过后使用 Vercel CLI 部署。解决目前 GHA 与 Vercel 并行构建导致的计算资源浪费及 Vercel 构建配额消耗。改动难度：中，性能提升：高（节省构建时长）。
 
 ### 🛡️ 安全审计与路由保护
 

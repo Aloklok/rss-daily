@@ -306,19 +306,19 @@ const Briefing: React.FC<BriefingProps> = ({
           </div>
 
           <div className="relative z-10 flex flex-col gap-4 px-6 py-5 md:gap-8 md:px-8 md:py-11">
-            {/* Top Row: Date & Time Slot Selector */}
+            {/* Top Row: Date & Desktop Time Slot Selector */}
             <div className="flex flex-row items-start justify-between gap-4 pr-10 md:pr-0">
               {/* Left: Date - Compact Layout (White Text) */}
               <div className="flex flex-col text-white">
                 <h1 className="sr-only">{date} 每日AI全栈架构技术简报</h1>
-                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-2">
+                <div className="flex flex-col gap-3.5">
                   <div
                     aria-hidden="true"
                     className="font-serif text-4xl leading-none font-medium tracking-tight text-balance drop-shadow-md md:text-6xl"
                   >
                     {isToday ? '今天' : datePart}
                   </div>
-                  <div className="flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-1 text-xs text-white/95 drop-shadow-xs md:gap-2 md:px-4 md:py-1.5 md:text-base">
+                  <div className="flex items-center gap-1.5 self-start rounded-full bg-white/20 px-2.5 py-1 text-xs text-white/95 drop-shadow-xs md:gap-2 md:px-4 md:py-1.5 md:text-base">
                     {isToday && (
                       <>
                         <span>{datePart}</span>
@@ -330,11 +330,11 @@ const Briefing: React.FC<BriefingProps> = ({
                 </div>
               </div>
 
-              {/* Right: Time Slot Selector & Verdict Filter - Stacked */}
+              {/* Right: Desktop-Only Time Slot Selector & Verdict Filter - Stacked */}
               {date && (
-                <div className="flex flex-col items-end gap-3 self-start">
+                <div className="hidden flex-col items-end gap-4 self-start md:flex">
                   {/* Row 1: Time Slots */}
-                  <div className="flex items-center gap-1.5 md:gap-2">
+                  <div className="flex items-center gap-3">
                     {(['morning', 'afternoon', 'evening'] as const).map((slotOption) => {
                       const labelMap: Record<TimeSlot, string> = {
                         morning: '早',
@@ -347,17 +347,12 @@ const Briefing: React.FC<BriefingProps> = ({
                         evening: '晚上',
                       };
 
-                      // Strictly use the passed timeSlot prop for highlighting.
-                      // Fallback logic is now handled in MainContentClient for hydration only.
                       const isSelected = timeSlot === slotOption;
                       return (
                         <button
                           key={slotOption}
-                          onClick={() => {
-                            console.log(`[DIAG] Clicked Slot: ${slotOption}`);
-                            onTimeSlotChange(isSelected ? null : slotOption);
-                          }}
-                          className={`flex size-8 items-center justify-center rounded-full border border-white/20 font-serif text-xs transition-all duration-300 md:size-9 md:text-sm ${
+                          onClick={() => onTimeSlotChange(isSelected ? null : slotOption)}
+                          className={`flex size-[44px] items-center justify-center rounded-full border border-white/20 font-serif text-base transition-all duration-300 ${
                             isSelected
                               ? 'scale-110 border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)] dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900 dark:shadow-[0_0_15px_rgba(251,191,36,0.6)]'
                               : 'bg-black/20 text-white/90 backdrop-blur-md hover:border-white/40 hover:bg-white/20'
@@ -372,7 +367,7 @@ const Briefing: React.FC<BriefingProps> = ({
 
                   {/* Row 2: Verdict Type Filter (Insight/News) */}
                   {onVerdictFilterChange && (
-                    <div className="flex items-center gap-1.5 md:gap-2">
+                    <div className="flex items-center gap-3">
                       {[
                         { id: '知识洞察型', label: '洞察', title: '深度知识与洞察' },
                         { id: '新闻事件型', label: '新闻', title: '时事新闻与更新' },
@@ -382,7 +377,7 @@ const Briefing: React.FC<BriefingProps> = ({
                           <button
                             key={type.id || 'all'}
                             onClick={() => onVerdictFilterChange(isSelected ? null : type.id)}
-                            className={`flex h-7 min-w-[32px] items-center justify-center rounded-full border border-white/20 px-2 font-serif text-[10px] transition-all duration-300 md:h-8 md:min-w-[36px] md:text-xs ${
+                            className={`flex h-10 min-w-[44px] items-center justify-center rounded-full border border-white/20 px-3.5 font-serif text-sm transition-all duration-300 ${
                               isSelected
                                 ? 'border-white bg-white text-black shadow-[0_0_10px_rgba(255,255,255,0.4)]'
                                 : 'bg-black/10 text-white/80 backdrop-blur-sm hover:bg-white/10'
@@ -399,7 +394,7 @@ const Briefing: React.FC<BriefingProps> = ({
               )}
             </div>
 
-            {/* Bottom Row: Greeting & Count - Unified (White Text) with Separator */}
+            {/* Middle Row: Greeting & Count - Unified (White Text) with Separator */}
             <div className="border-t border-white/20 pt-2.5 md:pt-4">
               <p className="font-serif text-sm leading-relaxed text-white/95 drop-shadow-xs md:text-lg">
                 {isToday ? (
@@ -417,6 +412,60 @@ const Briefing: React.FC<BriefingProps> = ({
                   </span>
                 )}
               </p>
+            </div>
+
+            {/* Bottom Row (Mobile Only): Filter Buttons Combined */}
+            <div className="flex items-center gap-4 md:hidden">
+              <div className="flex items-center gap-2">
+                {(['morning', 'afternoon', 'evening'] as const).map((slotOption) => {
+                  const labelMap: Record<TimeSlot, string> = {
+                    morning: '早',
+                    afternoon: '中',
+                    evening: '晚',
+                  };
+                  const isSelected = timeSlot === slotOption;
+                  return (
+                    <button
+                      key={slotOption}
+                      onClick={() => onTimeSlotChange(isSelected ? null : slotOption)}
+                      className={`flex size-8 items-center justify-center rounded-full border border-white/20 font-serif text-xs transition-all duration-300 ${
+                        isSelected
+                          ? 'scale-110 border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)]'
+                          : 'bg-black/20 bg-white/10 text-white/90 backdrop-blur-md'
+                      } cursor-pointer`}
+                    >
+                      {labelMap[slotOption]}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Vertical Divider */}
+              <div className="h-4 w-px bg-white/30"></div>
+
+              {onVerdictFilterChange && (
+                <div className="flex items-center gap-2">
+                  {[
+                    { id: '知识洞察型', label: '洞察' },
+                    { id: '新闻事件型', label: '新闻' },
+                  ].map((type) => {
+                    const isSelected = verdictFilter === type.id;
+                    return (
+                      <button
+                        key={type.id || 'all'}
+                        onClick={() => onVerdictFilterChange(isSelected ? null : type.id)}
+                        className={`flex h-7 min-w-[32px] items-center justify-center rounded-full border border-white/20 px-2 font-serif text-[10px] transition-all duration-300 ${
+                          isSelected
+                            ? 'border-white bg-white text-black'
+                            : 'bg-black/10 bg-white/10 text-white/80 backdrop-blur-sm'
+                        } cursor-pointer`}
+                      >
+                        {type.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </header>

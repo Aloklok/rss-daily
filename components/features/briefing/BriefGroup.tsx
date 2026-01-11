@@ -38,7 +38,7 @@ const ArticleGroup: React.FC<ArticleGroupProps> = ({
   return (
     <section id={sectionId} className="mb-12">
       <header className="sticky top-0 z-20 mb-4">
-        <div className="transform-gpu border-b-2 border-transparent px-4 py-3 backdrop-blur-sm [border-image:linear-gradient(to_right,#c8b382,#b9975d,#e7d8ac)_1]">
+        <div className="transform-gpu border-b-2 border-transparent bg-white/10 px-4 py-3 backdrop-blur-sm [border-image:linear-gradient(to_right,#c8b382,#b9975d,#e7d8ac)_1] dark:bg-black/10">
           <h2 className="font-serif text-[1.35rem] leading-tight font-bold text-[#7a1e16]">
             {importance}
           </h2>

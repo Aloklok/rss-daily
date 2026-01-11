@@ -702,12 +702,12 @@ const ChatInputArea = React.memo(
 
     return (
       <div className="border-t border-stone-200 px-6 py-4 dark:border-white/10">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <input
             ref={inputRef}
             type="text"
             placeholder="向 AI 咨询任何简报内容..."
-            className="flex-1 rounded-xl border border-stone-200 bg-white/50 px-4 py-2.5 text-base transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none md:text-sm dark:border-white/10 dark:bg-stone-900/50 dark:text-white"
+            className="w-full max-w-[calc(100%-60px)] flex-1 rounded-xl border border-stone-200 bg-white/50 px-3 py-2.5 text-base transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none md:max-w-none md:px-4 md:text-sm dark:border-white/10 dark:bg-stone-900/50 dark:text-white"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && onSend()}
@@ -716,7 +716,7 @@ const ChatInputArea = React.memo(
           <button
             onClick={onSend}
             disabled={isStreaming || !inputValue.trim()}
-            className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg transition-all hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg transition-all hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
