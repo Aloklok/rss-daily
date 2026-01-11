@@ -707,7 +707,7 @@ const ChatInputArea = React.memo(
             ref={inputRef}
             type="text"
             placeholder="向 AI 咨询任何简报内容..."
-            className="flex-1 rounded-xl border border-stone-200 bg-white/50 px-4 py-2.5 text-sm transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none dark:border-white/10 dark:bg-stone-900/50 dark:text-white"
+            className="flex-1 rounded-xl border border-stone-200 bg-white/50 px-4 py-2.5 text-base transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none md:text-sm dark:border-white/10 dark:bg-stone-900/50 dark:text-white"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && onSend()}

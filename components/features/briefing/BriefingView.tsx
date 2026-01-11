@@ -65,7 +65,7 @@ const ReportContent: React.FC<ReportContentProps> = memo(
     return (
       <div>
         {/* Table of Contents & Summary Section */}
-        <div className="mb-10 rounded-3xl border border-stone-200 bg-white p-6 shadow-lg shadow-stone-200/50 transition-all duration-500 hover:shadow-xl hover:shadow-stone-200/60 dark:border-white/10 dark:bg-gray-900 dark:shadow-none">
+        <div className="mb-6 rounded-3xl border border-stone-200 bg-white p-6 shadow-lg shadow-stone-200/50 transition-all duration-500 hover:shadow-xl hover:shadow-stone-200/60 md:mb-10 dark:border-white/10 dark:bg-gray-900 dark:shadow-none">
           <div className="md:hidden">
             <h2 className="flex items-center font-serif text-2xl font-bold text-stone-800 dark:text-white">
               <span>📚 目录</span>
@@ -281,7 +281,7 @@ const Briefing: React.FC<BriefingProps> = ({
       const weekdayPart = dateObj.toLocaleDateString('zh-CN', { weekday: 'long' });
 
       return (
-        <header className="group relative mb-8 overflow-hidden rounded-2xl shadow-md transition-all duration-500 hover:shadow-xl">
+        <header className="group relative mb-5 overflow-hidden rounded-2xl shadow-md transition-all duration-500 hover:shadow-xl md:mb-8">
           {/* Background Image with Overlay */}
           <div className="absolute inset-0 z-0">
             <Image
@@ -305,26 +305,28 @@ const Briefing: React.FC<BriefingProps> = ({
             <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/30 to-black/10"></div>
           </div>
 
-          <div className="relative z-10 flex flex-col gap-4 px-6 py-8 md:gap-8 md:px-8 md:py-11">
+          <div className="relative z-10 flex flex-col gap-4 px-6 py-5 md:gap-8 md:px-8 md:py-11">
             {/* Top Row: Date & Time Slot Selector */}
-            <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-              {/* Left: Date - Structured Layout (White Text) */}
-              <div className="flex flex-col gap-2 text-white">
+            <div className="flex flex-row items-start justify-between gap-4 pr-10 md:pr-0">
+              {/* Left: Date - Compact Layout (White Text) */}
+              <div className="flex flex-col text-white">
                 <h1 className="sr-only">{date} 每日AI全栈架构技术简报</h1>
-                <div
-                  aria-hidden="true"
-                  className="mb-2 font-serif text-5xl leading-none font-medium tracking-tight text-balance drop-shadow-md md:text-6xl"
-                >
-                  {isToday ? '今天' : datePart}
-                </div>
-                <div className="flex items-center gap-2 self-start rounded-full bg-white/20 px-4 py-1.5 text-sm text-white/95 drop-shadow-xs md:text-base">
-                  {isToday && (
-                    <>
-                      <span>{datePart}</span>
-                      <span className="size-1 rounded-full bg-white/60"></span>
-                    </>
-                  )}
-                  <span>{weekdayPart}</span>
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-2">
+                  <div
+                    aria-hidden="true"
+                    className="font-serif text-4xl leading-none font-medium tracking-tight text-balance drop-shadow-md md:text-6xl"
+                  >
+                    {isToday ? '今天' : datePart}
+                  </div>
+                  <div className="flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-1 text-xs text-white/95 drop-shadow-xs md:gap-2 md:px-4 md:py-1.5 md:text-base">
+                    {isToday && (
+                      <>
+                        <span>{datePart}</span>
+                        <span className="size-1 rounded-full bg-white/60"></span>
+                      </>
+                    )}
+                    <span>{weekdayPart}</span>
+                  </div>
                 </div>
               </div>
 
@@ -332,7 +334,7 @@ const Briefing: React.FC<BriefingProps> = ({
               {date && (
                 <div className="flex flex-col items-end gap-3 self-start">
                   {/* Row 1: Time Slots */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 md:gap-2">
                     {(['morning', 'afternoon', 'evening'] as const).map((slotOption) => {
                       const labelMap: Record<TimeSlot, string> = {
                         morning: '早',
@@ -355,7 +357,7 @@ const Briefing: React.FC<BriefingProps> = ({
                             console.log(`[DIAG] Clicked Slot: ${slotOption}`);
                             onTimeSlotChange(isSelected ? null : slotOption);
                           }}
-                          className={`flex size-9 items-center justify-center rounded-full border border-white/20 font-serif text-sm transition-all duration-300 ${
+                          className={`flex size-8 items-center justify-center rounded-full border border-white/20 font-serif text-xs transition-all duration-300 md:size-9 md:text-sm ${
                             isSelected
                               ? 'scale-110 border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)] dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900 dark:shadow-[0_0_15px_rgba(251,191,36,0.6)]'
                               : 'bg-black/20 text-white/90 backdrop-blur-md hover:border-white/40 hover:bg-white/20'
@@ -370,7 +372,7 @@ const Briefing: React.FC<BriefingProps> = ({
 
                   {/* Row 2: Verdict Type Filter (Insight/News) */}
                   {onVerdictFilterChange && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 md:gap-2">
                       {[
                         { id: '知识洞察型', label: '洞察', title: '深度知识与洞察' },
                         { id: '新闻事件型', label: '新闻', title: '时事新闻与更新' },
@@ -380,7 +382,7 @@ const Briefing: React.FC<BriefingProps> = ({
                           <button
                             key={type.id || 'all'}
                             onClick={() => onVerdictFilterChange(isSelected ? null : type.id)}
-                            className={`flex h-8 min-w-[36px] items-center justify-center rounded-full border border-white/20 px-2 font-serif text-xs transition-all duration-300 ${
+                            className={`flex h-7 min-w-[32px] items-center justify-center rounded-full border border-white/20 px-2 font-serif text-[10px] transition-all duration-300 md:h-8 md:min-w-[36px] md:text-xs ${
                               isSelected
                                 ? 'border-white bg-white text-black shadow-[0_0_10px_rgba(255,255,255,0.4)]'
                                 : 'bg-black/10 text-white/80 backdrop-blur-sm hover:bg-white/10'
@@ -398,8 +400,8 @@ const Briefing: React.FC<BriefingProps> = ({
             </div>
 
             {/* Bottom Row: Greeting & Count - Unified (White Text) with Separator */}
-            <div className="border-t border-white/20 pt-2 md:pt-4">
-              <p className="font-serif text-base leading-relaxed text-white/95 drop-shadow-xs md:text-lg">
+            <div className="border-t border-white/20 pt-2.5 md:pt-4">
+              <p className="font-serif text-sm leading-relaxed text-white/95 drop-shadow-xs md:text-lg">
                 {isToday ? (
                   <span>{getGreeting()}，欢迎阅读今日简报</span>
                 ) : (

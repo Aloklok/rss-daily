@@ -155,10 +155,10 @@ const IconCheck: React.FC<{ className?: string }> = memo(({ className }) => (
 ));
 IconCheck.displayName = 'IconCheck';
 
-const IconCheckCircle: React.FC = memo(() => (
+const IconCheckCircle: React.FC<{ className?: string }> = memo(({ className }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    className="size-4"
+    className={className || 'size-4'}
     viewBox="0 0 20 20"
     fill="currentColor"
   >
@@ -171,10 +171,10 @@ const IconCheckCircle: React.FC = memo(() => (
 ));
 IconCheckCircle.displayName = 'IconCheckCircle';
 
-const IconCircle: React.FC = memo(() => (
+const IconCircle: React.FC<{ className?: string }> = memo(({ className }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    className="size-4"
+    className={className || 'size-4'}
     fill="none"
     viewBox="0 0 24 24"
     stroke="currentColor"
@@ -429,9 +429,9 @@ const ActionButtons: React.FC<ActionButtonsProps> = memo(
                   {isLoading === 'read' ? (
                     <SpinnerIcon />
                   ) : isRead ? (
-                    <IconCheckCircle />
+                    <IconCheckCircle className="size-7" />
                   ) : (
-                    <IconCircle />
+                    <IconCircle className="size-7" />
                   )}
                   <span className="sr-only cursor-pointer text-xs">
                     {isRead ? '已读' : '标记已读'}
