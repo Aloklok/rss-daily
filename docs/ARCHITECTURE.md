@@ -50,10 +50,12 @@
     - **Query 路**: 搜索输入使用 `RETRIEVAL_QUERY` 任务类型，提取搜索意图特征。
     - **Document 路**: 文章数据使用 `RETRIEVAL_DOCUMENT` 任务类型，提取描述性知识特征。这确保了短查询能精准匹配长文本。
   - **混合排序权重**:
-    1. **Priority 1 (关键词匹配)**: 命中标题、分类或标签，权重最高 (Score 1.0)。
-    2. **Priority 2 (强语义匹配)**: Cosine Similarity > 0.75，权重次之 (Score 0.8)。
-    3. **Priority 3 (普通语义匹配)**: Cosine Similarity > 0.65，作为召回补充 (Score 0.6)。
-  - **语义召回门槛**: `semantic_threshold` 设定为 **0.65**。低于此值的条目将被过滤。
+    1.  **Priority 1 (原文匹配)**: 标题字符串字面包含 (`ILIKE`)，权重最高。专门解决“复制标题搜索”场景。
+    2.  **Priority 2 (标题高相关)**: 标题关键词命中 (`&@~`) 或 向量极强语义相关 (Similarity > 0.88)。
+    3.  **Priority 3 (标签/主题)**: 分类、关键词命中 或 向量强语义相关 (Similarity > 0.80)。
+    4.  **Priority 4 (正文补录/摘要)**: 摘要命中 (`summary`) 或 向量中等语义相关 (Similarity > 0.65)。
+    5.  **Priority 5 (语义兜底)**: 仅满足基础语义门槛 (Similarity > 0.60)，不具备词面匹配特性。
+  - **语义召回门槛**: `semantic_threshold` 设定为 **0.60**。
 - **高性能向量裁切 (Matryoshka/MRL)**:
   - **背景**: 新模型原生支持 3072 维，但我们利用其 Matryoshka 特性，裁切至 **768 维** 输出。
   - **优势**: 保持了 >99% 的检索精度，同时完美兼容现有数据库结构，节省了 75% 的存储与索引计算成本。

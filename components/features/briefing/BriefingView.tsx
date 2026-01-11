@@ -352,10 +352,11 @@ const Briefing: React.FC<BriefingProps> = ({
                         <button
                           key={slotOption}
                           onClick={() => onTimeSlotChange(isSelected ? null : slotOption)}
+                          style={{ WebkitBackdropFilter: isSelected ? 'none' : 'blur(16px)' }}
                           className={`flex size-[44px] items-center justify-center rounded-full border border-white/20 font-serif text-base transition-all duration-300 ${
                             isSelected
                               ? 'scale-110 border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)] dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900 dark:shadow-[0_0_15px_rgba(251,191,36,0.6)]'
-                              : 'bg-black/20 text-white/90 backdrop-blur-md hover:border-white/40 hover:bg-white/20'
+                              : 'bg-transparent text-white/90 backdrop-blur-md hover:border-white/40 hover:bg-white/20'
                           } cursor-pointer`}
                           title={titleMap[slotOption]}
                         >
@@ -377,10 +378,11 @@ const Briefing: React.FC<BriefingProps> = ({
                           <button
                             key={type.id || 'all'}
                             onClick={() => onVerdictFilterChange(isSelected ? null : type.id)}
+                            style={{ WebkitBackdropFilter: isSelected ? 'none' : 'blur(8px)' }}
                             className={`flex h-10 min-w-[44px] items-center justify-center rounded-full border border-white/20 px-3.5 font-serif text-sm transition-all duration-300 ${
                               isSelected
-                                ? 'border-white bg-white text-black shadow-[0_0_10px_rgba(255,255,255,0.4)]'
-                                : 'bg-black/10 text-white/80 backdrop-blur-sm hover:bg-white/10'
+                                ? 'border-white bg-white text-black shadow-[0_0_10px_rgba(255,255,255,0.4)] dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900'
+                                : 'bg-transparent text-white/80 backdrop-blur-sm hover:bg-white/10'
                             } cursor-pointer`}
                             title={type.title}
                           >
@@ -395,26 +397,7 @@ const Briefing: React.FC<BriefingProps> = ({
             </div>
 
             {/* Middle Row: Greeting & Count - Unified (White Text) with Separator */}
-            <div className="border-t border-white/20 pt-2.5 md:pt-4">
-              <p className="font-serif text-sm leading-relaxed text-white/95 drop-shadow-xs md:text-lg">
-                {isToday ? (
-                  <span>{getGreeting()}，欢迎阅读今日简报</span>
-                ) : (
-                  <span>欢迎阅读本期简报</span>
-                )}
-                {reports.length > 0 && (
-                  <span>
-                    ，共{' '}
-                    <span className="font-variant-numeric tabular-nums">
-                      {reports.reduce((acc, r) => acc + Object.values(r.articles).flat().length, 0)}
-                    </span>{' '}
-                    篇文章。
-                  </span>
-                )}
-              </p>
-            </div>
-
-            {/* Bottom Row (Mobile Only): Filter Buttons Combined */}
+            {/* Top Row (Mobile Only): Filter Buttons - NOW ABOVE GREETING */}
             <div className="flex items-center gap-4 md:hidden">
               <div className="flex items-center gap-2">
                 {(['morning', 'afternoon', 'evening'] as const).map((slotOption) => {
@@ -428,10 +411,11 @@ const Briefing: React.FC<BriefingProps> = ({
                     <button
                       key={slotOption}
                       onClick={() => onTimeSlotChange(isSelected ? null : slotOption)}
+                      style={{ WebkitBackdropFilter: isSelected ? 'none' : 'blur(12px)' }}
                       className={`flex size-8 items-center justify-center rounded-full border border-white/20 font-serif text-xs transition-all duration-300 ${
                         isSelected
-                          ? 'scale-110 border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)]'
-                          : 'bg-black/20 bg-white/10 text-white/90 backdrop-blur-md'
+                          ? 'scale-110 border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)] dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900 dark:shadow-[0_0_15px_rgba(251,191,36,0.6)]'
+                          : 'bg-transparent text-white/90 backdrop-blur-md'
                       } cursor-pointer`}
                     >
                       {labelMap[slotOption]}
@@ -454,10 +438,11 @@ const Briefing: React.FC<BriefingProps> = ({
                       <button
                         key={type.id || 'all'}
                         onClick={() => onVerdictFilterChange(isSelected ? null : type.id)}
+                        style={{ WebkitBackdropFilter: isSelected ? 'none' : 'blur(8px)' }}
                         className={`flex h-7 min-w-[32px] items-center justify-center rounded-full border border-white/20 px-2 font-serif text-[10px] transition-all duration-300 ${
                           isSelected
-                            ? 'border-white bg-white text-black'
-                            : 'bg-black/10 bg-white/10 text-white/80 backdrop-blur-sm'
+                            ? 'border-white bg-white text-black dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900'
+                            : 'bg-transparent text-white/80 backdrop-blur-sm'
                         } cursor-pointer`}
                       >
                         {type.label}
@@ -466,6 +451,26 @@ const Briefing: React.FC<BriefingProps> = ({
                   })}
                 </div>
               )}
+            </div>
+
+            {/* Middle Row: Greeting & Count - NOW BELOW BUTTONS */}
+            <div className="border-t border-white/20 pt-2.5 md:pt-4">
+              <p className="font-serif text-sm leading-relaxed text-white/95 drop-shadow-xs md:text-lg">
+                {isToday ? (
+                  <span>{getGreeting()}，欢迎阅读今日简报</span>
+                ) : (
+                  <span>欢迎阅读本期简报</span>
+                )}
+                {reports.length > 0 && (
+                  <span>
+                    ，共{' '}
+                    <span className="font-variant-numeric tabular-nums">
+                      {reports.reduce((acc, r) => acc + Object.values(r.articles).flat().length, 0)}
+                    </span>{' '}
+                    篇文章。
+                  </span>
+                )}
+              </p>
             </div>
           </div>
         </header>

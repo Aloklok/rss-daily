@@ -112,17 +112,17 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
   const { isStarred, userTagLabels } = useArticleMetadata(selectedArticle);
 
   return (
-    <div className="fixed right-8 bottom-8 z-20 flex flex-col-reverse items-center gap-y-3">
+    <div className="fixed right-6 bottom-6 z-20 flex flex-col-reverse items-center gap-y-2.5 md:right-8 md:bottom-8 md:gap-y-3">
       {/* --- 共享按钮：始终显示 --- */}
       <button
         onClick={handleRefreshToHome}
         disabled={isBriefingFetching}
-        className="cursor-pointer rounded-full bg-gray-800 p-3 text-white shadow-lg transition-all hover:bg-gray-950"
+        className="cursor-pointer rounded-full bg-gray-800 p-2.5 text-white shadow-lg transition-all hover:bg-gray-950 md:p-3"
         aria-label="Back to today's briefing"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6 cursor-pointer"
+          className="size-5 cursor-pointer md:size-6"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -146,7 +146,7 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
             <div className="relative" onClick={(e) => e.stopPropagation()}>
               <button
                 onClick={() => setIsTagPopoverOpen((prev) => !prev)}
-                className={`cursor-pointer rounded-full p-3 text-white shadow-lg transition-all ${
+                className={`cursor-pointer rounded-full p-2.5 text-white shadow-lg transition-all md:p-3 ${
                   userTagLabels.length > 0
                     ? 'bg-sky-600 hover:bg-sky-700'
                     : 'bg-gray-800 hover:bg-gray-950'
@@ -155,7 +155,7 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 cursor-pointer"
+                  className="size-5 cursor-pointer md:size-6"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -183,7 +183,7 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
                 );
               }}
               disabled={isUpdatingArticle}
-              className={`cursor-pointer rounded-full p-3 text-white shadow-lg transition-all disabled:bg-gray-500 ${
+              className={`cursor-pointer rounded-full p-2.5 text-white shadow-lg transition-all disabled:bg-gray-500 md:p-3 ${
                 isStarred ? 'bg-amber-500 hover:bg-amber-600' : 'bg-gray-800 hover:bg-gray-950'
               }`}
               aria-label={isStarred ? 'Remove from favorites' : 'Add to favorites'}
@@ -191,7 +191,7 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
               {isStarred ? (
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 cursor-pointer"
+                  className="size-5 cursor-pointer md:size-6"
                   viewBox="0 0 20 20"
                   fill="currentColor"
                 >
@@ -200,7 +200,7 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
               ) : (
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 cursor-pointer"
+                  className="size-5 cursor-pointer md:size-6"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -221,12 +221,12 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
             <button
               onClick={() => handleMarkAllClick(articleIdsInView)}
               disabled={isMarkingAsRead || !hasUnreadInView}
-              className={`cursor-pointer rounded-full bg-gray-800 p-3 text-white shadow-lg transition-all hover:bg-gray-950 disabled:cursor-not-allowed disabled:bg-gray-500`}
+              className={`cursor-pointer rounded-full bg-gray-800 p-2.5 text-white shadow-lg transition-all hover:bg-gray-950 disabled:cursor-not-allowed disabled:bg-gray-500 md:p-3`}
               aria-label="Mark all as read"
             >
               {isMarkingAsRead ? (
                 <svg
-                  className="h-6 w-6 animate-spin cursor-pointer"
+                  className="size-5 animate-spin cursor-pointer md:size-6"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -248,7 +248,7 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
               ) : (
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 cursor-pointer"
+                  className="size-5 cursor-pointer md:size-6"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -273,12 +273,12 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
             const { setIsOpen, isOpen } = useChatStore.getState();
             setIsOpen(!isOpen);
           }}
-          className="group relative mb-2 cursor-pointer rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 p-3 text-white shadow-lg transition-all hover:scale-105 hover:shadow-indigo-500/25 active:scale-95"
+          className="group relative mb-2 cursor-pointer rounded-full bg-gradient-to-tr from-indigo-600 to-violet-600 p-2.5 text-white shadow-lg transition-all hover:scale-105 hover:shadow-indigo-500/25 active:scale-95 md:p-3"
           aria-label="Open AI Assistant"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
+            className="size-5 md:size-6"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -290,19 +290,18 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
               d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
             />
           </svg>
-          {/* Tooltip hint */}
         </button>
       )}
 
       {/* --- 共享按钮：始终显示 --- */}
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className="cursor-pointer rounded-full bg-gray-800 p-3 text-white shadow-lg transition-all hover:bg-gray-950"
+        className="cursor-pointer rounded-full bg-gray-800 p-2.5 text-white shadow-lg transition-all hover:bg-gray-950 md:p-3"
         aria-label="Back to top"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6 cursor-pointer"
+          className="size-5 cursor-pointer md:size-6"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
