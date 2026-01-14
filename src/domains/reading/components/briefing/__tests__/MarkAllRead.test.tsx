@@ -9,7 +9,7 @@ import { READ_TAG } from '@/domains/interaction/constants';
 // Mock Hooks
 // 1. useArticleActions
 const mockHandleMarkAllClick = vi.fn();
-vi.mock('@/hooks/useArticleActions', () => ({
+vi.mock('@/domains/interaction/hooks/useArticleActions', () => ({
   useArticleActions: () => ({
     handleArticleStateChange: vi.fn(),
     handleMarkAllClick: mockHandleMarkAllClick,
@@ -22,21 +22,21 @@ vi.mock('@/hooks/useArticleActions', () => ({
 const mockUseBriefingArticles = vi.fn();
 const mockUseFilteredArticles = vi.fn();
 
-vi.mock('@/hooks/useArticles', () => ({
+vi.mock('@/domains/reading/hooks/useArticles', () => ({
   useBriefingArticles: (...args: any[]) => mockUseBriefingArticles(...args),
   useFilteredArticles: (...args: any[]) => mockUseFilteredArticles(...args),
   useSearchResults: () => ({ data: null }),
 }));
 
 // 3. Mock other hooks used in component
-vi.mock('@/hooks/useArticleMetadata', () => ({
+vi.mock('@/domains/reading/hooks/useArticleMetadata', () => ({
   useArticleMetadata: () => ({ isStarred: false, isRead: false, userTagLabels: [] }),
   // ...
 }));
-vi.mock('@/hooks/useFilters', () => ({
+vi.mock('@/domains/reading/hooks/useFilters', () => ({
   useFilters: () => ({ handleResetFilter: vi.fn() }),
 }));
-vi.mock('@/services/clientApi', () => ({
+vi.mock('@/domains/reading/services/readingClient', () => ({
   getCurrentTimeSlotInShanghai: () => 'morning',
 }));
 

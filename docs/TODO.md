@@ -43,6 +43,77 @@
 - [ ] **列表虚拟化**: 在文章列表极长时引入虚拟滚动，确保移动端 60fps 滚动。改动难度：低，性能提升：中。
 - [ ] **移动端离线体感**: 优化 Service Worker 或持久化策略，提升弱网下的数据暂存体验。改动难度：高，性能提升：高（极大优化弱网体感）。
 
+### 📐 SDD (Schema-Driven Development) 演进
+
+> **目标**: 以 Schema 为唯一真相来源，自动生成类型、验证逻辑和文档，提升 AI 生成代码的可靠性。
+
+**推荐工具栈:**
+
+| 工具        | 用途                             | 优先级                   |
+| ----------- | -------------------------------- | ------------------------ |
+| **Zod**     | 运行时 Schema 验证 + TS 类型推导 | 🟢 高 (首选)             |
+| **tRPC**    | 端到端类型安全 API               | 🟡 中 (可选，改动较大)   |
+| **TypeBox** | JSON Schema 互操作               | 🟠 低 (仅需跨系统交换时) |
+
+**落地步骤:**
+
+- [ ] **API 响应验证**: 在 `apiClient.ts` 中引入 Zod，验证后端返回数据符合预期 Schema。
+- [ ] **请求参数验证**: 在 API 路由中用 Zod 替代手动 `typeof` 检查。
+- [ ] **类型统一**: 从 Zod Schema 推导 `Article`、`Filter` 等核心类型，消除手写类型与运行时的脱节。
+- [ ] **文档自动生成**: 探索从 Zod Schema 生成 OpenAPI 文档或 Markdown 类型文档。
+
+**现有 SDD 基础:**
+
+- ✅ Supabase 类型自动生成 (`pnpm gen:supabase-types`)
+- ✅ FreshRSS OpenAPI 类型生成 (`pnpm gen:freshrss-types`)
+- ✅ Prompt 外部化 (数据库存储，`prompt:push/pull` 同步)
+
+---
+
+### 🧪 TDD (Test-Driven Development) 演进
+
+> **目标**: 对关键逻辑采用"先写测试，再写代码"的严格 TDD 流程，提升 AI 生成代码的可靠性。
+
+**什么是严格 TDD？**
+
+```
+1. Red (红灯)     → 先写一个失败的测试用例
+2. Green (绿灯)   → 写最少的代码让测试通过
+3. Refactor (重构) → 优化代码，保持测试通过
+```
+
+**分层测试策略 (Testing Trophy):**
+
+| 层级            | 比例 | 适用范围                            |
+| --------------- | ---- | ----------------------------------- |
+| **Unit**        | 50%  | `utils/`, 纯函数, Store Actions     |
+| **Integration** | 35%  | Hook + Store + API 联动             |
+| **E2E**         | 15%  | 关键用户流程 (首页加载、搜索、收藏) |
+
+**渐进式落地路径:**
+
+| 阶段            | 方式       | 说明                               |
+| --------------- | ---------- | ---------------------------------- |
+| **Utils/Store** | 严格 TDD   | 新增功能必须先写测试               |
+| **API 新功能**  | 严格 TDD   | 先定义 Schema + 测试用例           |
+| **Bug 修复**    | 强制 TDD   | 任何 Bug 必须先有失败测试才能修复  |
+| **UI 组件**     | Test-After | 先做原型，再补测试                 |
+| **AI 集成**     | Test-After | LLM 输出不确定，先实现再 Mock 测试 |
+
+**工具增强:**
+
+- [ ] **Coverage 门控**: 设定最低覆盖率 (建议 60%)，CI 不达标则阻断合并。
+- [ ] **Vitest Watch Mode**: 开发时启用 `pnpm test --watch` 实时反馈。
+- [ ] **Snapshot Testing**: 对复杂对象/组件输出做快照防止意外变更。
+
+**现有测试基础:**
+
+- ✅ Vitest + Testing Library + Playwright
+- ✅ `e2e/mocks/data.ts` 统一 Mock 数据
+- ✅ GitHub Actions CI 运行测试
+
+---
+
 ### 🔄 架构备选方案
 
 - [ ] **Edge 聚合中间层 (BFF)**: 在 Vercel Edge Function 上实现轻量级聚合端点，一次性完成 Storage 检查、DB 读取和 Metadata 组装，合并跨洋 RTT。改动难度：高，性能提升：高（显著减少冷启动 RTT，适合全球化部署）。

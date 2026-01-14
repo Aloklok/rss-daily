@@ -11,12 +11,15 @@ import React from 'react';
 const mockEditArticleState = vi.fn();
 const mockEditArticleTag = vi.fn();
 
-vi.mock('@/services/clientApi', () => ({
+vi.mock('@/domains/interaction/services/interactionClient', () => ({
   editArticleState: (...args: any[]) => mockEditArticleState(...args),
   editArticleTag: (...args: any[]) => mockEditArticleTag(...args),
+  markAllAsRead: vi.fn(),
+}));
+
+vi.mock('@/domains/reading/services/readingClient', () => ({
   getRawStarredArticles: vi.fn(),
   getAvailableDates: vi.fn(),
-  getBriefingReportsByDate: vi.fn(),
   getArticlesDetails: vi.fn(),
   markAllAsRead: vi.fn(),
   getCleanArticleContent: vi.fn(),
