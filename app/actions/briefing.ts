@@ -233,8 +233,23 @@ export async function generateBulkBriefingAction(articles: Article[], modelId?: 
       if (d) datesToRevalidate.add(d);
     });
 
+    // Dynamic import to ensure server-side execution
+    const { revalidateTag } = await import('next/cache');
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai' }).format(
+      new Date(),
+    );
+
     for (const date of datesToRevalidate) {
+      // 1. Invalidate Data Cache
+      revalidateTag(`briefing-data-${date}`);
+      
+      // 2. Invalidate Page Cache
       revalidatePath(`/date/${date}`);
+
+      // 3. Invalidate Homepage if it's today
+      if (date === today) {
+        revalidatePath('/');
+      }
     }
 
     return {

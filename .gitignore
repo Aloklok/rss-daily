@@ -50,3 +50,6 @@ Prompt.MD
 CHAT_PROMPT.MD
 supabase
 
+# Trae AI Config
+.trae/
+

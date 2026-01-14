@@ -14,15 +14,10 @@ export const revalidate = 604800; // 7 days
 
 async function getLatestBriefingData() {
   const dates = await fetchAvailableDates();
-  const initialDate = dates.length > 0 ? dates[0] : undefined;
-
-  if (!initialDate)
-    return {
-      initialDate: undefined,
-      articles: [],
-      headerImageUrl: undefined,
-      dates: [],
-    };
+  
+  // [Fix] Always use "Today" as initialDate to match Client logic and prevent flickering.
+  // This ensures the homepage always renders "Today" (even if empty) instead of falling back to "Yesterday".
+  const initialDate = getTodayInShanghai();
 
   const groupedArticles = await fetchBriefingData(initialDate);
   const articles = Object.values(groupedArticles).flat();
