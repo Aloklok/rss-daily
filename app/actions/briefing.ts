@@ -241,8 +241,8 @@ export async function generateBulkBriefingAction(articles: Article[], modelId?: 
 
     for (const date of datesToRevalidate) {
       // 1. Invalidate Data Cache
-      revalidateTag(`briefing-data-${date}`);
-      
+      revalidateTag(`briefing-data-${date}`, 'max');
+
       // 2. Invalidate Page Cache
       revalidatePath(`/date/${date}`);
 

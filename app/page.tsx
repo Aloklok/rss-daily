@@ -14,7 +14,7 @@ export const revalidate = 604800; // 7 days
 
 async function getLatestBriefingData() {
   const dates = await fetchAvailableDates();
-  
+
   // [Fix] Always use "Today" as initialDate to match Client logic and prevent flickering.
   // This ensures the homepage always renders "Today" (even if empty) instead of falling back to "Yesterday".
   const initialDate = getTodayInShanghai();
