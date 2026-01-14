@@ -7,8 +7,63 @@
 - **核心框架**: Next.js 16 (App Router), React 19, TypeScript
 - **状态管理**:
   - **服务器状态**: TanStack Query (React Query) - 负责客户端数据交互。
-  - **客户端状态**: Zustand - 管理 UI 状态和确认更新。
-- **安全性**: sanitize-html - 跨端 HTML 清洗与增强。
+  - **客户端状态**: Zustand - 管理 UI 状态和行为更新。
+  - **交互领域 (Interaction)**: [articleStore.ts](../src/domains/interaction/store/articleStore.ts) - 文章点赞、收藏及状态缓存。
+  - **全局共享 (Shared)**: [uiStore.ts](../src/shared/store/uiStore.ts) - 侧边栏折叠、筛选器状态及全局 UI 标志。
+- **Hooks (逻辑下放)**: 遵循领域边界，实现读写分离。
+  - **读取 (Reading)**: 详情见 [READING_LOGIC.md](../src/domains/reading/READING_LOGIC.md)。
+  - **交互 (Interaction)**: 详情见 [INTERACTION_STORE.md](../src/domains/interaction/INTERACTION_STORE.md)。
+
+## 1.1 领域驱动设计 (Domain-Driven Design)
+
+本项目采用 **物理分层 + 领域驱动设计 (DDD)** 的架构模式，将业务逻辑按职责划分到独立的"领域"目录中，实现高内聚、低耦合。
+
+### 目录结构
+
+```
+src/
+├── domains/                  # 业务领域层
+│   ├── intelligence/         # 🧠 智能领域 (AI 对话、RAG、向量检索)
+│   │   ├── components/       #    - AI 相关组件
+│   │   ├── prompts/          #    - Prompt 模板 (PROMPT.MD, CHAT_PROMPT.MD)
+│   │   └── INTELLIGENCE.md   #    - 领域技术文档
+│   ├── reading/              # 📖 阅读领域 (文章渲染、日期逻辑、筛选)
+│   │   ├── components/       #    - 简报、侧边栏、文章卡片等
+│   │   ├── hooks/            #    - 查询类 Hooks (useArticles, useFilters...)
+│   │   ├── services/         #    - 客户端 API (readingClient, articleLoader)
+│   │   └── READING_LOGIC.md  #    - 领域技术文档
+│   └── interaction/          # ❤️ 交互领域 (收藏、已读、标记)
+│       ├── hooks/            #    - 修改类 Hooks (useArticleMutations...)
+│       ├── services/         #    - 客户端 API (interactionClient)
+│       ├── store/            #    - Zustand Store (articleStore)
+│       └── INTERACTION_STORE.md # - 领域技术文档
+├── shared/                   # 🏗️ 跨领域共享层
+│   ├── components/           #    - 全局布局、公共 UI 组件
+│   ├── hooks/                #    - 公共 Hooks (useAppToast, dom/)
+│   ├── infrastructure/       #    - 基础设施 (Supabase, FreshRSS, apiClient)
+│   ├── store/                #    - 全局 Store (uiStore, toastStore)
+│   ├── types/                #    - 全局类型定义
+│   └── utils/                #    - 公共工具函数
+├── lib/                      # ⚙️ 服务器端核心逻辑 (server-only)
+│   └── server/               #    - dataFetcher, gemini, embeddings 等
+└── app/                      # 📄 Next.js App Router (页面与路由)
+```
+
+### 领域职责划分
+
+| 领域             | 核心职责                                 | Hooks 类型        | 关键服务                               |
+| ---------------- | ---------------------------------------- | ----------------- | -------------------------------------- |
+| **intelligence** | AI 对话、RAG 召回、语义搜索、Prompt 管理 | —                 | Gemini API                             |
+| **reading**      | 文章列表渲染、日期筛选、搜索结果展示     | **Query** (读)    | `readingClient.ts`, `articleLoader.ts` |
+| **interaction**  | 收藏、已读、标签同步、Store 状态管理     | **Mutation** (写) | `interactionClient.ts`                 |
+| **shared**       | 全局 UI、基础设施客户端、公共工具        | 公共工具          | Supabase/FreshRSS Client               |
+
+### 设计原则
+
+1. **读写分离 (CQRS 思想)**: Query Hooks 在 `reading`，Mutation Hooks 在 `interaction`。
+2. **领域自治**: 每个领域拥有自己的 `components/`, `hooks/`, `services/`, `store/`。
+3. **文档就近**: 领域技术文档 (`*.md`) 放在领域根目录，与代码共存。
+4. **绝对路径**: 全部使用 `@/` 别名，消除相对路径维护成本。
 
 ## 2. 后端服务集成
 
@@ -16,13 +71,13 @@
 
 提供文章的核心内容和自定义元数据。
 
-> 详细字段定义请查看 [types/supabase.ts](../types/supabase.ts)。
+> 详细字段定义请查看 [src/shared/types/article.ts](../src/shared/types/article.ts) 或 [src/shared/types/generated/supabase.ts](../src/shared/types/generated/supabase.ts)。
 
 ### FreshRSS
 
 提供 RSS 订阅管理、文章状态和标签。
 
-> 详细 API 定义请查看 [types/freshrss-greader.ts](../types/freshrss-greader.ts)。
+> 详细 API 定义请查看 [src/shared/types/generated/freshrss-greader.ts](../src/shared/types/generated/freshrss-greader.ts)。
 
 ### 统一数据模型
 
@@ -128,7 +183,10 @@ Admin 后台采用 **Server Actions** 处理长耗时任务（如批量 AI 简�
 
 1.  **本地优先**: 若 Zustand Store 中已存在该文章(说明用户在交互),则拒绝使用 SSR 数据覆盖
 2.  **确认更新**: 用户点击收藏后,API 返回成功即视为已确认,本地状态不会被后台刷新覆盖
-3.  **后台对账**: 仅在必要时(初始加载/多端同步)发起后台请求修正数据
+3.  **领域 Hook 隔离**:
+    - **Query Hooks**: 位于 `src/domains/reading/hooks/`，仅限获取数据。
+    - **Mutation Hooks**: 位于 `src/domains/interaction/hooks/` (如 `useArticleMutations`)，专注于状态变更与同步。
+4.  **后台对账**: 仅在必要时(初始加载/多端同步)发起后台请求修正数据
 
 > [!TIP]
 > **直白理解缓存逻辑**:

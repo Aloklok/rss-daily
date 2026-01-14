@@ -1,12 +1,12 @@
-import { fetchAvailableDates, fetchBriefingData } from '@/lib/server/dataFetcher';
-import { fetchFilteredArticlesSSR } from './lib/server/ssr-helpers';
-import MainContentClient from '@/components/layout/MainContentClient';
-import { resolveBriefingImage } from '@/utils/imageUtils';
+import { fetchAvailableDates, fetchBriefingData } from '@/domains/reading/services';
+import { fetchFilteredArticlesSSR } from '@/app/lib/server/ssr-helpers';
+import MainContentClient from '@/shared/components/layout/MainContentClient';
+import { resolveBriefingImage } from '@/shared/utils/imageUtils';
 import { Metadata } from 'next';
-import { Filter } from '../types';
-import { BRIEFING_IMAGE_WIDTH, BRIEFING_IMAGE_HEIGHT } from '@/lib/constants';
-import { toShortId } from '@/utils/idHelpers';
-import { getCurrentTimeSlot, getTodayInShanghai } from '@/utils/dateUtils';
+import { Filter } from '@/shared/types';
+import { BRIEFING_IMAGE_WIDTH, BRIEFING_IMAGE_HEIGHT } from '@/domains/intelligence/constants';
+import { toShortId } from '@/shared/utils/idHelpers';
+import { getCurrentTimeSlot, getTodayInShanghai } from '@/domains/reading/utils/date';
 
 // [Scheme C Optimization] Converted to ISR for performance
 // Webhook mechanism ensures cache invalidation when content changes

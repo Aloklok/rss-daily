@@ -1,12 +1,11 @@
 import React from 'react';
 import { Metadata } from 'next';
-import { fetchBriefingData, fetchAvailableDates } from '@/lib/server/dataFetcher';
-import { getTodayInShanghai } from '@/utils/dateUtils';
-
-import BriefingClient from '@/components/features/briefing/BriefingClient';
-import { resolveBriefingImage } from '@/utils/imageUtils';
-import { BRIEFING_IMAGE_WIDTH, BRIEFING_IMAGE_HEIGHT } from '@/lib/constants';
-import { toShortId } from '@/utils/idHelpers';
+import { fetchBriefingData, fetchAvailableDates } from '@/domains/reading/services';
+import { BRIEFING_IMAGE_WIDTH, BRIEFING_IMAGE_HEIGHT } from '@/domains/intelligence/constants';
+import BriefingClient from '@/domains/reading/components/briefing/BriefingClient';
+import { getTodayInShanghai } from '@/domains/reading/utils/date';
+import { resolveBriefingImage } from '@/shared/utils/imageUtils';
+import { toShortId } from '@/shared/utils/idHelpers';
 
 // UNIFIED ISR STRATEGY:
 // All pages (History & Today) are cached for 7 days (604800s).

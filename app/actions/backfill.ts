@@ -2,8 +2,9 @@
 
 import { getFreshRssClient, getSupabaseClient } from '@/lib/server/apiUtils';
 import { generateBriefingAction, generateBulkBriefingAction } from './briefing';
-import { Article, FreshRSSItem } from '@/types';
-import { toFullId } from '@/utils/idHelpers';
+import { Article } from '@/types';
+import { FreshRSSItem } from '@/shared/infrastructure/fresh-rss';
+import { toFullId } from '@/shared/utils/idHelpers';
 import { fetchSubscriptions } from '@/lib/server/dataFetcher';
 
 // 定义返回给前端的“候选文章”结构

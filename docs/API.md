@@ -33,14 +33,14 @@ API 路由按照业务领域进行组织：
 
 我们强制执行 **Client/Server 分离**：
 
-#### A. 客户端服务 (`services/clientApi.ts`)
+#### A. 客户端服务 (`src/shared/infrastructure/services/clientApi.ts`)
 
 纯净的数据访问层，供 UI 组件 (`'use client'`) 使用。
 
 - **职责**: 仅负责 `fetch` 数据，**绝对不包含**复杂的业务逻辑或 UI 反馈（如 Toast）。
 - **主要方法**: `getCleanArticleContent`, `markAllAsRead`, `fetchSearchResults`。
 
-#### B. 服务端核心 (`lib/server/dataFetcher.ts`)
+#### B. 服务端核心 (`src/lib/server/dataFetcher.ts`)
 
 **只能**在 Server Components 或 API Routes 中使用。
 

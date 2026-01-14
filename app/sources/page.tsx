@@ -1,5 +1,5 @@
-import { fetchSubscriptions } from '../../lib/server/dataFetcher';
-import SourceFilterClient from '../../components/features/search/SourceFilterClient';
+import { fetchSubscriptions } from '@/lib/server/dataFetcher';
+import SourceFilterClient from '@/domains/reading/components/search/SourceFilterClient';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {

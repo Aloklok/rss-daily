@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { submitUrlsToIndexNow } from '@/utils/indexnow';
+import { submitUrlsToIndexNow } from '@/shared/utils/indexnow';
 import { getSitemapUrls } from '@/app/lib/sitemap-helper';
 
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;

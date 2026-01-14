@@ -4,15 +4,16 @@
 
 ## 🎯 按任务类型快速导航到 docs/
 
-| 你的任务               | 相关文档                                                                                    |
-| ---------------------- | ------------------------------------------------------------------------------------------- |
-| **理解整体架构**       | [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)                                              |
-| **添加/修改 API 路由** | [docs/API.md](./docs/API.md) → [docs/UTILS.md](./docs/UTILS.md)                             |
-| **修改数据库查询**     | [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) + [docs/UTILS.md](./docs/UTILS.md)           |
-| **前端开发**           | [docs/COMPONENT_CATALOG.md](./docs/COMPONENT_CATALOG.md) → [docs/STORE.md](./docs/STORE.md) |
-| **写单元/E2E 测试**    | [docs/TESTING.md](./docs/TESTING.md)                                                        |
-| **性能优化**           | [docs/TODO.md](./docs/TODO.md)                                                              |
-| **SEO 优化**           | [docs/SEO.md](./docs/SEO.md)                                                                |
+| 你的任务               | 相关文档                                                                                                                          |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **理解整体架构**       | [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)                                                                                    |
+| **添加/修改 API 路由** | [docs/API.md](./docs/API.md) → [src/shared/SHARED_INFRA.md](./src/shared/SHARED_INFRA.md)                                         |
+| **修改业务逻辑**       | [src/domains/reading/READING_LOGIC.md](./src/domains/reading/READING_LOGIC.md)                                                    |
+| **前端开发**           | [docs/STORE.md](./docs/STORE.md) → [src/domains/interaction/INTERACTION_STORE.md](./src/domains/interaction/INTERACTION_STORE.md) |
+| **智能对话/RAG**       | [src/domains/intelligence/INTELLIGENCE.md](./src/domains/intelligence/INTELLIGENCE.md)                                            |
+| **写单元/E2E 测试**    | [docs/TESTING.md](./docs/TESTING.md)                                                                                              |
+| **性能优化**           | [docs/TODO.md](./docs/TODO.md)                                                                                                    |
+| **SEO 优化**           | [docs/SEO.md](./docs/SEO.md)                                                                                                      |
 
 ## ⚠️ 重要原则
 
@@ -35,15 +36,32 @@
 
 ---
 
+## 🧩 领域驱动设计 (DDD) 结构
+
+本项目采用 **领域驱动设计**，代码按业务职责划分到 `src/domains/` 下的独立领域。**理解这一结构是高效导航代码库的关键。**
+
+| 领域目录                | 职责                      | 核心内容                                               |
+| ----------------------- | ------------------------- | ------------------------------------------------------ |
+| `domains/intelligence/` | 🧠 AI 对话、RAG、向量检索 | Gemini 集成、Prompt 模板                               |
+| `domains/reading/`      | 📖 文章渲染、筛选、搜索   | Query Hooks (`useArticles`...)、`readingClient.ts`     |
+| `domains/interaction/`  | ❤️ 收藏、已读、标签同步   | Mutation Hooks (`useArticleMutations`)、`articleStore` |
+| `shared/`               | 🏗️ 跨领域公共层           | 布局组件、Supabase/FreshRSS 客户端、公共工具           |
+
+> **定位代码技巧**: 如果是"读数据"相关的逻辑，去 `reading/`；如果是"改状态"相关的逻辑，去 `interaction/`；如果是"AI 功能"，去 `intelligence/`。
+
+**详细架构**: 见 [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md#11-领域驱动设计-domain-driven-design)
+
+---
+
 ## ️ 核心文件速查
 
-| 文件                                                           | 职责                                |
-| -------------------------------------------------------------- | ----------------------------------- |
-| [lib/server/dataFetcher.ts](./lib/server/dataFetcher.ts)       | 获取文章数据（Supabase + FreshRSS） |
-| [scripts/update-search-rpc.ts](./scripts/update-search-rpc.ts) | 维护 PGroonga 混合搜索逻辑 (RPC)    |
-| [docs/AI.md](./docs/AI.md)                                     | AI 架构、RAG 召回与语义搜索规划     |
-| [utils/imageUtils.ts](./utils/imageUtils.ts)                   | 封面图生成、缓存与延迟处理逻辑      |
-| [e2e/mocks/data.ts](./e2e/mocks/data.ts)                       | 测试用 mock 数据                    |
+| 文件                                                                                   | 职责                                |
+| -------------------------------------------------------------------------------------- | ----------------------------------- |
+| [src/lib/server/dataFetcher.ts](./src/lib/server/dataFetcher.ts)                       | 获取文章数据（Supabase + FreshRSS） |
+| [scripts/update-search-rpc.ts](./scripts/update-search-rpc.ts)                         | 维护 PGroonga 混合搜索逻辑 (RPC)    |
+| [src/domains/intelligence/INTELLIGENCE.md](./src/domains/intelligence/INTELLIGENCE.md) | AI 架构、RAG 召回与语义搜索规划     |
+| [src/shared/utils/imageUtils.ts](./src/shared/utils/imageUtils.ts)                     | 封面图生成、缓存与延迟处理逻辑      |
+| [e2e/mocks/data.ts](./e2e/mocks/data.ts)                                               | 测试用 mock 数据                    |
 
 **更多文件详情**: 见 [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md)
 
@@ -69,9 +87,9 @@
 
 - **搜索**: `hybrid_search_articles`, `&@~` (PGroonga), `match_priority`
 - **AI Prompt 动态管理**:
-  - **简报 Prompt**: 存储在 Supabase `app_config` (key: `gemini_briefing_prompt`)。
-  - **对话 Prompt**: 存储在 Supabase `app_config` (key: `gemini_chat_prompt`)。
-  - **操作脚本**: `pnpm prompt:push/pull` 和 `pnpm chat-prompt:push/pull` 用于本地同步。
+  - **简报 Prompt**: `src/domains/intelligence/prompts/PROMPT.MD`。
+  - **对话 Prompt**: `src/domains/intelligence/prompts/CHAT_PROMPT.MD`。
+  - **操作脚本**: `pnpm prompt:push/pull` 和 `pnpm chat-prompt:push/pull` (已适配新路径)。
 - **AI 性能**: `pgmq`, `embeddings.ts`, `Gemini`
 - **时区**: `shanghaiDayToUtcWindow`, `dateUtils`
 - **FreshRSS**: `tagFetcher`, `/tag/list`
@@ -147,4 +165,4 @@ pnpm run lint     # 检查
 
 ---
 
-_Last Updated: 2026-01-08_
+_Last Updated: 2026-01-14_

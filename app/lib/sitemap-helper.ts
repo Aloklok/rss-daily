@@ -1,4 +1,4 @@
-import { getSupabaseClient, getFreshRssClient } from '../../lib/server/apiUtils';
+import { getSupabaseClient, getFreshRssClient } from '@/lib/server/apiUtils';
 
 export async function getSitemapUrls(): Promise<SitemapURL[]> {
   const supabase = getSupabaseClient();

@@ -18,7 +18,7 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function pushChatPrompt() {
-  const filePath = path.join(process.cwd(), 'CHAT_PROMPT.MD');
+  const filePath = path.join(process.cwd(), 'src/domains/intelligence/prompts/CHAT_PROMPT.MD');
   const args = process.argv.slice(2);
   const isNewVersion = args.includes('--new');
 

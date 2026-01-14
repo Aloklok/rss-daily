@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { getSupabaseClient, verifyAdmin } from '@/lib/server/apiUtils';
 import { generateEmbedding } from '@/lib/server/embeddings';
 import { reRankArticles, chatWithGemini } from '@/lib/server/gemini';
+import { CHAT_CONTEXT_PROMPT_TEMPLATE } from '@/domains/intelligence/constants';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
-  const cookieStore = await cookies();
-
   // 1. 严格管理员校验 (模仿搜索栏逻辑)
-  if (!verifyAdmin(cookieStore)) {
+  if (!(await verifyAdmin())) {
     return NextResponse.json({ message: 'Unauthorized: Admin access required' }, { status: 403 });
   }
 
@@ -161,8 +159,7 @@ export async function POST(req: NextRequest) {
         enrichedMessages = [{ role: 'system', content: SIMPLE_SYSTEM_PROMPT }, ...messages];
       } else {
         // --- RAG/SEARCH PATH: Full Context & Strict Rules ---
-        const { getChatSystemPrompt, CHAT_CONTEXT_PROMPT_TEMPLATE } =
-          await import('@/lib/server/gemini');
+        const { getChatSystemPrompt } = await import('@/lib/server/gemini');
 
         // 1. Prepare System Prompt (Persona)
         const chatSystemPromptRaw = await getChatSystemPrompt();

@@ -1,5 +1,5 @@
 import React from 'react';
-import TrendsView from '@/components/features/trends/TrendsPage';
+import TrendsView from '@/domains/reading/components/trends/TrendsPage';
 
 export const dynamic = 'force-static';
 

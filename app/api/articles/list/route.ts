@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getFreshRssClient } from '@/lib/server/apiUtils';
-import { FreshRSSItem } from '@/types';
-import { mapFreshItemToMinimalArticle } from '@/lib/server/mappers';
+import { getFreshRssClient } from '@/shared/infrastructure/fresh-rss';
+import { FreshRSSItem } from '@/shared/types';
+import { mapFreshItemToMinimalArticle } from '@/domains/reading/adapters/fresh-rss-mapper';
 
 export const dynamic = 'force-dynamic';
 

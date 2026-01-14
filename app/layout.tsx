@@ -1,10 +1,10 @@
 import './globals.css';
-import Providers from '@/components/common/Providers';
+import Providers from '@/shared/providers/Providers';
 import { Metadata } from 'next';
-import GlobalUI from '@/components/layout/GlobalUI';
-import MainLayoutClient from '@/components/layout/MainLayoutClient';
+import GlobalUI from '@/shared/components/layout/GlobalUI';
+import MainLayoutClient from '@/shared/components/layout/MainLayoutClient';
 import { Inter, Playfair_Display } from 'next/font/google';
-import AnalyticsScripts from '@/components/common/AnalyticsScripts';
+import AnalyticsScripts from '@/shared/components/analytics/AnalyticsScripts';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -77,7 +77,7 @@ import {
   fetchAvailableDates,
   getAvailableFilters,
   fetchStarredArticleHeaders,
-} from '@/lib/server/dataFetcher';
+} from '@/domains/reading/services';
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // Parallel Data Fetching for Sidebar SSR

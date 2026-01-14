@@ -1,6 +1,7 @@
-import { getFreshRssClient, getSupabaseClient } from '../../../lib/server/apiUtils';
-import { Article, FreshRSSItem } from '../../../types';
-import { mapFreshItemToMinimalArticle } from '@/lib/server/mappers';
+import { getFreshRssClient } from '@/shared/infrastructure/fresh-rss';
+import { getSupabaseClient } from '@/shared/infrastructure/supabase';
+import { Article, FreshRSSItem } from '@/shared/types';
+import { mapFreshItemToMinimalArticle } from '@/domains/reading/adapters/fresh-rss-mapper';
 
 // Function mapFreshItemToMinimalArticle moved to '@/lib/server/mappers'
 

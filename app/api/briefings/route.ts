@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseClient } from '@/lib/server/apiUtils';
 import { Article } from '@/types'; // Adjust path as needed
-import { shanghaiDateSlotToUtcWindow } from '@/utils/dateUtils';
+import { shanghaiDateSlotToUtcWindow } from '@/domains/reading/utils/date';
 
 export const dynamic = 'force-dynamic'; // Ensure this runs dynamically
 
@@ -99,7 +99,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   if (searchParams.get('include_state') === 'true') {
-    const { attachArticleStates } = await import('@/lib/server/dataFetcher');
+    const { attachArticleStates } = await import('@/domains/interaction/adapters/fresh-rss');
 
     // Flatten, attach, and reconstruct would be expensive if we break the grouping structure.
     // Instead, let's just iterate over the keys.

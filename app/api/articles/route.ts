@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchArticleContentServer } from '@/lib/server/dataFetcher';
+import { fetchArticleContent } from '@/domains/reading/services';
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
@@ -10,7 +10,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ message: 'Article ID is required.' }, { status: 400 });
     }
 
-    const data = await fetchArticleContentServer(id);
+    const data = await fetchArticleContent(id);
 
     if (!data) {
       return NextResponse.json({ message: 'Article content not found.' }, { status: 404 });

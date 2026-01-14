@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseClient, verifyAdmin } from '@/lib/server/apiUtils';
-import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,8 +47,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
-  const cookieStore = await cookies();
-  if (!verifyAdmin(cookieStore)) {
+  if (!(await verifyAdmin())) {
     return NextResponse.json({ message: 'Unauthorized: Admin access required' }, { status: 403 });
   }
 

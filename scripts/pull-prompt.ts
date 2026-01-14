@@ -39,7 +39,7 @@ async function pullPrompt() {
     process.exit(1);
   }
 
-  const filePath = path.join(process.cwd(), 'PROMPT.MD');
+  const filePath = path.join(process.cwd(), 'src/domains/intelligence/prompts/PROMPT.MD');
   fs.writeFileSync(filePath, data.value);
 
   console.log(`✅ Successfully pulled prompt to ${filePath}`);

@@ -18,7 +18,7 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function pushPrompt() {
-  const filePath = path.join(process.cwd(), 'PROMPT.MD');
+  const filePath = path.join(process.cwd(), 'src/domains/intelligence/prompts/PROMPT.MD');
   const args = process.argv.slice(2);
   const isNewVersion = args.includes('--new');
 

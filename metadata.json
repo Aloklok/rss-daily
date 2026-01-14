@@ -1,5 +1,0 @@
-{
-  "name": "Briefing Hub",
-  "description": "A personal RSS briefing center that displays daily generated article summaries from an external database, designed for a clean and responsive reading experience on both desktop and mobile devices.",
-  "requestFramePermissions": []
-}

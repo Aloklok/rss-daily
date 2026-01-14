@@ -112,7 +112,7 @@ Vitest **Browser Mode** 运行在真实浏览器环境中。**严禁**在测试�
 
   ```typescript
   // ✅ Good
-  import ArticleCard from '@/components/features/article/ArticleCard';
+  import ArticleCard from '@/domains/reading/components/article/BriefCard';
 
   // ❌ Bad
   import ArticleCard from '../../../../components/features/article/ArticleCard';

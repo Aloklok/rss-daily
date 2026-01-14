@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getFreshRssClient, verifyAdmin } from '../../../../lib/server/apiUtils';
-import { cookies } from 'next/headers';
-import { STAR_TAG, READ_TAG } from '../../../../lib/constants';
+import { getFreshRssClient, verifyAdmin } from '@/lib/server/apiUtils';
+import { STAR_TAG, READ_TAG } from '@/domains/interaction/constants';
 
 interface FreshRssItem {
   id: string;
@@ -84,8 +83,7 @@ async function handleGetStates(body: any): Promise<NextResponse> {
 
 async function handleUpdateState(request: NextRequest, body: any): Promise<NextResponse> {
   // 1. Verify Verification
-  const cookieStore = await cookies();
-  if (!verifyAdmin(cookieStore)) {
+  if (!(await verifyAdmin())) {
     return NextResponse.json({ message: 'Unauthorized: Admin access required' }, { status: 403 });
   }
 

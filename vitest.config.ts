@@ -14,7 +14,14 @@ export default defineConfig({
       '**/node_modules/**',
       '**/dist/**',
       'e2e/**',
-      'utils/__tests__/serverSanitize.test.ts',
+      'src/lib/server/__tests__/**',
+      'src/shared/utils/__tests__/serverSanitize.test.ts',
+    ],
+    include: [
+      'src/**/*.test.tsx',
+      'src/**/__tests__/*.test.tsx',
+      'src/shared/store/__tests__/*.test.ts',
+      'src/domains/**/store/__tests__/*.test.ts',
     ],
     browser: {
       enabled: true,
@@ -25,7 +32,13 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      include: ['utils/**/*.ts', 'lib/**/*.ts', 'store/**/*.ts'],
+      include: [
+        'utils/**/*.ts',
+        'lib/**/*.ts',
+        'store/**/*.ts',
+        'src/domains/**/*.ts',
+        'src/shared/**/*.ts',
+      ],
       exclude: [
         '**/*.test.ts',
         'utils/__tests__/**',

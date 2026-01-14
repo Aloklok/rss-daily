@@ -16,8 +16,8 @@
     "format": "prettier --write .",
     "analyze": "cross-env ANALYZE=true next build --webpack",
     "vercel": "NODE_OPTIONS='--dns-result-order=ipv4first' vercel dev",
-    "gen:supabase-types": "supabase gen types typescript --project-id rpctclawjqruwpfirkez > types/supabase.ts",
-    "gen:freshrss-types": "npx openapi-typescript types/freshrss-greader.yaml -o types/freshrss-greader.ts",
+    "gen:supabase-types": "supabase gen types typescript --project-id rpctclawjqruwpfirkez > src/shared/types/generated/supabase.ts",
+    "gen:freshrss-types": "npx openapi-typescript src/shared/types/generated/freshrss.yaml -o src/shared/types/generated/freshrss.ts",
     "prompt:pull": "npx tsx scripts/pull-prompt.ts",
     "prompt:push": "npx tsx scripts/push-prompt.ts",
     "chat-prompt:pull": "npx tsx scripts/pull-chat-prompt.ts",
@@ -47,6 +47,7 @@
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
     "sanitize-html": "^2.17.0",
+    "server-only": "^0.0.1",
     "zustand": "^5.0.8"
   },
   "devDependencies": {

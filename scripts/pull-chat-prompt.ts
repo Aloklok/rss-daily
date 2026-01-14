@@ -38,7 +38,7 @@ async function pullChatPrompt() {
     process.exit(1);
   }
 
-  const filePath = path.join(process.cwd(), 'CHAT_PROMPT.MD');
+  const filePath = path.join(process.cwd(), 'src/domains/intelligence/prompts/CHAT_PROMPT.MD');
   fs.writeFileSync(filePath, data.value);
 
   console.log(`✅ Successfully pulled chat prompt to ${filePath}`);

@@ -4,8 +4,8 @@ import { generateBriefingWithGemini } from '@/lib/server/gemini';
 import { createClient } from '@supabase/supabase-js';
 import { revalidatePath } from 'next/cache';
 import { Article } from '@/types';
-import { stripTags, cleanAIContent } from '@/utils/contentUtils';
-import { fetchArticleContentServer } from '@/lib/server/dataFetcher';
+import { stripTags, cleanAIContent } from '@/domains/reading/utils/content';
+import { fetchArticleContent } from '@/domains/reading/services';
 
 // Init Supabase Service Client for writing to DB
 const supabaseUrl = process.env.SUPABASE_URL!;
@@ -25,7 +25,7 @@ export async function generateBriefingAction(
     if (!rawContent || rawContent.trim().length === 0) {
       // Fallback: Fetch Full Content from FreshRSS Server-Side
       console.log(`Debug: Client content empty for ${article.id}, fetching from server...`);
-      const fullContentData = await fetchArticleContentServer(String(article.id));
+      const fullContentData = await fetchArticleContent(String(article.id));
       rawContent = fullContentData?.content || article.summary || '';
     } else {
       console.log(
@@ -148,16 +148,16 @@ export async function generateBulkBriefingAction(articles: Article[], modelId?: 
     console.log(`[BulkAction] Starting for ${articles.length} articles using model: ${modelId}`);
 
     // 1. 获取所有文章的正文 (由串行/并发请求改为真·批量请求)
-    const { fetchMultipleArticleContentsServer } = await import('@/lib/server/dataFetcher');
+    const { fetchMultipleArticleContents } = await import('@/domains/reading/services');
     const titleMap = new Map<string, string>();
     articles.forEach((a) => titleMap.set(String(a.id), a.title));
 
-    const contentMap = await fetchMultipleArticleContentsServer(
+    const contentMap = await fetchMultipleArticleContents(
       articles.map((a) => a.id),
       titleMap,
     );
 
-    const { stripTags } = await import('@/utils/contentUtils');
+    const { stripTags } = await import('@/domains/reading/utils/content');
 
     const payloads = articles.map((article) => {
       const fullContentData = contentMap.get(String(article.id));

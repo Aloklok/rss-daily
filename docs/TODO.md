@@ -15,8 +15,12 @@
 ### 🚀 性能提升与技术优化
 
 - [ ] **自愈机制抖动**: 为后台同步请求增加 0-2s 随机延迟 (Jitter)，应对大流量时的惊群效应，保护服务器。改动难度：低，性能提升：低（侧重稳定性）。
-- [ ] **DataFetcher 拆分**: `lib/server/dataFetcher.ts` 职责过重（~400行），建议拆分为 `briefingFetcher.ts` 和 `articleFetcher.ts`，提升文件可维护性。改动难度：低，性能提升：无。
 - [ ] **CI/CD 构建成本优化**: 断开 Vercel 的原生 GitHub 自动构建，改为在 `ci.yml` 的测试通过后使用 Vercel CLI 部署。解决目前 GHA 与 Vercel 并行构建导致的计算资源浪费及 Vercel 构建配额消耗。改动难度：中，性能提升：高（节省构建时长）。
+
+### 🧹 DDD 收尾 (可选)
+
+- [ ] **DataFetcher 服务端拆分**: `lib/server/dataFetcher.ts` 可拆分至 `domains/reading/services/server/` 和 `domains/interaction/services/server/`。优先级：低（仅影响 SSR，客户端已完成解耦）。
+- [ ] **领域类型精简**: 考虑将 `Filter`, `TimeSlot` 等类型从 `shared/types/` 移至 `domains/reading/types.ts`。优先级：低 (ROI 不高)。
 
 ### 🛡️ 安全审计与路由保护
 
@@ -65,3 +69,7 @@
 - [x] **API 响应聚合 (详情页优化)**: 在详情页通过 `include_state` 参数合并获取正文与 FreshRSS 状态，消除了详情加载时的瀑布流。_(注：列表流已切换至 Scheme C 异步水合，该优化现专注于阅读器体验)_。
 - [x] **后台批量补录优化**: 重构 Admin Backfill 面板，支持多模型选择、严格未生成筛选、批量日志序号化及精确错误码反馈 (2026.01.08)。
 - [x] **AI 对话增强与稳定性修复 (2026.01.08)**: 实现了基于意图的 AI Router，支持“闲聊模式”；增强了角标识别支持小数与上标，并解决了加粗文本点击失效问题；移除了多账号间的自动回退逻辑，实现独立配额管理；修复了项目中多处影响构建的 TS 错误。
+- [x] **全站 DDD 物理架构重构 (2026.01.14)**: 完成了从根目录下 `components/hooks/store/utils` 向 `src/domains/shared/lib` 的全量迁移，消除了目录膨胀，提升了领域内聚性。
+- [x] **Zustand Store 领域化迁移 (2026.01.14)**: 将 `articleStore` 移入 `interaction` 领域，`uiStore` 移入 `shared` 领域，并修正了所有测试与引用路径。
+- [x] **Hook 领域解耦 (2026.01.14)**: 将 `src/hooks` 全部下放至领域层，拆分 `useArticles` 为 Query 和 Mutation Hook。
+- [x] **Client Service 解耦 (2026.01.14)**: 淘汰 `src/services/` 目录，将 `clientApi.ts` 和 `articleLoader.ts` 拆分到 `reading` 和 `interaction` 领域。

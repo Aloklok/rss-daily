@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import BackfillPanel from '@/components/features/admin/BackfillPanel';
+import BackfillPanel from '@/domains/interaction/components/admin/BackfillPanel';
 
 export default function BackfillPage() {
   const router = useRouter();

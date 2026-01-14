@@ -1,7 +1,7 @@
-import { fetchArticleById, fetchArticleContentServer } from '@/lib/server/dataFetcher';
+import { fetchArticleById, fetchArticleContent } from '@/domains/reading/services';
 import { Metadata } from 'next';
-import ArticleDetailClient from '@/components/features/article/ArticleDetailClient';
-import { stripTags } from '../../../utils/contentUtils';
+import ArticleDetailClient from '@/domains/reading/components/article/ArticleDetailClient';
+import { stripTags } from '@/domains/reading/utils/content';
 import NotFound from '../../not-found';
 
 // Revert to Static/ISR for best performance
@@ -51,7 +51,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ id: st
 
   // 2. Fetch full content (FreshRSS) - Server Side
   // This content is cached by ISR.
-  const content = await fetchArticleContentServer(article.id);
+  const content = await fetchArticleContent(article.id);
 
   // NOTE: We do NOT fetch state here in ISR mode.
   // State (Read/Star) is user-specific and dynamic.
