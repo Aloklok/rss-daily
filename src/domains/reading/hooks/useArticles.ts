@@ -130,12 +130,7 @@ export const useStarredArticles = (
         n8n_processing_date: undefined,
       }));
     },
-    // Hydrate with initial data if provided.
-    // Note: initialData from SSR might be partial (id, title), so we cast or adapt if needed.
-    // Actually, SidebarStarred only strictly needs id and title for the list,
-    // but it might access other props safely or default them.
-    // Let's assume initialData is sufficient for hydration to avoid "Loading...".
-    initialData: initialData as any,
+    initialData: initialData && initialData.length > 0 ? (initialData as any) : undefined,
   });
 };
 

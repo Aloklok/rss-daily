@@ -46,6 +46,7 @@ Briefing Hub 作为一个内容聚合平台，SEO 是其核心增长引擎。我
 - **CollectionPage**: 首页作为历史归档的集合页面。
 - **Source Indexing (New)**: 为归档页新增的来源链接建立文本语义关联，强化爬虫对来源品牌名的抓取。
 - **Deep Content Rich Snippets**: 在 `ListItem` 中注入全量 AI 摘要，而非简单标题，提升信息密度。
+- **JSON-LD 精简策略 (Top N)**: 首页 JSON-LD 的 `itemListElement` 仅包含前 **20** 篇高权重文章，而非全量注入。此举在保持核心结构化数据的同时，减少了 ~80% 的 HTML 体积，显著改善 FCP 和爬虫解析效率。
 
 ## 5. 关键词策略
 

@@ -285,7 +285,9 @@ const Sidebar = React.memo<SidebarProps>(
         <div className="grow overflow-hidden">
           <div
             className={
-              activeTab === 'filters' ? 'block h-full space-y-2 overflow-y-auto' : 'hidden'
+              activeTab === 'filters'
+                ? 'scrollbar-stable block h-full space-y-2 overflow-y-auto'
+                : 'hidden'
             }
           >
             <SidebarStarred

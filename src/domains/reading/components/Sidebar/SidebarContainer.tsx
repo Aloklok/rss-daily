@@ -12,13 +12,13 @@ import { toShortId } from '@/shared/utils/idHelpers';
 interface SidebarClientProps {
   initialDates: string[];
   initialAvailableFilters: { tags: any[]; categories: any[] };
-  initialStarredHeaders: { id: string | number; title: string; tags: string[] }[]; // Update type
+  initialStarredHeaders?: { id: string | number; title: string; tags: string[] }[]; // Update type
 }
 
 export default function SidebarClient({
   initialDates,
   initialAvailableFilters,
-  initialStarredHeaders,
+  initialStarredHeaders = [],
 }: SidebarClientProps) {
   const router = useRouter();
   const setSelectedArticleId = useUIStore((state) => state.setSelectedArticleId);

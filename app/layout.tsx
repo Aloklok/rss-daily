@@ -2,7 +2,7 @@ import './globals.css';
 import Providers from '@/shared/providers/Providers';
 import { Metadata } from 'next';
 import GlobalUI from '@/shared/components/layout/GlobalUI';
-import MainLayoutClient from '@/shared/components/layout/MainLayoutClient';
+import MainLayoutServer from '@/shared/components/layout/MainLayoutServer';
 import { Inter, Playfair_Display } from 'next/font/google';
 import AnalyticsScripts from '@/shared/components/analytics/AnalyticsScripts';
 
@@ -73,31 +73,29 @@ export const viewport = {
   ],
 };
 
-import {
-  fetchAvailableDates,
-  getAvailableFilters,
-  fetchStarredArticleHeaders,
-} from '@/domains/reading/services';
+import { fetchAvailableDates, getAvailableFilters } from '@/domains/reading/services';
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // Parallel Data Fetching for Sidebar SSR
-  const [dates, availableFilters, starredHeaders] = await Promise.all([
+  const [dates, availableFilters] = await Promise.all([
     fetchAvailableDates().catch(() => []),
     getAvailableFilters().catch(() => ({ tags: [], categories: [] })),
-    fetchStarredArticleHeaders().catch(() => []),
   ]);
 
   return (
     <html lang="zh-CN" className={`${inter.variable} ${playfair.variable}`}>
       <body className="font-sans antialiased">
+        <noscript>
+          <style>{`
+            #sidebar-ssr-nav { display: block !important; }
+            #sidebar-skeleton { display: none !important; }
+            #sidebar-client-nav { display: none !important; }
+          `}</style>
+        </noscript>
         <Providers>
-          <MainLayoutClient
-            initialDates={dates}
-            initialAvailableFilters={availableFilters}
-            initialStarredHeaders={starredHeaders}
-          >
+          <MainLayoutServer initialDates={dates} initialAvailableFilters={availableFilters}>
             {children}
-          </MainLayoutClient>
+          </MainLayoutServer>
           <GlobalUI />
         </Providers>
 

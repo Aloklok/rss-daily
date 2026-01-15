@@ -105,6 +105,18 @@
   }
 }
 
+#sidebar-ssr-nav {
+  display: none;
+}
+
+#sidebar-skeleton {
+  display: block;
+}
+
+#sidebar-client-nav {
+  display: none;
+}
+
 /* Specific Typography Elements */
 .prose h1,
 .prose h2,
@@ -390,6 +402,14 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  scrollbar-gutter: stable;
+}
+
+.scrollbar-stable {
+  scrollbar-gutter: stable;
 }
 
 /* Dark Mode Backgrounds */

@@ -4,7 +4,10 @@
 
 ## 1. 核心组件映射
 
-- **`Sidebar/`**: 包含日历、分类树导航。这是全站发现路径的入口。
+- **`Sidebar/`**: 全站发现路径入口（日期 / 分类 / 标签 / 归档 / 来源）。
+  - `SidebarNavServer.tsx`: SSR 直出核心导航链接（No‑JS 可见）。
+  - `SidebarLazyClient.tsx` / `SidebarClientMount.tsx`: JS 环境下懒加载交互侧边栏并替换 SSR 导航。
+  - `SidebarContainer.tsx` + `SidebarView.tsx`: 交互侧边栏（筛选、刷新、收藏等 UI 行为）。
 - **`briefing/`**:
   - `BriefingView.tsx`: 负责简报的视觉分段（头部大图 + 分组卡片）。
   - `BriefCard.tsx`: 高度压缩的信息密度展现。

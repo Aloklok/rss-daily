@@ -240,7 +240,7 @@ export default async function Home(props: {
       datePublished: `${date}T08:00:00+08:00`,
       mainEntity: {
         '@type': 'ItemList',
-        itemListElement: articles.map((article: any, index: number) => ({
+        itemListElement: articles.slice(0, 20).map((article: any, index: number) => ({
           '@type': 'ListItem',
           position: index + 1,
           url: `https://www.alok-rss.top/article/${toShortId(String(article.id))}`,

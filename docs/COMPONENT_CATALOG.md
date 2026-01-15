@@ -91,14 +91,19 @@
 
 负责应用的整体骨架。
 
-- **`MainLayoutClient.tsx`**: 主布局容器。处理侧边栏的响应式切换、主内容区域的滚动。
+- **`MainLayoutServer.tsx`**: 主布局 Server 壳（SSR 直出 aside/main 骨架），负责承载核心内容的 No-JS 可见性与最小化首屏水合范围。
+- **`LayoutChromeClient.tsx`**: 布局交互岛（侧边栏开合/遮罩/折叠按钮等纯 UI 交互）。
+- **`MainLayoutClient.tsx`**: 旧版全量 Client 布局实现（用于参考/回滚；当前根布局默认使用 `MainLayoutServer.tsx`）。
 - **`GlobalUI.tsx`**: 全局挂载的 UI 元素（如 Toast 容器、模态框挂载点）。
-- **`FloatingActionButtons.tsx`**: 右下角的悬浮操作按钮组 (回到顶部、标记已读等)。
+- **`FloatingActionButtons.tsx`**: 右下角悬浮按钮组（交互组件）。
+- **`FloatingActionButtonsIsland.tsx`**: 悬浮按钮 Client Island（将水合边界限制在按钮自身）。
 - **`Sidebar/`**: 侧边栏模块。
-  - **`SidebarContainer.tsx`**: 侧边栏逻辑容器。
-  - **`SidebarContent.tsx`**: 侧边栏主体内容。
-  - **`SidebarCalendar.tsx`**: 日历导航组件。
-  - **`SidebarBriefing.tsx`**: 简报导航项。
+  - **`SidebarNavServer.tsx`**: SSR 导航骨架（无 JS 仍可提供核心 `<a>` 内链：archive/date/stream/sources）。
+  - **`SidebarLazyClient.tsx`**: 客户端懒加载入口（JS 环境加载交互侧边栏，并让 SSR 导航让位）。
+  - **`SidebarClientMount.tsx`**: 客户端挂载器（加载完成后隐藏 SSR 导航节点）。
+  - **`SidebarContainer.tsx`**: 侧边栏交互逻辑容器（筛选、刷新、收藏等交互）。
+  - **`SidebarView.tsx`**: 侧边栏 UI 视图组件。
+  - **`SidebarBriefing.tsx` / `SidebarExplore.tsx` / `SidebarStarred.tsx`**: 侧边栏子模块。
 
 ### `components/common/`
 

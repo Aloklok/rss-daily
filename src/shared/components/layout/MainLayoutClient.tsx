@@ -11,14 +11,14 @@ interface MainLayoutClientProps {
   children: React.ReactNode;
   initialDates: string[];
   initialAvailableFilters: { tags: any[]; categories: any[] };
-  initialStarredHeaders: { id: string | number; title: string; tags: string[] }[]; // Update type
+  initialStarredHeaders?: { id: string | number; title: string; tags: string[] }[]; // Update type
 }
 
 export default function MainLayoutClient({
   children,
   initialDates,
   initialAvailableFilters,
-  initialStarredHeaders,
+  initialStarredHeaders = [],
 }: MainLayoutClientProps) {
   // Use new split state
   const isMobileOpen = useUIStore((state) => state.isMobileOpen);
