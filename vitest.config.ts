@@ -20,8 +20,9 @@ export default defineConfig({
     include: [
       'src/**/*.test.tsx',
       'src/**/__tests__/*.test.tsx',
-      'src/shared/store/__tests__/*.test.ts',
-      'src/domains/**/store/__tests__/*.test.ts',
+      'src/**/*.test.ts',
+      'src/**/__tests__/*.test.ts',
+      'e2e/**/*.spec.ts',
     ],
     browser: {
       enabled: true,

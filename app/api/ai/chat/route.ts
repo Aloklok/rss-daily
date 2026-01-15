@@ -196,6 +196,11 @@ export async function POST(req: NextRequest) {
           ...messages.slice(0, -1),
           { role: 'user', content: contextPrompt },
         ];
+        console.log(
+          `[Chat Prompt] Loaded (SiliconFlow path) | length: ${chatSystemPrompt.length} | preview: ${chatSystemPrompt
+            .slice(0, 120)
+            .replace(/\n/g, ' ')}`,
+        );
       }
 
       stream = streamSiliconFlow(enrichedMessages, model, effectiveUseSearch);
@@ -245,23 +250,11 @@ export async function POST(req: NextRequest) {
             }
           }
 
-          // Fix: Append Citation Statistics Programmatically
-          if (fullText) {
-            const uniqueCitations = new Set(fullText.match(/\[\d+\]/g) || []);
-            const uniqueCount = uniqueCitations.size;
-            const totalSources = finalArticles.length;
-
-            if (totalSources > 0) {
-              const footer = `\n\n[统计：检索 ${totalSources} 篇，引用了 ${uniqueCount} 篇]`;
-              controller.enqueue(
-                encoder.encode(`data: ${JSON.stringify({ type: 'text', content: footer })}\n\n`),
-              );
-              fullText += footer;
-            }
-          }
+          
           console.log(
-            `[API /chat] Stream Complete | ID: ${requestId} | Length: ${fullText.length} | Preview: ${fullText.slice(-50)}`,
+            `[API /chat] Stream Complete | ID: ${requestId} | Length: ${fullText.length}`,
           );
+          console.log(`[API /chat] Full Response Content:\n${fullText}`);
         } catch (e) {
           console.error('SSE Stream Error:', e);
           controller.error(e);

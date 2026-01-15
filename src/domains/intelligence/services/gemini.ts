@@ -192,6 +192,10 @@ export async function chatWithGemini(
 
   const chatSystemPromptRaw = await getChatSystemPrompt();
   const chatSystemPrompt = chatSystemPromptRaw.replace(/{{COUNT}}/g, articles.length.toString());
+  console.log(
+    `[Chat Prompt] Loaded (Gemini path) | length: ${chatSystemPrompt.length} | preview: ${chatSystemPrompt
+     }`,
+  );
 
   const genAI = new GoogleGenerativeAI(dynamicKey);
   const model = genAI.getGenerativeModel({
@@ -245,7 +249,7 @@ TLDR: ${a.tldr || '无'}
       parts: [{ text: m.content }],
     })),
     generationConfig: {
-      maxOutputTokens: 4096,
+      maxOutputTokens: 8192,
       temperature: 0.7,
     },
   });

@@ -1006,6 +1006,13 @@ const AIChatModal: React.FC = () => {
         `[统计：检索 ${currentMetadata.length} 篇，引用了 ${extractedCitations.length} 篇]`,
       );
 
+      // --- DEBUG: 输出 AI 原始响应供排查 ---
+      console.log('====================================================');
+      console.log('🤖 [DEBUG] AI Raw Response:', assistantContent);
+      console.log('📚 [DEBUG] Extracted Indices:', extractedIndices);
+      console.log('🔗 [DEBUG] Extracted Citations:', extractedCitations);
+      console.log('====================================================');
+
       addMessage({
         role: 'model',
         content: finalContent,
