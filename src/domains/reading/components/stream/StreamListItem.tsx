@@ -30,6 +30,7 @@ const StreamArticleListItem: React.FC<StreamArticleListItemProps> = memo(
     return (
       <Link
         href={`/article/${toShortId(String(article.id))}`}
+        prefetch={false}
         onClick={(e: React.MouseEvent) => {
           e.preventDefault();
           openModal(article.id);

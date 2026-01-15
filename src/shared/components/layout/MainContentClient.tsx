@@ -163,14 +163,25 @@ export default function MainContentClient({
   // Memoize initial IDs for hook
   const initialArticleIds = useMemo(() => initialArticles.map((a) => a.id), [initialArticles]);
 
+  const initialIdsForSelectedSlot = useMemo(() => {
+    if (!timeSlot) return [];
+    return initialArticles
+      .filter((a) => getArticleTimeSlot(a.n8n_processing_date || a.published) === timeSlot)
+      .map((a) => a.id);
+  }, [initialArticles, timeSlot]);
+
+  const shouldFetchSelectedSlot =
+    !!timeSlot && initialArticles.length > 0 && initialIdsForSelectedSlot.length === 0;
+
+  const shouldUseSpecificSlot =
+    (!!timeSlot && initialArticles.length === 0) || shouldFetchSelectedSlot;
+  const querySlot = shouldUseSpecificSlot ? timeSlot : null;
+
   // Hooks must be called unconditionally
   const { data: briefingArticleIds, isLoading: isBriefingLoading } = useBriefingArticles(
     dateToUse || null,
-    timeSlot,
-    // CRITICAL: Only seed with all initialArticleIds if timeSlot is null (All View).
-    // If a time-slot is selected, we want it to either find its Selective Hydration cache OR fetch from network.
-    // Passing initialArticleIds here for a specific slot would incorrectly cache the FULL list for that slot.
-    dateToUse === initialDate && !timeSlot ? initialArticleIds : undefined,
+    querySlot,
+    dateToUse === initialDate && !querySlot ? initialArticleIds : undefined,
   );
 
   const {

@@ -14,8 +14,19 @@
 
 ### 🚀 性能提升与技术优化
 
+- [ ] **页面性能 KPI（SEO 保护前提）**: 所有优化必须保持“正文/目录/核心链接 SSR 可见（No-JS 可抓取）”，禁止把核心内容挪到 CSR。验收：
+  - **RUM（Vercel Speed Insights，p75，Mobile）**：FCP ≤ 1.8s，LCP ≤ 2.5s，INP ≤ 200ms，CLS ≤ 0.10
+  - **TTFB（首页/日期页）**：缓存命中 ≤ 600ms；冷启动目标 ≤ 1500ms
+  - **Lighthouse（Mobile）**：Performance ≥ 85，TBT ≤ 200ms
+  - **抓取审计**：禁用 JS 仍能看到核心文本与 `<a>` 内链（归档/stream/date 导航）
+  - **覆盖页面**：`/`、`/archive`、`/date/[date]`、`/stream/[id]`（任选代表性样本按周复测）
 - [ ] **自愈机制抖动**: 为后台同步请求增加 0-2s 随机延迟 (Jitter)，应对大流量时的惊群效应，保护服务器。改动难度：低，性能提升：低（侧重稳定性）。
 - [ ] **CI/CD 构建成本优化**: 断开 Vercel 的原生 GitHub 自动构建，改为在 `ci.yml` 的测试通过后使用 Vercel CLI 部署。解决目前 GHA 与 Vercel 并行构建导致的计算资源浪费及 Vercel 构建配额消耗。改动难度：中，性能提升：高（节省构建时长）。
+- [ ] **预热任务外置化**: 将页面预热从请求内 `setTimeout` 迁移到外部 Scheduler/CI Cron，避免 Serverless 冻结导致的预热失效。改动难度：低，性能提升：中（降低冷启动抖动）。
+- [ ] **统一外呼超时与退避**: 为 FreshRSS/Supabase/LLM 外呼封装 `fetchWithTimeout` + 指数退避 + Jitter，收敛 p99 与雪崩风险。改动难度：中，性能提升：中（尾延迟显著改善）。
+- [ ] **AI RAG 成本/延迟优化**: 对 `match_count`、相似度阈值、重排触发条件做分级策略（短查询/闲聊优先 DIRECT），减少 embedding/RPC/重排调用次数。改动难度：中，性能提升：中（AI 端到端延迟下降）。
+- [ ] **图片 LCP 与尺寸优化 (LCP/CLS)**: 确认首页/日期页首图 `priority + fetchPriority="high"`、`sizes` 与实际布局匹配，避免大图过度下载；确保固定尺寸/占位避免 CLS。验收：CLS ≤ 0.10；LCP ≤ 2.5s（p75）。
+- [ ] **文章正文清洗预计算/缓存 (详情页 TTFB/LCP，SEO 保持直出)**: `fetchArticleContent()` 的 sanitize + 二次查 Supabase title 会增加 TTFB；考虑入库时预清洗/写回，或对清洗结果按文章 ID 缓存；正文仍需服务端直出（No-JS 可读）。验收：详情页缓存命中 TTFB ≤ 600ms；LCP ≤ 2.5s（p75）。
 
 ### 🧹 DDD 收尾 (可选)
 
@@ -25,6 +36,12 @@
 ### 🛡️ 安全审计与路由保护
 
 - [ ] **API 速率限制**: 为重验与重放接口设置 IP 级的频率限制，防止恶意碎冰或滥用 AI 翻译资源。改动难度：中，性能提升：低（侧重稳定性）。
+- [ ] **高风险端点防护清单**: 为 `/api/articles/state`、`/api/system/revalidate*`、`/api/ai/chat`、`/api/articles/search` 增加 WAF 级限流、并发上限与请求体大小限制，避免被滥用为“上游放大器”。改动难度：中，性能提升：低（侧重稳定性）。
+- [ ] **分布式节流与去重**: 将 `revalidate` 的节流从单实例内存升级为跨实例去重锁（Redis/KV/Supabase 表），抵御 webhook 风暴与多实例重复重建。改动难度：中，性能提升：低（侧重稳定性）。
+- [ ] **管理员面板访问收敛**: 管理后台与管理 API 走 IP allowlist/VPN/私网访问，降低 cookie 泄露带来的全权限风险。改动难度：低，性能提升：无（侧重安全）。
+- [ ] **日志脱敏与采样**: 禁止在生产环境记录 AI 完整回答与超长 Prompt，改为采样/截断/仅保留 requestId 与关键指标，避免泄露与日志成本爆炸。改动难度：低，性能提升：低（侧重成本与稳定性）。
+- [ ] **Embedding 异步化**: 从 `revalidate` 关键路径剥离 embedding 自动生成，改为队列异步补齐，避免外部配额/429 影响缓存更新链路。改动难度：中，性能提升：低（侧重稳定性）。
+- [ ] **缓存一致性操作手册**: 明确“数据缓存（unstable_cache tags）+ 页面 ISR（revalidatePath）”必须成对失效的规则，并补充排障步骤与兜底策略。改动难度：低，性能提升：无（侧重一致性与可运维）。
 - [ ] **类型安全强化**: 将 `any` 类型声明替换为 Supabase 自动生成的强类型，实现全链路 Type-Safe。改动难度：中，性能提升：无（侧重代码质量）。
 
 ### 🧪 自动化测试与质量
@@ -130,6 +147,10 @@
 
 ## ✅ 已完成优化 (Milestones)
 
+- [x] **标签/分类请求去重 (阻塞外呼，SEO 0 影响)**: 首页/日期页会调用 `fetchTagsServer()`，根布局会调用 `getAvailableFilters()`，两者都会请求 FreshRSS `/tag/list`，导致同一次页面生成里重复请求。已完成：`fetchTagsServer()` 复用 `getAvailableFilters()`，单次页面生成仅 1 次 `/tag/list`；收益：ISR 生成阶段等待更少，TTFB/FCP 更稳（不改变页面 HTML 内容与内链）。
+- [x] **Prefetch 控制 (减少无意 `_rsc` 阻塞)**: 已对侧边栏与归档页的大列表链接禁用预取，并补充禁用 Stream 列表文章卡片 Link 预取，减少无意 `_rsc` 请求占用带宽/连接。验收：首次进入首页的 `_rsc` 请求数下降（目标 -30%），移动端 FCP/INP 改善且不影响爬虫可发现路径。
+- [x] **字体与关键资源优化 (FCP/LCP)**: 已关闭 Playfair Display 的 preload，保留 `display: swap`，减少首页非必需关键请求，降低 FOIT 风险。验收：LCP 不回退；首页关键请求数减少；FCP 下降。
+- [x] **日期列表同请求去重 (TTFB 稳定性)**: `fetchAvailableDates()` 使用请求级 memoization，避免 RootLayout 与首页/归档/日期页在同一次 SSR/ISR 渲染中重复触发 `get_unique_dates` RPC；不引入跨请求缓存，跨天仍实时更新。验收：同一请求内不重复打 `get_unique_dates`；TTFB 波动收敛。
 - [x] **全局对话 AI 助手**: 实现基于 Gemini 2.0/2.5/3.0 的全局助理，支持分级 RAG、Google 搜索增强及流式响应。
 - [x] 模型版本锁定与配额优化 (2026.01.06): 针对 2026 年模型变动实现了 ID 锁定与多池“羊毛” ID 挖掘，解决了 429 配额报错问题。
 - [x] AI 对话渲染性能深度优化与 Prompt 外部化 (2026.01.06)

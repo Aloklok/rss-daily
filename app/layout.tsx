@@ -17,7 +17,7 @@ const playfair = Playfair_Display({
   subsets: ['latin'],
   variable: '--font-playfair',
   display: 'swap',
-  preload: true, // Only used in articles, avoid preloading on home page to fix warnings
+  preload: false,
 });
 
 export const metadata: Metadata = {

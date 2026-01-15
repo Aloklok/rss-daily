@@ -7,6 +7,7 @@ import { BRIEFING_SECTIONS } from './constants';
 import { STAR_TAG } from '@/domains/interaction/constants';
 import { removeEmptyParagraphs, stripLeadingTitle, cleanAIContent } from './utils/content';
 import { shanghaiDayToUtcWindow } from './utils/date';
+import { cache } from 'react';
 
 // Local interface
 interface FreshRssTag {
@@ -20,7 +21,7 @@ interface FreshRssTag {
 // I should verify where idHelpers is. `utils/idHelpers.ts`?
 // I will assume I need to move it to `src/shared/utils/id-helpers.ts`.
 
-export async function fetchAvailableDates(): Promise<string[]> {
+async function fetchAvailableDatesUncached(): Promise<string[]> {
   const supabase = getSupabaseClient();
   const { data, error } = await supabase.rpc('get_unique_dates');
 
@@ -30,6 +31,8 @@ export async function fetchAvailableDates(): Promise<string[]> {
   }
   return data?.map((d: { date_str: string }) => d.date_str) || [];
 }
+
+export const fetchAvailableDates = cache(fetchAvailableDatesUncached);
 
 export async function fetchBriefingData(date: string): Promise<{ [key: string]: Article[] }> {
   return unstable_cache(
@@ -302,10 +305,11 @@ export const getAvailableFilters = unstable_cache(
           if (item.id.includes('/state/com.google/') || item.id.includes('/state/org.freshrss/')) {
             return;
           }
+          const itemCount = (item as any).count ?? (item as any).unread_count;
           if (item.type === 'folder') {
-            categories.push({ id: item.id, label, count: item.count });
+            categories.push({ id: item.id, label, count: itemCount });
           } else {
-            tags.push({ id: item.id, label, count: item.count });
+            tags.push({ id: item.id, label, count: itemCount });
           }
         });
       }
