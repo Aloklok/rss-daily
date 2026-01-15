@@ -21,6 +21,11 @@ export default function LayoutChromeClient() {
   useEffect(() => {
     const overlay = document.getElementById('layout-mobile-overlay');
     const sidebar = document.getElementById('layout-sidebar-container');
+    const desktopToggle = document.getElementById(
+      'layout-desktop-toggle',
+    ) as HTMLButtonElement | null;
+    const isBrowser = typeof window !== 'undefined';
+    const isMobileViewport = isBrowser && window.innerWidth < 768;
 
     if (overlay) {
       overlay.style.pointerEvents = isMobileOpen ? 'auto' : 'none';
@@ -28,20 +33,43 @@ export default function LayoutChromeClient() {
     }
 
     if (sidebar) {
-      if (typeof window !== 'undefined' && window.innerWidth < 768) {
-        sidebar.style.transform = isMobileOpen ? 'translateX(0)' : 'translateX(-100%)';
-      } else {
-        sidebar.style.transform = 'translateX(0)';
-      }
+      if (isMobileViewport) {
+        if (isMobileOpen) {
+          sidebar.classList.remove('-translate-x-full');
+          sidebar.classList.add('translate-x-0');
+        } else {
+          sidebar.classList.add('-translate-x-full');
+          sidebar.classList.remove('translate-x-0');
+        }
 
-      if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+        sidebar.style.width = '';
+        sidebar.style.opacity = '';
+        sidebar.style.overflow = '';
+        sidebar.style.transform = '';
+      } else if (isBrowser) {
+        sidebar.classList.remove('-translate-x-full');
+        sidebar.classList.remove('translate-x-0');
+        sidebar.style.transform = '';
+
         sidebar.style.width = isDesktopCollapsed ? '0px' : '';
         sidebar.style.opacity = isDesktopCollapsed ? '0' : '';
         sidebar.style.overflow = isDesktopCollapsed ? 'hidden' : '';
       }
     }
 
-    if (typeof window !== 'undefined' && window.innerWidth < 768 && isMobileOpen) {
+    if (desktopToggle) {
+      if (isBrowser && !isMobileViewport && sidebar && !isDesktopCollapsed) {
+        const sidebarRect = sidebar.getBoundingClientRect();
+        const toggleRect = desktopToggle.getBoundingClientRect();
+        const borderX = sidebarRect.right;
+        const targetLeft = borderX - toggleRect.width / 2;
+        desktopToggle.style.left = `${targetLeft}px`;
+      } else {
+        desktopToggle.style.left = '';
+      }
+    }
+
+    if (isBrowser && isMobileViewport && isMobileOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -73,6 +101,7 @@ export default function LayoutChromeClient() {
 
       {!modalArticleId && (
         <button
+          id="layout-desktop-toggle"
           onClick={toggleDesktopSidebar}
           className={`dark:bg-midnight-card fixed top-5 rounded-full bg-white p-2 shadow-lg hover:shadow-xl ${transitionClass} dark:border-midnight-border z-50 hidden cursor-pointer border border-gray-200 md:block ${
             isDesktopCollapsed ? 'left-5' : 'left-[304px]'
@@ -112,8 +141,10 @@ export default function LayoutChromeClient() {
       {!modalArticleId && (
         <button
           onClick={toggleMobileSidebar}
-          className={`fixed top-4 right-6 z-50 rounded-full p-2 md:hidden ${transitionClass} ${
-            isMobileOpen ? 'bg-gray-800 text-white' : 'bg-white/20 text-white'
+          className={`fixed top-[13px] right-6 z-[60] rounded-full p-2 md:hidden ${transitionClass} ${
+            isMobileOpen
+              ? 'bg-gray-800 text-white dark:bg-gray-700'
+              : 'dark:bg-midnight-card bg-white text-gray-800 shadow-md dark:text-gray-200'
           } cursor-pointer`}
           aria-label="Toggle Mobile Sidebar"
         >

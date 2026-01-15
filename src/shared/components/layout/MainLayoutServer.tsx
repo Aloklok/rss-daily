@@ -21,7 +21,7 @@ export default function MainLayoutServer({
       <LayoutChromeClient />
       <div
         id="layout-sidebar-container"
-        className="dark:bg-midnight-sidebar dark:border-midnight-sidebar fixed top-0 left-0 z-50 h-[100dvh] h-full w-64 flex-shrink-0 -translate-x-full border-r border-transparent bg-gray-50 md:sticky md:top-0 md:z-auto md:h-screen md:w-80 md:translate-x-0"
+        className="dark:bg-midnight-sidebar dark:border-midnight-sidebar fixed top-0 left-0 z-50 h-[100dvh] h-full w-64 flex-shrink-0 -translate-x-full border-r border-transparent bg-gray-50 transition-transform duration-300 md:sticky md:top-0 md:z-auto md:h-screen md:w-80 md:translate-x-0"
       >
         <div className="relative h-full w-full">
           <div
