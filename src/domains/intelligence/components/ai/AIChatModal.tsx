@@ -76,6 +76,11 @@ const renderCitations = (
         const citation = citations?.find((c) => c.index.toString() === originalIndex);
         const meta = citation || (sessionMetadata && sessionMetadata[parseInt(originalIndex) - 1]);
 
+        // Hallucination Filter: If we have metadata context but the index is invalid, hide it.
+        if (!meta && sessionMetadata && sessionMetadata.length > 0) {
+          return null;
+        }
+
         if (!meta || !isInteractive) {
           return (
             <sup key={i} className="mx-0.5 font-bold text-indigo-500/80 transition-opacity">
@@ -128,14 +133,18 @@ const cleanMessageContent = (content: string): string => {
 
   let cleaned = content;
 
-  // 1. 拆分合并的引用：将 [1, 3] 或 [1.1, 1.2] 拆分为 [1.1][1.2]
+  // 1. 拆分合并的引用：将 [1, 3]、[1 3] 或 [1，3] 拆分为 [1][3]
   // 这样后续的 CITATION_REGEX 就能正确识别每个引用了
-  cleaned = cleaned.replace(/\[((?:\d+(?:\.\d+)?\s*,\s*)+\d+(?:\.\d+)?\s*)\]/g, (match, inner) => {
-    return inner
-      .split(',')
-      .map((n: string) => `[${n.trim()}]`)
-      .join('');
-  });
+  cleaned = cleaned.replace(
+    /\[((?:\d+(?:\.\d+)?\s*(?:,|，|\s)\s*)+\d+(?:\.\d+)?\s*)\]/g,
+    (match, inner) => {
+      return inner
+        .split(/[,，\s]/)
+        .filter((n: string) => n.trim())
+        .map((n: string) => `[${n.trim()}]`)
+        .join('');
+    },
+  );
 
   // 2. 核心逻辑：移除加粗内容内部的特殊符号 (支持中英文双引号、括号)
   // 之前的逻辑只去除首尾，无法处理 "数据中心（对标..." 这种符号在中间的情况
@@ -145,6 +154,22 @@ const cleanMessageContent = (content: string): string => {
     // 最后 trim() 去除首尾多余空格
     const cleanInner = innerContent.replace(/["“(\uFF08"”)\uFF09]/g, ' ').trim();
     return `**${cleanInner}**`;
+  });
+
+  // 3. 引用去重逻辑 (全文去重)：
+  //    确保整条消息中，每个引用序号仅出现一次（保留第一次出现的位置）
+  const seenIndices = new Set<string>();
+
+  // a. 连续重复去重：[1][1] -> [1] (作为预处理)
+  cleaned = cleaned.replace(/(\[\d+(?:\.\d+)?\])\s*\1+/g, '$1');
+
+  // b. 全文去重
+  cleaned = cleaned.replace(/\[(\d+(?:\.\d+)?)\]/g, (match, id) => {
+    if (seenIndices.has(id)) {
+      return ''; // 全文中已出现过，移除后续重复
+    }
+    seenIndices.add(id);
+    return match;
   });
 
   return cleaned;
