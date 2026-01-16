@@ -15,6 +15,9 @@
   - `ArticlePage.tsx`: 独立页阅读器。
   - `ArticleReaderView.tsx`: 弹窗式阅读器。
 - **`stream/`**: 无限滚动列表组件，采用高度优化的按需订阅模式。
+- **`services/`**: 领域服务层（Server-Side）。
+  - `services.ts`: 核心导出。封装了简报聚合（Supabase 内容 + FreshRSS 状态）、分类标签获取等业务逻辑。
+  - `articleLoader.ts`: 负责文章详情的深度获取与清洗。
 
 ## 2. 关键算法：日期与时段
 

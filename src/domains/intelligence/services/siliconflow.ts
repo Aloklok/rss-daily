@@ -1,6 +1,12 @@
-export const SILICONFLOW_API_KEY = process.env.GUIJI_API_KEY;
-export const SILICONFLOW_API_URL = 'https://api.siliconflow.cn/v1/chat/completions';
+// { "name": "supabase", "used": false }
 
+const SILICONFLOW_API_KEY = process.env.GUIJI_API_KEY;
+const SILICONFLOW_API_URL = 'https://api.siliconflow.cn/v1/chat/completions';
+
+/**
+ * SiliconFlow Chat Completion Handler
+ * Supports streaming and Google Search tool
+ */
 export async function chatWithSiliconFlow(
   messages: any[],
   modelName: string,
@@ -10,6 +16,8 @@ export async function chatWithSiliconFlow(
     throw new Error('GUIJI_API_KEY is not defined');
   }
 
+  // 1. Construct Tools (Google Search)
+  // SiliconFlow supports OpenAI-compatible tool definitions
   const tools = useSearch
     ? [
         {
@@ -32,6 +40,7 @@ export async function chatWithSiliconFlow(
       ]
     : undefined;
 
+  // 2. Prepare Request Body
   const body = {
     model: modelName,
     messages: messages.map((m) => ({
@@ -41,12 +50,13 @@ export async function chatWithSiliconFlow(
     stream: true,
     temperature: 0.7,
     max_tokens: 4096,
-    tools: tools,
-    tool_choice: useSearch ? 'auto' : 'none',
+    tools: tools, // Add tools if search is enabled
+    tool_choice: useSearch ? 'auto' : 'none', // Allow model to choose search
   };
 
   console.log(`[SiliconFlow] Sending request to ${modelName} (Search: ${useSearch})`);
 
+  // 3. Call API
   const response = await fetch(SILICONFLOW_API_URL, {
     method: 'POST',
     headers: {
@@ -66,10 +76,19 @@ export async function chatWithSiliconFlow(
     throw new Error('SiliconFlow API returned no body');
   }
 
+  // 4. Return the raw stream (API returns SSE compatible with our frontend consumer)
+  // Note: We might need to transform it if the frontend expects a specific format,
+  // but our route.ts currently wraps `chatWithGemini` stream.
+  // SiliconFlow stream format: data: {"id":"...","choices":[{"delta":{"content":"..."}}]}
+  // We need to parse this and yield just the text content to match `chatWithGemini`'s behavior
+  // which returns a stream of text chunks.
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  // const encoder = new TextEncoder();
+
   return new ReadableStream({
     async start(controller) {
-      const reader = response.body!.getReader();
-      const decoder = new TextDecoder();
       try {
         let buffer = '';
         while (true) {
@@ -80,7 +99,7 @@ export async function chatWithSiliconFlow(
           buffer += chunk;
 
           const lines = buffer.split('\n');
-          buffer = lines.pop() || '';
+          buffer = lines.pop() || ''; // Keep the incomplete line in buffer
 
           for (const line of lines) {
             const trimmed = line.trim();
@@ -89,8 +108,31 @@ export async function chatWithSiliconFlow(
               try {
                 const jsonStr = trimmed.slice(6);
                 const data = JSON.parse(jsonStr);
-                const _content = data.choices?.[0]?.delta?.content;
-                // Yielding logic handled by consumer or stream adapter
+                const content = data.choices?.[0]?.delta?.content;
+
+                // If there is content, pass it through
+                if (content) {
+                  // We need to wrap it in a mock response object that has .text() method
+                  // because route.ts expects the stream iterator to return objects with .text()
+                  // Wait, route.ts iterates `for await (const chunk of stream)`.
+                  // `chatWithGemini` returns a `GoogleGenerativeAIStream`.
+                  // Its chunks are objects with .text().
+                  // We should adapt to that interface OR modify route.ts to handle plain strings.
+                  // Let's modify this stream to yield objects with .text() function to minimize route.ts changes.
+                  // Actually, we can't yield an object with a function across the boundary easily if we were just piping bytes.
+                  // But `chatWithGemini` returns an AsyncGenerator.
+                  // Let's make this return a ReadableStream that yields *Text*.
+                  // AND modify route.ts to handle this.
+                  // Retrying strategy: `chatWithGemini` returns a custom generic stream.
+                  // Let's emulate the behavior directly here for now, but since we are returning a ReadableStream for `Response`,
+                  // actually route.ts *iterates* the stream from `chatWithGemini`.
+                  // Let's look at route.ts again.
+                  // route.ts: `for await (const chunk of stream) { const text = chunk.text(); }`
+                  // So the stream must look like an async iterable of objects with a `.text()` method.
+                  // We can't return a standard ReadableStream here effectively if we want to match that signature directly
+                  // without using a generator.
+                  // Let's change the return type to AsyncGenerator.
+                }
               } catch (e) {
                 console.warn('Error parsing JSON chunk', e);
               }
@@ -106,6 +148,10 @@ export async function chatWithSiliconFlow(
   });
 }
 
+/**
+ * Adapter to match the `chatWithGemini` interface
+ * Returns an AsyncGenerator that yields objects with a text() method.
+ */
 export async function* streamSiliconFlow(
   messages: any[],
   modelName: string,
@@ -115,6 +161,8 @@ export async function* streamSiliconFlow(
     throw new Error('GUIJI_API_KEY is not defined');
   }
 
+  // 1. Construct Tools (Search) - Only for models confirmed to support it
+  // GLM-4-9B is notoriously unstable with tools parameters on SiliconFlow
   const isGLMLegacy = modelName === 'THUDM/glm-4-9b-chat';
   const tools =
     useSearch && !isGLMLegacy
@@ -139,6 +187,7 @@ export async function* streamSiliconFlow(
         ]
       : undefined;
 
+  // Sanitize messages
   const validRoles = ['system', 'user', 'assistant'];
   const sanitizedMessages = messages
     .map((m) => ({
@@ -147,6 +196,8 @@ export async function* streamSiliconFlow(
     }))
     .filter((m) => validRoles.includes(m.role) && m.content.trim() !== '');
 
+  // Hack: Merge 'system' role into the first 'user' message for models that don't support it
+  // (Common on SiliconFlow for legacy/specific models like GLM-4-9B, despite docs saying otherwise)
   const systemMessages = sanitizedMessages.filter((m) => m.role === 'system');
   const conversationMessages = sanitizedMessages.filter((m) => m.role !== 'system');
 
@@ -159,16 +210,33 @@ export async function* streamSiliconFlow(
     }
   }
 
+  // Now use conversationMessages as the payload
   const body: any = {
     model: modelName,
     messages: conversationMessages,
     stream: true,
     temperature: 0.7,
+    // max_tokens: 4096,
   };
 
+  // Debug tools
   if (tools) {
+    console.log('[SiliconFlow] Tools attached:', tools.length);
     body.tools = tools;
     body.tool_choice = 'auto';
+  } else {
+    console.log('[SiliconFlow] No tools attached.');
+  }
+
+  // Debug: Check what we are sending
+  console.log('[SiliconFlow] Payload Messages:', JSON.stringify(conversationMessages, null, 2));
+  if (conversationMessages.length > 0) {
+    console.log('[SiliconFlow] First Content Length:', conversationMessages[0].content.length);
+    // Debug: Print first 100 chars to check for weird special chars
+    console.log(
+      '[SiliconFlow] Content Check:',
+      conversationMessages[0].content.substring(0, 100).replace(/\n/g, '\\n'),
+    );
   }
 
   const response = await fetch(SILICONFLOW_API_URL, {
@@ -191,13 +259,18 @@ export async function* streamSiliconFlow(
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
+  // DeepSeek R1 Strategy: Buffer everything until </think> is seen
+  // This handles missing opening tags and ensures we hide the chain of thought.
+  // If no </think> is found by end of stream, we flush the buffer (fallback).
   let thinkingBuffer = '';
   let hasFinishedThinking = false;
 
   while (true) {
     const { done, value } = await reader.read();
     if (done) {
+      // Stream finished. If we never saw </think>, flush everything.
       if (!hasFinishedThinking && thinkingBuffer) {
+        console.log('[SF YIELD FLUSH]', JSON.stringify(thinkingBuffer));
         yield { text: () => thinkingBuffer };
       }
       break;
@@ -217,28 +290,39 @@ export async function* streamSiliconFlow(
 
           if (!hasFinishedThinking) {
             thinkingBuffer += content;
+
+            // Check for closing tag
             if (thinkingBuffer.includes('</think>')) {
               hasFinishedThinking = true;
+              // Split and emit only the part AFTER the tag
+              // const parts = thinkingBuffer.split('</think>');
               const closeTagIndex = thinkingBuffer.indexOf('</think>');
-              const realContent = thinkingBuffer.slice(closeTagIndex + 8);
+              const realContent = thinkingBuffer.slice(closeTagIndex + 8); // 8 = length of </think>
+
               if (realContent) {
+                console.log('[SF YIELD TAG]', JSON.stringify(realContent));
                 yield { text: () => realContent };
               }
-              thinkingBuffer = '';
+              thinkingBuffer = ''; // Free memory
             }
           } else {
+            // Passthrough mode
             if (content) {
+              console.log('[SF YIELD PASS]', JSON.stringify(content));
               yield { text: () => content };
             }
           }
         } catch (_e) {
-          // ignore
+          // ignore parse errors
         }
       }
     }
   }
 }
 
+/**
+ * Non-streaming generation for Briefings
+ */
 export async function generateSiliconFlow(messages: any[], modelName: string): Promise<string> {
   if (!SILICONFLOW_API_KEY) {
     throw new Error('GUIJI_API_KEY is not defined');
@@ -250,7 +334,7 @@ export async function generateSiliconFlow(messages: any[], modelName: string): P
       role: m.role,
       content: m.content,
     })),
-    stream: false,
+    stream: false, // Explicitly disable streaming
     temperature: 0.7,
     max_tokens: 4096,
   };
@@ -271,5 +355,10 @@ export async function generateSiliconFlow(messages: any[], modelName: string): P
   }
 
   const data = await response.json();
-  return data.choices?.[0]?.message?.content || '';
+  const content = data.choices?.[0]?.message?.content || '';
+  // const reasoning = data.choices?.[0]?.message?.reasoning_content || '';
+
+  // Ignore reasoning for non-streaming calls (Router) as well
+  // to ensure clean JSON output.
+  return content;
 }

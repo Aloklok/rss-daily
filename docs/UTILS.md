@@ -25,4 +25,4 @@
 ---
 
 > [!IMPORTANT]
-> **Sever-Side Only**: 任何包含 Node.js 原生模块（如 `fs`, `path`）或服务端库（如 `sanitize-html`）的工具，必须放在 `src/lib/server` 或明确标记为服务侧专用，以防 Browser 测试环境崩溃。
+> **Sever-Side Only**: 任何包含 Node.js 原生模块（如 `fs`, `path`）或服务端库（如 `sanitize-html`）的工具，必须放在领域目录下的 `services/` 或 `src/shared/infrastructure/` 中，并明确标记为服务侧专用，以防 Browser 测试环境崩溃。

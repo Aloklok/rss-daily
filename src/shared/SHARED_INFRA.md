@@ -24,7 +24,8 @@
 
 ## 2. 外部基础设施 (Infrastructure)
 
-- **Supabase Client**: `src/shared/infrastructure/supabase.ts`
+- **Supabase Client (Server)**: `src/shared/infrastructure/supabase.ts`
+- **Supabase Client (Browser)**: `src/shared/infrastructure/supabase-client.browser.ts`
 - **FreshRSS Client**: `src/shared/infrastructure/freshrss.ts`
 
 ---

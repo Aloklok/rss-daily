@@ -2,11 +2,11 @@ import 'server-only';
 import { unstable_cache } from 'next/cache';
 import { getSupabaseClient } from '@/shared/infrastructure/supabase';
 import { getFreshRssClient } from '@/shared/infrastructure/fresh-rss';
-import { Article, Tag, CleanArticleContent } from '@/shared/types';
+import { Article, Tag, CleanArticleContent, TimeSlot } from '@/shared/types';
 import { BRIEFING_SECTIONS } from './constants';
 import { STAR_TAG } from '@/domains/interaction/constants';
 import { removeEmptyParagraphs, stripLeadingTitle, cleanAIContent } from './utils/content';
-import { shanghaiDayToUtcWindow } from './utils/date';
+import { shanghaiDateSlotToUtcWindow } from './utils/date';
 import { cache } from 'react';
 
 // Local interface
@@ -34,7 +34,10 @@ async function fetchAvailableDatesUncached(): Promise<string[]> {
 
 export const fetchAvailableDates = cache(fetchAvailableDatesUncached);
 
-export async function fetchBriefingData(date: string): Promise<{ [key: string]: Article[] }> {
+export async function fetchBriefingData(
+  date: string,
+  slot?: TimeSlot | null,
+): Promise<{ [key: string]: Article[] }> {
   return unstable_cache(
     async () => {
       const supabase = getSupabaseClient();
@@ -43,17 +46,17 @@ export async function fetchBriefingData(date: string): Promise<{ [key: string]: 
         return {};
       }
 
-      const { startIso, endIso } = shanghaiDayToUtcWindow(date);
-
-      const timeoutPromise = new Promise<{ data: Article[] | null; error: unknown }>((_, reject) =>
-        setTimeout(() => reject(new Error('Supabase query timed out after 10s')), 10000),
-      );
+      const { startIso, endIso } = shanghaiDateSlotToUtcWindow(date, slot);
 
       const dataPromise = supabase
         .from('articles')
         .select('*')
         .gte('n8n_processing_date', startIso)
         .lte('n8n_processing_date', endIso);
+
+      const timeoutPromise = new Promise<{ data: Article[] | null; error: unknown }>((_, reject) =>
+        setTimeout(() => reject(new Error('Supabase query timed out after 10s')), 10000),
+      );
 
       let articles: Article[] = [];
       let error;
@@ -72,15 +75,6 @@ export async function fetchBriefingData(date: string): Promise<{ [key: string]: 
       }
 
       if (articles.length === 0) return {};
-
-      // Hydrate with FreshRSS states (Interaction Domain Adapter)
-      // Wait, dataFetcher did NOT attach states directly in fetchBriefingData.
-      // It returned raw data?
-      // Grouping logic uses `verdict`.
-      // The original code did NOT call `attachArticleStates` inside `fetchBriefingData`.
-      // It seems states are fetched on client or separately?
-      // Ah, `BriefingView` might call it?
-      // I'll stick to original logic: plain fetch + grouping.
 
       const uniqueById = new Map<string | number, Article>();
       articles.forEach((a) => uniqueById.set(a.id, a));
@@ -122,12 +116,36 @@ export async function fetchBriefingData(date: string): Promise<{ [key: string]: 
 
       return groupedArticles;
     },
-    ['briefing-data', date],
+    ['briefing-data', date, slot || 'all'],
     {
       revalidate: 604800,
-      tags: ['briefing-data', `briefing-data-${date}`],
+      tags: ['briefing-data', `briefing-data-${date}`, `briefing-data-${date}-${slot || 'all'}`],
     },
   )();
+}
+
+/**
+ * Fetch specific articles by their IDs
+ */
+export async function fetchArticlesByIds(ids: string[]): Promise<Article[]> {
+  if (!ids || ids.length === 0) return [];
+
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase.from('articles').select('*').in('id', ids);
+
+  if (error) {
+    console.error('Error fetching articles by IDs:', error);
+    return [];
+  }
+
+  return (data || []).map((raw) => ({
+    ...raw,
+    sourceName: raw.source_name || raw.sourceName || '',
+    highlights: cleanAIContent(raw.highlights),
+    critiques: cleanAIContent(raw.critiques),
+    marketTake: cleanAIContent(raw.marketTake),
+    tldr: cleanAIContent(raw.tldr),
+  }));
 }
 
 import { sanitizeHtml } from '@/shared/utils/serverSanitize';
@@ -365,5 +383,14 @@ export async function fetchSubscriptions(): Promise<
   } catch (e) {
     console.error('SERVER Error fetching subscriptions:', e);
     return [];
+  }
+}
+
+export async function fetchTagsServer(): Promise<{ categories: Tag[]; tags: Tag[] }> {
+  try {
+    return await getAvailableFilters();
+  } catch (error) {
+    console.error('Error fetching categories and tags:', error);
+    return { categories: [], tags: [] };
   }
 }

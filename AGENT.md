@@ -57,7 +57,7 @@
 
 | 文件                                                                                   | 职责                                |
 | -------------------------------------------------------------------------------------- | ----------------------------------- |
-| [src/lib/server/dataFetcher.ts](./src/lib/server/dataFetcher.ts)                       | 获取文章数据（Supabase + FreshRSS） |
+| [src/domains/reading/services.ts](./src/domains/reading/services.ts)                   | 获取文章数据（Supabase + FreshRSS） |
 | [scripts/update-search-rpc.ts](./scripts/update-search-rpc.ts)                         | 维护 PGroonga 混合搜索逻辑 (RPC)    |
 | [src/domains/intelligence/INTELLIGENCE.md](./src/domains/intelligence/INTELLIGENCE.md) | AI 架构、RAG 召回与语义搜索规划     |
 | [src/shared/utils/imageUtils.ts](./src/shared/utils/imageUtils.ts)                     | 封面图生成、缓存与延迟处理逻辑      |
@@ -90,9 +90,9 @@
   - **简报 Prompt**: `src/domains/intelligence/prompts/PROMPT.MD`。
   - **对话 Prompt**: `src/domains/intelligence/prompts/CHAT_PROMPT.MD`。
   - **操作脚本**: `pnpm prompt:push/pull` 和 `pnpm chat-prompt:push/pull` (已适配新路径)。
-- **AI 性能**: `pgmq`, `embeddings.ts`, `Gemini`
+- **AI 性能**: `pgmq`, `intelligence/services/`, `Gemini`
 - **时区**: `shanghaiDayToUtcWindow`, `dateUtils`
-- **FreshRSS**: `tagFetcher`, `/tag/list`
+- **FreshRSS**: `reading/services`, `/tag/list`
 - **内容清洗**: `cleanHtml`, `extractImages`
 - **API**: `app/api/*/route.ts`
 - **状态**: `articleStore`, `useFilters()`

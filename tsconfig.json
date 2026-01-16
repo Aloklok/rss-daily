@@ -19,7 +19,7 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*", "./*"],
+      "@/*": ["./src/*"],
       "@/domains/*": ["./src/domains/*"],
       "@/shared/*": ["./src/shared/*"],
       "@/infra/*": ["./src/shared/infrastructure/*"]

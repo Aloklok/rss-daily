@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import BriefingView from '../BriefingView';
-import { MOCK_ARTICLES_POOL } from '@/e2e/mocks/data';
+import { MOCK_ARTICLES_POOL } from '../../../../../../e2e/mocks/data';
 
 // 基础 Mock 数据生成器
 const getMockProps = (slot: string | null = 'morning') => ({

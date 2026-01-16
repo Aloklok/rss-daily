@@ -1,4 +1,4 @@
-import { ARTICLE_ID_PREFIX } from '@/lib/constants';
+import { ARTICLE_ID_PREFIX } from '@/domains/reading/constants';
 
 export const toShortId = (fullId: string): string => {
   if (!fullId) return '';

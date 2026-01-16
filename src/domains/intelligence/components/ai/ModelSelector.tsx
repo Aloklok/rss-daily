@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 
-import { MODELS, DEFAULT_MODEL_ID } from '@/lib/ai-models';
+import { MODELS, DEFAULT_MODEL_ID } from '@/domains/intelligence/constants';
 
 interface ModelSelectorProps {
   selectedModel: string;

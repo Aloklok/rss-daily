@@ -6,17 +6,18 @@
 
 ```
 .
-├── app/                  # Next.js App Router 路由定义 (Pages, Layouts, API)
-├── components/           # 所有 UI 组件与业务组件
-│   ├── common/           # 通用基础组件 (UI Kit, Providers)
-│   ├── features/         # 业务功能模块 (Article, Stream, Briefing 等)
-│   └── layout/           # 全局与结构布局 (Sidebar, Global Wrappers)
-├── hooks/                # 自定义 React Hooks
-├── lib/                  # 核心库与工具 (Data fetching, Supabase client)
-├── services/             # 业务服务层 (API 封装, 数据转换)
-├── store/                # 全局状态管理 (Zustand)
-├── types/                # TypeScript 类型定义
-└── utils/                # 纯函数工具库
+├── src/
+│   ├── app/                  # Next.js App Router 路由定义 (Pages, Layouts, API)
+│   ├── domains/              # 业务领域层 (intelligence, reading, interaction)
+│   │   └── [domain]/
+│   │       ├── components/   #    - 领域专属业务组件
+│   │       ├── hooks/        #    - 领域专属逻辑 Hooks
+│   │       └── services/     #    - 领域专属服务 (API/逻辑)
+│   └── shared/               # 跨领域共享层
+│       ├── components/       #    - 全局布局、公共 UI Kit
+│       ├── infrastructure/   #    - 基础设施 SDK (Supabase, FreshRSS)
+│       └── utils/            #    - 纯函数工具库
+└── public/                   # 静态资源
 ```
 
 ---
@@ -38,100 +39,52 @@
 - **`admin/briefing/page.tsx`**: **简报管理后台** (CSR)。用于手动触发批量补录、监控生成状态。
 - **`api/`**: 后端 API 路由 (Next.js Route Handlers)。
 
-### `components/features/`
+### `src/domains/` (业务领域层)
 
 业务逻辑的核心所在。每个子目录对应一个具体的业务领域。
 
-#### `admin/` (管理后台)
+#### `reading/` (阅读领域)
 
-- **`BackfillPanel.tsx`**: 简报补录与批量生成面板。
-  - _Features_:
-    - 支持按月份、订阅源筛选历史文章。
-    - **批量生成**: 支持多模型选择，实时显示生成的标题列表 (序号格式 1. 2. 3.)。
-    - **严谨筛选**: 提供 "勾选未生成" (Strict Pending) 功能，仅当选中纯未生成文章时高亮。
-    - **错误监控**: 集成 Gemini API 状态码提取 (e.g., 429 Quota Exceeded)。
+- **`components/briefing/`**: 简报页面的逻辑容器与 UI。处理数据 Hydration、状态同步。
+- **`components/stream/`**: 流视图的逻辑容器。处理分页加载、无限滚动逻辑。
+- **`components/article/`**: 文章详情页的 UI 展示与模态框。封装了简报摘要视图与原文阅读器。
+- **核心服务**: `services/services.ts` 负责全量简报聚合逻辑。
 
-#### `briefing/` (每日简报)
+#### `intelligence/` (智能领域)
 
-- **`BriefingClient.tsx`**: 简报页面的逻辑容器。处理数据 Hydration、状态同步。
-- **`BriefingView.tsx`**: 简报页面的纯 UI 展示。
-- **`BriefingGroup.tsx`**: 按重要性分组的文章列表展示。
-- **`BriefCard.tsx`**: 简报场景下的专用文章卡片。
+- **`components/ai/`**: AI 聊天窗口、模型选择器及引用展示。
+- **核心服务**: `services/chat-orchestrator.ts` 负责 RAG 编排、意图路由及跨 Provider 调度。
 
-#### `stream/` (文章流)
+#### `interaction/` (交互领域)
 
-- **`StreamContainer.tsx`**: 流视图的逻辑容器。处理分页加载、无限滚动逻辑。
-- **`StreamView.tsx`**: 流视图的 UI 展示，使用通用 List 组件。
-- **`StreamHeader.tsx`**: 流视图顶部的标题区域（展示标签名、相关话题）。
-- **`StreamListItem.tsx`**: 流视图专用的横向文章卡片。
+- **核心存储**: `store/articleStore.ts` 负责客户端的“文章数据库”与状态同步。
 
-#### `article/` (文章详情)
+### `src/shared/` (共享层)
 
-- **`ArticlePage.tsx`**: 文章详情页的 UI 展示（非模态框模式）。
-  - _Note_: 全文阅读组件之一（独立页面版）。使用 ID `#article-detail-content`。
-- **`ArticleDetailClient.tsx`**: 文章详情页的客户端逻辑封装。
-- **`ArticleTitleStar.tsx`**: 带收藏功能的标题组件。
-- **`modal/`**: 模态框相关组件。
-  - **`ArticleBriefingView.tsx`**: 智能简报模式视图 (AI 摘要)。
-- **`ArticleReaderView.tsx`**: 原文阅读模式视图 (纯净阅读器)。
-  - _Note_: 全文阅读组件之二（弹窗版）。使用 ID `#article-reader-content`。拥有与独立页面版一致的样式覆盖。
-  - **`ArticleModalActions.tsx`**: 模态框底部的操作栏 (收藏、打标签)。
-  - **`UnifiedArticleModal.tsx`**: 统一的模态框入口，根据状态切换简报/原文视图。
-
-#### `search/` (搜索与过滤)
-
-- **`SearchList.tsx`**: 搜索结果列表展示。
-- **`SourceFilterClient.tsx`**: 按订阅源浏览的过滤页面。支持按分类分组和无限滚动。
-
-#### `trends/` (趋势)
-
-- **`TrendsPage.tsx`**: 趋势页面的主视图。
-
-### `components/layout/`
-
-负责应用的整体骨架。
-
-- **`MainLayoutServer.tsx`**: 主布局 Server 壳（SSR 直出 aside/main 骨架），负责承载核心内容的 No-JS 可见性与最小化首屏水合范围。
-- **`LayoutChromeClient.tsx`**: 布局交互岛（侧边栏开合/遮罩/折叠按钮等纯 UI 交互）。
-- **`MainLayoutClient.tsx`**: 旧版全量 Client 布局实现（用于参考/回滚；当前根布局默认使用 `MainLayoutServer.tsx`）。
-- **`GlobalUI.tsx`**: 全局挂载的 UI 元素（如 Toast 容器、模态框挂载点）。
-- **`FloatingActionButtons.tsx`**: 右下角悬浮按钮组（交互组件）。
-- **`FloatingActionButtonsIsland.tsx`**: 悬浮按钮 Client Island（将水合边界限制在按钮自身）。
-- **`Sidebar/`**: 侧边栏模块。
-  - **`SidebarNavServer.tsx`**: SSR 导航骨架（无 JS 仍可提供核心 `<a>` 内链：archive/date/stream/sources）。
-  - **`SidebarLazyClient.tsx`**: 客户端懒加载入口（JS 环境加载交互侧边栏，并让 SSR 导航让位）。
-  - **`SidebarClientMount.tsx`**: 客户端挂载器（加载完成后隐藏 SSR 导航节点）。
-  - **`SidebarContainer.tsx`**: 侧边栏交互逻辑容器（筛选、刷新、收藏等交互）。
-  - **`SidebarView.tsx`**: 侧边栏 UI 视图组件。
-  - **`SidebarBriefing.tsx` / `SidebarExplore.tsx` / `SidebarStarred.tsx`**: 侧边栏子模块。
-
-### `components/common/`
-
-跨业务复用的基础组件。
-
-- **`Providers.tsx`**: 全局 Context Providers 封装 (QueryClient, Theme 等)。
-- **`ui/`**: 通用 UI 组件库。
-  - **`EmptyState.tsx`**: 标准空状态展示。
-  - **`LoadMoreButton.tsx`**: 标准加载更多按钮。
-  - **`Spinner.tsx`**: 加载中转圈动画。
-  - **`TagPopover.tsx`**: 标签管理气泡弹窗。
-  - **`Toast.tsx`**: 全局通知提示。
+- **`components/layout/`**: 负责应用的整体骨架（侧边栏、全局 Layout、浮动按钮）。
+- **`components/ui/`**: 跨业务复用的基础 UI 组件库。
+- **`infrastructure/`**: 基础设施 SDK 封装（Supabase 客户端、FreshRSS 客户端）。
 
 ---
 
 ## 3. 设计原则
 
-1.  **关注点分离 (Separation of Concerns)**:
-    - `app/` 专注路由与服务端数据。
-    - `components/features/` 专注具体业务实现。
-    - `components/common/` 专注通用 UI 抽象。
+1.  **领域自治 (Domain Autonomy)**:
+    - 业务逻辑必须留在 `domains/`。禁止在 `app/` 层编写复杂的业务计算。
+    - 跨领域引用应通过 `shared/` 或明确的服务接口进行。
 
-2.  **容器/视图模式 (Container/View Pattern)**:
+2.  **表现层瘦身 (Thin Presentation)**:
+    - `app/` 路由仅作为“接线员”，负责解析请求参数并调用对应的领域服务。
+
+3.  **容器/视图模式 (Container/View Pattern)**:
+    - 复杂组件严格区分 `Client` (逻辑) 和 `View` (渲染) 组件。
+
+4.  **容器/视图模式 (Container/View Pattern)**:
     - 对于复杂页面（如 Briefing, Stream），严格区分 `Client` (数据/逻辑) 和 `View` (UI 渲染) 组件。
     - 例子: `BriefingClient.tsx` vs `BriefingView.tsx`.
 
-3.  **组合优先 (Composition over Inheritance)**:
+5.  **组合优先 (Composition over Inheritance)**:
     - 尽量通过 Props (如 `children`, `renderProps`) 组合组件，而非深层继承。
 
-4.  **就近原则 (Co-location)**:
+6.  **就近原则 (Co-location)**:
     - 仅被某个 Feature 独享的组件（如 `ArticleModalActions`），直接放在该 Feature 目录下，而非提升到全局 Common。

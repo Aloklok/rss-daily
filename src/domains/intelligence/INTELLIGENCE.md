@@ -8,20 +8,20 @@
 
 ### 0. 向量化 (Vectorization)
 
-在进入 RAG 流程前，所有文章均通过 `src/lib/server/embeddings.ts` (供脚本使用) 或 `src/lib/server/gemini.ts` 进行向量化预处理。我们采用**混合语义指纹**策略，而非单纯的正文切片。
+在进入 RAG 流程前，所有文章均通过 `src/domains/intelligence/services/` 下的 Embedding 逻辑进行向量化预处理。我们采用**混合语义指纹**策略，而非单纯的正文切片。
 
 - **Embedding 模型**: `gemini-embedding-001`
 - **向量化字段**: `title` + `category` + `keywords` + `summary` + `tldr`
 - **逻辑**: 通过将分类和关键词硬编码进向量内容，确保了语义搜索时不仅能匹配到内容相似，还能匹配到“分类正确”的文章，大幅提升召回准确率。
 - **现状**: 向量生成在 API 层支持多 Key 独立调用，`ai` 目的的请求强制使用 `CHENG30` 账号。
 
-### 1. 意图识别与路由 (Intelligence Routing)
+### 1. 意图识别与编排 (Intelligence Orchestration)
 
-在进入 RAG 链路前，系统会通过 **AI Router** (基于 Gemini 1.5 Flash) 对用户提问进行意图分类：
+AI 聊天的核心入口现由 **ChatOrchestrator** (位于 `intelligence/services`) 承载。它不仅负责调用 **AI Router** 进行意图分类，还编排后续的检索、重排与执行链路。
 
-- **RAG_LOCAL**: 识别到用户在咨询特定资讯或本地文章。执行完整的“向量检索 + 重排”链路。
-- **DIRECT (闲聊模式)**: 用户显式开启“闲聊”开关或提问属于通用知识。系统会跳过数据库检索，以低延迟直接回答。
-- **SEARCH_WEB**: 识别到需要最新非本地资讯。自动开启 Google Search Grounding 联网搜索。
+- **RAG_LOCAL**: 识别到用户在咨询特定资讯或本地文章。Orchestrator 会驱动完整的“向量检索 + 重排”链路。
+- **DIRECT (闲聊模式)**: 跳过数据库检索，以低延迟直接回答。
+- **SEARCH_WEB**: 自动开启 Google Search Grounding 联网搜索。
 
 ### 2. 召回阶段 (Recall Phase)
 
@@ -96,7 +96,7 @@
 ### 2. 模型配额与 API 隔离
 
 - **物理隔离**: 为防止实时问答与后台定时任务（如大规模简报生成）争抢配额，AI 助手强制锁定使用 `GOOGLE_GENERATIVE_AI_API_KEY_CHENG30`。
-- **模型路由**: 在 `app/api/ai/chat/route.ts` 中维护。严禁在后端再次开启“自动别名转换”，必须保留前端透传的特定版本 ID 以维护配额隔离。
+- **模型路由**: 由 `src/domains/intelligence/services/chat-orchestrator.ts` 统一管理。
 
 ### 3. 样式保护与视觉架构
 

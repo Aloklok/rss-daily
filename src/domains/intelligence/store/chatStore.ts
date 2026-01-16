@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { DEFAULT_MODEL_ID } from '@/lib/ai-models';
+import { DEFAULT_MODEL_ID } from '@/domains/intelligence/constants';
 
 export interface ChatMessage {
   role: 'user' | 'model' | 'system';

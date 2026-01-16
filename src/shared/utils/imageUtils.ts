@@ -83,7 +83,7 @@ import {
   BRIEFING_IMAGE_WIDTH,
   BRIEFING_IMAGE_HEIGHT,
   BRIEFING_IMAGE_RESOLUTION_SUFFIX,
-} from '@/lib/constants';
+} from '@/domains/reading/constants';
 
 const resolveBriefingImageRequest = async (date: string): Promise<string> => {
   // --- 1. Build Time Optimization ---
