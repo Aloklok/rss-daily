@@ -102,8 +102,8 @@ const ReportContent: React.FC<ReportContentProps> = memo(
                     <div key={article.id}>
                       <div className="py-3 md:hidden">
                         <a
-                          href={`#article - ${article.id} `}
-                          onClick={(e) => handleJump(e, `article - ${article.id} `)}
+                          href={`#article-${article.id}`}
+                          onClick={(e) => handleJump(e, `article-${article.id}`)}
                           className="leading-tight font-medium text-sky-600 hover:text-blue-300 dark:text-blue-400 dark:hover:text-sky-200"
                         >
                           {article.title}
@@ -115,8 +115,8 @@ const ReportContent: React.FC<ReportContentProps> = memo(
                       <div className="hidden grid-cols-2 gap-x-6 md:grid">
                         <div className="flex items-start py-2">
                           <a
-                            href={`#article - ${article.id} `}
-                            onClick={(e) => handleJump(e, `article - ${article.id} `)}
+                            href={`#article-${article.id}`}
+                            onClick={(e) => handleJump(e, `article-${article.id}`)}
                             className="leading-tight font-medium text-sky-600 decoration-sky-300 decoration-2 hover:text-blue-300 hover:underline dark:text-blue-400 dark:hover:text-sky-200"
                           >
                             {article.title}

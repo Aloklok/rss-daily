@@ -168,3 +168,7 @@
 - [x] **Zustand Store 领域化迁移 (2026.01.14)**: 将 `articleStore` 移入 `interaction` 领域，`uiStore` 移入 `shared` 领域，并修正了所有测试与引用路径。
 - [x] **Hook 领域解耦 (2026.01.14)**: 将 `src/hooks` 全部下放至领域层，拆分 `useArticles` 为 Query 和 Mutation Hook。
 - [x] **Client Service 解耦 (2026.01.14)**: 淘汰 `src/services/` 目录，将 `clientApi.ts` 和 `articleLoader.ts` 拆分到 `reading` 和 `interaction` 领域。
+- [x] **基础设施全韩化与缓存策略升级 (2026.01.17)**:
+  - **地理位置同域**: 将 Vercel Function 执行区域从美国华盛顿 DC 迁回韩国首尔，与 Supabase 数据库实现物理互联，TTFB 降低 80% (消除跨洋 RTT)。
+  - **ISR 深度优化**: 将全站 ISR 失效周期延长至 7 天，大幅降低 Vercel 静态生成算力消耗。
+  - **全量无感预热**: 升级 GitHub Action 预热工作流，改为周频 + 全量历史文章预热，配合 60秒 部署等待策略，确保用户始终命中 CDN 边缘缓存。

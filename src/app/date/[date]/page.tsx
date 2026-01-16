@@ -10,7 +10,7 @@ import { toShortId } from '@/shared/utils/idHelpers';
 // UNIFIED ISR STRATEGY:
 // All pages (History & Today) are cached for 7 days (604800s).
 // Real-time updates are handled by the Supabase Webhook/API invalidating the 'briefing-data' tag.
-export const revalidate = 604800;
+export const revalidate = 604800; // 7 days
 
 export async function generateStaticParams() {
   const dates = await fetchAvailableDates();

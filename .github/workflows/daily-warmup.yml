@@ -3,7 +3,7 @@ name: Daily & Post-Deploy Warmup
 on:
   schedule:
     # 北京时间 00:05 = UTC 16:05 (前一天)
-    - cron: '5 16 * * *'
+    - cron: '5 16 * * 0' # Weekly on Sunday at 16:05 UTC (00:05 Monday BJ Time)
   # 当 Vercel 部署状态更新时触发
   deployment_status:
   workflow_dispatch:
@@ -21,37 +21,30 @@ jobs:
     name: Warm Up Recent Pages
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile || npm install
+        # Fallback to npm install if pnpm is not available in environment, though pnpm/action-setup is better.
+        # Let's stick to simple npm install for scripts if possible, or setup pnpm.
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Wait for DNS/CDN Propagation
         if: github.event_name == 'deployment_status'
-        run: sleep 10 # 部署成功后稍等片刻，确保域名切换完成
+        run: sleep 60 # Increased to 60s for better propagation
 
-      - name: Calculate Dates (Shanghai)
-        id: dates
-        run: |
-          # 循环过去 7 天的日期
-          for i in {0..6}; do
-             DATE_SH=$(TZ='Asia/Shanghai' date -d "-$i days" +%Y-%m-%d)
-             echo "Adding $DATE_SH to targets"
-             echo "$DATE_SH" >> targets.txt
-          done
-
-      - name: Warm Up Homepage
-        run: |
-          echo "Warming up Homepage..."
-          curl -s -o /dev/null -w "%{http_code}\n" https://www.alok-rss.top/
-
-      - name: Warm Up Last 7 Days
-        run: |
-          while read DATE; do
-            URL="https://www.alok-rss.top/date/$DATE"
-            echo "--------------------------------"
-            echo "Target: $URL"
-            
-            # 预热请求，设置 30s 超时以应对冷启动生成的压力
-            http_code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "$URL")
-            echo "Status: $http_code"
-            
-            if [ "$http_code" -ne 200 ]; then
-                echo "Warning: Non-200 status code returned."
-            fi
-          done < targets.txt
+      - name: Warm Up ALL History
+        run: npx tsx scripts/warmup-all-history.ts
