@@ -49,7 +49,7 @@ export async function fetchBriefingData(
       const { startIso, endIso } = shanghaiDateSlotToUtcWindow(date, slot);
 
       const dataPromise = supabase
-        .from('articles')
+        .from('articles_view')
         .select('*')
         .gte('n8n_processing_date', startIso)
         .lte('n8n_processing_date', endIso);
@@ -131,7 +131,7 @@ export async function fetchArticlesByIds(ids: string[]): Promise<Article[]> {
   if (!ids || ids.length === 0) return [];
 
   const supabase = getSupabaseClient();
-  const { data, error } = await supabase.from('articles').select('*').in('id', ids);
+  const { data, error } = await supabase.from('articles_view').select('*').in('id', ids);
 
   if (error) {
     console.error('Error fetching articles by IDs:', error);
@@ -173,7 +173,7 @@ export const fetchArticleContent = async (
     try {
       const supabase = getSupabaseClient();
       const { data: dbArticle } = await supabase
-        .from('articles')
+        .from('articles_view')
         .select('title')
         .eq('id', id)
         .single();
@@ -287,7 +287,7 @@ export async function fetchArticleFromFreshRSS(id: string): Promise<Article | nu
 
 export async function fetchArticleById(id: string): Promise<Article | null> {
   const supabase = getSupabaseClient();
-  const { data, error } = await supabase.from('articles').select('*').eq('id', id).single();
+  const { data, error } = await supabase.from('articles_view').select('*').eq('id', id).single();
 
   if (error || !data) {
     console.log(`Article ${id} not found in Supabase. Attempting FreshRSS fallback...`);
