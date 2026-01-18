@@ -117,14 +117,10 @@ export default function DashboardPage(): React.JSX.Element {
       <div className="mb-8 flex items-end justify-between border-b border-stone-200 px-4 pb-6 md:px-12">
         <div>
           <h1 className="text-2xl font-black tracking-tighter text-stone-900 lg:text-3xl">
-            管理员决策中心
+            管理员看板
           </h1>
-          <p className="mt-1.5 flex items-center gap-3 text-xs font-bold tracking-wider text-stone-400 uppercase">
-            Smart Operations & Intelligent Audit
-            <span className="h-1 w-1 rounded-full bg-stone-200"></span>
-            <span className="font-medium tracking-normal text-stone-300 normal-case">
-              数据最后同步: {lastUpdatedFormatted}
-            </span>
+          <p className="mt-1.5 flex items-center gap-3 text-xs font-medium text-stone-400">
+            数据最后同步: {lastUpdatedFormatted}
           </p>
         </div>
         <button
@@ -317,7 +313,7 @@ export default function DashboardPage(): React.JSX.Element {
                       </div>
                     ))
                 ) : (
-                  <div className="py-8 text-center text-[10px] font-bold text-stone-300 opacity-50">
+                  <div className="py-8 text-center text-[11px] font-bold text-stone-500">
                     未检测到爬虫异常
                   </div>
                 )}
@@ -453,7 +449,7 @@ export default function DashboardPage(): React.JSX.Element {
                       </div>
                     ))
                   ) : (
-                    <div className="col-span-full py-8 text-center text-[10px] font-black tracking-widest text-stone-300 uppercase italic">
+                    <div className="col-span-full py-8 text-center text-[11px] font-bold text-stone-500">
                       未检测到异常扫描路径
                     </div>
                   )}
@@ -493,7 +489,7 @@ export default function DashboardPage(): React.JSX.Element {
                       );
                     })
                   ) : (
-                    <div className="col-span-full py-8 text-center text-[10px] font-bold text-stone-300 opacity-50">
+                    <div className="col-span-full py-8 text-center text-[11px] font-bold text-stone-500">
                       未监测到恶意爬虫
                     </div>
                   )}
@@ -507,7 +503,7 @@ export default function DashboardPage(): React.JSX.Element {
         </section>
 
         {/* AI Summary Section (Async) - Moved to bottom */}
-        <div className="mb-20 min-h-[160px] overflow-hidden rounded-[24px] bg-stone-50 p-1 ring-1 ring-stone-200/50">
+        <div className="mt-6 mb-20 min-h-[160px] overflow-hidden rounded-[24px] bg-stone-50 p-1 ring-1 ring-stone-200/50">
           <div className="flex h-full items-start gap-4 rounded-[20px] bg-white p-6 shadow-sm">
             <div
               className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-orange-600 text-lg text-white shadow-lg shadow-orange-500/20 ${loadingAI ? 'animate-pulse' : ''}`}

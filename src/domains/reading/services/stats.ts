@@ -9,13 +9,23 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     .from('articles')
     .select('*', { count: 'exact', head: true });
 
-  // Today's added count (based on n8n_processing_date)
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // Calculate Shanghai timezone's "today 00:00:00" in ISO format
+  // Shanghai is UTC+8
+  const now = new Date();
+  const shanghaiOffset = 8 * 60; // minutes
+  const localOffset = now.getTimezoneOffset(); // minutes (negative for east of UTC)
+  const shanghaiNow = new Date(now.getTime() + (shanghaiOffset + localOffset) * 60 * 1000);
+  const shanghaiToday = new Date(shanghaiNow);
+  shanghaiToday.setHours(0, 0, 0, 0);
+  // Convert back to UTC for database query
+  const todayStartUTC = new Date(
+    shanghaiToday.getTime() - (shanghaiOffset + localOffset) * 60 * 1000,
+  );
+
   const { count: todayAddedCount } = await supabase
     .from('articles')
     .select('*', { count: 'exact', head: true })
-    .gte('n8n_processing_date', today.toISOString());
+    .gte('n8n_processing_date', todayStartUTC.toISOString());
 
   const { data: dailyTrendData } = await supabase.rpc('get_articles_daily_trend');
   const { data: sourceDistData } = await supabase.rpc('get_articles_source_distribution');
@@ -26,13 +36,13 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   const { count: todayBlockedCount } = await supabase
     .from('bot_hits')
     .select('*', { count: 'exact', head: true })
-    .gte('created_at', today.toISOString())
+    .gte('created_at', todayStartUTC.toISOString())
     .eq('status', 403);
 
   const { count: todayNotFoundCount } = await supabase
     .from('bot_hits')
     .select('*', { count: 'exact', head: true })
-    .gte('created_at', today.toISOString())
+    .gte('created_at', todayStartUTC.toISOString())
     .eq('status', 404);
 
   const { data: blockedVsAllowedData } = await supabase.rpc('get_bot_hits_status_distribution');
