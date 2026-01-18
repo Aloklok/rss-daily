@@ -147,8 +147,8 @@ export default function DashboardPage(): React.JSX.Element {
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
             <div className="grid grid-cols-1 gap-4 lg:col-span-4">
-              <div className="flex h-[150px] flex-col justify-between rounded-[28px] bg-white p-6 shadow-sm ring-1 ring-stone-100">
-                <p className="text-[10px] font-black tracking-[0.2em] text-stone-500 uppercase">
+              <div className="flex h-[120px] flex-col justify-between rounded-[28px] bg-white p-5 shadow-sm ring-1 ring-stone-100">
+                <p className="text-xs font-black tracking-[0.15em] text-stone-700 uppercase">
                   全站文章库总计
                 </p>
                 <div className="flex items-baseline gap-2">
@@ -158,8 +158,8 @@ export default function DashboardPage(): React.JSX.Element {
                   <span className="text-[10px] font-bold text-stone-400">篇</span>
                 </div>
               </div>
-              <div className="relative flex h-[150px] flex-col justify-between overflow-hidden rounded-[28px] bg-white p-6 shadow-sm ring-1 ring-stone-100">
-                <p className="text-[10px] font-black tracking-[0.2em] text-stone-500 uppercase">
+              <div className="relative flex h-[120px] flex-col justify-between overflow-hidden rounded-[28px] bg-white p-5 shadow-sm ring-1 ring-stone-100">
+                <p className="text-xs font-black tracking-[0.15em] text-stone-700 uppercase">
                   今日新增文章
                 </p>
                 <div className="flex items-baseline gap-2">
@@ -187,11 +187,25 @@ export default function DashboardPage(): React.JSX.Element {
                     <span className="text-[10px] font-bold text-stone-300">每日入库</span>
                   </div>
                 </div>
-                <div className="flex h-32 w-full items-end justify-between gap-1">
+                <div className="relative flex h-32 w-full items-end justify-between gap-1">
+                  {/* Y-axis Ticks */}
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 flex h-full flex-col justify-between">
+                    {[...Array(4)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="flex w-full items-center gap-2 border-t border-dashed border-stone-100/50 first:border-t-0"
+                      >
+                        <span className="w-4 text-left font-mono text-[8px] text-stone-300">
+                          {Math.round((maxTrend / 3) * (3 - i))}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
                   {stats.content.dailyTrend.map((t, i) => (
                     <div
                       key={i}
-                      className="group relative flex h-full flex-1 flex-col items-center justify-end"
+                      className="group relative z-10 flex h-full flex-1 flex-col items-center justify-end"
                     >
                       <div
                         className="w-full min-w-[6px] rounded-t bg-stone-900 transition-all duration-300 group-hover:bg-orange-600"
@@ -229,126 +243,87 @@ export default function DashboardPage(): React.JSX.Element {
           </div>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {/* Search Engine Hub (200 + 404) */}
+            {/* Search Engine Access Stats (200) */}
             <div className="rounded-[32px] bg-white p-8 shadow-sm ring-1 ring-stone-100">
               <div className="mb-6 flex items-center justify-between">
                 <h3 className="text-[11px] font-black tracking-widest text-stone-800 uppercase">
-                  搜索引擎收录监测
+                  爬虫访问统计 (200)
                 </h3>
-                <div className="flex items-center gap-3 text-[9px] font-bold">
-                  <div className="flex items-center gap-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-green-500"></span> 抓取成功 (200)
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-red-500"></span> 错误/死链
-                    (404/5xx)
-                  </div>
-                </div>
+                <span className="rounded border border-green-100 bg-green-50 px-2 py-0.5 text-[9px] font-bold text-green-600">
+                  正常抓取
+                </span>
               </div>
-              <div className="space-y-5">
+              <div className="space-y-4">
                 {searchEngineBots.length > 0 ? (
-                  searchEngineBots.map((bot, idx) => {
-                    const success = bot.allowed_count; // 200 OK
-                    const error = bot.blocked_count; // Non-200 (includes 404, 403, 500)
-                    const total = success + error;
-                    const successPerc = total > 0 ? (success / total) * 100 : 0;
-
-                    return (
-                      <div key={idx} className="flex flex-col gap-1.5">
-                        <div className="flex items-center justify-between text-xs">
-                          <p className="font-bold text-stone-700">{bot.name}</p>
-                          <div className="flex items-center gap-3">
-                            <span className="text-[9px] font-bold text-green-600">
-                              正常: {bot.allowed_count}
-                            </span>
-                            {bot.blocked_count > 0 && (
-                              <div className="group/tooltip relative">
-                                <span className="cursor-help border-b border-dotted border-red-300 text-[9px] font-bold text-red-500">
-                                  异常: {bot.blocked_count}
-                                </span>
-                                <div className="pointer-events-none invisible absolute bottom-full left-1/2 z-50 mb-2 w-max max-w-[200px] -translate-x-1/2 rounded bg-stone-900 p-2 text-[9px] text-white opacity-0 shadow-lg transition-all group-hover/tooltip:visible group-hover/tooltip:opacity-100">
-                                  <p className="mb-1 border-b border-stone-700 pb-1 font-bold text-stone-300">
-                                    最近错误路径:
-                                  </p>
-                                  {bot.error_paths && bot.error_paths.length > 0 ? (
-                                    <div className="flex flex-col gap-0.5">
-                                      {bot.error_paths.map((path, pIdx) => (
-                                        <span
-                                          key={pIdx}
-                                          className="font-mono break-all text-orange-300"
-                                        >
-                                          {path}
-                                        </span>
-                                      ))}
-                                    </div>
-                                  ) : (
-                                    <span className="text-stone-500 italic">暂无详细记录</span>
-                                  )}
-                                  {/* Arrow */}
-                                  <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-stone-900"></div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex h-1.5 overflow-hidden rounded-full bg-stone-50 ring-1 ring-stone-100">
-                          <div
-                            className="h-full bg-green-500 transition-all duration-700"
-                            style={{ width: `${successPerc}%` }}
-                          ></div>
-                        </div>
+                  searchEngineBots.map((bot, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between border-b border-stone-50 pb-3 last:border-0 last:pb-0"
+                    >
+                      <p className="text-xs font-bold text-stone-700">{bot.name}</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-black text-green-600 tabular-nums">
+                          {bot.allowed_count}
+                        </span>
+                        <span className="text-[9px] font-medium text-stone-400">次</span>
                       </div>
-                    );
-                  })
+                    </div>
+                  ))
                 ) : (
-                  <div className="py-8 text-center text-[10px] font-bold text-stone-300 opacity-50">
+                  <div className="py-8 text-center text-[11px] font-bold text-stone-500">
                     暂无搜索引擎抓取记录
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Other Bots (Intercepted) */}
-            <div className="rounded-[32px] bg-white bg-gradient-to-br from-white to-red-50/10 p-8 shadow-sm ring-1 ring-stone-100">
+            {/* Search Engine Exception Logs (404/403) */}
+            <div className="rounded-[32px] bg-white bg-gradient-to-br from-white to-orange-50/20 p-8 shadow-sm ring-1 ring-stone-100">
               <div className="mb-6 flex items-center justify-between">
-                <h3 className="text-[11px] font-black tracking-widest text-red-800 uppercase">
-                  自动化拦截
+                <h3 className="text-[11px] font-black tracking-widest text-orange-800 uppercase">
+                  爬虫异常日志 (404/403)
                 </h3>
-                <span className="rounded-md bg-red-500 px-2 py-0.5 text-[9px] font-black text-white shadow-sm shadow-red-500/30">
-                  已拦截
+                <span className="rounded border border-orange-100 bg-orange-50 px-2 py-0.5 text-[9px] font-bold text-orange-600">
+                  死链监控
                 </span>
               </div>
-              <div className="space-y-4">
-                {otherBots.length > 0 ? (
-                  otherBots.slice(0, 8).map((bot, idx) => {
-                    // For these bots, nearly everything should be blocked/error (403).
-                    // We display total hits explicitly as 'Blocked Requests'.
-                    const total = bot.allowed_count + bot.blocked_count;
-
-                    return (
-                      <div key={idx} className="flex items-center gap-3">
-                        <div className="w-24 shrink-0">
-                          <p className="truncate text-[10px] font-bold text-stone-600 transition-colors group-hover:text-red-600">
-                            {bot.name || 'Unknown'}
-                          </p>
+              <div className="max-h-[280px] space-y-3 overflow-y-auto">
+                {searchEngineBots.filter((b) => b.blocked_count > 0).length > 0 ? (
+                  searchEngineBots
+                    .filter((b) => b.blocked_count > 0)
+                    .map((bot, idx) => (
+                      <div
+                        key={idx}
+                        className="rounded-lg border border-orange-100 bg-orange-50/30 p-3"
+                      >
+                        <div className="mb-2 flex items-center justify-between">
+                          <p className="text-[10px] font-bold text-orange-700">{bot.name}</p>
+                          <span className="text-[9px] font-black text-orange-500 tabular-nums">
+                            {bot.blocked_count} 次异常
+                          </span>
                         </div>
-                        <div className="flex h-1 flex-1 overflow-hidden rounded-full bg-stone-100 ring-1 ring-stone-100">
-                          <div className="h-full bg-red-500" style={{ width: `100%` }}></div>
-                        </div>
-                        <div className="w-16 text-right font-mono text-[9px] font-black text-red-500">
-                          {total} <span className="text-[8px] font-medium text-stone-300">次</span>
-                        </div>
+                        {bot.error_paths && bot.error_paths.length > 0 && (
+                          <div className="flex flex-col gap-1">
+                            {bot.error_paths.slice(0, 3).map((path, pIdx) => (
+                              <code
+                                key={pIdx}
+                                className="block truncate rounded bg-white/50 px-2 py-1 font-mono text-[9px] text-stone-500"
+                              >
+                                {path}
+                              </code>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    );
-                  })
+                    ))
                 ) : (
                   <div className="py-8 text-center text-[10px] font-bold text-stone-300 opacity-50">
-                    未监测到恶意爬虫
+                    未检测到爬虫异常
                   </div>
                 )}
               </div>
-              <p className="mt-6 border-t border-red-100/50 pt-3 text-[9px] font-medium text-red-400/60 italic">
-                ※ 此区域展示被 Proxy 安全策略自动识别并阻断的爬虫。
+              <p className="mt-4 border-t border-orange-100/50 pt-3 text-[9px] font-medium text-orange-400/60 italic">
+                ※ 此区域展示搜索引擎爬虫遇到的 404/403 错误，可用于检测死链和内容缺失。
               </p>
             </div>
           </div>
@@ -430,16 +405,27 @@ export default function DashboardPage(): React.JSX.Element {
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
             <div className="lg:col-span-4">
               <div className="flex h-full flex-col justify-center rounded-[32px] border-b-[4px] border-red-500/10 bg-white p-8 text-center shadow-sm ring-1 ring-stone-100">
-                <p className="mb-2 text-[9px] font-black tracking-[0.2em] text-stone-500 uppercase">
-                  今日拦截流量总计
+                <p className="mb-2 text-[9px] font-black tracking-[0.2em] text-red-600 uppercase">
+                  今日拦截请求 (403)
                 </p>
                 <div className="flex items-baseline justify-center gap-2">
                   <span
-                    className={`text-4xl font-black tracking-tighter tabular-nums ${stats.security.todayBlocked > 0 ? 'text-red-600' : 'text-stone-900'}`}
+                    className={`text-4xl font-black tracking-tighter tabular-nums ${stats.security.todayBlocked > 0 ? 'text-red-700' : 'text-stone-900'}`}
                   >
                     {stats.security.todayBlocked}
                   </span>
                   <span className="text-[10px] font-bold text-stone-400">次</span>
+                </div>
+                <div className="mt-6 border-t border-stone-50 pt-6">
+                  <p className="mb-2 text-[9px] font-black tracking-[0.2em] text-stone-500 uppercase">
+                    今日死链审计 (404)
+                  </p>
+                  <div className="flex items-baseline justify-center gap-2">
+                    <span className="text-2xl font-black tracking-tighter text-stone-700 tabular-nums">
+                      {stats.security.todayNotFound}
+                    </span>
+                    <span className="text-[10px] font-bold text-stone-400">次</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -448,7 +434,7 @@ export default function DashboardPage(): React.JSX.Element {
               <div className="h-full rounded-[32px] bg-white p-8 shadow-sm ring-1 ring-stone-100">
                 <div className="mb-6 flex items-center justify-between">
                   <h3 className="text-[11px] font-black tracking-widest text-stone-800 uppercase">
-                    高风险扫描路径深度监控
+                    最近审计详情 (异常流量路径)
                   </h3>
                 </div>
                 <div className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
@@ -472,6 +458,49 @@ export default function DashboardPage(): React.JSX.Element {
                     </div>
                   )}
                 </div>
+              </div>
+            </div>
+
+            {/* Other Bots (Non-Search-Engine Interceptions) */}
+            <div className="lg:col-span-12">
+              <div className="rounded-[32px] bg-white bg-gradient-to-br from-white to-red-50/10 p-8 shadow-sm ring-1 ring-stone-100">
+                <div className="mb-6 flex items-center justify-between">
+                  <h3 className="text-[11px] font-black tracking-widest text-red-800 uppercase">
+                    异常流量与安全审计 (403/404)
+                  </h3>
+                  <span className="rounded-md bg-red-500 px-2 py-0.5 text-[9px] font-black text-white shadow-sm shadow-red-500/30">
+                    已审计
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {otherBots.length > 0 ? (
+                    otherBots.slice(0, 8).map((bot, idx) => {
+                      const total = bot.allowed_count + bot.blocked_count;
+                      return (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-3 rounded-lg border border-red-100 bg-red-50/30 p-3"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-[10px] font-bold text-stone-600">
+                              {bot.name || 'Unknown'}
+                            </p>
+                          </div>
+                          <div className="text-right font-mono text-sm font-black text-red-600 tabular-nums">
+                            {total}
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="col-span-full py-8 text-center text-[10px] font-bold text-stone-300 opacity-50">
+                      未监测到恶意爬虫
+                    </div>
+                  )}
+                </div>
+                <p className="mt-6 border-t border-red-100/50 pt-3 text-[9px] font-medium text-red-400/60 italic">
+                  ※ 此区域展示非搜索引擎的异常流量，包括被 403 拦截的恶意爬虫和 AI 训练机器人。
+                </p>
               </div>
             </div>
           </div>

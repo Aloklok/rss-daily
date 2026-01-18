@@ -61,9 +61,16 @@ export function proxy(request: NextRequest) {
   const userAgent = request.headers.get('user-agent') || '';
   const path = url.pathname;
 
-  // --- Priority 0: Critical Path Exceptions ---
-  // Always allow robots.txt for all agents to comply with standards
+  // --- Priority 0: Critical Path Exceptions & Utility Bots ---
+  // 0.1 Standard Files
   if (path === '/robots.txt' || path === '/sitemap.xml') {
+    return NextResponse.next();
+  }
+
+  // 0.2 Utility Bots (Silent Bypass: No security checks, no logging)
+  const UTILITY_BOTS =
+    /SentryUptimeBot|vercel-favicon|vercel-screenshot|Uptime-Kuma|UptimeRobot|StatusCake/i;
+  if (UTILITY_BOTS.test(userAgent)) {
     return NextResponse.next();
   }
 
@@ -82,9 +89,10 @@ export function proxy(request: NextRequest) {
 
   // --- Security Rule 2: Whitelist Search Engines (Baidu, Google, Bing, etc) ---
   const isAllowedBot =
-    /Baiduspider|Googlebot|Bingbot|Slurp|Sogou|Yisou|YandexBot|DuckDuckGo|Sogou|Exabot|facebot|facebookexternalhit/i.test(
+    /Baiduspider|Googlebot|Bingbot|Slurp|Yisou|YandexBot|DuckDuckGo|Sogou|Exabot|facebot|facebookexternalhit/i.test(
       userAgent,
     );
+
   if (isAllowedBot) {
     // Extract specific bot name for clearer logging
     let specificBotName = 'Search-Engine';
@@ -100,7 +108,7 @@ export function proxy(request: NextRequest) {
   }
 
   // --- Security Rule 3: Suspicious Requests (Empty/Short UA) ---
-  // Note: Known bots (Rule 2) already passed, so this catches suspicious scripts
+  // Note: Only block, do NOT log generic "Unknown-Agent" noise in DB
   if (!userAgent || userAgent.length < 10) {
     return new Response('Access Denied: Suspicious request source.', { status: 403 });
   }

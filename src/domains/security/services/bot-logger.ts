@@ -15,18 +15,42 @@ export async function logServerBotHit(
 ) {
   if (!userAgent) return;
 
-  let botName = 'Unknown-Bot';
+  // 1. Silent Bypass for Utility Bots
+  const isUtility =
+    /SentryUptimeBot|vercel-favicon|vercel-screenshot|Uptime-Kuma|UptimeRobot|StatusCake/i.test(
+      userAgent,
+    );
+  if (isUtility) return;
 
-  // Replicating Proxy Logic for consistency but with better specificity
-  if (/Googlebot/i.test(userAgent)) botName = 'Googlebot';
-  else if (/Baiduspider/i.test(userAgent)) botName = 'Baiduspider';
-  else if (/Bingbot/i.test(userAgent)) botName = 'Bingbot';
-  else if (/YandexBot/i.test(userAgent)) botName = 'YandexBot';
-  else if (/DuckDuckGo/i.test(userAgent)) botName = 'DuckDuckGo';
-  else if (/Sogou/i.test(userAgent)) botName = 'Sogou';
-  else if (/Baiduspider|Slurp|Yisou|Exabot|facebot|facebookexternalhit/i.test(userAgent)) {
+  let botName = 'Unknown-Bot';
+  let isSearchEngine = false;
+
+  // 2. Identify White-listed Search Engines
+  if (/Googlebot/i.test(userAgent)) {
+    botName = 'Googlebot';
+    isSearchEngine = true;
+  } else if (/Baiduspider/i.test(userAgent)) {
+    botName = 'Baiduspider';
+    isSearchEngine = true;
+  } else if (/Bingbot/i.test(userAgent)) {
+    botName = 'Bingbot';
+    isSearchEngine = true;
+  } else if (/YandexBot/i.test(userAgent)) {
+    botName = 'YandexBot';
+    isSearchEngine = true;
+  } else if (/DuckDuckGo/i.test(userAgent)) {
+    botName = 'DuckDuckGo';
+    isSearchEngine = true;
+  } else if (/Sogou/i.test(userAgent)) {
+    botName = 'Sogou';
+    isSearchEngine = true;
+  } else if (/Baiduspider|Slurp|Yisou|Exabot|facebot|facebookexternalhit/i.test(userAgent)) {
     botName = 'Search-Engine';
-  } else if (
+    isSearchEngine = true;
+  }
+
+  // 3. Identify Known Bad/AI Bots
+  else if (
     /AhrefsBot|SemrushBot|MJ12bot|Dotbot|DataForSeoBot|Barkrowler|ZoominfoBot|BLEXBot|SeekportBot/i.test(
       userAgent,
     )
@@ -38,11 +62,22 @@ export async function logServerBotHit(
     )
   ) {
     botName = 'AI-Bot';
-  } else {
-    // Other generic bots or just logging 404s for unknown agents if needed
-    // For now, we only care if it's one of the above categories hitting a 404
-    if (status !== 404) return;
-    botName = 'Unknown-Agent';
+  }
+
+  // 4. Selective Logging Policy (The Data De-noiser)
+  // - Record all Security Blocks (403) regardless of agent
+  // - Record Search Engine hits (200/404) for SEO audit
+  // - SILENTLY DROP everything else (Unknown 404s, standard user 404s, etc)
+  const isSecurityBlock = status === 403;
+  const isAuditTarget = isSearchEngine || botName === 'SEO-Scraper' || botName === 'AI-Bot';
+
+  if (!isSecurityBlock && !(isAuditTarget && (status === 200 || status === 404))) {
+    return;
+  }
+
+  // Fallback for security blocks without a specific bot name
+  if (isSecurityBlock && botName === 'Unknown-Bot') {
+    botName = 'Security-Interception';
   }
 
   try {

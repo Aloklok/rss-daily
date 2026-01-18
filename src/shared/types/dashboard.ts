@@ -16,6 +16,7 @@ export interface DashboardStats {
     };
     security: {
         todayBlocked: number;
+        todayNotFound: number;
         blockedVsAllowed: { type: string; count: number }[];
         topBots: BotStat[];
         attackPaths: { path: string; count: number }[];

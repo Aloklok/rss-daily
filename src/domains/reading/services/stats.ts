@@ -27,7 +27,13 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     .from('bot_hits')
     .select('*', { count: 'exact', head: true })
     .gte('created_at', today.toISOString())
-    .neq('status', 200);
+    .eq('status', 403);
+
+  const { count: todayNotFoundCount } = await supabase
+    .from('bot_hits')
+    .select('*', { count: 'exact', head: true })
+    .gte('created_at', today.toISOString())
+    .eq('status', 404);
 
   const { data: blockedVsAllowedData } = await supabase.rpc('get_bot_hits_status_distribution');
   const { data: topBotsData } = await supabase.rpc('get_bot_hits_name_distribution');
@@ -53,6 +59,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     },
     security: {
       todayBlocked: todayBlockedCount || 0,
+      todayNotFound: todayNotFoundCount || 0,
       blockedVsAllowed: (blockedVsAllowedData as { type: string; count: number }[]) || [],
       topBots: (topBotsData as BotStat[]) || [],
       attackPaths: (attackPathsData as { path: string; count: number }[]) || [],
