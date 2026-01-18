@@ -294,13 +294,10 @@ export async function* streamSiliconFlow(
             // Check for closing tag
             if (thinkingBuffer.includes('</think>')) {
               hasFinishedThinking = true;
-              // Split and emit only the part AFTER the tag
-              // const parts = thinkingBuffer.split('</think>');
               const closeTagIndex = thinkingBuffer.indexOf('</think>');
-              const realContent = thinkingBuffer.slice(closeTagIndex + 8); // 8 = length of </think>
+              const realContent = thinkingBuffer.slice(closeTagIndex + 8);
 
               if (realContent) {
-                console.log('[SF YIELD TAG]', JSON.stringify(realContent));
                 yield { text: () => realContent };
               }
               thinkingBuffer = ''; // Free memory
@@ -308,7 +305,6 @@ export async function* streamSiliconFlow(
           } else {
             // Passthrough mode
             if (content) {
-              console.log('[SF YIELD PASS]', JSON.stringify(content));
               yield { text: () => content };
             }
           }
@@ -318,6 +314,18 @@ export async function* streamSiliconFlow(
       }
     }
   }
+}
+
+/**
+ * Helper to clean thinking block from non-streaming response content
+ */
+export function cleanDeepSeekContent(content: string): string {
+  if (!content) return '';
+  if (content.includes('</think>')) {
+    const parts = content.split('</think>');
+    return parts[parts.length - 1].trim();
+  }
+  return content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 }
 
 /**
@@ -356,9 +364,7 @@ export async function generateSiliconFlow(messages: any[], modelName: string): P
 
   const data = await response.json();
   const content = data.choices?.[0]?.message?.content || '';
-  // const reasoning = data.choices?.[0]?.message?.reasoning_content || '';
 
-  // Ignore reasoning for non-streaming calls (Router) as well
-  // to ensure clean JSON output.
-  return content;
+  // Filter out thinking block for DeepSeek R1 models
+  return cleanDeepSeekContent(content);
 }

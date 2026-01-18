@@ -1,6 +1,16 @@
 import Link from 'next/link';
+import { headers } from 'next/headers';
+import { logServerBotHit } from '@/domains/security/services/bot-logger';
 
-export default function NotFound() {
+export default async function NotFound() {
+  const headersList = await headers();
+  const userAgent = headersList.get('user-agent') || '';
+  // Try custom header from proxy first, then Vercel header, finally fallback
+  const path = headersList.get('x-current-path') || headersList.get('x-invoke-path') || '/unknown';
+
+  // Fire and forget logging for 404s
+  logServerBotHit(path, userAgent, headersList, 404).catch(console.error);
+
   return (
     <div className="dark:bg-midnight-bg flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4 text-center">
       <h1 className="mb-4 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-6xl font-bold text-transparent">

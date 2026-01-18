@@ -85,11 +85,22 @@ src/
 2.  **FreshRSS**: 提供文章的元数据 (Read/Starred Status, Tags)。
 3.  **融合逻辑**: `Article` 对象的 `tags` 数组是融合模型的集中体现，混合了多种"标签类"信息，确保前端组件（如卡片、模态框）可以统一处理。
 
-## 3. 安全性架构
+## 4. 边缘代理与安全防御 (`middleware.ts`)
 
-- **HTML 内容清洗**: 采用 **sanitize-html** 进行**服务端统一清洗** (Server-Side Only)。
-  - **stripTags**: 用于生成安全的 Metadata Description 和 Title，防止标签闭合攻击。
-  - **sanitizeHtml**: 在数据获取层 (`fetchArticleContentServer`) 直接对 HTML 进行清洗。这不仅防止了 XSS 攻击，还显著减少了客户端 bundle 体积。
+本项目废弃了传统的 API API 鉴权模式，转而采用 Next.js Middleware (`src/middleware.ts`) 在边缘侧处理请求过滤、鉴权与审计。
+
+- **安全拦截规则**:
+  1.  **核心路径豁免**: 强制放行 `robots.txt` 和 `sitemap.xml`，符合 SEO 标准。
+  2.  **恶意路径封禁**: 阻断常见的扫描特征路径（如 `wp-admin`, `.env`, `.git`），直接返回 403。
+  3.  **搜索引擎白名单**: 显式放行合规爬虫 (`Baiduspider`, `Googlebot`, `Bingbot`, `DuckDuckGo`, `Sogou`, `YandexBot`, `Exabot`, `Facebook` 等)，并以 200 状态记录日志。
+  4.  **Bot 自动拦截**: 针对已知的高频抓取工具 (`Ahrefs`, `Backlink`, `Semrush`) 和 AI 爬虫 (`GPTBot`, `Claude-Web`) 实施 IP/UA 级拦截 (403)。
+- **智能 404 追踪**:
+  - 利用 Header 注入技术 (`x-current-path`)，解决了 Next.js 内部重写导致路径丢失的问题。
+  - `not-found.tsx` 可准确捕获并归因死链来源（例如精准记录 Googlebot 正在尝试访问的旧链接）。
+- **Bot 流量分流审计 (看板中心)**:
+  - **搜索引擎收录监测**: 聚合合规搜索引擎的访问记录。其中红色的“异常”仅代表死链 (404/5xx)，不代表由于 WAF 拦截。
+  - **自动化拦截审计**: 专门展示被安全策略识别并阻断 (403) 的恶意扫描行为。
+  - **数据持久化**: 所有 Bot 流量异步写入 Supabase `bot_hits` 表，并包含 `ip_country` 地理位置信息。
 
 ## 4. 混合搜索架构 (Hybrid Search)
 
@@ -269,13 +280,27 @@ Admin 后台采用 **Server Actions** 处理长耗时任务（如批量 AI 简�
 
 ## 6. 权限验证 (Authentication)
 
-- **策略**: Client-Side Verification (客户端后置验证)
-- **机制**:
-  - **静态优先**: 服务端不读取 Cookie,确保所有页面可生成静态缓存
-  - **静默升级**: 页面加载后,客户端通过 `/api/auth/status` 异步验证
-  - **权限赋予**: 验证通过后,前端动态解锁管理功能
+- **权限赋予**: 验证通过后,前端动态解锁管理功能
 
-### 6.1 SSR 性能与静态优化 (SSR Performance & Static Optimization)
+### 6.1 管理员异步鉴权机制 (Admin Async Authentication)
+
+> [!IMPORTANT]
+> **开发必读：管理员权限校验**
+>
+> 本项目的所有管理员功能（如 `/admin/briefing`, `/admin/dashboard`）必须严格遵循以下鉴权流程：
+>
+> 1. **异步校验端点**: `/api/auth/check`
+> 2. **工作原理**:
+>    - 该 API 会对比 Cookie 中的 `site_token` 与环境变量 `ACCESS_TOKEN`。
+>    - 核心逻辑位于: `src/shared/infrastructure/auth.ts` (如有) 或直接在路由处理程序中判断。
+> 3. **前端实现模式**:
+>    - 严禁在 SSR 渲染阶段阻塞式判定权限（会导致静态缓存失效）。
+>    - 必须在客户端组件的 `useEffect` 中异步调用 `/api/auth/check`。
+>    - 在校验完成前显示 `Loading` 状态，校验失败则重定向或显示 `403`。
+>
+> 这样设计的目的是为了让页面保持 **100% 静态化 (ISR Friendly)**，同时通过客户端“补水”来解锁管理条。
+
+### 6.2 SSR 性能与静态优化 (SSR Performance & Static Optimization)
 
 为了保证首页极速加载，项目遵循 **"Layout 静态化"** 原则：
 
