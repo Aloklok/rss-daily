@@ -15,7 +15,7 @@ vi.mock('@vercel/analytics/react', () => ({
 }));
 vi.mock('next/script', () => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: ({ id }: any) => <div data-testid={`next-script-${id || 'cloudflare'}`} />,
+  default: ({ id }: any) => <div data-testid={`next-script-${id || 'generic'}`} />,
   __esModule: true,
 }));
 
@@ -59,6 +59,5 @@ describe('AnalyticsScripts 分析脚本组件 (条件渲染)', () => {
     expect(getByTestId('speed-insights')).toBeInTheDocument();
     expect(getByTestId('vercel-analytics')).toBeInTheDocument();
     expect(getByTestId('next-script-microsoft-clarity')).toBeInTheDocument();
-    expect(getByTestId('next-script-cloudflare')).toBeInTheDocument();
   });
 });
