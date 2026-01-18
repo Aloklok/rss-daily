@@ -13,7 +13,8 @@ function logBotHit(
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!supabaseUrl || !supabaseKey) return;
+  if (!supabaseUrl || !supabaseKey || process.env.NODE_ENV !== 'production' || process.env.CI)
+    return;
 
   // Fire-and-forget logging to Supabase
   fetch(`${supabaseUrl}/rest/v1/bot_hits`, {
@@ -34,7 +35,7 @@ function logBotHit(
   }).catch((err) => console.error('[LOG-ERROR] Failed to persist bot hit:', err));
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const url = new URL(request.url);
   // Extract Geo Info (Vercel specific header, as request.geo is deprecated in Next 15+)
   const country = request.headers.get('x-vercel-ip-country') || '';
@@ -171,5 +172,3 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: ['/((?!api/|_vercel/|sitemap.xml|robots.txt|.+\\..+).*)'],
 };
-
-export default middleware;

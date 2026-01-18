@@ -42,16 +42,30 @@ export function getFreshRssClient(): FreshRssClient {
       const url = new URL(`${apiUrl}/greader.php/reader/api/0${path}`);
       Object.entries(params).forEach(([key, value]) => url.searchParams.append(key, value));
 
-      const response = await fetch(url.toString(), { ...options, headers });
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`FreshRSS API Error: ${response.status} ${errorText}`);
+      const fetchTimeout = process.env.CI ? 3000 : 10000;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), fetchTimeout);
+
+      try {
+        const response = await fetch(url.toString(), {
+          ...options,
+          headers,
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`FreshRSS API Error: ${response.status} ${errorText}`);
+        }
+        if (response.headers.get('Content-Type')?.includes('application/json')) {
+          return response.json();
+        }
+        // @ts-expect-error -- return type mismatch with stream processing
+        return response.text();
+      } catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
       }
-      if (response.headers.get('Content-Type')?.includes('application/json')) {
-        return response.json();
-      }
-      // @ts-expect-error -- return type mismatch with stream processing
-      return response.text();
     };
 
     freshRssClient = {

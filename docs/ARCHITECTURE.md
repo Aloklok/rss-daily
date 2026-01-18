@@ -85,9 +85,9 @@ src/
 2.  **FreshRSS**: 提供文章的元数据 (Read/Starred Status, Tags)。
 3.  **融合逻辑**: `Article` 对象的 `tags` 数组是融合模型的集中体现，混合了多种"标签类"信息，确保前端组件（如卡片、模态框）可以统一处理。
 
-## 4. 边缘代理与安全防御 (`middleware.ts`)
+## 4. 边缘代理与安全防御 (`proxy.ts`)
 
-本项目废弃了传统的 API API 鉴权模式，转而采用 Next.js Middleware (`src/middleware.ts`) 在边缘侧处理请求过滤、鉴权与审计。
+本项目废弃了传统的 API API 鉴权模式，转而采用 Next.js Middleware/Proxy (`src/proxy.ts`) 在边缘侧处理请求过滤、鉴权与审计。
 
 - **安全拦截规则**:
   1.  **核心路径豁免**: 强制放行 `robots.txt` 和 `sitemap.xml`，符合 SEO 标准。

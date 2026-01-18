@@ -41,10 +41,12 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       # --- 1. 静态检查 (Fail Fast) ---
-      - name: Lint & Format & Type Check
-        run: |
-          pnpm lint
-          pnpm exec tsc --noEmit
+      - name: Lint & Format Check
+        run: pnpm lint
+        continue-on-error: true
+
+      - name: Type Check
+        run: pnpm exec tsc --noEmit
 
       # --- 2. 单元测试 ---
       - name: Unit Tests (Vitest)

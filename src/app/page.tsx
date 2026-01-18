@@ -13,20 +13,16 @@ import { getCurrentTimeSlot, getTodayInShanghai } from '@/domains/reading/utils/
 export const revalidate = 604800; // 7 days
 
 async function getLatestBriefingData() {
-  const dates = await fetchAvailableDates();
-
-  // [Fix] Always use "Today" as initialDate to match Client logic and prevent flickering.
-  // This ensures the homepage always renders "Today" (even if empty) instead of falling back to "Yesterday".
   const initialDate = getTodayInShanghai();
 
-  const groupedArticles = await fetchBriefingData(initialDate);
+  const [dates, groupedArticles, headerImageUrl] = await Promise.all([
+    fetchAvailableDates().catch(() => []),
+    fetchBriefingData(initialDate).catch(() => ({})),
+    resolveBriefingImage(initialDate).catch(() => null),
+  ]);
+
   const articles = Object.values(groupedArticles).flat();
-  const headerImageUrl = await resolveBriefingImage(initialDate);
 
-  // [Scheme C] Client-side state hydration only
-  // States will be fetched asynchronously by useArticleStateHydration
-
-  // Return dates as well so we can build the archive schema
   return { initialDate, articles, headerImageUrl, dates };
 }
 
@@ -42,9 +38,12 @@ export async function generateMetadata({
   // 1. Handle "Date" Filter explicitly (Match /date/[date] logic)
   if (filterType === 'date' && filterValue) {
     // Fetch specific date data
-    const grouped = await fetchBriefingData(filterValue);
+    // Fetch specific date data in parallel
+    const [grouped, topImage] = await Promise.all([
+      fetchBriefingData(filterValue).catch(() => ({})),
+      resolveBriefingImage(filterValue).catch(() => null),
+    ]);
     const dateArticles = Object.values(grouped).flat();
-    const topImage = await resolveBriefingImage(filterValue);
 
     // If no articles for the date, return a generic fallback for that date
     if (dateArticles.length === 0) {
@@ -192,36 +191,39 @@ export default async function Home(props: {
   const filterType = typeof params?.filter === 'string' ? params.filter : undefined;
   const filterValue = typeof params?.value === 'string' ? params.value : undefined;
 
-  let initialData: any = {};
+  // SSR Tags Prefetching & Initial Data Fetching in parallel where possible
+  const { fetchTagsServer } = await import('@/domains/reading/services');
+  const [initialDataResult, tagsResult] = await Promise.all([
+    (async () => {
+      if (filterType && filterValue) {
+        // Category / Tag / Search View
+        const result = await fetchFilteredArticlesSSR(filterValue, 20, true);
+        return {
+          initialArticles: result.articles,
+          initialContinuation: result.continuation,
+        };
+      } else {
+        // Default Briefing View
+        const briefing = await getLatestBriefingData();
+        return {
+          initialDate: briefing.initialDate,
+          initialHeaderImageUrl: briefing.headerImageUrl,
+          initialArticles: briefing.articles,
+          initialContinuation: null,
+        };
+      }
+    })(),
+    fetchTagsServer().catch(() => ({ tags: [] })),
+  ]);
+
+  const initialData = initialDataResult;
   let initialFilter: Filter | null = null;
+  const tags = (tagsResult as any).tags;
 
-  if (filterType && filterValue) {
-    // Category / Tag / Search View
-    const result = await fetchFilteredArticlesSSR(filterValue, 20, true);
-    const articles = result.articles;
-    const continuation = result.continuation;
-
-    // [Scheme C] Client-side state hydration only
-    // States will be fetched asynchronously by useArticleStateHydration
-
-    initialData = {
-      initialArticles: articles,
-      initialContinuation: continuation,
-    };
+  if (initialData.initialDate) {
+    initialFilter = { type: 'date', value: initialData.initialDate };
+  } else if (filterType && filterValue) {
     initialFilter = { type: filterType as any, value: filterValue };
-  } else {
-    // Default Briefing View
-    const { initialDate, articles, headerImageUrl } = await getLatestBriefingData();
-    initialData = {
-      initialDate,
-      initialHeaderImageUrl: headerImageUrl,
-      initialArticles: articles,
-      initialContinuation: null,
-    };
-    // If initialDate exists, activeFilter should be 'date'
-    if (initialDate) {
-      initialFilter = { type: 'date', value: initialDate };
-    }
   }
 
   const renderSchemas = [];
@@ -251,14 +253,8 @@ export default async function Home(props: {
   }
 
   // Calculate initialTimeSlot for Homepage (Today) to prevent filtering flash
-  // We only do this for the default view (no filterParam) which represents "Today"
   const isDefaultView = !filterType && !filterValue;
   const initialTimeSlot = isDefaultView ? getCurrentTimeSlot() : null;
-
-  // SSR Tags Prefetching
-  // Fetch tags for Client Store hydration
-  const { fetchTagsServer } = await import('@/domains/reading/services');
-  const { tags } = await fetchTagsServer();
 
   return (
     <>
@@ -270,7 +266,7 @@ export default async function Home(props: {
       )}
       <MainContentClient
         initialDate={initialData.initialDate}
-        initialHeaderImageUrl={initialData.initialHeaderImageUrl}
+        initialHeaderImageUrl={initialData.initialHeaderImageUrl || undefined}
         initialArticles={initialData.initialArticles}
         // New Props
         initialActiveFilter={initialFilter}

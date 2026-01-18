@@ -40,13 +40,6 @@ export default function AnalyticsScripts() {
           `,
         }}
       />
-
-      {/* Cloudflare Web Analytics */}
-      <Script
-        strategy="afterInteractive"
-        src="https://static.cloudflareinsights.com/beacon.min.js"
-        data-cf-beacon='{"token": "134bcf9865674fdd9600e9ce14992b59"}'
-      />
     </>
   );
 }
