@@ -6,6 +6,8 @@ import BriefingClient from '@/domains/reading/components/briefing/BriefingClient
 import { getTodayInShanghai } from '@/domains/reading/utils/date';
 import { resolveBriefingImage } from '@/shared/utils/imageUtils';
 import { toShortId } from '@/shared/utils/idHelpers';
+import { logServerBotHit } from '@/domains/security/services/bot-logger';
+import { headers } from 'next/headers';
 
 // UNIFIED ISR STRATEGY:
 // All pages (History & Today) are cached for 7 days (604800s).
@@ -224,6 +226,21 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
 
   // Flatten articles for BriefingClient
   const allArticles = Object.values(groupedArticles).flat();
+
+  // Audit: Log explicit debug info if data is missing (which might cause soft 404s)
+  if (allArticles.length === 0) {
+    const headersList = await headers();
+    const userAgent = headersList.get('user-agent') || '';
+    if (userAgent) {
+      // Log as 404 in our audit system even if page renders 200 OK (Soft 404)
+      // This helps identifying why crawlers might see empty pages
+      await logServerBotHit(`/date/${date}`, userAgent, headersList, 404, {
+        reason: 'Zero articles found for date',
+        date: date,
+        is_briefing_empty: true,
+      });
+    }
+  }
 
   // Prefetch header image
   const headerImageUrl = await resolveBriefingImage(date);

@@ -1,4 +1,6 @@
 import { fetchArticleById, fetchArticleContent } from '@/domains/reading/services';
+import { logServerBotHit } from '@/domains/security/services/bot-logger';
+import { headers } from 'next/headers';
 import { Metadata } from 'next';
 import ArticleDetailClient from '@/domains/reading/components/article/ArticleDetailClient';
 import { stripTags } from '@/domains/reading/utils/content';
@@ -47,7 +49,19 @@ export default async function ArticlePage({ params }: { params: Promise<{ id: st
   // 1. Fetch metadata (Supabase)
   const article = await fetchArticleById(id);
   // Soft 404: Return 200 OK with NotFound UI to avoid SEO penalties/Bing errors
-  if (!article) return <NotFound />;
+  if (!article) {
+    // Audit: Log explicit debug info for bot 404s to Supabase
+    const headersList = await headers();
+    const userAgent = headersList.get('user-agent') || '';
+    if (userAgent) {
+      await logServerBotHit(`/article/${id}`, userAgent, headersList, 404, {
+        reason: 'ArticleID not found in DB & FreshRSS Fallback failed',
+        attempted_id: id,
+        is_fallback_attempted: true,
+      });
+    }
+    return <NotFound />;
+  }
 
   // 2. Fetch full content (FreshRSS) - Server Side
   // This content is cached by ISR.

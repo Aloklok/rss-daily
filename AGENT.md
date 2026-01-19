@@ -14,6 +14,7 @@
 | **写单元/E2E 测试**    | [docs/TESTING.md](./docs/TESTING.md)                                                                                              |
 | **性能优化**           | [docs/TODO.md](./docs/TODO.md)                                                                                                    |
 | **SEO 优化**           | [docs/SEO.md](./docs/SEO.md)                                                                                                      |
+| **安全防御与审计**     | [src/domains/security/SECURITY.md](./src/domains/security/SECURITY.md)                                                            |
 
 ## ⚠️ 重要原则
 

@@ -19,6 +19,7 @@ export async function logServerBotHit(
   userAgent: string,
   headers: Headers,
   status: number,
+  meta?: Record<string, unknown>,
 ) {
   if (!userAgent) return;
 
@@ -63,6 +64,7 @@ export async function logServerBotHit(
       path: path,
       user_agent: userAgent,
       status: status,
+      meta: meta || null,
     });
   } catch (err) {
     console.error('[BotLogger] Failed to log hit:', err);
