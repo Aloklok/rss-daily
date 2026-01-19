@@ -1,50 +1,92 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { DashboardStats } from '@/shared/types/dashboard';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { SEARCH_ENGINE_KEYWORDS } from '@/domains/security/constants';
 
 export default function DashboardPage(): React.JSX.Element {
   const router = useRouter();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [_statsError, setStatsError] = useState<string | null>(null);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [aiError, setAiError] = useState<boolean>(false);
   const [loadingStats, setLoadingStats] = useState(true);
   const [loadingAI, setLoadingAI] = useState(false);
+  const [aiGeneratedAt, setAiGeneratedAt] = useState<string | null>(null);
+  const aiAbortControllerRef = useRef<AbortController | null>(null);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       setLoadingStats(true);
+      setStatsError(null);
       const res = await fetch('/api/admin/stats');
       if (res.ok) {
         const data = await res.json();
         setStats(data);
         // Trigger AI fetch after stats are loaded
         fetchAiSummary();
+      } else {
+        setStatsError('数据加载失败，请重试');
       }
     } catch (error) {
       console.error('Failed to fetch stats:', error);
+      setStatsError('网络错误，请检查连接');
     } finally {
       setLoadingStats(false);
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const fetchAiSummary = async () => {
+  const fetchAiSummary = useCallback(async () => {
+    // Cancel previous AI request if exists
+    if (aiAbortControllerRef.current) {
+      aiAbortControllerRef.current.abort();
+    }
+    aiAbortControllerRef.current = new AbortController();
+
     try {
       setLoadingAI(true);
-      const res = await fetch('/api/admin/stats/ai');
+      setAiError(false);
+      const res = await fetch('/api/admin/stats/ai', {
+        signal: aiAbortControllerRef.current.signal,
+      });
       if (res.ok) {
         const data = await res.json();
         setAiSummary(data.aiSummary);
+        setAiGeneratedAt(
+          new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+        );
+      } else {
+        setAiError(true);
       }
     } catch (error) {
-      console.error('Failed to fetch AI summary:', error);
+      if ((error as Error).name !== 'AbortError') {
+        console.error('Failed to fetch AI summary:', error);
+        setAiError(true);
+      }
     } finally {
       setLoadingAI(false);
     }
-  };
+  }, []);
+
+  // Bot 分类逻辑 - useMemo 必须在条件返回之前（React Hooks 规则）
+  const { searchEngineBots, otherBots } = useMemo(() => {
+    if (!stats?.security?.topBots) {
+      return { searchEngineBots: [], otherBots: [] };
+    }
+    const seKeywordsLower = SEARCH_ENGINE_KEYWORDS.map((k) => k.toLowerCase());
+    const searchEngine = stats.security.topBots.filter((b) =>
+      seKeywordsLower.some((keyword) => b.name.toLowerCase().includes(keyword)),
+    );
+    const other = stats.security.topBots.filter(
+      (b) => !seKeywordsLower.some((keyword) => b.name.toLowerCase().includes(keyword)),
+    );
+    return { searchEngineBots: searchEngine, otherBots: other };
+  }, [stats?.security?.topBots]);
 
   useEffect(() => {
     fetch('/api/auth/check')
@@ -59,7 +101,7 @@ export default function DashboardPage(): React.JSX.Element {
         }
       })
       .catch(() => setIsAdmin(false));
-  }, [router]);
+  }, [router, fetchStats]);
 
   if (isAdmin === null || (isAdmin && loadingStats)) {
     return (
@@ -84,33 +126,6 @@ export default function DashboardPage(): React.JSX.Element {
       })
     : '刚刚';
 
-  // Bot 分类逻辑
-  const searchEngineKeywords = [
-    'Google',
-    'Baidu',
-    'Bing',
-    'Sogou',
-    'Yandex',
-    'DuckDuckGo',
-    'Yahoo',
-    'ByteDance',
-    'Spider',
-    'Exabot',
-    'facebook',
-  ];
-  const searchEngineBots = stats.security.topBots.filter(
-    (b) =>
-      searchEngineKeywords.some((keyword) =>
-        b.name.toLowerCase().includes(keyword.toLowerCase()),
-      ) || b.name === 'Search-Engine',
-  );
-  const otherBots = stats.security.topBots.filter(
-    (b) =>
-      !searchEngineKeywords.some((keyword) =>
-        b.name.toLowerCase().includes(keyword.toLowerCase()),
-      ) && b.name !== 'Search-Engine',
-  );
-
   return (
     <div className="-mx-2 min-h-screen w-full max-w-none bg-[#fdfcf8] p-4 pb-20 font-sans text-gray-900 sm:p-2 md:-mx-8 lg:-mx-12">
       {/* Header */}
@@ -125,11 +140,16 @@ export default function DashboardPage(): React.JSX.Element {
         </div>
         <button
           onClick={() => {
-            fetchStats();
+            if (!loadingStats) fetchStats();
           }}
-          className="rounded-xl bg-white px-6 py-2.5 text-xs font-bold text-stone-600 shadow-sm ring-1 ring-stone-200 transition-all hover:bg-stone-50 hover:ring-stone-300 active:scale-95"
+          disabled={loadingStats}
+          className={`rounded-xl bg-white px-6 py-2.5 text-xs font-bold shadow-sm ring-1 ring-stone-200 transition-all active:scale-95 ${
+            loadingStats
+              ? 'cursor-not-allowed text-stone-300'
+              : 'text-stone-600 hover:bg-stone-50 hover:ring-stone-300'
+          }`}
         >
-          刷新看板数据
+          {loadingStats ? '加载中...' : '刷新看板数据'}
         </button>
       </div>
 
@@ -233,9 +253,14 @@ export default function DashboardPage(): React.JSX.Element {
 
         {/* --- ROW 2: BOT TRAFFIC HUB --- */}
         <section className="mb-10">
-          <div className="mb-6 flex items-center gap-2">
-            <div className="h-5 w-1.5 rounded-full bg-blue-600"></div>
-            <h2 className="text-xl font-black tracking-tight text-stone-900">流量与收录审计</h2>
+          <div className="mb-6 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="h-5 w-1.5 rounded-full bg-blue-600"></div>
+              <h2 className="text-xl font-black tracking-tight text-stone-900">流量与收录审计</h2>
+            </div>
+            <span className="rounded-full border border-stone-100 bg-stone-50 px-3 py-1 text-[9px] font-bold text-stone-400">
+              统计范围：全量历史数据
+            </span>
           </div>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -273,14 +298,14 @@ export default function DashboardPage(): React.JSX.Element {
               </div>
             </div>
 
-            {/* Search Engine Exception Logs (404/403) */}
+            {/* Search Engine Exception Logs (4xx/5xx) */}
             <div className="rounded-[32px] bg-white bg-gradient-to-br from-white to-orange-50/20 p-8 shadow-sm ring-1 ring-stone-100">
               <div className="mb-6 flex items-center justify-between">
                 <h3 className="text-[11px] font-black tracking-widest text-orange-800 uppercase">
-                  爬虫异常日志 (404/403)
+                  爬虫异常日志 (4xx/5xx)
                 </h3>
                 <span className="rounded border border-orange-100 bg-orange-50 px-2 py-0.5 text-[9px] font-bold text-orange-600">
-                  死链监控
+                  死链/崩溃监控
                 </span>
               </div>
               <div className="max-h-[280px] space-y-3 overflow-y-auto">
@@ -319,7 +344,8 @@ export default function DashboardPage(): React.JSX.Element {
                 )}
               </div>
               <p className="mt-4 border-t border-orange-100/50 pt-3 text-[9px] font-medium text-orange-400/60 italic">
-                ※ 此区域展示搜索引擎爬虫遇到的 404/403 错误，可用于检测死链和内容缺失。
+                ※ 此区域展示搜索引擎爬虫遇到的 404/403/5xx
+                错误，可用于检测死链、内容缺失和服务崩溃。
               </p>
             </div>
           </div>
@@ -414,7 +440,7 @@ export default function DashboardPage(): React.JSX.Element {
                 </div>
                 <div className="mt-6 border-t border-stone-50 pt-6">
                   <p className="mb-2 text-[9px] font-black tracking-[0.2em] text-stone-500 uppercase">
-                    今日死链审计 (404)
+                    今日异常审计 (4xx/5xx)
                   </p>
                   <div className="flex items-baseline justify-center gap-2">
                     <span className="text-2xl font-black tracking-tighter text-stone-700 tabular-nums">
@@ -462,7 +488,7 @@ export default function DashboardPage(): React.JSX.Element {
               <div className="rounded-[32px] bg-white bg-gradient-to-br from-white to-red-50/10 p-8 shadow-sm ring-1 ring-stone-100">
                 <div className="mb-6 flex items-center justify-between">
                   <h3 className="text-[11px] font-black tracking-widest text-red-800 uppercase">
-                    异常流量与安全审计 (403/404)
+                    异常流量与安全审计 (4xx/5xx)
                   </h3>
                   <span className="rounded-md bg-red-500 px-2 py-0.5 text-[9px] font-black text-white shadow-sm shadow-red-500/30">
                     已审计
@@ -495,7 +521,8 @@ export default function DashboardPage(): React.JSX.Element {
                   )}
                 </div>
                 <p className="mt-6 border-t border-red-100/50 pt-3 text-[9px] font-medium text-red-400/60 italic">
-                  ※ 此区域展示非搜索引擎的异常流量，包括被 403 拦截的恶意爬虫和 AI 训练机器人。
+                  ※ 此区域展示非搜索引擎的异常流量，包括被拦截的恶意爬虫、AI
+                  训练机器人和服务器错误。
                 </p>
               </div>
             </div>
@@ -506,7 +533,9 @@ export default function DashboardPage(): React.JSX.Element {
         <div className="mt-6 mb-20 min-h-[160px] overflow-hidden rounded-[24px] bg-stone-50 p-1 ring-1 ring-stone-200/50">
           <div className="flex h-full items-start gap-4 rounded-[20px] bg-white p-6 shadow-sm">
             <div
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-orange-600 text-lg text-white shadow-lg shadow-orange-500/20 ${loadingAI ? 'animate-pulse' : ''}`}
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] text-lg text-white shadow-lg ${
+                aiError ? 'bg-red-500 shadow-red-500/20' : 'bg-orange-600 shadow-orange-500/20'
+              } ${loadingAI ? 'animate-pulse' : ''}`}
             >
               AI
             </div>
@@ -515,10 +544,26 @@ export default function DashboardPage(): React.JSX.Element {
                 <div className="text-[10px] font-black tracking-[0.3em] text-stone-400 uppercase select-none">
                   智能总监运营报告
                 </div>
+                {aiGeneratedAt && (
+                  <span className="text-[9px] font-medium text-stone-300">
+                    生成于 {aiGeneratedAt}
+                  </span>
+                )}
                 <div className="h-px flex-1 bg-stone-100"></div>
               </div>
               <div className="min-h-[80px] text-sm leading-relaxed font-bold text-stone-700">
-                {aiSummary ? (
+                {aiError ? (
+                  <div className="flex flex-col items-center justify-center py-4 text-center">
+                    <p className="mb-3 text-[11px] font-bold text-red-500">AI 分析加载失败</p>
+                    <button
+                      onClick={() => fetchAiSummary()}
+                      disabled={loadingAI}
+                      className="rounded-lg bg-orange-600 px-4 py-2 text-[10px] font-bold text-white shadow-sm transition-all hover:bg-orange-700 active:scale-95 disabled:opacity-50"
+                    >
+                      {loadingAI ? '重试中...' : '点击重试'}
+                    </button>
+                  </div>
+                ) : aiSummary ? (
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{aiSummary}</ReactMarkdown>
                 ) : (
                   <div className="animate-pulse space-y-3 py-2">

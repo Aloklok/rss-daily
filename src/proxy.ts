@@ -1,4 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import {
+  UTILITY_BOTS_PATTERN,
+  SEARCH_ENGINE_BOTS_PATTERN,
+  SEO_SCRAPER_BOTS_PATTERN,
+  AI_ARCHIVE_BOTS_PATTERN,
+  extractSearchEngineName,
+} from '@/domains/security/constants';
 
 /**
  * Persistent Logging Utility (Non-blocking)
@@ -68,9 +75,7 @@ export function proxy(request: NextRequest) {
   }
 
   // 0.2 Utility Bots (Silent Bypass: No security checks, no logging)
-  const UTILITY_BOTS =
-    /SentryUptimeBot|vercel-favicon|vercel-screenshot|Uptime-Kuma|UptimeRobot|StatusCake/i;
-  if (UTILITY_BOTS.test(userAgent)) {
+  if (UTILITY_BOTS_PATTERN.test(userAgent)) {
     return NextResponse.next();
   }
 
@@ -88,23 +93,14 @@ export function proxy(request: NextRequest) {
   }
 
   // --- Security Rule 2: Whitelist Search Engines (Baidu, Google, Bing, etc) ---
-  const isAllowedBot =
-    /Baiduspider|Googlebot|Bingbot|Slurp|Yisou|YandexBot|DuckDuckGo|Sogou|Exabot|facebot|facebookexternalhit/i.test(
-      userAgent,
-    );
-
-  if (isAllowedBot) {
-    // Extract specific bot name for clearer logging
-    let specificBotName = 'Search-Engine';
-    if (/Googlebot/i.test(userAgent)) specificBotName = 'Googlebot';
-    else if (/Baiduspider/i.test(userAgent)) specificBotName = 'Baiduspider';
-    else if (/Bingbot/i.test(userAgent)) specificBotName = 'Bingbot';
-    else if (/YandexBot/i.test(userAgent)) specificBotName = 'YandexBot';
-    else if (/DuckDuckGo/i.test(userAgent)) specificBotName = 'DuckDuckGo';
-    else if (/Sogou/i.test(userAgent)) specificBotName = 'Sogou';
-
+  if (SEARCH_ENGINE_BOTS_PATTERN.test(userAgent)) {
+    const specificBotName = extractSearchEngineName(userAgent);
     logBotHit(specificBotName, path, userAgent, 200, country);
-    return NextResponse.next();
+
+    // Pass x-current-path header so not-found.tsx can log the correct path for 404s
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('x-current-path', path);
+    return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
   // --- Security Rule 3: Suspicious Requests (Empty/Short UA) ---
@@ -114,19 +110,14 @@ export function proxy(request: NextRequest) {
   }
 
   // --- Security Rule 4: SEO Scrapers & Aggressive Bots (Cloudflare Style) ---
-  const HIGH_FREQ_SCAMPERS =
-    /AhrefsBot|SemrushBot|MJ12bot|Dotbot|DataForSeoBot|Barkrowler|ZoominfoBot|BLEXBot|SeekportBot/i;
-  if (HIGH_FREQ_SCAMPERS.test(userAgent)) {
+  if (SEO_SCRAPER_BOTS_PATTERN.test(userAgent)) {
     console.warn(`[BOT-BLOCKED] Scraper: ${userAgent} | Path: ${path}`);
     logBotHit('SEO-Scraper', path, userAgent, 403, country);
     return new Response('Access Denied: Automated scraping is not permitted.', { status: 403 });
   }
 
   // --- Security Rule 5: Specific AI & Archive Bots ---
-  const AI_AND_ARCHIVE_BOTS =
-    /archive\.org_bot|DuckAssistBot|meta-externalfetcher|MistralAI-User|OAI-SearchBot|Perplexity-User|PerplexityBot|ProRataInc|GPTBot|ChatGPT-User|CCBot|anthropic-ai|Claude-Web|Google-Extended/i;
-
-  if (AI_AND_ARCHIVE_BOTS.test(userAgent)) {
+  if (AI_ARCHIVE_BOTS_PATTERN.test(userAgent)) {
     console.warn(`[BOT-BLOCKED] AI/Archive: ${userAgent} | Path: ${path}`);
     logBotHit('AI-Bot', path, userAgent, 403, country);
     return new Response('Access Denied: AI training/archiving is restricted.', { status: 403 });
