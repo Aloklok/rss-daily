@@ -59,11 +59,14 @@ export async function logServerBotHit(
   }
 
   try {
+    const country = headers.get('x-vercel-ip-country') || '';
+
     await supabase.from('bot_hits').insert({
       bot_name: botName, // No longer appending -404, relying on status column
       path: path,
       user_agent: userAgent,
       status: status,
+      ip_country: country || null,
       meta: meta || null,
     });
   } catch (err) {

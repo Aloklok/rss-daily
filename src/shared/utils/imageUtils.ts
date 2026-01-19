@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const BUCKET_NAME = 'public-assets';
 const FOLDER_NAME = 'daily-covers';
-const RETENTION_DAYS = 365;
+// const RETENTION_DAYS = 365;
 
 // Singleton Admin Client (Lazy Init)
 let supabaseAdmin: ReturnType<typeof createClient> | null = null;
@@ -50,34 +50,39 @@ async function ensureBucketExists(client: ReturnType<typeof createClient>) {
 }
 
 // 2. Retention Policy: Clean old images
+// 2. Retention Policy: Clean old images (Optimized with Supabase Sorting)
+// DISABLED: User requested to defer this until storage actually fills up (Quota is ample).
+/*
 async function cleanUpOldImages(client: ReturnType<typeof createClient>) {
   try {
-    // List files (Supabase defaults to 100 limit, typically enough for retention check)
+    // Optimization: Use server-side sorting to reliably get the oldest files first
+    // This leverages valid sorting support in Supabase Storage API
     const { data: files } = await client.storage
       .from(BUCKET_NAME)
-      .list(FOLDER_NAME, { limit: 100, sortBy: { column: 'created_at', order: 'asc' } });
+      .list(FOLDER_NAME, {
+        limit: 20, // Efficiently check just a small batch of oldest files
+        sortBy: { column: 'created_at', order: 'asc' }
+      });
 
     if (!files || files.length === 0) return;
 
-    // Filter files older than N days (OR simply by count to ensure we don't go over limit)
-    // Strategy: Simple Count-Based Retention (Keep last ~35 files to be safe)
-    // Why? Clock skew or file modification times can be tricky. Count is robust.
-    const MAX_FILES = RETENTION_DAYS + 5;
+    const thresholdDate = new Date();
+    thresholdDate.setDate(thresholdDate.getDate() - RETENTION_DAYS);
 
-    if (files.length > MAX_FILES) {
-      const filesToDelete = files
-        .slice(0, files.length - MAX_FILES)
-        .map((f) => `${FOLDER_NAME}/${f.name}`);
+    // Filter for truly expired images (older than retention period)
+    const filesToDelete = files
+      .filter((f) => f.created_at && new Date(f.created_at) < thresholdDate)
+      .map((f) => `${FOLDER_NAME}/${f.name}`);
 
-      if (filesToDelete.length > 0) {
-        console.log(`[ImageGC] Deleting ${filesToDelete.length} old images...`);
-        await client.storage.from(BUCKET_NAME).remove(filesToDelete);
-      }
+    if (filesToDelete.length > 0) {
+      console.log(`[ImageGC] Deleting ${filesToDelete.length} expired images (Older than ${RETENTION_DAYS} days)...`);
+      await client.storage.from(BUCKET_NAME).remove(filesToDelete);
     }
   } catch (e) {
     console.warn('[ImageGC] Cleanup failed:', e);
   }
 }
+*/
 
 import {
   BRIEFING_IMAGE_WIDTH,
@@ -152,8 +157,8 @@ const resolveBriefingImageRequest = async (date: string): Promise<string> => {
     // Cache the newly created image in memory
     verifiedDates.add(date);
 
-    // Trigger cleanup async
-    cleanUpOldImages(admin);
+    // Trigger cleanup async - DISABLED by User Request (Quota is fine)
+    // cleanUpOldImages(admin);
 
     // Return new URL
     const {

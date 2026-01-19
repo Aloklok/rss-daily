@@ -13,7 +13,7 @@ export default defineConfig({
     exclude: [
       '**/node_modules/**',
       '**/dist/**',
-      'e2e/**',
+      'tests/e2e/**',
       'src/lib/server/__tests__/**',
       'src/shared/utils/__tests__/serverSanitize.test.ts',
     ],
@@ -30,9 +30,11 @@ export default defineConfig({
       instances: [{ browser: 'chromium' }],
     },
     setupFiles: ['./vitest.setup.ts'],
+    reporters: ['default', ['html', { outputFile: 'reports/vitest/index.html' }]],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
+      reportsDirectory: 'reports/coverage',
       include: [
         'utils/**/*.ts',
         'lib/**/*.ts',

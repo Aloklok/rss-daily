@@ -8,8 +8,18 @@ export default async function NotFound() {
   // Try custom header from proxy first, then Vercel header, finally fallback
   const path = headersList.get('x-current-path') || headersList.get('x-invoke-path') || '/unknown';
 
+  const referer = headersList.get('referer');
+  const meta = {
+    referer,
+    headers: {
+      'accept-language': headersList.get('accept-language'),
+      'sec-ch-ua': headersList.get('sec-ch-ua'),
+    },
+    source: 'not-found-page',
+  };
+
   // Fire and forget logging for 404s
-  logServerBotHit(path, userAgent, headersList, 404).catch(console.error);
+  logServerBotHit(path, userAgent, headersList, 404, meta).catch(console.error);
 
   return (
     <div className="dark:bg-midnight-bg flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4 text-center">

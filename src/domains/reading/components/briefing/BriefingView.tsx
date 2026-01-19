@@ -219,7 +219,7 @@ const Briefing: React.FC<BriefingProps> = ({
         // Fallback 到 Store (用于动态加载的文章)
         return storeArticle;
       })
-      .filter(Boolean) as Article[];
+      .filter(Boolean);
     const groupedArticles = articlesForReport.reduce((acc, article) => {
       let group = article.briefingSection || BRIEFING_SECTIONS.REGULAR;
 

@@ -10,12 +10,14 @@ import {
 /**
  * Persistent Logging Utility (Non-blocking)
  */
+// Enhanced Logger with Meta Support
 function logBotHit(
   botName: string,
   path: string,
   userAgent: string,
   status: number,
   country: string = '',
+  meta?: Record<string, unknown>,
 ) {
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -38,6 +40,7 @@ function logBotHit(
       user_agent: userAgent,
       status: status,
       ip_country: country || null,
+      meta: meta || null,
     }),
   }).catch((err) => console.error('[LOG-ERROR] Failed to persist bot hit:', err));
 }
@@ -46,6 +49,7 @@ export function proxy(request: NextRequest) {
   const url = new URL(request.url);
   // Extract Geo Info (Vercel specific header, as request.geo is deprecated in Next 15+)
   const country = request.headers.get('x-vercel-ip-country') || '';
+  const referer = request.headers.get('referer') || '';
 
   // 0. Redirect: Fix 404s for legacy/external links with long Google Reader IDs
   if (url.pathname.includes('tag:google.com')) {
@@ -88,14 +92,20 @@ export function proxy(request: NextRequest) {
 
   if (isMaliciousPath) {
     console.warn(`[SECURITY-BLOCKED] Malicious Path: ${path} | Agent: ${userAgent}`);
-    logBotHit('Malicious-Scanner', path, userAgent, 403, country);
+    logBotHit('Malicious-Scanner', path, userAgent, 403, country, {
+      referer,
+      malicious_pattern: 'wp/php/env/git',
+    });
     return new Response('Access Denied: Path is not permitted.', { status: 403 });
   }
 
   // --- Security Rule 2: Whitelist Search Engines (Baidu, Google, Bing, etc) ---
   if (SEARCH_ENGINE_BOTS_PATTERN.test(userAgent)) {
     const specificBotName = extractSearchEngineName(userAgent);
-    logBotHit(specificBotName, path, userAgent, 200, country);
+    logBotHit(specificBotName, path, userAgent, 200, country, {
+      referer,
+      search_engine_match: true,
+    });
 
     // Pass x-current-path header so not-found.tsx can log the correct path for 404s
     const requestHeaders = new Headers(request.headers);
@@ -112,14 +122,14 @@ export function proxy(request: NextRequest) {
   // --- Security Rule 4: SEO Scrapers & Aggressive Bots (Cloudflare Style) ---
   if (SEO_SCRAPER_BOTS_PATTERN.test(userAgent)) {
     console.warn(`[BOT-BLOCKED] Scraper: ${userAgent} | Path: ${path}`);
-    logBotHit('SEO-Scraper', path, userAgent, 403, country);
+    logBotHit('SEO-Scraper', path, userAgent, 403, country, { referer });
     return new Response('Access Denied: Automated scraping is not permitted.', { status: 403 });
   }
 
   // --- Security Rule 5: Specific AI & Archive Bots ---
   if (AI_ARCHIVE_BOTS_PATTERN.test(userAgent)) {
     console.warn(`[BOT-BLOCKED] AI/Archive: ${userAgent} | Path: ${path}`);
-    logBotHit('AI-Bot', path, userAgent, 403, country);
+    logBotHit('AI-Bot', path, userAgent, 403, country, { referer });
     return new Response('Access Denied: AI training/archiving is restricted.', { status: 403 });
   }
 

@@ -3,7 +3,7 @@ import { renderHook, act } from '@testing-library/react';
 import { useArticleActions } from '@/domains/interaction/hooks/useArticleActions';
 import { useArticleStore } from '@/domains/interaction/store/articleStore';
 import { STAR_TAG, READ_TAG } from '@/domains/interaction/constants';
-import { MOCK_ARTICLE } from '../../../../../e2e/mocks/data';
+import { MOCK_ARTICLE } from '../../../../../tests/e2e/mocks/data';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 

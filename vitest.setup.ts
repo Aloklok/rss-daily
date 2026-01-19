@@ -1,6 +1,6 @@
 import { beforeAll, afterAll, vi } from 'vitest';
 import { setupWorker } from 'msw/browser';
-import { handlers } from './e2e/mocks/handlers';
+import { handlers } from './tests/e2e/mocks/handlers';
 import '@testing-library/jest-dom';
 
 // 在浏览器环境中启动 MSW

@@ -1,7 +1,7 @@
 import { render, screen, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ArticleCard from '../BriefCard';
-import { MOCK_ARTICLE } from '../../../../../../e2e/mocks/data';
+import { MOCK_ARTICLE } from '../../../../../../tests/e2e/mocks/data';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import userEvent from '@testing-library/user-event';
 
