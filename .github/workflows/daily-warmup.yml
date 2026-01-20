@@ -56,32 +56,70 @@ jobs:
       - name: Warmup US Edge (Sitemap Strategy)
         run: |
           echo "🇺🇸 Fetching sitemap.xml..."
+          START_TIME=$(date +%s%3N)
           SITEMAP_URL="https://www.alok-rss.top/sitemap.xml"
 
-          # 1. 抓取并提取所有 URL (<loc>标签)
-          # 使用 grep 和 sed 提取 xml 中的链接，简单高效
+          # 1. 抓取并提取所有 URL
+          # 使用 grep 和 sed 提取 xml 中的链接
           URLS=$(curl -s $SITEMAP_URL | grep "<loc>" | sed 's/.*<loc>\(.*\)<\/loc>.*/\1/')
+          TOTAL=$(echo "$URLS" | wc -l | xargs)
 
-          COUNT=$(echo "$URLS" | wc -l | xargs)
-          echo "✅ Found $COUNT pages in sitemap."
+          echo "Found $TOTAL pages in sitemap."
 
-          # 2. 并行预热 (Shell 循环)
+          # 2. 并行预热 & 收集结果
+          # 为了能统计结果，我们需要将并行执行的输出重定向到一个临时文件
+          LOG_FILE="warmup_results.log"
+          > $LOG_FILE
+
           echo "$URLS" | while read url; do
-            # 跳过空行
             [ -z "$url" ] && continue
             
-            echo "🔥 Warming: $url"
-            # 发起请求，丢弃 body，只打印状态码
-            # -w "%{http_code}\n": 打印状态码
-            # -o /dev/null: 丢弃响应体
-            # -s: 静默模式
-            # &: 后台运行实现并发 (注意: GitHub Action 资源有限，这里的并发主要为了利用网络IO等待时间)
-            curl -s -o /dev/null -w "Status: %{http_code} -> $url\n" "$url" &
+            # 后台执行 curl
+            (
+              http_code=$(curl -s -o /dev/null -w "%{http_code}" "$url")
+              echo "{\"url\":\"$url\",\"status\":$http_code}" >> $LOG_FILE
+            ) &
             
-            # 简单的并发控制: 每次启动请求后短暂 sleep，避免瞬间几百个请求触发 WAF 429
+            # 简单的并发控制
             sleep 0.05
           done
 
-          # 等待所有后台任务完成
           wait
+
+          # 3. 生成统计报告
+          END_TIME=$(date +%s%3N)
+          DURATION=$((END_TIME - START_TIME))
+
+          SUCCESS_COUNT=$(grep -c '"status":200' $LOG_FILE || true)
+          FAILED_COUNT=$(grep -vc '"status":200' $LOG_FILE || true)
+
+          # 构造类似 Vercel API 的 JSON 输出
+          # 仅显示前 10 条结果
+          RESULTS_PREVIEW=$(head -n 10 $LOG_FILE | jq -c -s '.')
+
           echo "✅ US Warmup / Sitemap Crawl Done"
+
+          # 使用 jq 构造最终 JSON 并通过 echo 输出
+          jq -n \
+            --arg msg "Warmed up $SUCCESS_COUNT/$TOTAL pages in ${DURATION}ms" \
+            --arg exec "GitHub Runner (US)" \
+            --arg ingress "sfo1 (Simulated)" \
+            --argjson res "$RESULTS_PREVIEW" \
+            --argjson total "$TOTAL" \
+            --argjson success "$SUCCESS_COUNT" \
+            --argjson failed "$FAILED_COUNT" \
+            --argjson time "$DURATION" \
+            '{
+              success: true,
+              message: $msg,
+              executionRegion: $exec,
+              ingressRegion: $ingress,
+              note: "Results truncated to first 10 items for brevity. Check summary for total count.",
+              results: $res,
+              summary: {
+                total: $total,
+                success: $success,
+                failed: $failed,
+                totalTimeMs: $time
+              }
+            }'
