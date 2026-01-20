@@ -178,5 +178,12 @@ const resolveBriefingImageRequest = async (date: string): Promise<string> => {
  * Cache Request Memoization
  * Ensures we only calculate/fetch the image ONCE per server request (Metadata + Page).
  */
-import { cache } from 'react';
-export const resolveBriefingImage = cache(resolveBriefingImageRequest);
+import { unstable_cache } from 'next/cache';
+export const resolveBriefingImage = unstable_cache(
+  resolveBriefingImageRequest,
+  ['briefing-image'],
+  {
+    revalidate: 604800, // 7 days
+    tags: ['briefing-image'],
+  },
+);
