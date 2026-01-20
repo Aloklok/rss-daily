@@ -19,6 +19,7 @@
   - `services.ts`: 核心导出。封装了简报聚合（Supabase 内容 + FreshRSS 状态）、分类标签获取等业务逻辑。
     - **缓存策略**:
       - **日期列表 (`fetchAvailableDates`)**: 边缘缓存 7 天 (`unstable_cache` + tags)，与页面 ISR 周期对齐。依赖 Webhook (`available-dates`) 实现跨天或新内容的即时刷新。
+      - **封面图片 (`resolveBriefingImage`)**: 边缘缓存 7 天 (`briefing-image`)，强制与页面生命周期同步，防止 `300s` 短板效应。
       - **分类标签 (`getAvailableFilters`)**: 边缘缓存 7 天，极少变动。
   - `articleLoader.ts`: 负责文章详情的深度获取与清洗。
 
