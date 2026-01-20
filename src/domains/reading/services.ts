@@ -22,29 +22,36 @@ interface FreshRssTag {
 // I should verify where idHelpers is. `utils/idHelpers.ts`?
 // I will assume I need to move it to `src/shared/utils/id-helpers.ts`.
 
-async function fetchAvailableDatesUncached(): Promise<string[]> {
-  if (process.env.CI) return ['2025-01-01', new Date().toISOString().split('T')[0]];
-  const supabase = getSupabaseClient();
-  const dataPromise = supabase.rpc('get_unique_dates');
-  const fetchTimeout = process.env.CI ? 3000 : 10000;
-  const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
-    setTimeout(() => reject(new Error('fetchAvailableDates timed out')), fetchTimeout),
-  );
+// Migrated from React cache to unstable_cache for edge-level caching
+// This allows the data to be cached across requests and revalidated via tags
+export const fetchAvailableDates = unstable_cache(
+  async (): Promise<string[]> => {
+    if (process.env.CI) return ['2025-01-01', new Date().toISOString().split('T')[0]];
+    const supabase = getSupabaseClient();
+    const dataPromise = supabase.rpc('get_unique_dates');
+    const fetchTimeout = process.env.CI ? 3000 : 10000;
+    const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
+      setTimeout(() => reject(new Error('fetchAvailableDates timed out')), fetchTimeout),
+    );
 
-  try {
-    const { data, error } = (await Promise.race([dataPromise, timeoutPromise])) as any;
-    if (error) {
-      console.error('Supabase error in fetchAvailableDates:', error);
+    try {
+      const { data, error } = (await Promise.race([dataPromise, timeoutPromise])) as any;
+      if (error) {
+        console.error('Supabase error in fetchAvailableDates:', error);
+        return [];
+      }
+      return data?.map((d: { date_str: string }) => d.date_str) || [];
+    } catch (e) {
+      console.error('fetchAvailableDates catch error:', e);
       return [];
     }
-    return data?.map((d: { date_str: string }) => d.date_str) || [];
-  } catch (e) {
-    console.error('fetchAvailableDates catch error:', e);
-    return [];
-  }
-}
-
-export const fetchAvailableDates = cache(fetchAvailableDatesUncached);
+  },
+  ['available-dates'],
+  {
+    revalidate: 604800, // 7 days - aligned with page ISR. Tag invalidation handles updates.
+    tags: ['available-dates'], // Allows on-demand revalidation via webhook
+  },
+);
 
 export async function fetchBriefingData(
   date: string,

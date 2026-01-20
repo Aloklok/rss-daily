@@ -84,6 +84,10 @@ async function handleRevalidate(request: NextRequest): Promise<NextResponse> {
       revalidateTag(`briefing-data-${date}`, 'max');
       revalidatePath(`/date/${date}`);
 
+      // Invalidate sidebar dates list when new date appears
+      // This ensures the sidebar updates immediately when content is published after midnight
+      revalidateTag('available-dates', 'max');
+
       // Homepage if today
       const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai' }).format(
         new Date(),

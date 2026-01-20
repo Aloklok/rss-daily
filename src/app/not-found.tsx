@@ -5,8 +5,10 @@ import { logServerBotHit } from '@/domains/security/services/bot-logger';
 export default async function NotFound() {
   const headersList = await headers();
   const userAgent = headersList.get('user-agent') || '';
-  // Try custom header from proxy first, then Vercel header, finally fallback
+  // Enhanced path detection - capture ALL possible path indicators
   const path = headersList.get('x-current-path') || headersList.get('x-invoke-path') || '/unknown';
+  const rawInvokePath = headersList.get('x-invoke-path'); // Original request path
+  const nextMatchedPath = headersList.get('x-nextjs-matched-path'); // Next.js routing info
 
   const referer = headersList.get('referer');
   const meta = {
@@ -16,6 +18,10 @@ export default async function NotFound() {
       'sec-ch-ua': headersList.get('sec-ch-ua'),
     },
     source: 'not-found-page',
+    // Enhanced path tracking
+    real_hit_path: path, // Path we're logging
+    raw_invoke_path: rawInvokePath, // Raw path from x-invoke-path
+    next_matched_path: nextMatchedPath, // Next.js matched pattern
     // Vercel Edge diagnostics (helps identify if request reached Vercel)
     edge_region: headersList.get('x-vercel-id')?.split('::')[0] || null, // e.g. hnd1 = Tokyo
     vercel_request_id: headersList.get('x-vercel-id') || null,

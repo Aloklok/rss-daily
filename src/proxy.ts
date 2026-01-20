@@ -26,7 +26,7 @@ function logBotHit(
   if (!supabaseUrl || !supabaseKey || process.env.NODE_ENV !== 'production' || process.env.CI)
     return;
 
-  // Fire-and-forget logging to Supabase
+  // Fire-and-forget logging to Supabase with enhanced error tracking
   fetch(`${supabaseUrl}/rest/v1/bot_hits`, {
     method: 'POST',
     headers: {
@@ -43,7 +43,29 @@ function logBotHit(
       ip_country: country || null,
       meta: meta || null,
     }),
-  }).catch((err) => console.error('[LOG-ERROR] Failed to persist bot hit:', err));
+  })
+    .then((response) => {
+      if (!response.ok) {
+        console.error('[PROXY-LOG-ERROR] Supabase returned non-OK status:', {
+          status: response.status,
+          statusText: response.statusText,
+          botName,
+          path,
+          recordStatus: status,
+        });
+      }
+    })
+    .catch((err) => {
+      console.error('[PROXY-LOG-ERROR] Failed to persist bot hit:', {
+        error: err.message || String(err),
+        botName,
+        path,
+        recordStatus: status,
+        hasUrl: !!supabaseUrl,
+        hasKey: !!supabaseKey,
+        env: process.env.NODE_ENV,
+      });
+    });
 }
 
 export function proxy(request: NextRequest) {

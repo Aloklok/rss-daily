@@ -1,6 +1,4 @@
 import { fetchArticleById, fetchArticleContent } from '@/domains/reading/services';
-import { logServerBotHit } from '@/domains/security/services/bot-logger';
-import { headers } from 'next/headers';
 import { Metadata } from 'next';
 import ArticleDetailClient from '@/domains/reading/components/article/ArticleDetailClient';
 import { stripTags } from '@/domains/reading/utils/content';
@@ -50,19 +48,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ id: st
   const article = await fetchArticleById(id);
   // Soft 404: Return 200 OK with NotFound UI to avoid SEO penalties/Bing errors
   if (!article) {
-    // Audit: Log explicit debug info for bot 404s to Supabase
-    const headersList = await headers();
-    const userAgent = headersList.get('user-agent') || '';
-    if (userAgent) {
-      await logServerBotHit(`/article/${id}`, userAgent, headersList, 404, {
-        reason: 'ArticleID not found in DB & FreshRSS Fallback failed',
-        attempted_id: id,
-        is_fallback_attempted: true,
-        // Vercel Edge diagnostics
-        edge_region: headersList.get('x-vercel-id')?.split('::')[0] || null,
-        request_timestamp: new Date().toISOString(),
-      });
-    }
+    // No need to log here - not-found.tsx will handle 404 logging with full headers
     return <NotFound />;
   }
 

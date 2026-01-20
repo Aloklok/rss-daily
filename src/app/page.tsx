@@ -11,6 +11,7 @@ import { getCurrentTimeSlot, getTodayInShanghai } from '@/domains/reading/utils/
 // [Scheme C Optimization] Converted to ISR for performance
 // Webhook mechanism ensures cache invalidation when content changes
 export const revalidate = 604800; // 7 days
+export const dynamic = 'force-static'; // Force static to prevent layout data fetch from making it dynamic
 
 async function getLatestBriefingData() {
   const initialDate = getTodayInShanghai();
