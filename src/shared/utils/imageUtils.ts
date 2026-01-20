@@ -95,7 +95,10 @@ const resolveBriefingImageRequest = async (date: string): Promise<string> => {
   // If we are in the CI/Build phase, DO NOT fetch/upload images to avoid timeouts.
   // Instead, return a placeholder or the raw Picsum URL (Next.js will just use it).
   // This prevents "Miss for date..." logs spamming the build logs and timing out Vercel.
-  if (process.env.CI || process.env.NEXT_PHASE === 'phase-production-build') {
+  if (
+    (process.env.CI && !process.env.VERCEL) ||
+    process.env.NEXT_PHASE === 'phase-production-build'
+  ) {
     // console.log(`[ImageCache] Skipping for ${date} during build.`);
     return `https://picsum.photos/seed/${date}/${BRIEFING_IMAGE_WIDTH}/${BRIEFING_IMAGE_HEIGHT}.webp`;
   }

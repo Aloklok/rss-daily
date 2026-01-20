@@ -26,10 +26,11 @@ interface FreshRssTag {
 // This allows the data to be cached across requests and revalidated via tags
 export const fetchAvailableDates = unstable_cache(
   async (): Promise<string[]> => {
-    if (process.env.CI) return ['2025-01-01', new Date().toISOString().split('T')[0]];
+    if (process.env.CI && !process.env.VERCEL)
+      return ['2025-01-01', new Date().toISOString().split('T')[0]];
     const supabase = getSupabaseClient();
     const dataPromise = supabase.rpc('get_unique_dates');
-    const fetchTimeout = process.env.CI ? 3000 : 10000;
+    const fetchTimeout = process.env.CI && !process.env.VERCEL ? 3000 : 10000;
     const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
       setTimeout(() => reject(new Error('fetchAvailableDates timed out')), fetchTimeout),
     );
@@ -58,7 +59,7 @@ export async function fetchBriefingData(
   slot?: TimeSlot | null,
   logOptions: { userAgent?: string; headers?: Headers } = {},
 ): Promise<{ [key: string]: Article[] }> {
-  if (process.env.CI) {
+  if (process.env.CI && !process.env.VERCEL) {
     return {
       [BRIEFING_SECTIONS.IMPORTANT]: [
         {
@@ -98,7 +99,7 @@ export async function fetchBriefingData(
         .gte('n8n_processing_date', startIso)
         .lte('n8n_processing_date', endIso);
 
-      const fetchTimeout = process.env.CI ? 3000 : 9000;
+      const fetchTimeout = process.env.CI && !process.env.VERCEL ? 3000 : 9000;
       const timeoutPromise = new Promise<{ data: Article[] | null; error: unknown }>((_, reject) =>
         setTimeout(() => reject(new Error('Supabase query timed out')), fetchTimeout),
       );
@@ -194,7 +195,7 @@ export async function fetchBriefingData(
  * Fetch specific articles by their IDs
  */
 export async function fetchArticlesByIds(ids: string[]): Promise<Article[]> {
-  if (process.env.CI) return [];
+  if (process.env.CI && !process.env.VERCEL) return [];
   if (!ids || ids.length === 0) return [];
 
   const supabase = getSupabaseClient();
@@ -220,7 +221,7 @@ import { sanitizeHtml } from '@/shared/utils/serverSanitize';
 export const fetchArticleContent = async (
   id: string | number,
 ): Promise<CleanArticleContent | null> => {
-  if (process.env.CI) {
+  if (process.env.CI && !process.env.VERCEL) {
     return {
       title: 'Mock Article',
       content: '<p>Mock content for CI environment.</p>',
@@ -278,7 +279,7 @@ export const fetchMultipleArticleContents = async (
   titles?: Map<string, string>,
 ): Promise<Map<string, CleanArticleContent>> => {
   const result = new Map<string, CleanArticleContent>();
-  if (process.env.CI || !ids || ids.length === 0) return result;
+  if ((process.env.CI && !process.env.VERCEL) || !ids || ids.length === 0) return result;
 
   try {
     const freshRss = getFreshRssClient();
@@ -361,7 +362,7 @@ export async function fetchArticleFromFreshRSS(id: string): Promise<Article | nu
 }
 
 export async function fetchArticleById(id: string): Promise<Article | null> {
-  if (process.env.CI) {
+  if (process.env.CI && !process.env.VERCEL) {
     return {
       id,
       created_at: new Date().toISOString(),
@@ -402,7 +403,7 @@ export async function fetchArticleById(id: string): Promise<Article | null> {
 
 export const getAvailableFilters = unstable_cache(
   async (): Promise<{ tags: Tag[]; categories: Tag[] }> => {
-    if (process.env.CI) return { tags: [], categories: [] };
+    if (process.env.CI && !process.env.VERCEL) return { tags: [], categories: [] };
     try {
       const freshRss = getFreshRssClient();
       const data = await freshRss.get<{ tags: FreshRssTag[] }>('/tag/list', {
@@ -440,7 +441,7 @@ export const getAvailableFilters = unstable_cache(
 export async function fetchStarredArticleHeaders(): Promise<
   { id: string | number; title: string; tags: string[] }[]
 > {
-  if (process.env.CI) return [];
+  if (process.env.CI && !process.env.VERCEL) return [];
   try {
     const freshRss = getFreshRssClient();
     const safeStreamId = encodeURIComponent(STAR_TAG);
@@ -466,7 +467,7 @@ export async function fetchStarredArticleHeaders(): Promise<
 export async function fetchSubscriptions(): Promise<
   { id: string; title: string; category?: string }[]
 > {
-  if (process.env.CI) return [];
+  if (process.env.CI && !process.env.VERCEL) return [];
   try {
     const freshRss = getFreshRssClient();
     const data = await freshRss.get<{ subscriptions: any[] }>('/subscription/list', {

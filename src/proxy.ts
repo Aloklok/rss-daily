@@ -23,7 +23,12 @@ function logBotHit(
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!supabaseUrl || !supabaseKey || process.env.NODE_ENV !== 'production' || process.env.CI)
+  if (
+    !supabaseUrl ||
+    !supabaseKey ||
+    process.env.NODE_ENV !== 'production' ||
+    (process.env.CI && !process.env.VERCEL)
+  )
     return;
 
   // Fire-and-forget logging to Supabase with enhanced error tracking
