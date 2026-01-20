@@ -21,7 +21,7 @@ const mockArticle: Article = {
 } as Article;
 
 describe('文章卡片渲染与 SEO 结构 (ArticleCard/BriefCard)', () => {
-  it('应当正确渲染视觉标题与隐藏的 SEO 链接', async () => {
+  it('应当渲染 SEO 友好的零交互语义链接 (Zero-Interaction Link)', async () => {
     const mockOnReaderModeRequest = vi.fn();
     const mockOnStateChange = vi.fn();
 
@@ -33,15 +33,18 @@ describe('文章卡片渲染与 SEO 结构 (ArticleCard/BriefCard)', () => {
       />,
     );
 
-    // 1. 验证视觉文本容器是否存在 (aria-hidden 为 true)
-    const visualTitle = screen.getAllByText(mockArticle.title)[0];
-    expect(visualTitle).toBeInTheDocument();
-    expect(visualTitle).toHaveAttribute('aria-hidden', 'true');
+    // 验证: 存在一个唯一的、可见的标题链接
+    const link = screen.getByRole('link', { name: mockArticle.title });
+    expect(link).toBeInTheDocument();
 
-    // 2. 验证 SEO 专用 Link 是否存在 (具有 sr-only 类)
-    const seoLink = screen.getByRole('link', { name: mockArticle.title });
-    expect(seoLink).toBeInTheDocument();
-    expect(seoLink).toHaveClass('sr-only');
-    expect(seoLink).toHaveAttribute('href', expect.stringContaining(mockArticle.id.toString()));
+    // 验证: 不再使用 sr-only 隐藏
+    expect(link).not.toHaveClass('sr-only');
+    expect(link).not.toHaveAttribute('aria-hidden');
+
+    // 验证: 具有正确的 href
+    expect(link).toHaveAttribute('href', expect.stringContaining(mockArticle.id.toString()));
+
+    // 验证: 关键属性 - 禁止拖拽 (draggable="false")
+    expect(link).toHaveAttribute('draggable', 'false');
   });
 });
