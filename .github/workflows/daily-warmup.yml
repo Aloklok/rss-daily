@@ -66,18 +66,20 @@ jobs:
 
           echo "Found $TOTAL pages in sitemap."
 
-          # 2. 并行预热 & 收集结果
-          # 为了能统计结果，我们需要将并行执行的输出重定向到一个临时文件
+          # 2. 并行预热 & 收集结果 (Race Condition Fix: 使用独立文件)
+          # 为了避免并发写入导致的丢行，每个请求写入独立文件
+          rm -f warmup_res_*.txt
           LOG_FILE="warmup_results.log"
-          > $LOG_FILE
 
+          idx=0
           echo "$URLS" | while read url; do
             [ -z "$url" ] && continue
+            idx=$((idx+1))
             
-            # 后台执行 curl
+            # 后台执行 curl，结果写入独立文件
             (
               http_code=$(curl -s -o /dev/null -w "%{http_code}" "$url")
-              echo "{\"url\":\"$url\",\"status\":$http_code}" >> $LOG_FILE
+              echo "{\"url\":\"$url\",\"status\":$http_code}" > "warmup_res_${idx}.txt"
             ) &
             
             # 简单的并发控制
@@ -85,6 +87,10 @@ jobs:
           done
 
           wait
+
+          # 合并所有结果
+          cat warmup_res_*.txt > $LOG_FILE
+          rm -f warmup_res_*.txt
 
           # 3. 生成统计报告
           END_TIME=$(date +%s%3N)
