@@ -2,7 +2,7 @@ import { performance } from 'perf_hooks';
 
 const BASE_URL = 'https://www.alok-rss.top';
 const API_URL = `${BASE_URL}/api/meta/available-dates`;
-const CONCURRENCY = 5;
+const CONCURRENCY = 6;
 
 async function fetchAvailableDates(): Promise<string[]> {
   console.log(`Fetching date list from ${API_URL}...`);
