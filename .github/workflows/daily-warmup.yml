@@ -34,24 +34,40 @@ jobs:
           REGION=$(echo "$RESULT" | jq -r '.edgeRegion // "unknown"')
           echo "✅ Warmup completed from edge region: $REGION"
 
-      # --- 2. 美国区域预热 (GitHub Runner 直接访问) ---
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Warmup US Edge (Direct Script)
+      # --- 2. 美国区域预热 (GitHub Runner 直接 Curl) ---
+      # 优点:
+      # 1. 覆盖全站: 基于 sitemap.xml，包含首页、归档、趋势、所有历史日期
+      # 2. 真实模拟: 模拟爬虫行为，从外部通过 sitemap 发现并访问链接
+      # 3. 极速轻量: 纯 Shell (curl + awk)，无需安装 Node/pnpm
+      - name: Warmup US Edge (Sitemap Strategy)
         run: |
-          echo "🇺🇸 Triggering US warmup via direct script..."
-          npx tsx scripts/warmup-all-history.ts
+          echo "🇺🇸 Fetching sitemap.xml..."
+          SITEMAP_URL="https://www.alok-rss.top/sitemap.xml"
+
+          # 1. 抓取并提取所有 URL (<loc>标签)
+          # 使用 grep 和 sed 提取 xml 中的链接，简单高效
+          URLS=$(curl -s $SITEMAP_URL | grep "<loc>" | sed 's/.*<loc>\(.*\)<\/loc>.*/\1/')
+
+          COUNT=$(echo "$URLS" | wc -l | xargs)
+          echo "✅ Found $COUNT pages in sitemap."
+
+          # 2. 并行预热 (Shell 循环)
+          echo "$URLS" | while read url; do
+            # 跳过空行
+            [ -z "$url" ] && continue
+            
+            echo "🔥 Warming: $url"
+            # 发起请求，丢弃 body，只打印状态码
+            # -w "%{http_code}\n": 打印状态码
+            # -o /dev/null: 丢弃响应体
+            # -s: 静默模式
+            # &: 后台运行实现并发 (注意: GitHub Action 资源有限，这里的并发主要为了利用网络IO等待时间)
+            curl -s -o /dev/null -w "Status: %{http_code} -> $url\n" "$url" &
+            
+            # 简单的并发控制: 每次启动请求后短暂 sleep，避免瞬间几百个请求触发 WAF 429
+            sleep 0.05
+          done
+
+          # 等待所有后台任务完成
+          wait
+          echo "✅ US Warmup / Sitemap Crawl Done"

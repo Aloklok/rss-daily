@@ -73,7 +73,8 @@ export async function GET(request: Request) {
     return NextResponse.json({
       success: true,
       message: `Warmed up ${successCount}/${results.length} pages in ${totalTime}ms`,
-      edgeRegion: request.headers.get('x-vercel-id')?.split('::')[0] || 'unknown',
+      executionRegion: process.env.VERCEL_REGION || 'local',
+      ingressRegion: request.headers.get('x-vercel-id')?.split('::')[0] || 'unknown',
       results: results.slice(0, 10), // Only return first 10 for brevity
       summary: {
         total: results.length,
