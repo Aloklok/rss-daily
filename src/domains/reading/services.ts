@@ -8,7 +8,6 @@ import { STAR_TAG } from '@/domains/interaction/constants';
 import { removeEmptyParagraphs, stripLeadingTitle, cleanAIContent } from './utils/content';
 import { shanghaiDateSlotToUtcWindow } from './utils/date';
 import { cache } from 'react';
-import { headers } from 'next/headers';
 import { logServerBotHit } from '@/domains/security/services/bot-logger';
 
 // Local interface
@@ -50,6 +49,7 @@ export const fetchAvailableDates = cache(fetchAvailableDatesUncached);
 export async function fetchBriefingData(
   date: string,
   slot?: TimeSlot | null,
+  logOptions: { userAgent?: string; headers?: Headers } = {},
 ): Promise<{ [key: string]: Article[] }> {
   if (process.env.CI) {
     return {
@@ -107,16 +107,17 @@ export async function fetchBriefingData(
 
         // Reporting: Log the ISR failure so we know why the page is missing
         try {
-          const headersList = await headers();
-          const userAgent = headersList.get('user-agent') || 'ISR-System';
-          const path = `/date/${date}`; // Reconstruct context
+          // [Refactor] Use passed-in context or safe default to avoid breaking ISR (Static Generation).
+          const userAgent = logOptions.userAgent || 'ISR-System-Error-Fallback';
+          const path = `/date/${date}`;
+          const safeHeaders = logOptions.headers || new Headers();
 
-          await logServerBotHit(path, userAgent, headersList, 500, {
+          await logServerBotHit(path, userAgent, safeHeaders, 500, {
             error_message: e.message || String(e),
             error_stack: e.stack,
             stage: 'fetchBriefingData',
             date_param: date,
-            desc: 'System-ISR-Error: Data fetch failed, propagating error to prevent bad cache.',
+            desc: 'System-ISR-Error: Data fetch failed.',
           });
         } catch (logErr) {
           console.error('Failed to log ISR error:', logErr);

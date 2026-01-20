@@ -1,4 +1,3 @@
-import React from 'react';
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { fetchBriefingData, fetchAvailableDates } from '@/domains/reading/services';
@@ -13,6 +12,7 @@ import { logServerBotHit } from '@/domains/security/services/bot-logger';
 // All pages (History & Today) are cached for 7 days (604800s).
 // Real-time updates are handled by the Supabase Webhook/API invalidating the 'briefing-data' tag.
 export const revalidate = 604800; // 7 days
+export const dynamic = 'force-static'; // [Debug] Force static to catch dynamic usage
 
 export async function generateStaticParams() {
   const dates = await fetchAvailableDates();
