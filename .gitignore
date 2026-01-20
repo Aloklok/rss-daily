@@ -54,3 +54,4 @@ supabase
 .trae/
 
 lint_output.txt
+tsconfig.tsbuildinfo

@@ -19,7 +19,8 @@ export interface DashboardStats {
         todayNotFound: number;
         blockedVsAllowed: { type: string; count: number }[];
         topBots: BotStat[];
-        attackPaths: { path: string; count: number }[];
+        blockedPaths: { path: string; count: number }[];
+        anomalyPaths: { path: string; count: number }[];
     };
     aiSummary?: string;
     lastUpdated?: string;

@@ -8,7 +8,9 @@ import {
 } from '@/domains/security/constants';
 
 // Dedicated Supabase client for fire-and-forget logging to avoid reusing the main app client context
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const supabaseUrl = process.env.SUPABASE_URL!;
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: { persistSession: false },
@@ -20,13 +22,13 @@ export async function logServerBotHit(
   headers: Headers,
   status: number,
   meta?: Record<string, unknown>,
-) {
+): Promise<void> {
   if (!userAgent) return;
 
   // 1. Silent Bypass for Utility Bots
   if (UTILITY_BOTS_PATTERN.test(userAgent)) return;
 
-  let botName = 'Unknown-Bot';
+  let botName = '未知爬虫';
   let isSearchEngine = false;
 
   // 2. Identify White-listed Search Engines
@@ -36,9 +38,9 @@ export async function logServerBotHit(
   }
   // 3. Identify Known Bad/AI Bots
   else if (SEO_SCRAPER_BOTS_PATTERN.test(userAgent)) {
-    botName = 'SEO-Scraper';
+    botName = 'SEO爬虫';
   } else if (AI_ARCHIVE_BOTS_PATTERN.test(userAgent)) {
-    botName = 'AI-Bot';
+    botName = 'AI数据采集';
   }
 
   // 4. Selective Logging Policy (The Data De-noiser)
@@ -47,15 +49,15 @@ export async function logServerBotHit(
   // - SILENTLY DROP everything else (Unknown 404s, standard user 404s, etc)
   const isSecurityBlock = status === 403;
   const isServerError = status >= 500 && status < 600;
-  const isAuditTarget = isSearchEngine || botName === 'SEO-Scraper' || botName === 'AI-Bot';
+  const isAuditTarget = isSearchEngine || botName === 'SEO爬虫' || botName === 'AI数据采集';
 
   if (!isSecurityBlock && !(isAuditTarget && (status === 200 || status === 404 || isServerError))) {
     return;
   }
 
   // Fallback for security blocks without a specific bot name
-  if (isSecurityBlock && botName === 'Unknown-Bot') {
-    botName = 'Security-Interception';
+  if (isSecurityBlock && botName === '未知爬虫') {
+    botName = '安全拦截';
   }
 
   try {

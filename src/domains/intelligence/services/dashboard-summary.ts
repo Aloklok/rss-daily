@@ -33,7 +33,7 @@ export async function getDashboardAiSummary(stats: DashboardStats): Promise<stri
     })),
     security: {
       blockedToday: stats.security.todayBlocked,
-      topThreats: stats.security.attackPaths.slice(0, 3),
+      topThreats: stats.security.blockedPaths.slice(0, 3),
     },
   };
 

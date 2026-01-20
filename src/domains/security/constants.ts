@@ -76,7 +76,7 @@ export const SEARCH_ENGINE_KEYWORDS = [
   '360',
   'Petal',
   'Yisou',
-  'Search-Engine', // fallback 分类名
+  '搜索引擎', // fallback 分类名
 ];
 
 // ============================================================
@@ -105,7 +105,7 @@ export function extractSearchEngineName(userAgent: string): string {
       return name;
     }
   }
-  return 'Search-Engine';
+  return '搜索引擎';
 }
 
 /**

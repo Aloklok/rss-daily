@@ -73,7 +73,7 @@ function logBotHit(
     });
 }
 
-export function proxy(request: NextRequest) {
+export function proxy(request: NextRequest): NextResponse | Response {
   const url = new URL(request.url);
   // Extract Geo Info (Vercel specific header, as request.geo is deprecated in Next 15+)
   const country = request.headers.get('x-vercel-ip-country') || '';
@@ -128,7 +128,7 @@ export function proxy(request: NextRequest) {
 
   if (isMaliciousPath) {
     console.warn(`[SECURITY-BLOCKED] Malicious Path: ${path} | Agent: ${userAgent}`);
-    logBotHit('Malicious-Scanner', path, userAgent, 403, country, {
+    logBotHit('恶意扫描', path, userAgent, 403, country, {
       referer,
       malicious_pattern: 'wp/php/env/git',
     });
@@ -153,14 +153,14 @@ export function proxy(request: NextRequest) {
   // --- Security Rule 4: SEO Scrapers & Aggressive Bots (Cloudflare Style) ---
   if (SEO_SCRAPER_BOTS_PATTERN.test(userAgent)) {
     console.warn(`[BOT-BLOCKED] Scraper: ${userAgent} | Path: ${path}`);
-    logBotHit('SEO-Scraper', path, userAgent, 403, country, { referer });
+    logBotHit('SEO爬虫', path, userAgent, 403, country, { referer });
     return new Response('Access Denied: Automated scraping is not permitted.', { status: 403 });
   }
 
   // --- Security Rule 5: Specific AI & Archive Bots ---
   if (AI_ARCHIVE_BOTS_PATTERN.test(userAgent)) {
     console.warn(`[BOT-BLOCKED] AI/Archive: ${userAgent} | Path: ${path}`);
-    logBotHit('AI-Bot', path, userAgent, 403, country, { referer });
+    logBotHit('AI数据采集', path, userAgent, 403, country, { referer });
     return new Response('Access Denied: AI training/archiving is restricted.', { status: 403 });
   }
 

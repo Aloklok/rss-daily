@@ -121,9 +121,9 @@ export default function DashboardPage(): React.JSX.Element {
   const maxTrend = Math.max(...stats.content.dailyTrend.map((t) => Number(t.count)), 1);
   const lastUpdatedFormatted = stats.lastUpdated
     ? new Date(stats.lastUpdated).toLocaleTimeString('zh-CN', {
-        hour: '2-digit',
-        minute: '2-digit',
-      })
+      hour: '2-digit',
+      minute: '2-digit',
+    })
     : '刚刚';
 
   return (
@@ -143,11 +143,10 @@ export default function DashboardPage(): React.JSX.Element {
             if (!loadingStats) fetchStats();
           }}
           disabled={loadingStats}
-          className={`rounded-xl bg-white px-6 py-2.5 text-xs font-bold shadow-sm ring-1 ring-stone-200 transition-all active:scale-95 ${
-            loadingStats
-              ? 'cursor-not-allowed text-stone-300'
-              : 'text-stone-600 hover:bg-stone-50 hover:ring-stone-300'
-          }`}
+          className={`rounded-xl bg-white px-6 py-2.5 text-xs font-bold shadow-sm ring-1 ring-stone-200 transition-all active:scale-95 ${loadingStats
+            ? 'cursor-not-allowed text-stone-300'
+            : 'text-stone-600 hover:bg-stone-50 hover:ring-stone-300'
+            }`}
         >
           {loadingStats ? '加载中...' : '刷新看板数据'}
         </button>
@@ -454,31 +453,73 @@ export default function DashboardPage(): React.JSX.Element {
 
             <div className="lg:col-span-8">
               <div className="h-full rounded-[32px] bg-white p-8 shadow-sm ring-1 ring-stone-100">
-                <div className="mb-6 flex items-center justify-between">
+                <div className="mb-6">
                   <h3 className="text-[11px] font-black tracking-widest text-stone-800 uppercase">
-                    最近审计详情 (异常流量路径)
+                    最近审计详情
                   </h3>
                 </div>
-                <div className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
-                  {stats.security.attackPaths.length > 0 ? (
-                    stats.security.attackPaths.slice(0, 10).map((item, idx) => (
-                      <div
-                        key={idx}
-                        className="group flex items-center justify-between border-b border-stone-50/50 py-1 last:border-0"
-                      >
-                        <code className="max-w-[70%] truncate rounded border border-transparent bg-stone-50 px-2 py-0.5 font-mono text-[9px] text-stone-400 transition-all group-hover:bg-red-50 group-hover:text-red-500">
-                          {item.path}
-                        </code>
-                        <span className="text-[10px] font-bold text-stone-700 tabular-nums">
-                          {item.count} 次
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="col-span-full py-8 text-center text-[11px] font-bold text-stone-500">
-                      未检测到异常扫描路径
+                <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
+                  {/* Column 1: Blocked Paths (High Risk) */}
+                  <div>
+                    <div className="mb-3 flex items-center gap-2">
+                      <div className="h-1.5 w-1.5 rounded-full bg-red-500"></div>
+                      <span className="text-[10px] font-bold text-red-600">
+                        高危拦截 (403 Blocked)
+                      </span>
                     </div>
-                  )}
+                    <div className="space-y-2">
+                      {stats.security.blockedPaths.length > 0 ? (
+                        stats.security.blockedPaths.map((item, idx) => (
+                          <div
+                            key={idx}
+                            className="group flex items-center justify-between border-b border-red-50 py-1 last:border-0"
+                          >
+                            <code className="max-w-[70%] truncate rounded bg-red-50 px-2 py-0.5 font-mono text-[9px] text-red-600 transition-all group-hover:bg-red-100">
+                              {item.path}
+                            </code>
+                            <span className="text-[10px] font-bold text-red-400 tabular-nums">
+                              {item.count}
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="py-4 text-center text-[10px] text-stone-300">
+                          暂无拦截记录
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Column 2: Anomaly Paths (404/5xx) */}
+                  <div>
+                    <div className="mb-3 flex items-center gap-2">
+                      <div className="h-1.5 w-1.5 rounded-full bg-orange-400"></div>
+                      <span className="text-[10px] font-bold text-stone-600">
+                        异常审计 (4xx/5xx)
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {stats.security.anomalyPaths.length > 0 ? (
+                        stats.security.anomalyPaths.map((item, idx) => (
+                          <div
+                            key={idx}
+                            className="group flex items-center justify-between border-b border-stone-50 py-1 last:border-0"
+                          >
+                            <code className="max-w-[70%] truncate rounded bg-stone-50 px-2 py-0.5 font-mono text-[9px] text-stone-500 transition-all group-hover:bg-orange-50 group-hover:text-orange-600">
+                              {item.path}
+                            </code>
+                            <span className="text-[10px] font-bold text-stone-400 tabular-nums">
+                              {item.count}
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="py-4 text-center text-[10px] text-stone-300">
+                          暂无异常记录
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -491,7 +532,7 @@ export default function DashboardPage(): React.JSX.Element {
                     异常流量与安全审计 (4xx/5xx)
                   </h3>
                   <span className="rounded-md bg-red-500 px-2 py-0.5 text-[9px] font-black text-white shadow-sm shadow-red-500/30">
-                    已审计
+                    拦截类别
                   </span>
                 </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -533,9 +574,8 @@ export default function DashboardPage(): React.JSX.Element {
         <div className="mt-6 mb-20 min-h-[160px] overflow-hidden rounded-[24px] bg-stone-50 p-1 ring-1 ring-stone-200/50">
           <div className="flex h-full items-start gap-4 rounded-[20px] bg-white p-6 shadow-sm">
             <div
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] text-lg text-white shadow-lg ${
-                aiError ? 'bg-red-500 shadow-red-500/20' : 'bg-orange-600 shadow-orange-500/20'
-              } ${loadingAI ? 'animate-pulse' : ''}`}
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] text-lg text-white shadow-lg ${aiError ? 'bg-red-500 shadow-red-500/20' : 'bg-orange-600 shadow-orange-500/20'
+                } ${loadingAI ? 'animate-pulse' : ''}`}
             >
               AI
             </div>

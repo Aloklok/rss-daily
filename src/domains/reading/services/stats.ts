@@ -47,7 +47,32 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 
   const { data: blockedVsAllowedData } = await supabase.rpc('get_bot_hits_status_distribution');
   const { data: topBotsData } = await supabase.rpc('get_bot_hits_name_distribution');
-  const { data: attackPathsData } = await supabase.rpc('get_bot_hits_path_distribution');
+
+  // 3. Manual Aggregation for Paths (Split Blocked vs Anomaly) from recent history
+  // RPC 'get_bot_hits_path_distribution' mixes them, so we fetch raw recent errors to separate them.
+  const { data: recentErrors } = await supabase
+    .from('bot_hits')
+    .select('path, status')
+    .gte('status', 400)
+    .order('created_at', { ascending: false })
+    .limit(1000); // Analyze last 1000 errors for trends
+
+  const blockedPathsMap = new Map<string, number>();
+  const anomalyPathsMap = new Map<string, number>();
+
+  recentErrors?.forEach((hit) => {
+    if (hit.status === 403) {
+      blockedPathsMap.set(hit.path, (blockedPathsMap.get(hit.path) || 0) + 1);
+    } else {
+      anomalyPathsMap.set(hit.path, (anomalyPathsMap.get(hit.path) || 0) + 1);
+    }
+  });
+
+  const toSortedList = (map: Map<string, number>) =>
+    Array.from(map.entries())
+      .map(([path, count]) => ({ path, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
 
   return {
     content: {
@@ -72,7 +97,8 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       todayNotFound: todayNotFoundCount || 0,
       blockedVsAllowed: (blockedVsAllowedData as { type: string; count: number }[]) || [],
       topBots: (topBotsData as BotStat[]) || [],
-      attackPaths: (attackPathsData as { path: string; count: number }[]) || [],
+      blockedPaths: toSortedList(blockedPathsMap),
+      anomalyPaths: toSortedList(anomalyPathsMap),
     },
     lastUpdated: new Date().toISOString(),
   };
