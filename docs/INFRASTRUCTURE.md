@@ -55,7 +55,9 @@
 为了解决亚洲用户和爬虫访问时的"首屏 404/超时"问题，实施了多层次预热：
 
 - **Vercel Cron**: 每周日 10:00 (北京时间) 从日本节点触发全量预热。
-- **Deploy Hook**: 每次部署成功后，自动从日本 (Vercel API) 和美国 (GitHub Runner) 双向预热。
+- **Deploy Hook**: 每次部署成功后触发双重预热：
+  1. **亚洲预热**: 触发 Vercel API (运行于东京)，预热亚洲节点缓存。
+  2. **全球预热 (US)**: GitHub Runner 解析 `sitemap.xml` 并在美国节点发起全量 Crawl，模拟爬虫行为，确保全球 CDN 缓存新鲜度。
 - **安全白名单**: 内部预热请求通过 `User-Agent: Vercel-Internal-Warmup` 绕过安全拦截。
 
 ---
