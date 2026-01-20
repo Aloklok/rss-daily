@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-const BASE_URL = 'https://www.alok-rss.top';
+import { getSitemapUrls } from '../../../lib/sitemap-helper';
+
 const CONCURRENCY = 5;
 
 // Vercel Cron requires specific handling
@@ -8,34 +9,23 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // 60 seconds max for hobby plan
 
 interface WarmupResult {
-  date: string;
+  url: string;
   status: number | string;
   timeMs: number;
 }
 
-async function fetchAvailableDates(): Promise<string[]> {
-  const res = await fetch(`${BASE_URL}/api/meta/available-dates`, {
-    cache: 'no-store',
-    headers: {
-      'User-Agent': 'Vercel-Internal-Warmup/1.0',
-    },
-  });
-  if (!res.ok) throw new Error(`Failed to fetch dates: ${res.status}`);
-  return res.json();
-}
-
-async function warmUpDate(date: string): Promise<WarmupResult> {
+async function warmUpUrl(url: string): Promise<WarmupResult> {
   const start = Date.now();
   try {
-    const res = await fetch(`${BASE_URL}/date/${date}`, {
+    const res = await fetch(url, {
       cache: 'no-store',
       headers: {
         'User-Agent': 'Vercel-Internal-Warmup/1.0',
       },
     });
-    return { date, status: res.status, timeMs: Date.now() - start };
+    return { url, status: res.status, timeMs: Date.now() - start };
   } catch {
-    return { date, status: 'ERROR', timeMs: Date.now() - start };
+    return { url, status: 'ERROR', timeMs: Date.now() - start };
   }
 }
 
@@ -58,12 +48,15 @@ export async function GET(request: Request) {
   const results: WarmupResult[] = [];
 
   try {
-    const dates = await fetchAvailableDates();
+    // 1. Get ALL URLs from Sitemap Helper (API + Static + Tags)
+    // Now unified with GitHub Actions logic
+    const sitemapItems = await getSitemapUrls();
+    const urls = sitemapItems.map((item) => item.url);
 
     // Process in batches for concurrency control
-    for (let i = 0; i < dates.length; i += CONCURRENCY) {
-      const batch = dates.slice(i, i + CONCURRENCY);
-      const batchResults = await Promise.all(batch.map(warmUpDate));
+    for (let i = 0; i < urls.length; i += CONCURRENCY) {
+      const batch = urls.slice(i, i + CONCURRENCY);
+      const batchResults = await Promise.all(batch.map(warmUpUrl));
       results.push(...batchResults);
     }
 
