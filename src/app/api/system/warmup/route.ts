@@ -16,6 +16,9 @@ interface WarmupResult {
 async function fetchAvailableDates(): Promise<string[]> {
   const res = await fetch(`${BASE_URL}/api/meta/available-dates`, {
     cache: 'no-store',
+    headers: {
+      'User-Agent': 'Vercel-Internal-Warmup/1.0',
+    },
   });
   if (!res.ok) throw new Error(`Failed to fetch dates: ${res.status}`);
   return res.json();
@@ -24,7 +27,12 @@ async function fetchAvailableDates(): Promise<string[]> {
 async function warmUpDate(date: string): Promise<WarmupResult> {
   const start = Date.now();
   try {
-    const res = await fetch(`${BASE_URL}/date/${date}`, { cache: 'no-store' });
+    const res = await fetch(`${BASE_URL}/date/${date}`, {
+      cache: 'no-store',
+      headers: {
+        'User-Agent': 'Vercel-Internal-Warmup/1.0',
+      },
+    });
     return { date, status: res.status, timeMs: Date.now() - start };
   } catch {
     return { date, status: 'ERROR', timeMs: Date.now() - start };

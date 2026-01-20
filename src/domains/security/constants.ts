@@ -9,13 +9,19 @@
 export const UTILITY_BOTS_PATTERN =
   /SentryUptimeBot|vercel-favicon|vercel-screenshot|Uptime-Kuma|UptimeRobot|StatusCake/i;
 
+export const INTERNAL_WARMUP_PATTERN = /Vercel-Internal-Warmup/i;
+
+// ============================================================
+// 2. 搜索引擎白名单 (放行并记录 SEO 审计)
+// ============================================================
+
 // ============================================================
 // 2. 搜索引擎白名单 (放行并记录 SEO 审计)
 // ============================================================
 
 /** 合规搜索引擎正则 - 用于 proxy 层放行判断 */
 export const SEARCH_ENGINE_BOTS_PATTERN =
-  /Baiduspider|Googlebot|Bingbot|Slurp|Yisou|YandexBot|DuckDuckGo|Sogou|Exabot|facebot|facebookexternalhit|Applebot|Bytespider|TikTokSpider|LinkedInBot|Twitterbot|Pinterestbot|Discordbot|Telegrambot|WhatsApp|NaverBot|360Spider|PetalBot/i;
+  /Baiduspider|Googlebot|Bingbot|Slurp|Yisou|YandexBot|DuckDuckGo|Sogou|Exabot|facebot|facebookexternalhit|Applebot|Bytespider|TikTokSpider|LinkedInBot|Twitterbot|Pinterestbot|Discordbot|Telegrambot|WhatsApp|NaverBot|360Spider|PetalBot|Slackbot/i;
 
 /** 搜索引擎名称提取映射 - 用于日志记录时提取具体名称 */
 export const SEARCH_ENGINE_NAME_PATTERNS: Array<{ pattern: RegExp; name: string }> = [
@@ -40,6 +46,7 @@ export const SEARCH_ENGINE_NAME_PATTERNS: Array<{ pattern: RegExp; name: string 
   { pattern: /Yisou/i, name: 'Yisou' },
   { pattern: /Exabot/i, name: 'Exabot' },
   { pattern: /facebot|facebookexternalhit/i, name: 'Facebook' },
+  { pattern: /Slackbot/i, name: 'Slackbot' },
 ];
 
 /** Dashboard 搜索引擎分类关键词 - 用于前端 Bot 数据分类展示 */
@@ -64,6 +71,7 @@ export const SEARCH_ENGINE_KEYWORDS = [
   'Discord',
   'Telegram',
   'WhatsApp',
+  'Slack',
   'Naver',
   '360',
   'Petal',
@@ -81,7 +89,7 @@ export const SEO_SCRAPER_BOTS_PATTERN =
 // 4. AI/Archive 机器人拦截清单 (403 + 记录)
 // ============================================================
 export const AI_ARCHIVE_BOTS_PATTERN =
-  /archive\.org_bot|DuckAssistBot|meta-externalfetcher|MistralAI-User|OAI-SearchBot|Perplexity-User|PerplexityBot|ProRataInc|GPTBot|ChatGPT-User|CCBot|anthropic-ai|Claude-Web|Google-Extended|Amazonbot|cohere-ai|Deepseek|ByteDance-Gemini/i;
+  /archive\.org_bot|DuckAssistBot|meta-externalfetcher|MistralAI-User|OAI-SearchBot|Perplexity-User|PerplexityBot|ProRataInc|GPTBot|ChatGPT-User|CCBot|anthropic-ai|Claude-Web|Google-Extended|Amazonbot|cohere-ai|Deepseek/i;
 
 // ============================================================
 // 5. 辅助函数

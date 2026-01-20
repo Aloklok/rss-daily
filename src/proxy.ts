@@ -4,6 +4,7 @@ import {
   SEARCH_ENGINE_BOTS_PATTERN,
   SEO_SCRAPER_BOTS_PATTERN,
   AI_ARCHIVE_BOTS_PATTERN,
+  INTERNAL_WARMUP_PATTERN,
   extractSearchEngineName,
 } from '@/domains/security/constants';
 
@@ -78,8 +79,8 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 0.2 Utility Bots (Silent Bypass: No security checks, no logging)
-  if (UTILITY_BOTS_PATTERN.test(userAgent)) {
+  // 0.2 Utility Bots & Internal Warmup (Silent Bypass: No security checks, no logging)
+  if (UTILITY_BOTS_PATTERN.test(userAgent) || INTERNAL_WARMUP_PATTERN.test(userAgent)) {
     return NextResponse.next();
   }
 
@@ -111,12 +112,6 @@ export function proxy(request: NextRequest) {
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set('x-current-path', path);
     return NextResponse.next({ request: { headers: requestHeaders } });
-  }
-
-  // --- Security Rule 3: Suspicious Requests (Empty/Short UA) ---
-  // Note: Only block, do NOT log generic "Unknown-Agent" noise in DB
-  if (!userAgent || userAgent.length < 10) {
-    return new Response('Access Denied: Suspicious request source.', { status: 403 });
   }
 
   // --- Security Rule 4: SEO Scrapers & Aggressive Bots (Cloudflare Style) ---
