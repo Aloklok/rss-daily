@@ -427,7 +427,7 @@ export const getAvailableFilters = unstable_cache(
     }
   },
   ['available-filters'],
-  { revalidate: 86400 },
+  { revalidate: 604800 },
 );
 
 export async function fetchStarredArticleHeaders(): Promise<
