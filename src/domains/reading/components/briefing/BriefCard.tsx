@@ -551,13 +551,13 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             className="relative top-[3px] mr-2 inline-block size-6"
           />
           {/* SEO-Only Link: Behaves like text for users (preventDefault), but href remains for crawlers */}
-          <span className="cursor-text align-middle select-text" aria-hidden="true">
-            {article.title}
-          </span>
+          {/* SEO Optimized: Real link for crawlers, behave as text for users (no drag, no click nav) */}
           <Link
             href={`/article/${toShortId(String(article.id))}`}
             prefetch={false}
-            className="sr-only"
+            draggable="false"
+            onClick={(e) => e.preventDefault()}
+            className="cursor-text align-middle text-inherit decoration-0 outline-none select-text hover:text-inherit focus:text-inherit active:text-inherit"
             data-testid={`article-link-${article.id}`}
           >
             {article.title}
