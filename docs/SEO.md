@@ -22,7 +22,7 @@ Briefing Hub 作为一个内容聚合平台，SEO 是其核心增长引擎。我
 - **自动提交**: 集成 IndexNow API，新内容发布秒级推送给 Bing/Yandex。
 - **Sitemap 策略**:
   - **混合频率**: 当日页面 `hourly` 频率，历史页面 `weekly`，优化爬虫配额。
-  - **自动化**: 自动将所有分类和活跃 Top 50 标签推送到 `sitemap.xml`。
+  - **全量历史自动化**: 使用 RPC (`get_unique_dates`) 突破 API 分页限制，自动将所有历史有记录的日期（包括所有分类和活跃 Top 50 标签）推送到 `sitemap.xml`，确保无遗漏。
 - **全路径覆盖 (Enhanced)**: 额外补全了 `/trends` (趋势) 和 `/sources` (源管理) 路径，提升长青内容权重。
 - **三维发现路径 (New)**: 在归档页建立了基于“日期、主题 (Category/Tag)、来源 (Source)”的深度导航。
 
