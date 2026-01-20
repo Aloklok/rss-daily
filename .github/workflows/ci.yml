@@ -101,3 +101,13 @@ jobs:
         with:
           # 必须和你刚才在 Vercel 网页里填写的 Check Name 完全一致
           name: 'Vercel - alok-rss-daily: checkALL'
+
+      # --- 7. 预热亚洲 Edge 缓存 ---
+      - name: Warmup Asia Edge Cache
+        if: success() && github.ref == 'refs/heads/main'
+        run: |
+          echo "Waiting 30s for Vercel deployment to complete..."
+          sleep 30
+          echo "Triggering warmup..."
+          curl -s "https://www.alok-rss.top/api/system/warmup" | jq .
+        continue-on-error: true
