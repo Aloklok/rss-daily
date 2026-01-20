@@ -7,7 +7,7 @@ import { BRIEFING_SECTIONS } from './constants';
 import { STAR_TAG } from '@/domains/interaction/constants';
 import { removeEmptyParagraphs, stripLeadingTitle, cleanAIContent } from './utils/content';
 import { shanghaiDateSlotToUtcWindow } from './utils/date';
-import { cache } from 'react';
+
 import { logServerBotHit } from '@/domains/security/services/bot-logger';
 
 // Local interface

@@ -53,3 +53,4 @@ supabase
 # Trae AI Config
 .trae/
 
+lint_output.txt
