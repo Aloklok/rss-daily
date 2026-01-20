@@ -149,7 +149,8 @@
 
 ## ✅ 已完成优化 (Milestones)
 
-- [x] **标签/分类请求去重 (阻塞外呼，SEO 0 影响)**: 首页/日期页会调用 `fetchTagsServer()`，根布局会调用 `getAvailableFilters()`，两者都会请求 FreshRSS `/tag/list`，导致同一次页面生成里重复请求。已完成：`fetchTagsServer()` 复用 `getAvailableFilters()`，单次页面生成仅 1 次 `/tag/list`；收益：ISR 生成阶段等待更少，TTFB/FCP 更稳（不改变页面 HTML 内容与内链）。
+- [x] **标签/分类请求去重 (阻塞外呼，SEO 0 影响)**: 已完成：`fetchTagsServer()` 复用 `getAvailableFilters()`。
+- [x] **SSR 静态化增强 (X-Vercel-Cache: HIT)**: 移除了 `searchParams` 依赖，强制首页 `/` 进入纯静态 ISR 模式，消除了动态渲染导致的 `MISS`。伴随 `resolveBriefingImage` 启用 7 天强缓存，彻底修复 `stale-time` 短板。
 - [x] **Prefetch 控制 (减少无意 `_rsc` 阻塞)**: 已对侧边栏与归档页的大列表链接禁用预取，并补充禁用 Stream 列表文章卡片 Link 预取，减少无意 `_rsc` 请求占用带宽/连接。验收：首次进入首页的 `_rsc` 请求数下降（目标 -30%），移动端 FCP/INP 改善且不影响爬虫可发现路径。
 - [x] **字体与关键资源优化 (FCP/LCP)**: 已关闭 Playfair Display 的 preload，保留 `display: swap`，减少首页非必需关键请求，降低 FOIT 风险。验收：LCP 不回退；首页关键请求数减少；FCP 下降。
 - [x] **日期列表边缘缓存优化 (TTFB 稳定性 + 时效性)**: `fetchAvailableDates()` 已从请求级 `cache()` 升级为边缘级 `unstable_cache`，实现 7 天跨请求缓存，配合 webhook tag 刷新机制（`revalidateTag('available-dates')`），确保新日期发布后立即更新。验收：同一请求内不重复打 `get_unique_dates`；TTFB 波动收敛；webhook 触发即时更新。

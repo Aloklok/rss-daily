@@ -11,7 +11,10 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
   reactStrictMode: true,
   reactCompiler: true,
-  experimental: {},
+  poweredByHeader: false, // Security: Hide Next.js header
+  experimental: {
+    optimizePackageImports: ['dayjs', 'sanitize-html', '@sentry/nextjs'],
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
