@@ -241,6 +241,14 @@ Admin 后台采用 **Server Actions** 处理长耗时任务（如批量 AI 简�
   - 保留用户创建的自定义分类和标签
   - **排序策略**: 侧边栏保持 FreshRSS API 返回的原始顺序；订阅源浏览页（Source Filter）采用权重置顶策略（核心分类优先展示）
 
+### 4.8 缓存预热系统 (Cache Warmup System)
+
+为解决 ISR 首次访问冷启动导致的 404/超时问题，系统部署了全自动预热机制：
+
+- **触发源**: Vercel Cron (周日) + GitHub Actions (部署后)。
+- **操作**: 调用 `/api/system/warmup` 并发生成最近 7 天的简报页。
+- **安全**: 利用 `Vercel-Internal-Warmup` 白名单机制绕过 403 拦截。
+
 ## 5. 性能与 UX 优化
 
 ### 5.1 消除内容闪烁

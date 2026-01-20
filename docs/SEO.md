@@ -65,7 +65,7 @@ Briefing Hub 作为一个内容聚合平台，SEO 是其核心增长引擎。我
 
 - **图片生成去重 (Request Deduplication)**: 使用 `React.cache` 确保昂贵的"Supabase 查库/下载/上传"链路在单次请求中仅执行一次，消除冗余延迟。
 - **WebP 全链路优化**: 从 Picsum 源站下载到 Supabase 存储全链路使用 WebP 格式，进一步降低传输阻塞时间。
-- **每日预热机制 (Daily Warmup)**: 部署 GitHub Action (Cron + Deployment Trigger)，在爬虫访问前主动预热"今天 + 过去7天"的页面，将冷启动成本移除出用户路径。
+- **双区域预热机制 (Dual-Region Warmup)**: 利用 Vercel Cron (Asia) 和 GitHub Action (US) 在部署后及每周定时预热，确保爬虫无论从何处访问都能命中边缘缓存，消除 ISR 超时导致的 404。
 - **Scheme C - 状态加载分离 (Client-Side State Hydration)**:
   - **彻底解耦**: 将"已读/星标"等个性化状态从服务端渲染 (SSR/ISR) 中剥离。
   - **纯静态 HTML**: 所有页面 (首页、日期页、筛选页) 仅返回通用的文章内容，TTFB 从 10s+ 降至 **<600ms**。

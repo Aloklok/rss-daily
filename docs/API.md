@@ -65,6 +65,13 @@ API 路由按照业务领域进行组织：
 - **端点**: `POST /api/system/revalidate-date`
 - **用途**: 当用户点击“重新生成简报”或通过 Hook 修改文章状态（已读/收藏）时调用。
 
+### C. 缓存预热 (System Warmup)
+
+- **端点**: `GET /api/system/warmup`
+- **用途**: 触发全量 ISR 缓存预热。
+- **鉴权**: Vercel Cron 自动鉴权或 Header 校验。
+- **特性**: 从请求节点（如 Japan Edge）发起并发 fetch，模拟用户访问以生成缓存。
+
 ### C. 缓存标签规范
 
 - `briefing-data-YYYY-MM-DD`: 对应日期的专属数据标签。

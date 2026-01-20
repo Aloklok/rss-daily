@@ -7,7 +7,6 @@ import { getTodayInShanghai } from '@/domains/reading/utils/date';
 import { resolveBriefingImage } from '@/shared/utils/imageUtils';
 import { toShortId } from '@/shared/utils/idHelpers';
 import { logServerBotHit } from '@/domains/security/services/bot-logger';
-import { headers } from 'next/headers';
 
 // UNIFIED ISR STRATEGY:
 // All pages (History & Today) are cached for 7 days (604800s).
@@ -229,20 +228,18 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
 
   // Audit: Log explicit debug info if data is missing (which might cause soft 404s)
   if (allArticles.length === 0) {
-    const headersList = await headers();
-    const userAgent = headersList.get('user-agent') || '';
-    if (userAgent) {
-      // Log as 404 in our audit system even if page renders 200 OK (Soft 404)
-      // This helps identifying why crawlers might see empty pages
-      await logServerBotHit(`/date/${date}`, userAgent, headersList, 404, {
-        reason: 'Zero articles found for date',
-        date: date,
-        is_briefing_empty: true,
-        // Vercel Edge diagnostics
-        edge_region: headersList.get('x-vercel-id')?.split('::')[0] || null,
-        request_timestamp: new Date().toISOString(),
-      });
-    }
+    // [Optimization] REMOVED `await headers()` to prevent Dynamic Rendering opt-out.
+    // Reading headers() in a Page component forces "Cache-Control: private", breaking ISR.
+    // We log a generic warning instead.
+    const mockHeaders = new Headers();
+    await logServerBotHit(`/date/${date}`, 'Server-Internal-Audit', mockHeaders, 200, {
+      reason: 'Zero articles found for date',
+      date: date,
+      is_briefing_empty: true,
+      warning: 'Soft 404: Content Missing',
+      note: 'Headers removed to preserve ISR',
+      request_timestamp: new Date().toISOString(),
+    });
   }
 
   // Prefetch header image
