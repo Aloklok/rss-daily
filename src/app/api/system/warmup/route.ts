@@ -75,6 +75,7 @@ export async function GET(request: Request) {
       message: `Warmed up ${successCount}/${results.length} pages in ${totalTime}ms`,
       executionRegion: process.env.VERCEL_REGION || 'local',
       ingressRegion: request.headers.get('x-vercel-id')?.split('::')[0] || 'unknown',
+      note: 'Results truncated to last 10 items for brevity. Check summary for total count.',
       results: results.slice(0, 10), // Only return first 10 for brevity
       summary: {
         total: results.length,
