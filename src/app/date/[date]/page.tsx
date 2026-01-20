@@ -1,5 +1,6 @@
 import React from 'react';
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { fetchBriefingData, fetchAvailableDates } from '@/domains/reading/services';
 import { BRIEFING_IMAGE_WIDTH, BRIEFING_IMAGE_HEIGHT } from '@/domains/intelligence/constants';
 import BriefingClient from '@/domains/reading/components/briefing/BriefingClient';
@@ -227,19 +228,22 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
   const allArticles = Object.values(groupedArticles).flat();
 
   // Audit: Log explicit debug info if data is missing (which might cause soft 404s)
+  // Audit: Handle Empty Data with Explicit 404
   if (allArticles.length === 0) {
-    // [Optimization] REMOVED `await headers()` to prevent Dynamic Rendering opt-out.
-    // Reading headers() in a Page component forces "Cache-Control: private", breaking ISR.
-    // We log a generic warning instead.
+    // 1. Log the SPECIFIC reason for this 404 (Empty Data) before triggering the generic handler
     const mockHeaders = new Headers();
-    await logServerBotHit(`/date/${date}`, 'Server-Internal-Audit', mockHeaders, 200, {
-      reason: 'Zero articles found for date',
+    // We try to pass meaningful info for the log
+    await logServerBotHit(`/date/${date}`, 'Server-Internal-Audit', mockHeaders, 404, {
+      reason: 'zero_articles_for_valid_date',
       date: date,
-      is_briefing_empty: true,
-      warning: 'Soft 404: Content Missing',
-      note: 'Headers removed to preserve ISR',
-      request_timestamp: new Date().toISOString(),
+      source: 'page_logic_validation', // Distinguishes from 'not-found-page' (router)
+      note: 'Triggering explicit notFound()',
     });
+
+    // 2. Trigger the standard 404 UI
+    // [Optimization] Serverless Flush: Short delay to ensure async logs dispatch before process termination
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    notFound();
   }
 
   // Prefetch header image

@@ -80,3 +80,17 @@ Briefing Hub 作为一个内容聚合平台，SEO 是其核心增长引擎。我
   - **成本降低**: 减少 95% 的无效 Vercel Function 调用和 ISR 重新生成。
 - **Prefetch Control**:
   - 禁用侧边栏与归档页的 aggressive prefetching (`prefetch={false}`)，防止在用户无意悬停时触发大量 `_rsc` 请求，节省带宽并减少 Vercel Function 调用。
+
+## 8. 爬虫健康度监控 (Bot Health Monitoring)
+
+为了精准诊断爬虫抓取异常，我们实施了更为细粒度的状态监控与 404 分级策略：
+
+- **404 分级审计**:
+  - **Path 404 (`not-found-page`)**: 真正的路径不存在（路由层面）。
+  - **Logic 404 (`page_logic_validation`)**: 路径存在，但数据为空（如当日无简报）。系统会先记录一条 404 日志，再触发标准 404 页面。
+- **ISR 熔断保护**:
+  - **Error Propagation**: 当 ISR 构建时发生数据获取超时（>9s）或错误，系统**不再返回空页面 (200 OK)**，而是抛出异常 (500 Error)。
+  - **禁止错误缓存**: 此举可防止 Next.js 缓存“假空数据”长达 7 天，确保爬虫下次访问时能够触发重试。
+- **Bot 流量清洗**:
+  - **URL 规范化**: 自动将 `/path/` (带尾部斜杠) 308 跳转至 `/path` (标准路径)，避免权重分散和 Soft 404。
+  - **HEAD 审计**: 记录爬虫的 HEAD 预检请求，确保死链检测也被正确统计。

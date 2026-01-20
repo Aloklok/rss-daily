@@ -8,6 +8,8 @@ import { STAR_TAG } from '@/domains/interaction/constants';
 import { removeEmptyParagraphs, stripLeadingTitle, cleanAIContent } from './utils/content';
 import { shanghaiDateSlotToUtcWindow } from './utils/date';
 import { cache } from 'react';
+import { headers } from 'next/headers';
+import { logServerBotHit } from '@/domains/security/services/bot-logger';
 
 // Local interface
 interface FreshRssTag {
@@ -89,7 +91,7 @@ export async function fetchBriefingData(
         .gte('n8n_processing_date', startIso)
         .lte('n8n_processing_date', endIso);
 
-      const fetchTimeout = process.env.CI ? 3000 : 10000;
+      const fetchTimeout = process.env.CI ? 3000 : 9000;
       const timeoutPromise = new Promise<{ data: Article[] | null; error: unknown }>((_, reject) =>
         setTimeout(() => reject(new Error('Supabase query timed out')), fetchTimeout),
       );
@@ -100,14 +102,34 @@ export async function fetchBriefingData(
         const result = (await Promise.race([dataPromise, timeoutPromise])) as any;
         articles = result.data || [];
         error = result.error;
-      } catch (e) {
+      } catch (e: any) {
         console.error('Fetch Briefing Data Timeout or Error:', e);
-        return {};
+
+        // Reporting: Log the ISR failure so we know why the page is missing
+        try {
+          const headersList = await headers();
+          const userAgent = headersList.get('user-agent') || 'ISR-System';
+          const path = `/date/${date}`; // Reconstruct context
+
+          await logServerBotHit(path, userAgent, headersList, 500, {
+            error_message: e.message || String(e),
+            error_stack: e.stack,
+            stage: 'fetchBriefingData',
+            date_param: date,
+            desc: 'System-ISR-Error: Data fetch failed, propagating error to prevent bad cache.',
+          });
+        } catch (logErr) {
+          console.error('Failed to log ISR error:', logErr);
+        }
+
+        // CRITICAL: Throw error to prevent caching "empty" result
+        throw e;
       }
 
       if (error) {
         console.error('Error fetching from Supabase by date:', error);
-        return {};
+        // CRITICAL: Throw error to prevent caching "empty" result
+        throw new Error(`Supabase query failed: ${JSON.stringify(error)}`);
       }
 
       if (articles.length === 0) return {};

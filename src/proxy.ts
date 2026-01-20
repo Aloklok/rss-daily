@@ -70,6 +70,14 @@ export function proxy(request: NextRequest) {
     }
   }
 
+  // 0.1 Trailing Slash Normalization (Fix for strict bot matching)
+  // Redirect /path/ -> /path (excluding root /)
+  if (url.pathname !== '/' && url.pathname.endsWith('/')) {
+    const newUrl = new URL(url);
+    newUrl.pathname = url.pathname.slice(0, -1);
+    return NextResponse.redirect(newUrl, { status: 308 }); // 308 Permanent Redirect
+  }
+
   const userAgent = request.headers.get('user-agent') || '';
   const path = url.pathname;
 
@@ -106,6 +114,7 @@ export function proxy(request: NextRequest) {
     logBotHit(specificBotName, path, userAgent, 200, country, {
       referer,
       search_engine_match: true,
+      method: request.method,
     });
 
     // Pass x-current-path header so not-found.tsx can log the correct path for 404s
