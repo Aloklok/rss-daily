@@ -58,6 +58,9 @@ export default async function ArticlePage({ params }: { params: Promise<{ id: st
         reason: 'ArticleID not found in DB & FreshRSS Fallback failed',
         attempted_id: id,
         is_fallback_attempted: true,
+        // Vercel Edge diagnostics
+        edge_region: headersList.get('x-vercel-id')?.split('::')[0] || null,
+        request_timestamp: new Date().toISOString(),
       });
     }
     return <NotFound />;

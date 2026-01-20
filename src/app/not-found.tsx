@@ -16,6 +16,10 @@ export default async function NotFound() {
       'sec-ch-ua': headersList.get('sec-ch-ua'),
     },
     source: 'not-found-page',
+    // Vercel Edge diagnostics (helps identify if request reached Vercel)
+    edge_region: headersList.get('x-vercel-id')?.split('::')[0] || null, // e.g. hnd1 = Tokyo
+    vercel_request_id: headersList.get('x-vercel-id') || null,
+    request_timestamp: new Date().toISOString(),
   };
 
   // Fire and forget logging for 404s

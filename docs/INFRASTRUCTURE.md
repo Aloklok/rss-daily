@@ -22,12 +22,32 @@
 | **用户状态**    | FreshRSS      | 🇮🇩 印尼雅加达 | 同步已读/星标状态            | 良好 ✅  |
 | **AI 服务**     | Google Gemini | 全球 API      | 摘要生成 (需要非 HK/CN 节点) | 稳定 ✅  |
 | **图片 CDN**    | Cloudflare    | 全球          | 代理 Supabase 存储以加速访问 | 极速 ✅  |
+| **DNS 解析**    | Cloudflare    | 全球          | 全球 DNS 解析，海外爬虫友好  | 极速 ✅  |
 
-## 3. 架构优化总结
+## 3. DNS 配置详情 (Cloudflare)
+
+| 主机记录 | 类型  | 记录值                                | 代理状态 | 备注                 |
+| :------- | :---- | :------------------------------------ | :------- | :------------------- |
+| `@`      | A     | `216.198.79.1`                        | 仅 DNS   | 主域名 → Vercel      |
+| `www`    | CNAME | `6672a4c449d2fc58.vercel-dns-017.com` | 仅 DNS   | www 子域名 → Vercel  |
+| `n8n`    | A     | `35.212.215.6`                        | 已代理   | n8n 自动化服务 → GCP |
+
+> [!NOTE]
+> **2026-01-20 DNS 迁移至 Cloudflare**
+>
+> 由于阿里云免费版 DNS 无海外解析节点，导致海外爬虫（Bingbot、Googlebot）偶发 DNS 解析失败。
+> 已迁移至 Cloudflare DNS（全球 Anycast 节点）解决此问题。
+
+## 4. 架构优化总结
+
+- **DNS 策略**: 使用 Cloudflare DNS。
+  - **核心理由**: **全球 Anycast 节点**。Cloudflare 在全球拥有节点，海外爬虫 DNS 解析速度和成功率大幅提升。
+  - **百度爬虫监控**: 通过应用层 `bot_hits` 表记录百度爬虫访问路径，META 字段包含 `edge_region` 可追踪请求到达的 Vercel Edge 区域。
+  - **GCP SSL**: n8n 子域名使用 Cloudflare 代理，SSL 由 Cloudflare 自动管理。
 
 - **去美国化**：关键数据链路已全部移回亚洲。FreshRSS 迁移至 **印尼 (Zeabur)** 后，响应速度提升了 80%+。
 - **全能 Supabase**：图片存储与数据库共用韩国节点，简化了鉴权逻辑并保持了优秀的访问速度。
-- **边缘加速**：Cloudflare 负责静态资源与图片的全球加速，Vercel Edge 负责极速生成 HTML。
+- **边缘加速**：Cloudflare 负责 DNS 解析 + 静态资源加速，Vercel Edge 负责极速生成 HTML。
 
 ---
 

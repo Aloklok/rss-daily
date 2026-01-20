@@ -238,6 +238,9 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
         reason: 'Zero articles found for date',
         date: date,
         is_briefing_empty: true,
+        // Vercel Edge diagnostics
+        edge_region: headersList.get('x-vercel-id')?.split('::')[0] || null,
+        request_timestamp: new Date().toISOString(),
       });
     }
   }

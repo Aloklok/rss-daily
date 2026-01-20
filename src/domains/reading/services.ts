@@ -288,9 +288,10 @@ export const fetchMultipleArticleContents = async (
 export async function fetchArticleFromFreshRSS(id: string): Promise<Article | null> {
   try {
     const freshRss = getFreshRssClient();
-    // Use raw ID if toFullId not available yet, or import it
-    const fullId = id; // Assuming id passed is correct for now or need to fix import
-    const apiBody = new URLSearchParams({ i: fullId });
+    // Note: ID format handling:
+    // - Long ID → Short ID conversion is handled in proxy.ts (301 redirect)
+    // - FreshRSS API natively supports short ID queries, no conversion needed here
+    const apiBody = new URLSearchParams({ i: id });
     const data = await freshRss.post<{ items: any[] }>(
       '/stream/items/contents?output=json',
       apiBody,
