@@ -6,7 +6,7 @@ import { Article, Tag, CleanArticleContent, TimeSlot } from '@/shared/types';
 import { BRIEFING_SECTIONS } from './constants';
 import { STAR_TAG } from '@/domains/interaction/constants';
 import { removeEmptyParagraphs, stripLeadingTitle, cleanAIContent } from './utils/content';
-import { shanghaiDateSlotToUtcWindow } from './utils/date';
+import { shanghaiDateSlotToUtcWindow, getTodayInShanghai } from './utils/date';
 
 import { logServerBotHit } from '@/domains/security/services/bot-logger';
 
@@ -141,7 +141,20 @@ export async function fetchBriefingData(
         throw new Error(`Supabase query failed: ${JSON.stringify(error)}`);
       }
 
-      if (articles.length === 0) return {};
+      if (articles.length === 0) {
+        console.warn(
+          `[BriefingData] Zero articles found for ${date}. Window: ${startIso} - ${endIso}`,
+        );
+        // CRITICAL: Do not cache empty results for TODAY.
+        // If we return {}, unstable_cache locks this empty state for 7 days.
+        // We throw an error so the cache is NOT updated (or at least not with a valid empty value).
+        // The calling component (page.tsx) handles the catch({}) and shows a temporary empty state,
+        // but subsequent refreshes will retry the fetch.
+        if (date === getTodayInShanghai()) {
+          throw new Error(`PREVENT_CACHE_EMPTY_TODAY: Standard empty result for ${date}`);
+        }
+        return {};
+      }
 
       const uniqueById = new Map<string | number, Article>();
       articles.forEach((a) => uniqueById.set(a.id, a));
