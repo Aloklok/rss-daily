@@ -29,10 +29,24 @@ jobs:
       - name: Warmup Asia Edge (Vercel API)
         run: |
           echo "🇯🇵 Triggering Asia warmup via Vercel API..."
-          RESULT=$(curl -s "https://www.alok-rss.top/api/system/warmup")
-          echo "$RESULT" | jq .
-          REGION=$(echo "$RESULT" | jq -r '.edgeRegion // "unknown"')
-          echo "✅ Warmup completed from edge region: $REGION"
+          # Capture HTTP status and body
+          response=$(curl -s -w "\n%{http_code}" "https://www.alok-rss.top/api/system/warmup")
+
+          # Extract body and status (last line is status)
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "HTTP Status: $http_code"
+
+          if [ "$http_code" -eq 200 ]; then
+            echo "$body" | jq .
+            REGION=$(echo "$body" | jq -r '.ingressRegion // "unknown"')
+            echo "✅ Warmup completed from edge region: $REGION"
+          else
+            echo "❌ Warmup Failed:"
+            echo "$body"
+            exit 1
+          fi
 
       # --- 2. 美国区域预热 (GitHub Runner 直接 Curl) ---
       # 优点:
