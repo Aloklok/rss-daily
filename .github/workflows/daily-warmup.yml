@@ -18,11 +18,30 @@ jobs:
        github.event.deployment_status.state == 'success' && 
        github.event.deployment.environment == 'Production')
 
-    name: Warm Up Recent Pages
+    name: Dual-Region Warmup (US + Asia)
     runs-on: ubuntu-latest
     steps:
+      - name: Wait for DNS/CDN Propagation
+        if: github.event_name == 'deployment_status'
+        run: sleep 60
+
+      # --- 1. 亚洲区域预热 (Vercel API - 日本节点) ---
+      - name: Warmup Asia Edge (Vercel API)
+        run: |
+          echo "🇯🇵 Triggering Asia warmup via Vercel API..."
+          RESULT=$(curl -s "https://www.alok-rss.top/api/system/warmup")
+          echo "$RESULT" | jq .
+          REGION=$(echo "$RESULT" | jq -r '.edgeRegion // "unknown"')
+          echo "✅ Warmup completed from edge region: $REGION"
+
+      # --- 2. 美国区域预热 (GitHub Runner 直接访问) ---
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -30,21 +49,9 @@ jobs:
           node-version: '20'
 
       - name: Install Dependencies
-        run: pnpm install --frozen-lockfile || npm install
-        # Fallback to npm install if pnpm is not available in environment, though pnpm/action-setup is better.
-        # Let's stick to simple npm install for scripts if possible, or setup pnpm.
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
-
-      - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Wait for DNS/CDN Propagation
-        if: github.event_name == 'deployment_status'
-        run: sleep 60 # Increased to 60s for better propagation
-
-      - name: Warm Up ALL History
-        run: npx tsx scripts/warmup-all-history.ts
+      - name: Warmup US Edge (Direct Script)
+        run: |
+          echo "🇺🇸 Triggering US warmup via direct script..."
+          npx tsx scripts/warmup-all-history.ts
