@@ -39,12 +39,13 @@
 负责将审计日志异步写入 Supabase。
 
 - **非阻塞 (Fire-and-Forget)**: 使用异步调用，不增加用户主请求延迟。
+- **单请求审计 (Single-Line Audit)**:
+  - 采用 `request_id` (来自 `x-vercel-id`) 作为主键。
+  - **初次记录**: Proxy 层识别爬虫后立即插入 (UPSERT) 一条 `status: 200` 的准入记录。
+  - **后续更新**: 若后续业务逻辑触发 404 或 500，则使用相同的 `request_id` 更新该记录的状态及 `error_reason`。
 - **日志范围**:
   - 403 (拦截)、404 (死链)、5xx (服务器错误)。
-  - 搜索引擎的所有状态码访问（包括 200）。
-- **增强诊断**:
-  - **状态检查**: 记录时强制检查 Supabase 响应状态，非 200 返回时记录详细错误（HTTP状态码+错误信息）到控制台 `[PROXY-LOG-ERROR]`。
-  - **三层路径追踪**: 404 日志包含 `real_hit_path` (注入值), `raw_invoke_path` (原始请求), `next_matched_path` (路由匹配)，精确定位死链资源（如 `/favicon.ico` vs `/`）。
+  - 搜索引擎的所有状态码访问。
 - **噪音过滤**: 不记录普通用户的随机 404，保持日志高信噪比。
 
 ### 3.3 管理员看板 (`src/app/admin/dashboard`)
@@ -60,12 +61,12 @@
 
 ```mermaid
 graph TD
-    A[用户/爬虫请求] --> B[Proxy 记录 200/403]
+    A[用户/爬虫请求] --> B[Proxy 预检并 UPSERT 200]
     B --> C[Next.js 渲染层]
-    C -- 产生运行时错误 --> D[error.tsx / global-error.tsx]
-    D -- 发送错误日志 --> E[POST /api/system/log-error]
-    E --> F[logServerBotHit]
-    F --> G[(Supabase bot_hits)]
+    C -- 产生 404/500 --> D[NotFound/Error UI]
+    D -- 回溯更新日志 --> E[UPSERT bot_hits]
+    E --> F[更新 status & error_reason]
+    F --> G[(Supabase bot_hits PK:request_id)]
 ```
 
 ## 5. 关键业务流程 (以 404 为例)
@@ -78,12 +79,15 @@ graph TD
 
 ## 6. 数据库模型 (`bot_hits`)
 
-| 字段         | 类型 | 说明                                   |
-| :----------- | :--- | :------------------------------------- |
-| `bot_name`   | text | 归类名称 (e.g., "Googlebot", "AI-Bot") |
-| `path`       | text | 请求路径 (由 x-current-path 注入)      |
-| `status`     | int4 | HTTP 状态码 (200, 403, 404, 500)       |
-| `ip_country` | text | ISO 国家代码                           |
+| 字段           | 类型    | 说明                                       |
+| :------------- | :------ | :----------------------------------------- |
+| `request_id`   | text/PK | 唯一请求 ID (来自 x-vercel-id 或 UUID)     |
+| `bot_name`     | text    | 归类名称 (e.g., "Googlebot", "AI-Bot")     |
+| `path`         | text    | 请求路径 (由 x-current-path 注入)          |
+| `status`       | int4    | HTTP 状态码 (200, 403, 404, 500)           |
+| `error_reason` | text    | 详细报错原因 (e.g., "Article ID mismatch") |
+| `ip_country`   | text    | ISO 国家代码                               |
+| `meta`         | jsonb   | 附加上下文 (三层路径追踪、UserAgent详情等) |
 
 ## 7. 维护说明
 

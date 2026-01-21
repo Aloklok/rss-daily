@@ -39,11 +39,12 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     .gte('created_at', todayStartUTC.toISOString())
     .eq('status', 403);
 
-  const { count: todayNotFoundCount } = await supabase
+  const { count: todayAnomalyCount } = await supabase
     .from('bot_hits')
     .select('*', { count: 'exact', head: true })
     .gte('created_at', todayStartUTC.toISOString())
-    .eq('status', 404);
+    .gte('status', 400)
+    .neq('status', 403);
 
   const { data: blockedVsAllowedData } = await supabase.rpc('get_bot_hits_status_distribution');
   const { data: topBotsData } = await supabase.rpc('get_bot_hits_name_distribution');
@@ -52,21 +53,31 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   // RPC 'get_bot_hits_path_distribution' mixes them, so we fetch raw recent errors to separate them.
   const { data: recentErrors } = await supabase
     .from('bot_hits')
-    .select('path, status')
+    .select('path, status, error_reason')
     .gte('status', 400)
     .order('created_at', { ascending: false })
     .limit(1000); // Analyze last 1000 errors for trends
 
   const blockedPathsMap = new Map<string, number>();
-  const anomalyPathsMap = new Map<string, number>();
+  const anomalyPathsMap = new Map<string, { count: number; reason?: string }>();
 
   recentErrors?.forEach((hit) => {
     if (hit.status === 403) {
       blockedPathsMap.set(hit.path, (blockedPathsMap.get(hit.path) || 0) + 1);
     } else {
-      anomalyPathsMap.set(hit.path, (anomalyPathsMap.get(hit.path) || 0) + 1);
+      const current = anomalyPathsMap.get(hit.path);
+      anomalyPathsMap.set(hit.path, {
+        count: (current?.count || 0) + 1,
+        reason: (hit.error_reason as string) || current?.reason,
+      });
     }
   });
+
+  const toSortedAnomalyList = (map: Map<string, { count: number; reason?: string }>) =>
+    Array.from(map.entries())
+      .map(([path, data]) => ({ path, count: data.count, reason: data.reason }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
 
   const toSortedList = (map: Map<string, number>) =>
     Array.from(map.entries())
@@ -94,11 +105,11 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     },
     security: {
       todayBlocked: todayBlockedCount || 0,
-      todayNotFound: todayNotFoundCount || 0,
+      todayNotFound: todayAnomalyCount || 0,
       blockedVsAllowed: (blockedVsAllowedData as { type: string; count: number }[]) || [],
       topBots: (topBotsData as BotStat[]) || [],
       blockedPaths: toSortedList(blockedPathsMap),
-      anomalyPaths: toSortedList(anomalyPathsMap),
+      anomalyPaths: toSortedAnomalyList(anomalyPathsMap),
     },
     lastUpdated: new Date().toISOString(),
   };

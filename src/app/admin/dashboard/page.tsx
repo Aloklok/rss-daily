@@ -121,9 +121,9 @@ export default function DashboardPage(): React.JSX.Element {
   const maxTrend = Math.max(...stats.content.dailyTrend.map((t) => Number(t.count)), 1);
   const lastUpdatedFormatted = stats.lastUpdated
     ? new Date(stats.lastUpdated).toLocaleTimeString('zh-CN', {
-      hour: '2-digit',
-      minute: '2-digit',
-    })
+        hour: '2-digit',
+        minute: '2-digit',
+      })
     : '刚刚';
 
   return (
@@ -143,10 +143,11 @@ export default function DashboardPage(): React.JSX.Element {
             if (!loadingStats) fetchStats();
           }}
           disabled={loadingStats}
-          className={`rounded-xl bg-white px-6 py-2.5 text-xs font-bold shadow-sm ring-1 ring-stone-200 transition-all active:scale-95 ${loadingStats
-            ? 'cursor-not-allowed text-stone-300'
-            : 'text-stone-600 hover:bg-stone-50 hover:ring-stone-300'
-            }`}
+          className={`rounded-xl bg-white px-6 py-2.5 text-xs font-bold shadow-sm ring-1 ring-stone-200 transition-all active:scale-95 ${
+            loadingStats
+              ? 'cursor-not-allowed text-stone-300'
+              : 'text-stone-600 hover:bg-stone-50 hover:ring-stone-300'
+          }`}
         >
           {loadingStats ? '加载中...' : '刷新看板数据'}
         </button>
@@ -503,14 +504,21 @@ export default function DashboardPage(): React.JSX.Element {
                         stats.security.anomalyPaths.map((item, idx) => (
                           <div
                             key={idx}
-                            className="group flex items-center justify-between border-b border-stone-50 py-1 last:border-0"
+                            className="group flex flex-col border-b border-stone-50 py-2 last:border-0"
                           >
-                            <code className="max-w-[70%] truncate rounded bg-stone-50 px-2 py-0.5 font-mono text-[9px] text-stone-500 transition-all group-hover:bg-orange-50 group-hover:text-orange-600">
-                              {item.path}
-                            </code>
-                            <span className="text-[10px] font-bold text-stone-400 tabular-nums">
-                              {item.count}
-                            </span>
+                            <div className="flex items-center justify-between">
+                              <code className="max-w-[70%] truncate rounded bg-stone-50 px-2 py-0.5 font-mono text-[9px] text-stone-500 transition-all group-hover:bg-orange-50 group-hover:text-orange-600">
+                                {item.path}
+                              </code>
+                              <span className="text-[10px] font-bold text-stone-400 tabular-nums">
+                                {item.count}
+                              </span>
+                            </div>
+                            {item.reason && (
+                              <p className="mt-1 px-2 text-[8px] font-medium text-orange-400 opacity-80">
+                                原因: {item.reason}
+                              </p>
+                            )}
                           </div>
                         ))
                       ) : (
@@ -574,8 +582,9 @@ export default function DashboardPage(): React.JSX.Element {
         <div className="mt-6 mb-20 min-h-[160px] overflow-hidden rounded-[24px] bg-stone-50 p-1 ring-1 ring-stone-200/50">
           <div className="flex h-full items-start gap-4 rounded-[20px] bg-white p-6 shadow-sm">
             <div
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] text-lg text-white shadow-lg ${aiError ? 'bg-red-500 shadow-red-500/20' : 'bg-orange-600 shadow-orange-500/20'
-                } ${loadingAI ? 'animate-pulse' : ''}`}
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] text-lg text-white shadow-lg ${
+                aiError ? 'bg-red-500 shadow-red-500/20' : 'bg-orange-600 shadow-orange-500/20'
+              } ${loadingAI ? 'animate-pulse' : ''}`}
             >
               AI
             </div>

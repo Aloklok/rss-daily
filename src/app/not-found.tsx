@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { headers } from 'next/headers';
 import { logServerBotHit } from '@/domains/security/services/bot-logger';
 
-export default async function NotFound() {
+export default async function NotFound({ reason }: { reason?: string }) {
   const headersList = await headers();
   const userAgent = headersList.get('user-agent') || '';
   // Enhanced path detection - capture ALL possible path indicators
@@ -18,6 +18,7 @@ export default async function NotFound() {
       'sec-ch-ua': headersList.get('sec-ch-ua'),
     },
     source: 'not-found-page',
+    reason: reason || 'Path not matched',
     // Enhanced path tracking
     real_hit_path: path, // Path we're logging
     raw_invoke_path: rawInvokePath, // Raw path from x-invoke-path

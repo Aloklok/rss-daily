@@ -19,6 +19,7 @@ function logBotHit(
   status: number,
   country: string = '',
   meta?: Record<string, unknown>,
+  requestId?: string,
 ) {
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -31,16 +32,21 @@ function logBotHit(
   )
     return;
 
-  // Fire-and-forget logging to Supabase with enhanced error tracking
+  // Every record must have a unique request_id (Primary Key)
+  const finalRequestId = requestId || crypto.randomUUID();
+
+  // Fire-and-forget logging to Supabase with UPSERT support
+  // The 'request_id' is now the PRIMARY KEY, so standard PostgREST upsert works
   fetch(`${supabaseUrl}/rest/v1/bot_hits`, {
     method: 'POST',
     headers: {
       apikey: supabaseKey,
       Authorization: `Bearer ${supabaseKey}`,
       'Content-Type': 'application/json',
-      Prefer: 'return=minimal',
+      Prefer: 'resolution=merge-duplicates,return=minimal',
     },
     body: JSON.stringify({
+      request_id: finalRequestId,
       bot_name: botName,
       path: path,
       user_agent: userAgent,
@@ -78,6 +84,7 @@ export function proxy(request: NextRequest): NextResponse | Response {
   // Extract Geo Info (Vercel specific header, as request.geo is deprecated in Next 15+)
   const country = request.headers.get('x-vercel-ip-country') || '';
   const referer = request.headers.get('referer') || '';
+  const requestId = request.headers.get('x-vercel-id') || undefined;
 
   // 0. Redirect: Fix 404s for legacy/external links with long Google Reader IDs
   if (url.pathname.includes('tag:google.com')) {
@@ -128,21 +135,37 @@ export function proxy(request: NextRequest): NextResponse | Response {
 
   if (isMaliciousPath) {
     console.warn(`[SECURITY-BLOCKED] Malicious Path: ${path} | Agent: ${userAgent}`);
-    logBotHit('恶意扫描', path, userAgent, 403, country, {
-      referer,
-      malicious_pattern: 'wp/php/env/git',
-    });
+    logBotHit(
+      '恶意扫描',
+      path,
+      userAgent,
+      403,
+      country,
+      {
+        referer,
+        malicious_pattern: 'wp/php/env/git',
+      } as any,
+      requestId,
+    );
     return new Response('Access Denied: Path is not permitted.', { status: 403 });
   }
 
   // --- Security Rule 2: Whitelist Search Engines (Baidu, Google, Bing, etc) ---
   if (SEARCH_ENGINE_BOTS_PATTERN.test(userAgent)) {
     const specificBotName = extractSearchEngineName(userAgent);
-    logBotHit(specificBotName, path, userAgent, 200, country, {
-      referer,
-      search_engine_match: true,
-      method: request.method,
-    });
+    logBotHit(
+      specificBotName,
+      path,
+      userAgent,
+      200,
+      country,
+      {
+        referer,
+        search_engine_match: true,
+        method: request.method,
+      } as any,
+      requestId,
+    );
 
     // Pass x-current-path header so not-found.tsx can log the correct path for 404s
     const requestHeaders = new Headers(request.headers);
@@ -153,14 +176,14 @@ export function proxy(request: NextRequest): NextResponse | Response {
   // --- Security Rule 4: SEO Scrapers & Aggressive Bots (Cloudflare Style) ---
   if (SEO_SCRAPER_BOTS_PATTERN.test(userAgent)) {
     console.warn(`[BOT-BLOCKED] Scraper: ${userAgent} | Path: ${path}`);
-    logBotHit('SEO爬虫', path, userAgent, 403, country, { referer });
+    logBotHit('SEO爬虫', path, userAgent, 403, country, { referer } as any, requestId);
     return new Response('Access Denied: Automated scraping is not permitted.', { status: 403 });
   }
 
   // --- Security Rule 5: Specific AI & Archive Bots ---
   if (AI_ARCHIVE_BOTS_PATTERN.test(userAgent)) {
     console.warn(`[BOT-BLOCKED] AI/Archive: ${userAgent} | Path: ${path}`);
-    logBotHit('AI数据采集', path, userAgent, 403, country, { referer });
+    logBotHit('AI数据采集', path, userAgent, 403, country, { referer } as any, requestId);
     return new Response('Access Denied: AI training/archiving is restricted.', { status: 403 });
   }
 

@@ -1,12 +1,11 @@
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
 import { fetchBriefingData, fetchAvailableDates } from '@/domains/reading/services';
 import { BRIEFING_IMAGE_WIDTH, BRIEFING_IMAGE_HEIGHT } from '@/domains/intelligence/constants';
 import BriefingClient from '@/domains/reading/components/briefing/BriefingClient';
 import { getTodayInShanghai } from '@/domains/reading/utils/date';
+import NotFound from '../../not-found';
 import { resolveBriefingImage } from '@/shared/utils/imageUtils';
 import { toShortId } from '@/shared/utils/idHelpers';
-import { logServerBotHit } from '@/domains/security/services/bot-logger';
 
 // UNIFIED ISR STRATEGY:
 // All pages (History & Today) are cached for 7 days (604800s).
@@ -230,20 +229,7 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
   // Audit: Log explicit debug info if data is missing (which might cause soft 404s)
   // Audit: Handle Empty Data with Explicit 404
   if (allArticles.length === 0) {
-    // 1. Log the SPECIFIC reason for this 404 (Empty Data) before triggering the generic handler
-    const mockHeaders = new Headers();
-    // We try to pass meaningful info for the log
-    await logServerBotHit(`/date/${date}`, 'Server-Internal-Audit', mockHeaders, 404, {
-      reason: 'zero_articles_for_valid_date',
-      date: date,
-      source: 'page_logic_validation', // Distinguishes from 'not-found-page' (router)
-      note: 'Triggering explicit notFound()',
-    });
-
-    // 2. Trigger the standard 404 UI
-    // [Optimization] Serverless Flush: Short delay to ensure async logs dispatch before process termination
-    await new Promise((resolve) => setTimeout(resolve, 50));
-    notFound();
+    return <NotFound reason="zero_articles_for_valid_date" />;
   }
 
   // Prefetch header image

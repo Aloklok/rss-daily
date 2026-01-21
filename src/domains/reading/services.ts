@@ -9,6 +9,7 @@ import { removeEmptyParagraphs, stripLeadingTitle, cleanAIContent } from './util
 import { shanghaiDateSlotToUtcWindow, getTodayInShanghai } from './utils/date';
 
 import { logServerBotHit } from '@/domains/security/services/bot-logger';
+import { toFullId } from '@/shared/utils/idHelpers';
 
 // Local interface
 interface FreshRssTag {
@@ -212,7 +213,8 @@ export async function fetchArticlesByIds(ids: string[]): Promise<Article[]> {
   if (!ids || ids.length === 0) return [];
 
   const supabase = getSupabaseClient();
-  const { data, error } = await supabase.from('articles_view').select('*').in('id', ids);
+  const fullIds = ids.map(toFullId);
+  const { data, error } = await supabase.from('articles_view').select('*').in('id', fullIds);
 
   if (error) {
     console.error('Error fetching articles by IDs:', error);
@@ -243,7 +245,8 @@ export const fetchArticleContent = async (
   }
   try {
     const freshRss = getFreshRssClient();
-    const apiBody = new URLSearchParams({ i: String(id) });
+    const fullId = toFullId(String(id));
+    const apiBody = new URLSearchParams({ i: fullId });
     const data = await freshRss.post<{ items: any[] }>(
       '/stream/items/contents?output=json',
       apiBody,
@@ -260,10 +263,11 @@ export const fetchArticleContent = async (
     let title = item.title;
     try {
       const supabase = getSupabaseClient();
+      const fullId = toFullId(String(id));
       const { data: dbArticle } = await supabase
         .from('articles_view')
         .select('title')
-        .eq('id', id)
+        .eq('id', fullId)
         .single();
       if (dbArticle?.title) {
         title = dbArticle.title;
@@ -297,7 +301,7 @@ export const fetchMultipleArticleContents = async (
   try {
     const freshRss = getFreshRssClient();
     const formData = new URLSearchParams();
-    ids.forEach((id) => formData.append('i', String(id)));
+    ids.forEach((id) => formData.append('i', toFullId(String(id))));
 
     const data = await freshRss.post<{ items: any[] }>(
       '/stream/items/contents?output=json',
@@ -332,10 +336,8 @@ export const fetchMultipleArticleContents = async (
 export async function fetchArticleFromFreshRSS(id: string): Promise<Article | null> {
   try {
     const freshRss = getFreshRssClient();
-    // Note: ID format handling:
-    // - Long ID → Short ID conversion is handled in proxy.ts (301 redirect)
-    // - FreshRSS API natively supports short ID queries, no conversion needed here
-    const apiBody = new URLSearchParams({ i: id });
+    const fullId = toFullId(id);
+    const apiBody = new URLSearchParams({ i: fullId });
     const data = await freshRss.post<{ items: any[] }>(
       '/stream/items/contents?output=json',
       apiBody,
@@ -396,7 +398,12 @@ export async function fetchArticleById(id: string): Promise<Article | null> {
     };
   }
   const supabase = getSupabaseClient();
-  const { data, error } = await supabase.from('articles_view').select('*').eq('id', id).single();
+  const fullId = toFullId(id);
+  const { data, error } = await supabase
+    .from('articles_view')
+    .select('*')
+    .eq('id', fullId)
+    .single();
 
   if (error || !data) {
     console.log(`Article ${id} not found in Supabase. Attempting FreshRSS fallback...`);
@@ -477,26 +484,28 @@ export async function fetchStarredArticleHeaders(): Promise<
   }
 }
 
-export async function fetchSubscriptions(): Promise<
-  { id: string; title: string; category?: string }[]
-> {
-  if (process.env.CI && !process.env.VERCEL) return [];
-  try {
-    const freshRss = getFreshRssClient();
-    const data = await freshRss.get<{ subscriptions: any[] }>('/subscription/list', {
-      output: 'json',
-    });
-    if (!data.subscriptions) return [];
-    return data.subscriptions.map((sub) => ({
-      id: sub.id,
-      title: sub.title,
-      category: sub.categories?.[0]?.label,
-    }));
-  } catch (e) {
-    console.error('SERVER Error fetching subscriptions:', e);
-    return [];
-  }
-}
+export const fetchSubscriptions = unstable_cache(
+  async (): Promise<{ id: string; title: string; category?: string }[]> => {
+    if (process.env.CI && !process.env.VERCEL) return [];
+    try {
+      const freshRss = getFreshRssClient();
+      const data = await freshRss.get<{ subscriptions: any[] }>('/subscription/list', {
+        output: 'json',
+      });
+      if (!data.subscriptions) return [];
+      return data.subscriptions.map((sub) => ({
+        id: sub.id,
+        title: sub.title,
+        category: sub.categories?.[0]?.label,
+      }));
+    } catch (e) {
+      console.error('SERVER Error fetching subscriptions:', e);
+      return [];
+    }
+  },
+  ['freshrss-subscriptions'],
+  { revalidate: 604800, tags: ['available-filters'] },
+);
 
 export async function fetchTagsServer(): Promise<{ categories: Tag[]; tags: Tag[] }> {
   try {

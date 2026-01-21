@@ -20,7 +20,7 @@ export interface DashboardStats {
         blockedVsAllowed: { type: string; count: number }[];
         topBots: BotStat[];
         blockedPaths: { path: string; count: number }[];
-        anomalyPaths: { path: string; count: number }[];
+        anomalyPaths: { path: string; count: number; reason?: string }[];
     };
     aiSummary?: string;
     lastUpdated?: string;

@@ -15,10 +15,6 @@ export const INTERNAL_WARMUP_PATTERN = /Vercel-Internal-Warmup/i;
 // 2. 搜索引擎白名单 (放行并记录 SEO 审计)
 // ============================================================
 
-// ============================================================
-// 2. 搜索引擎白名单 (放行并记录 SEO 审计)
-// ============================================================
-
 /** 合规搜索引擎正则 - 用于 proxy 层放行判断 */
 export const SEARCH_ENGINE_BOTS_PATTERN =
   /Baiduspider|Googlebot|Bingbot|Slurp|Yisou|YandexBot|DuckDuckGo|Sogou|Exabot|facebot|facebookexternalhit|Applebot|Bytespider|TikTokSpider|LinkedInBot|Twitterbot|Pinterestbot|Discordbot|Telegrambot|WhatsApp|NaverBot|360Spider|PetalBot|Slackbot/i;

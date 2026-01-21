@@ -85,6 +85,16 @@ src/
 2.  **FreshRSS**: 提供文章的元数据 (Read/Starred Status, Tags)。
 3.  **融合逻辑**: `Article` 对象的 `tags` 数组是融合模型的集中体现，混合了多种"标签类"信息，确保前端组件（如卡片、模态框）可以统一处理。
 
+### 统一标识符架构 (Hybrid ID System)
+
+为了平衡存储效率与系统兼容性，项目对文章 ID 实施双轨制：
+
+- **存储策略**:
+  - **FreshRSS**: 维护原始短码（Hex ID），负责交互状态。
+  - **Supabase**: 维持 Google Reader 兼容的长码（`tag:google.com,2005:reader/item/...`），负责内容沉淀。
+- **转换协议**:
+  - 所有从页面进入的数据服务层（`services.ts`）必须强制执行 `toFullId()` 转换。这保证了用户可以通过短 ID 极简访问，而后台能通过长 ID 精准对账，同时找回 AI 摘要等核心资产。
+
 ## 4. 边缘代理与安全防御 (`proxy.ts`)
 
 本项目废弃了传统的 API API 鉴权模式，转而采用 Next.js Middleware/Proxy (`src/proxy.ts`) 在边缘侧处理请求过滤、鉴权与审计。
@@ -92,15 +102,14 @@ src/
 - **安全拦截规则**:
   1.  **核心路径豁免**: 强制放行 `robots.txt` 和 `sitemap.xml`，符合 SEO 标准。
   2.  **恶意路径封禁**: 阻断常见的扫描特征路径（如 `wp-admin`, `.env`, `.git`），直接返回 403。
-  3.  **搜索引擎白名单**: 显式放行合规爬虫 (`Baiduspider`, `Googlebot`, `Bingbot`, `DuckDuckGo`, `Sogou`, `YandexBot`, `Exabot`, `Facebook` 等)，并以 200 状态记录日志。
-  4.  **Bot 自动拦截**: 针对已知的高频抓取工具 (`Ahrefs`, `Backlink`, `Semrush`) 和 AI 爬虫 (`GPTBot`, `Claude-Web`) 实施 IP/UA 级拦截 (403)。
+  3.  **搜索引擎白名单**: 显式放行合规爬虫 (`Baiduspider`, `Googlebot`, `Bingbot` 等)，并采用“单请求单记录”审计：初始以 200 状态 UPSERT 记录，若后续触发业务报错则原地修正。
+  4.  **Bot 自动拦截**: 针对已知的高频抓取工具和 AI 爬虫实施 IP/UA 级拦截 (403)。
 - **智能 404 追踪**:
   - 利用 Header 注入技术 (`x-current-path`)，解决了 Next.js 内部重写导致路径丢失的问题。
   - `not-found.tsx` 可准确捕获并归因死链来源（例如精准记录 Googlebot 正在尝试访问的旧链接）。
 - **Bot 流量分流审计 (看板中心)**:
-  - **搜索引擎收录监测**: 聚合合规搜索引擎的访问记录。其中红色的“异常”仅代表死链 (404/5xx)，不代表由于 WAF 拦截。
-  - **自动化拦截审计**: 专门展示被安全策略识别并阻断 (403) 的恶意扫描行为。
-  - **数据持久化**: 所有 Bot 流量异步写入 Supabase `bot_hits` 表，并包含 `ip_country` 地理位置信息。
+  - **单请求生命周期审计**: 通过 `request_id` 追踪请求从边缘进入到业务结算的全过程，彻底解决日志重复与状态矛盾。
+  - **数据持久化**: 所有 Bot 流量异步写入 Supabase `bot_hits` 表（以 `request_id` 为主键），并包含地理位置与报错原因。
 
 ## 4. 混合搜索架构 (Hybrid Search)
 
@@ -141,7 +150,7 @@ src/
 | **首页 / 简报** | `/` | **ISR (7d)** | Webhook 精准清除 | 极速访问，支持缓存自愈与定时重验 |
 | **日期简报** | `/date/[date]` | **ISR (7d)** | Webhook 精准清除 | 适合静态化以实现极速加载 |
 | **归档中心** | `/archive` | **SSR** | 流量索引模式 | 全站历史入口，核心 SEO 推点 |
-| **源列表** | `/sources` | **Force Dynamic** | N/A | 规避构建时 API 凭据导致的预渲染失败 |
+| **源列表** | `/sources` | **Dynamic (ISR 7d)** | 包装于 `<Suspense>` | 解决 `useSearchParams` 在构建时的预渲染需求，兼顾灵活与缓存 |
 | **文章详情** | `/article/[id]` | **ISR** | 长期缓存正文 | 正文内容稳定，客户端单独补充用户状态 |
 
 ### 4.2 统一缓存策略 (Scheme C: 状态分离)

@@ -61,3 +61,26 @@
 - **生成/重生成操作**:
   - 当 AI 重新生成简报（单篇或批量）时，系统**必须保留**原有的 `n8n_processing_date`。
   - **禁止**将旧文章的日期更新为“今天”。这确保了历史简报在重新润色后，依然停留在历史时间轴上，不会污染今日的简报列表。
+
+## 4. ID 模式与转换规范 (ID Pattern & Conversion)
+
+由于历史演进和多系统集成，本项目采用 **URL 极简与逻辑完整** 的双轨标识符策略：
+
+### 标识符分工
+
+- **URL 展现层 (Short ID)**:
+  - 格式: `0006477f9a381e20` (Hex String)
+  - 作用: 仅用于网页地址、路由匹配 (`/article/[id]`) 以及客户端轻量索引。
+  - **规范**: 全站链接生成（如 `BriefCard`）必须调用 `toShortId()` 确保外显 URL 的简洁。
+- **数据逻辑层 (Full ID)**:
+  - 格式: `tag:google.com,2005:reader/item/0006477f9a381e20`
+  - 作用: **唯一的后端通信协议**。用于 Supabase（查询 AI 元数据、向量）和 FreshRSS（获取原文内容、同步状态）。
+
+### 核心规范 (Internal Guiding Principles)
+
+> [!IMPORTANT]
+> **必须始终遵循“入库即补全”原则**
+>
+> 1. **Proxy 重定向**: `src/proxy.ts` 负责捕获所有残存的长 ID 访问并 301 重定向至短 ID URL。
+> 2. **后端转换**: `services.ts` 的所有入口函数（如 `fetchArticleById`）在接收到 URL 参数后，必须第一时间执行 `toFullId()` 转换。
+> 3. **统一性**: 禁止直接将长 ID 泄露到前端 URL 中，也禁止直接将短 ID 发送给 Supabase/FreshRSS，以免造成 404 或命中降级逻辑。

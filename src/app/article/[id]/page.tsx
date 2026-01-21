@@ -48,8 +48,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ id: st
   const article = await fetchArticleById(id);
   // Soft 404: Return 200 OK with NotFound UI to avoid SEO penalties/Bing errors
   if (!article) {
-    // No need to log here - not-found.tsx will handle 404 logging with full headers
-    return <NotFound />;
+    return <NotFound reason={`Article with ID ${id} not found in DB or FreshRSS`} />;
   }
 
   // 2. Fetch full content (FreshRSS) - Server Side

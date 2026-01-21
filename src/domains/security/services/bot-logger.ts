@@ -62,14 +62,29 @@ export async function logServerBotHit(
 
   try {
     const country = headers.get('x-vercel-ip-country') || '';
+    const requestId = headers.get('x-vercel-id');
+    // Extract error reason from meta if present
+    const errorReason = meta?.reason || meta?.error_message || null;
 
-    await supabase.from('bot_hits').insert({
-      bot_name: botName, // No longer appending -404, relying on status column
+    const payload = {
+      bot_name: botName,
       path: path,
       user_agent: userAgent,
       status: status,
       ip_country: country || null,
       meta: meta || null,
+      request_id: requestId || null,
+      error_reason: errorReason as string | null,
+    };
+
+    // Every record must have a unique request_id (Primary Key)
+    const finalRequestId = requestId || crypto.randomUUID();
+
+    // Use UPSERT for single-line request tracking
+    // The 'request_id' is now the PRIMARY KEY, so we don't need to specify onConflict
+    await supabase.from('bot_hits').upsert({
+      ...payload,
+      request_id: finalRequestId,
     });
   } catch (err) {
     console.error('[BotLogger] Failed to log hit:', err);
