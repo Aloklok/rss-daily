@@ -2,6 +2,30 @@ import Link from 'next/link';
 import { headers } from 'next/headers';
 import { logServerBotHit } from '@/domains/security/services/bot-logger';
 
+/**
+ * Determine error_reason category based on context:
+ * - 路由不存在: Route pattern is unknown (Edge layer didn't recognize path)
+ * - 数据不存在: Route exists but business logic returned 404 (e.g., article ID invalid)
+ * - ISR构建失败: Route exists but ISR generation failed (external service timeout)
+ */
+function determineErrorReason(
+  routePattern: string | null,
+  businessReason: string | undefined,
+): string {
+  // Case 1: Business logic explicitly passed a reason (e.g., "Article not found")
+  if (businessReason && businessReason !== 'Path not matched') {
+    return `数据不存在: ${businessReason}`;
+  }
+
+  // Case 2: Edge layer didn't recognize this path pattern -> Route truly doesn't exist
+  if (!routePattern) {
+    return '路由不存在';
+  }
+
+  // Case 3: Route pattern exists but no business reason -> Likely ISR build failure
+  return `ISR构建失败: ${routePattern}`;
+}
+
 export default async function NotFound({ reason }: { reason?: string }) {
   const headersList = await headers();
   const userAgent = headersList.get('user-agent') || '';
@@ -9,8 +33,13 @@ export default async function NotFound({ reason }: { reason?: string }) {
   const path = headersList.get('x-current-path') || headersList.get('x-invoke-path') || '/unknown';
   const rawInvokePath = headersList.get('x-invoke-path'); // Original request path
   const nextMatchedPath = headersList.get('x-nextjs-matched-path'); // Next.js routing info
+  const routePattern = headersList.get('x-route-pattern'); // Edge-injected route pattern
 
   const referer = headersList.get('referer');
+
+  // Calculate precise error_reason for analytics
+  const errorReason = determineErrorReason(routePattern, reason);
+
   const meta = {
     referer,
     headers: {
@@ -18,11 +47,12 @@ export default async function NotFound({ reason }: { reason?: string }) {
       'sec-ch-ua': headersList.get('sec-ch-ua'),
     },
     source: 'not-found-page',
-    reason: reason || 'Path not matched',
+    reason: errorReason,
     // Enhanced path tracking
     real_hit_path: path, // Path we're logging
     raw_invoke_path: rawInvokePath, // Raw path from x-invoke-path
     next_matched_path: nextMatchedPath, // Next.js matched pattern
+    route_pattern: routePattern, // Edge-inferred route pattern
     // Vercel Edge diagnostics (helps identify if request reached Vercel)
     edge_region: headersList.get('x-vercel-id')?.split('::')[0] || null, // e.g. hnd1 = Tokyo
     vercel_request_id: headersList.get('x-vercel-id') || null,

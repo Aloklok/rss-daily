@@ -9,6 +9,23 @@ import {
 } from '@/domains/security/constants';
 
 /**
+ * Route Pattern Inference (Edge Layer)
+ * Used to determine if a 404 is due to "route not found" or "ISR build failure"
+ */
+function getRoutePattern(path: string): string | null {
+  if (path === '/') return '/';
+  if (path === '/sources') return '/sources';
+  if (path === '/archive') return '/archive';
+  if (path === '/trends') return '/trends';
+  if (path === '/stream') return '/stream';
+  if (/^\/date\/\d{4}-\d{2}-\d{2}$/.test(path)) return '/date/[date]';
+  if (/^\/article\/[a-f0-9]+$/i.test(path)) return '/article/[id]';
+  if (path.startsWith('/admin/')) return '/admin/*';
+  if (path.startsWith('/api/')) return '/api/*';
+  return null; // Unknown route pattern = likely route not found
+}
+
+/**
  * Persistent Logging Utility (Non-blocking)
  */
 // Enhanced Logger with Meta Support
@@ -153,6 +170,7 @@ export function proxy(request: NextRequest): NextResponse | Response {
   // --- Security Rule 2: Whitelist Search Engines (Baidu, Google, Bing, etc) ---
   if (SEARCH_ENGINE_BOTS_PATTERN.test(userAgent)) {
     const specificBotName = extractSearchEngineName(userAgent);
+    const routePattern = getRoutePattern(path);
     logBotHit(
       specificBotName,
       path,
@@ -163,13 +181,17 @@ export function proxy(request: NextRequest): NextResponse | Response {
         referer,
         search_engine_match: true,
         method: request.method,
+        route_pattern: routePattern,
       } as any,
       requestId,
     );
 
-    // Pass x-current-path header so not-found.tsx can log the correct path for 404s
+    // Pass headers so not-found.tsx can log the correct path and determine 404 category
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set('x-current-path', path);
+    if (routePattern) {
+      requestHeaders.set('x-route-pattern', routePattern);
+    }
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
 

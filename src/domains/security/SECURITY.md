@@ -85,9 +85,25 @@ graph TD
 | `bot_name`     | text    | 归类名称 (e.g., "Googlebot", "AI-Bot")     |
 | `path`         | text    | 请求路径 (由 x-current-path 注入)          |
 | `status`       | int4    | HTTP 状态码 (200, 403, 404, 500)           |
-| `error_reason` | text    | 详细报错原因 (e.g., "Article ID mismatch") |
+| `error_reason` | text    | 分类报错原因，见下方说明                   |
 | `ip_country`   | text    | ISO 国家代码                               |
 | `meta`         | jsonb   | 附加上下文 (三层路径追踪、UserAgent详情等) |
+
+### 6.1 `error_reason` 分类规则
+
+系统根据 Edge 层的路由推断和业务逻辑反馈，自动计算 `error_reason` 字段：
+
+| 分类            | 格式                      | 含义                                     |
+| :-------------- | :------------------------ | :--------------------------------------- |
+| **路由不存在**  | `路由不存在`              | 路径无对应路由（Edge 层无法识别）        |
+| **数据不存在**  | `数据不存在: {原因}`      | 路由存在但业务数据缺失（如文章 ID 无效） |
+| **ISR构建失败** | `ISR构建失败: {路由模式}` | ISR 首次构建时外部服务超时               |
+
+**实现机制**：
+
+1. `proxy.ts` 的 `getRoutePattern()` 函数根据路径推断路由模式
+2. 搜索引擎放行时注入 `x-route-pattern` header
+3. `not-found.tsx` 的 `determineErrorReason()` 函数根据上下文计算分类
 
 ## 7. 维护说明
 
