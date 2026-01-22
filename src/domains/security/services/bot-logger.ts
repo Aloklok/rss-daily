@@ -4,6 +4,7 @@ import {
   SEARCH_ENGINE_BOTS_PATTERN,
   SEO_SCRAPER_BOTS_PATTERN,
   AI_ARCHIVE_BOTS_PATTERN,
+  INTERNAL_WARMUP_PATTERN,
   extractSearchEngineName,
 } from '@/domains/security/constants';
 
@@ -54,6 +55,8 @@ export async function logServerBotHit(
 
   // Check if this is a system error (explicit reason passed via API)
   const hasSystemError = !!(meta?.reason || meta?.error_reason || meta?.error_message);
+
+  if (INTERNAL_WARMUP_PATTERN.test(userAgent)) return;
 
   if (
     !isSecurityBlock &&
