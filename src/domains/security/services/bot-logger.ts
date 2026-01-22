@@ -6,6 +6,8 @@ import {
   AI_ARCHIVE_BOTS_PATTERN,
   INTERNAL_WARMUP_PATTERN,
   extractSearchEngineName,
+  extractSeoScraperName,
+  extractAiArchiveName,
 } from '@/domains/security/constants';
 
 // Dedicated Supabase client for fire-and-forget logging to avoid reusing the main app client context
@@ -39,9 +41,16 @@ export async function logServerBotHit(
   }
   // 3. Identify Known Bad/AI Bots
   else if (SEO_SCRAPER_BOTS_PATTERN.test(userAgent)) {
-    botName = 'SEO爬虫';
+    botName = extractSeoScraperName(userAgent);
   } else if (AI_ARCHIVE_BOTS_PATTERN.test(userAgent)) {
-    botName = 'AI数据采集';
+    botName = extractAiArchiveName(userAgent);
+  } else {
+    // 4. Intelligence Fallback for Unknown Bots
+    // Try to extract the first token as the name (e.g. "Python/3.9" -> "Python", "Go-http-client" -> "Go-http-client")
+    const match = userAgent.match(/^([a-zA-Z0-9.\-_]+)/);
+    if (match && match[1]) {
+      botName = match[1];
+    }
   }
 
   // 4. Selective Logging Policy (The Data De-noiser)
@@ -51,7 +60,24 @@ export async function logServerBotHit(
   // - SILENTLY DROP everything else (Unknown 404s, standard user 404s, etc)
   const isSecurityBlock = status === 403;
   const isServerError = status >= 500 && status < 600;
-  const isAuditTarget = isSearchEngine || botName === 'SEO爬虫' || botName === 'AI数据采集';
+  const isAuditTarget =
+    isSearchEngine ||
+    botName === 'SEO商业爬虫' ||
+    botName === 'AI BOT' ||
+    // Legacy support (though we extract names now, fallback strings exist)
+    botName === 'SEO爬虫' ||
+    botName === 'AI数据采集' ||
+    // Specific names fallback logic not needed if generic check suffices, but 'botName' now holds 'GPTBot' etc.
+    // GPTBot is NOT 'AI BOT' string.
+    // So we need to check if it WAS identified as such.
+    // But wait, 'isSearchEngine' boolean handles the good bots.
+    // What handles the bad bots logic?
+    // We used constants patterns to set botName.
+    // We should rely on the Regex test result we ALREADY did.
+    // But we didn't store the boolean result of "is this an AI bot".
+    // Let's optimize:
+    SEO_SCRAPER_BOTS_PATTERN.test(userAgent) ||
+    AI_ARCHIVE_BOTS_PATTERN.test(userAgent);
 
   // Check if this is a system error (explicit reason passed via API)
   const hasSystemError = !!(meta?.reason || meta?.error_reason || meta?.error_message);

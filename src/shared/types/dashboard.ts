@@ -19,7 +19,7 @@ export interface DashboardStats {
         todayNotFound: number;
         blockedVsAllowed: { type: string; count: number }[];
         topBots: BotStat[];
-        blockedPaths: { path: string; count: number }[];
+        blockedPaths: { path: string; count: number; bot_name?: string }[];
         anomalyPaths: { path: string; count: number; reason?: string }[];
     };
     aiSummary?: string;

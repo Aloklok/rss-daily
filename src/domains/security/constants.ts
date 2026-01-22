@@ -81,27 +81,82 @@ export const SEARCH_ENGINE_KEYWORDS = [
 export const SEO_SCRAPER_BOTS_PATTERN =
   /AhrefsBot|SemrushBot|MJ12bot|Dotbot|DataForSeoBot|Barkrowler|ZoominfoBot|BLEXBot|SeekportBot|Scrapy/i;
 
+export const SEO_SCRAPER_NAME_PATTERNS: Array<{ pattern: RegExp; name: string }> = [
+  { pattern: /AhrefsBot/i, name: 'AhrefsBot' },
+  { pattern: /SemrushBot/i, name: 'SemrushBot' },
+  { pattern: /MJ12bot/i, name: 'MJ12bot' },
+  { pattern: /Dotbot/i, name: 'Dotbot' },
+  { pattern: /DataForSeoBot/i, name: 'DataForSeoBot' },
+  { pattern: /Barkrowler/i, name: 'Barkrowler' },
+  { pattern: /ZoominfoBot/i, name: 'ZoominfoBot' },
+  { pattern: /BLEXBot/i, name: 'BLEXBot' },
+  { pattern: /SeekportBot/i, name: 'SeekportBot' },
+  { pattern: /Scrapy/i, name: 'Scrapy' },
+];
+
 // ============================================================
 // 4. AI/Archive 机器人拦截清单 (403 + 记录)
 // ============================================================
 export const AI_ARCHIVE_BOTS_PATTERN =
   /archive\.org_bot|DuckAssistBot|meta-externalfetcher|MistralAI-User|OAI-SearchBot|Perplexity-User|PerplexityBot|ProRataInc|GPTBot|ChatGPT-User|CCBot|anthropic-ai|Claude-Web|Google-Extended|Amazonbot|cohere-ai|Deepseek/i;
 
+export const AI_ARCHIVE_NAME_PATTERNS: Array<{ pattern: RegExp; name: string }> = [
+  { pattern: /archive\.org_bot/i, name: 'Archive.org' },
+  { pattern: /DuckAssistBot/i, name: 'DuckAssistBot' },
+  { pattern: /meta-externalfetcher/i, name: 'Meta-AI' },
+  { pattern: /MistralAI-User/i, name: 'MistralAI' },
+  { pattern: /OAI-SearchBot/i, name: 'OpenAI-Search' },
+  { pattern: /Perplexity-User|PerplexityBot/i, name: 'Perplexity' },
+  { pattern: /ProRataInc/i, name: 'ProRata' },
+  { pattern: /GPTBot|ChatGPT-User/i, name: 'GPTBot' },
+  { pattern: /CCBot/i, name: 'CCBot' },
+  { pattern: /anthropic-ai|Claude-Web/i, name: 'ClaudeBot' },
+  { pattern: /Google-Extended/i, name: 'Google-Extended' },
+  { pattern: /Amazonbot/i, name: 'Amazonbot' },
+  { pattern: /cohere-ai/i, name: 'Cohere' },
+  { pattern: /Deepseek/i, name: 'DeepSeek' },
+];
+
 // ============================================================
 // 5. 辅助函数
 // ============================================================
+
+/**
+ * 通用提取函数：从 User-Agent 中提取 Bot 名称
+ */
+function extractBotName(
+  userAgent: string,
+  patterns: Array<{ pattern: RegExp; name: string }>,
+  defaultName: string,
+): string {
+  for (const { pattern, name } of patterns) {
+    if (pattern.test(userAgent)) {
+      return name;
+    }
+  }
+  return defaultName;
+}
 
 /**
  * 从 User-Agent 中提取搜索引擎名称
  * @returns 匹配的搜索引擎名称，未匹配返回 'Search-Engine'
  */
 export function extractSearchEngineName(userAgent: string): string {
-  for (const { pattern, name } of SEARCH_ENGINE_NAME_PATTERNS) {
-    if (pattern.test(userAgent)) {
-      return name;
-    }
-  }
-  return '搜索引擎';
+  return extractBotName(userAgent, SEARCH_ENGINE_NAME_PATTERNS, '搜索引擎');
+}
+
+/**
+ * 从 User-Agent 中提取 SEO 爬虫名称
+ */
+export function extractSeoScraperName(userAgent: string): string {
+  return extractBotName(userAgent, SEO_SCRAPER_NAME_PATTERNS, 'SEO商业爬虫');
+}
+
+/**
+ * 从 User-Agent 中提取 AI/Archive 机器人名称
+ */
+export function extractAiArchiveName(userAgent: string): string {
+  return extractBotName(userAgent, AI_ARCHIVE_NAME_PATTERNS, 'AI BOT');
 }
 
 /**

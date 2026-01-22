@@ -473,14 +473,21 @@ export default function DashboardPage(): React.JSX.Element {
                         stats.security.blockedPaths.map((item, idx) => (
                           <div
                             key={idx}
-                            className="group flex items-center justify-between border-b border-red-50 py-1 last:border-0"
+                            className="group flex flex-col border-b border-red-50 py-1 last:border-0"
                           >
-                            <code className="max-w-[70%] truncate rounded bg-red-50 px-2 py-0.5 font-mono text-[9px] text-red-600 transition-all group-hover:bg-red-100">
-                              {item.path}
-                            </code>
-                            <span className="text-[10px] font-bold text-red-400 tabular-nums">
-                              {item.count}
-                            </span>
+                            <div className="flex items-center justify-between">
+                              <code className="max-w-[70%] truncate rounded bg-red-50 px-2 py-0.5 font-mono text-[9px] text-red-600 transition-all group-hover:bg-red-100">
+                                {item.path}
+                              </code>
+                              <span className="text-[10px] font-bold text-red-400 tabular-nums">
+                                {item.count}
+                              </span>
+                            </div>
+                            {item.bot_name && (
+                              <p className="mt-0.5 px-2 text-[8px] font-bold text-red-300">
+                                {item.bot_name}
+                              </p>
+                            )}
                           </div>
                         ))
                       ) : (

@@ -79,15 +79,29 @@ graph TD
 
 ## 6. 数据库模型 (`bot_hits`)
 
-| 字段           | 类型    | 说明                                       |
-| :------------- | :------ | :----------------------------------------- |
-| `request_id`   | text/PK | 唯一请求 ID (来自 x-vercel-id 或 UUID)     |
-| `bot_name`     | text    | 归类名称 (e.g., "Googlebot", "AI-Bot")     |
-| `path`         | text    | 请求路径 (由 x-current-path 注入)          |
-| `status`       | int4    | HTTP 状态码 (200, 403, 404, 500)           |
-| `error_reason` | text    | 分类报错原因，见下方说明                   |
-| `ip_country`   | text    | ISO 国家代码                               |
-| `meta`         | jsonb   | 附加上下文 (三层路径追踪、UserAgent详情等) |
+| 字段         | 类型    | 说明                                               |
+| :----------- | :------ | :------------------------------------------------- |
+| `request_id` | text/PK | 唯一请求 ID (来自 x-vercel-id 或 UUID)             |
+| `bot_name`   | text    | 精确名称 (e.g. "GPTBot") 或 分类名 (e.g. "AI BOT") |
+
+### 6.2 Bot 命名与分类策略 (2026 新增)
+
+系统采用 **“精准点名 + 智能兜底”** 的双层命名策略，彻底取代旧的粗暴归类：
+
+1.  **AI BOT (原 AI数据采集)**
+    - **精准识别**：优先提取具体名称（如 `GPTBot`, `ClaudeBot`, `DeepSeek`）。
+    - **兜底**：若属于 AI 特征但无法提取名字，归类为 `AI BOT`。
+2.  **SEO商业爬虫 (原 SEO爬虫)**
+    - **精准识别**：优先提取具体名称（如 `AhrefsBot`, `SemrushBot`）。
+    - **兜底**：若属于 SEO 特征但无法提取名字，归类为 `SEO商业爬虫`。
+3.  **未知爬虫智能识别**
+    _ 对于未命中上述白名单的 403 拦截流量，不再统一叫“未知爬虫”。
+    _ **提取算法**：System 会智能提取 User-Agent 的第一个单词作为名字（如 `curl`, `Python-urllib`, `Go-http-client`）。\* **最后防线**：仅当 UA 为空或无法提取时，才记录为 `未知爬虫`。
+    | `path` | text | 请求路径 (由 x-current-path 注入) |
+    | `status` | int4 | HTTP 状态码 (200, 403, 404, 500) |
+    | `error_reason` | text | 分类报错原因，见下方说明 |
+    | `ip_country` | text | ISO 国家代码 |
+    | `meta` | jsonb | 附加上下文 (三层路径追踪、UserAgent详情等) |
 
 ### 6.1 `error_reason` 分类规则
 
