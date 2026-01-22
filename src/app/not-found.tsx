@@ -6,11 +6,8 @@ import { logServerBotHit } from '@/domains/security/services/bot-logger';
 async function logFallbackError(headersList: Headers) {
   try {
     const userAgent = headersList.get('user-agent') || '';
-    const path =
-      headersList.get('x-current-path') || headersList.get('x-invoke-path') || '/unknown';
-
-    // 如果连路径都获取不到 (通常是绕过 middleware 的内部请求或静态资源)，记录也无意义，直接忽略
-    if (path === '/unknown') return;
+    // 优先使用中间件传递的 path，其次尝试 Next.js 内部 header，最后兜底
+    let path = headersList.get('x-current-path') || headersList.get('x-invoke-path') || '';
 
     const routePattern = headersList.get('x-route-pattern');
 
@@ -18,15 +15,28 @@ async function logFallbackError(headersList: Headers) {
     // 如果 edge 识别了路由 (routePattern 存在)，说明这是一次由页面组件触发的 (notFound())
     // 或者页面组件未能处理的 404。
     // 在新架构下，页面组件负责记录详细的业务/服务错误 (logBotError)。
-    // 因此，这里如果再记录 "未知错误"，会造成日志重复且掩盖真实原因。
-    // 所以：只记录 "路由不存在" (即 edge 无法识别路径) 的情况。
+    // 因此，这里如果再记录 "未知错误"，会造成日志重复。
+    // 所以：只有当 routePattern 存在时，我们才跳过（由页面组件负责）。
     if (routePattern) return;
 
-    const reason = '路由不存在';
+    // 如果没有 routePattern (绕过中间件) 且没有 path (通常是静态资源)，
+    // 我们仍然记录，但尝试提供更多调试信息。
+    let reason = '路由不存在';
+    let debugMeta = {};
+
+    if (!path) {
+      path = '(unknown_path)';
+      reason = '静态资源缺失或绕过';
+      // 收集所有 headers 用于调试诊断
+      const headerDump: Record<string, string> = {};
+      headersList.forEach((v, k) => (headerDump[k] = v));
+      debugMeta = { debug_headers: headerDump };
+    }
 
     await logServerBotHit(path, userAgent, headersList, 404, {
       source: 'not-found-fallback',
       reason,
+      ...debugMeta,
     });
   } catch (e) {
     console.error('Failed to log 404 fallback:', e);

@@ -270,5 +270,7 @@ export function proxy(request: NextRequest): NextResponse | Response {
 }
 
 export const config = {
-  matcher: ['/((?!api/|_vercel/|sitemap.xml|robots.txt|.+\\..+).*)'],
+  matcher: [
+    '/((?!api/|_vercel/|sitemap.xml|robots.txt|.*\\.(?:jpg|jpeg|png|gif|svg|ico|webp|avif|css|js|woff|woff2|ttf|eot|otf|mp4|webm|ogg|mp3|wav|map)$).*)',
+  ],
 };
