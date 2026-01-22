@@ -11,17 +11,25 @@ import {
 /**
  * Route Pattern Inference (Edge Layer)
  * Used to determine if a 404 is due to "route not found" or "ISR build failure"
+ * IMPORTANT: Keep this in sync with src/app directory structure
  */
 function getRoutePattern(path: string): string | null {
+  // Static routes
   if (path === '/') return '/';
   if (path === '/sources') return '/sources';
   if (path === '/archive') return '/archive';
   if (path === '/trends') return '/trends';
-  if (path === '/stream') return '/stream';
+  if (path === '/feed.xml') return '/feed.xml';
+
+  // Dynamic routes with parameters
   if (/^\/date\/\d{4}-\d{2}-\d{2}$/.test(path)) return '/date/[date]';
   if (/^\/article\/[a-f0-9]+$/i.test(path)) return '/article/[id]';
+  if (path.startsWith('/stream/')) return '/stream/[id]';
+
+  // Admin and API routes
   if (path.startsWith('/admin/')) return '/admin/*';
   if (path.startsWith('/api/')) return '/api/*';
+
   return null; // Unknown route pattern = likely route not found
 }
 

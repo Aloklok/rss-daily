@@ -3,6 +3,7 @@ import ArticleListHeader from '@/domains/reading/components/stream/StreamHeader'
 import StreamList from '@/domains/reading/components/stream/StreamContainer';
 import { fetchFilteredArticlesSSR } from '@/app/lib/server/ssr-helpers';
 import { getAvailableFilters } from '@/domains/reading/services';
+import NotFound from '../../not-found';
 
 // Enable ISR (Incremental Static Regeneration)
 // Revalidate every 7 days (604800 seconds), relying on on-demand revalidation for updates
@@ -61,14 +62,28 @@ export default async function StreamPage({ params }: { params: Promise<{ id: str
   const decodedId = decodeURIComponent(id);
   const tagName = decodedId.split('/').pop() || decodedId;
 
-  // Parallel fetch for efficiency
-  const [articlesData, filtersData] = await Promise.all([
-    fetchFilteredArticlesSSR(decodedId, 20, true),
-    getAvailableFilters(),
-  ]);
+  let articlesData;
+  let filtersData;
+  let errorReason: string | undefined;
 
-  const { articles, continuation } = articlesData;
-  const { categories } = filtersData;
+  try {
+    // Parallel fetch for efficiency
+    [articlesData, filtersData] = await Promise.all([
+      fetchFilteredArticlesSSR(decodedId, 20, true),
+      getAvailableFilters(),
+    ]);
+  } catch (e: any) {
+    console.error(`[StreamPage] Service call failed for ${decodedId}:`, e);
+    errorReason = `FreshRSS异常: ${e.message || 'unknown'}`;
+  }
+
+  // Service call failed
+  if (errorReason) {
+    return <NotFound reason={errorReason} />;
+  }
+
+  const { articles, continuation } = articlesData!;
+  const { categories } = filtersData!;
 
   // Extract keywords for UI
   const relatedTopics = getTopKeywords(articles, 8); // Reduced to 8 for cleaner header
