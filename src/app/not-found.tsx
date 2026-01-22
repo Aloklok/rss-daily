@@ -7,7 +7,11 @@ async function logFallbackError(headersList: Headers) {
   try {
     const userAgent = headersList.get('user-agent') || '';
     // 优先使用中间件传递的 path，其次尝试 Next.js 内部 header，最后兜底
-    let path = headersList.get('x-current-path') || headersList.get('x-invoke-path') || '';
+    let path =
+      headersList.get('x-current-path') ||
+      headersList.get('x-invoke-path') ||
+      headersList.get('x-matched-path') ||
+      '';
 
     const routePattern = headersList.get('x-route-pattern');
 
