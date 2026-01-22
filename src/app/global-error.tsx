@@ -36,6 +36,7 @@ export default function GlobalError({
           userAgent,
           status: 500,
           errorDigest: error.digest,
+          reason: `Client 500: ${error.message || 'Unknown Error'}`,
         }),
       }).catch(() => {});
     }

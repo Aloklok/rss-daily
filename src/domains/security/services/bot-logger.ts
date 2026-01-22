@@ -63,8 +63,14 @@ export async function logServerBotHit(
   try {
     const country = headers.get('x-vercel-ip-country') || '';
     const requestId = headers.get('x-vercel-id');
-    // Extract error reason from meta if present
-    const errorReason = meta?.reason || meta?.error_message || null;
+    // Extract error reason:
+    // 1. Explicitly passed 'error_reason' in meta (from logBotError / API)
+    // 2. Or fallback to 'reason' / 'error_message' in meta
+    const errorReason =
+      (meta?.error_reason as string) ||
+      (meta?.reason as string) ||
+      (meta?.error_message as string) ||
+      null;
 
     const payload = {
       bot_name: botName,
@@ -74,7 +80,7 @@ export async function logServerBotHit(
       ip_country: country || null,
       meta: meta || null,
       request_id: requestId || null,
-      error_reason: errorReason as string | null,
+      error_reason: errorReason,
     };
 
     // Every record must have a unique request_id (Primary Key)

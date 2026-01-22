@@ -34,6 +34,7 @@ export default function Error({
           userAgent,
           status: 500,
           errorDigest: error.digest,
+          reason: `Runtime 500: ${error.message || 'Unknown Error'}`,
         }),
       }).catch(() => {
         // 静默失败，不影响用户体验

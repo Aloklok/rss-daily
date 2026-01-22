@@ -2,105 +2,78 @@ import Link from 'next/link';
 import { headers } from 'next/headers';
 import { logServerBotHit } from '@/domains/security/services/bot-logger';
 
-/**
- * Determine error_reason category based on context:
- * - 路由不存在: Route pattern is unknown (Edge layer didn't recognize path)
- * - Supabase异常: Supabase service call failed
- * - FreshRSS异常: FreshRSS service call failed
- * - 服务异常: Both services failed
- * - 文章不存在: Article ID not found in database
- * - 数据不存在: Other business logic 404
- * - 未知错误: Route exists but no specific reason (fallback)
- */
-function determineErrorReason(
-  routePattern: string | null,
-  businessReason: string | undefined,
-): string {
-  // Case 1: Business logic explicitly passed a categorized reason
-  // These prefixes are set by page components
-  if (businessReason) {
-    // Service-level errors (from fetchArticleById with detailed tracking)
-    if (businessReason.startsWith('Supabase异常:')) return businessReason;
-    if (businessReason.startsWith('FreshRSS异常:')) return businessReason;
-    if (businessReason.startsWith('FreshRSS服务异常:')) return businessReason;
-    if (businessReason.startsWith('服务异常:')) return businessReason;
-    // Data-level errors
-    if (businessReason.startsWith('文章不存在:')) return businessReason;
-    if (businessReason === 'zero_articles_for_valid_date') return '数据不存在: 该日期无文章';
-    // Any other non-default reason
-    if (businessReason !== 'Path not matched') {
-      return `数据不存在: ${businessReason}`;
-    }
-  }
+// 兜底日志：只在 Next.js 直接触发 404（非页面组件主动调用）时记录
+async function logFallbackError(headersList: Headers) {
+  try {
+    const userAgent = headersList.get('user-agent') || '';
+    const path =
+      headersList.get('x-current-path') || headersList.get('x-invoke-path') || '/unknown';
+    const routePattern = headersList.get('x-route-pattern');
 
-  // Case 2: Edge layer didn't recognize this path pattern -> Route truly doesn't exist
-  if (!routePattern) {
-    return '路由不存在';
-  }
+    // 只有当 edge 层识别了路由，但页面依然 404 时（且没有被页面组件捕获），才是"未知错误"
+    // 或者是真正的"路由不存在"（routePattern 为空）
+    const reason = routePattern ? `未知错误: ${routePattern}` : '路由不存在';
 
-  // Case 3: Route pattern exists but no business reason -> Unknown error
-  return `未知错误: ${routePattern}`;
+    // 注意：这里我们无法区分"已经记录过日志的 notFound() 调用"和"原生 404"
+    // 但由于我们在页面组件中记录的是 API 调用，这里是服务端组件渲染
+    // 如果 bot_hits 表中已经有了 API 记录的日志，这里可能会有一条重复的 "未知错误" 或 "路由不存在"
+    // 但这是可接受的，作为最后的防线。
+    // 更优化的做法是：页面组件 notFound() 前设置一个 header 标记，但这需要 middleware 配合，过于复杂。
+    // 目前保持简单：兜底记录。
+
+    await logServerBotHit(path, userAgent, headersList, 404, {
+      source: 'not-found-fallback',
+      reason,
+    });
+  } catch (e) {
+    console.error('Failed to log 404 fallback:', e);
+  }
 }
 
-export default async function NotFound({ reason }: { reason?: string }) {
+export default async function NotFound() {
   const headersList = await headers();
-  const userAgent = headersList.get('user-agent') || '';
-  // Enhanced path detection - capture ALL possible path indicators
-  const path = headersList.get('x-current-path') || headersList.get('x-invoke-path') || '/unknown';
-  const rawInvokePath = headersList.get('x-invoke-path'); // Original request path
-  const nextMatchedPath = headersList.get('x-nextjs-matched-path'); // Next.js routing info
-  const routePattern = headersList.get('x-route-pattern'); // Edge-injected route pattern
 
-  const referer = headersList.get('referer');
-
-  // Calculate precise error_reason for analytics
-  const errorReason = determineErrorReason(routePattern, reason);
-
-  const meta = {
-    referer,
-    headers: {
-      'accept-language': headersList.get('accept-language'),
-      'sec-ch-ua': headersList.get('sec-ch-ua'),
-    },
-    source: 'not-found-page',
-    reason: errorReason,
-    // Enhanced path tracking
-    real_hit_path: path, // Path we're logging
-    raw_invoke_path: rawInvokePath, // Raw path from x-invoke-path
-    next_matched_path: nextMatchedPath, // Next.js matched pattern
-    route_pattern: routePattern, // Edge-inferred route pattern
-    // Vercel Edge diagnostics (helps identify if request reached Vercel)
-    edge_region: headersList.get('x-vercel-id')?.split('::')[0] || null, // e.g. hnd1 = Tokyo
-    vercel_request_id: headersList.get('x-vercel-id') || null,
-    request_timestamp: new Date().toISOString(),
-  };
-
-  // Fire and forget logging for 404s
-  logServerBotHit(path, userAgent, headersList, 404, meta).catch(console.error);
+  // 尝试记录兜底日志 fire-and-forget
+  logFallbackError(headersList).catch(() => {});
 
   return (
-    <div className="dark:bg-midnight-bg flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4 text-center">
-      <h1 className="mb-4 bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-6xl font-bold text-transparent">
-        404
-      </h1>
-      <h2 className="mb-4 text-2xl font-semibold text-gray-800 dark:text-gray-200">
-        Page Not Found
+    <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center">
+      <div className="mb-6 rounded-full bg-stone-100 p-4">
+        <svg
+          className="h-8 w-8 text-stone-500"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      </div>
+      <h2 className="font-serif text-2xl font-bold tracking-tight text-stone-900 md:text-3xl">
+        404 Not Found
       </h2>
-      <p className="mb-8 max-w-md text-gray-600 dark:text-gray-400">
-        Sorry, the page you are looking for does not exist. It might have been moved or deleted.
+      <p className="mt-4 max-w-md text-base leading-relaxed text-stone-600">
+        抱歉，我们找不到您要访问的页面。
+        <span className="mt-2 block text-sm text-stone-400">
+          可能是链接已过期或您输入的地址有误。
+        </span>
       </p>
-      <div className="flex gap-4">
+      <div className="mt-8 flex gap-4">
         <Link
           href="/"
-          className="rounded-full bg-indigo-600 px-6 py-2 text-white shadow-lg shadow-indigo-500/30 transition-colors hover:bg-indigo-700"
+          className="rounded-full bg-stone-900 px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-stone-800 focus:ring-2 focus:ring-stone-500 focus:ring-offset-2 focus:outline-none"
         >
-          Return Home
+          返回首页
         </Link>
         <Link
-          href="/trends"
-          className="dark:hover:bg-midnight-card rounded-full border border-gray-200 bg-white px-6 py-2 text-gray-800 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-transparent dark:text-gray-200"
+          href="/archive"
+          className="rounded-full border border-stone-200 bg-white px-6 py-2.5 text-sm font-medium text-stone-700 shadow-sm transition-colors hover:bg-stone-50 focus:ring-2 focus:ring-stone-500 focus:ring-offset-2 focus:outline-none"
         >
-          Explore Trends
+          浏览归档
         </Link>
       </div>
     </div>
