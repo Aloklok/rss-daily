@@ -255,6 +255,13 @@ export function proxy(request: NextRequest): NextResponse | Response {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-current-path', path);
 
+  // Also inject route pattern for non-search-engine traffic (e.g. unknown bots, users)
+  // This ensures not-found.tsx can distinguish between "true 404" and "business 404"
+  const routePattern = getRoutePattern(path);
+  if (routePattern) {
+    requestHeaders.set('x-route-pattern', routePattern);
+  }
+
   return NextResponse.next({
     request: {
       headers: requestHeaders,
