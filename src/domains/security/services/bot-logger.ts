@@ -46,12 +46,20 @@ export async function logServerBotHit(
   // 4. Selective Logging Policy (The Data De-noiser)
   // - Record all Security Blocks (403) regardless of agent
   // - Record Search Engine hits (200/404/5xx) for SEO audit
+  // - Record System Errors (with explicit reason) regardless of agent
   // - SILENTLY DROP everything else (Unknown 404s, standard user 404s, etc)
   const isSecurityBlock = status === 403;
   const isServerError = status >= 500 && status < 600;
   const isAuditTarget = isSearchEngine || botName === 'SEO爬虫' || botName === 'AI数据采集';
 
-  if (!isSecurityBlock && !(isAuditTarget && (status === 200 || status === 404 || isServerError))) {
+  // Check if this is a system error (explicit reason passed via API)
+  const hasSystemError = !!(meta?.reason || meta?.error_reason || meta?.error_message);
+
+  if (
+    !isSecurityBlock &&
+    !hasSystemError &&
+    !(isAuditTarget && (status === 200 || status === 404 || isServerError))
+  ) {
     return;
   }
 
