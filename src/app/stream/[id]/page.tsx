@@ -3,7 +3,8 @@ import ArticleListHeader from '@/domains/reading/components/stream/StreamHeader'
 import StreamList from '@/domains/reading/components/stream/StreamContainer';
 import { fetchFilteredArticlesSSR } from '@/app/lib/server/ssr-helpers';
 import { getAvailableFilters } from '@/domains/reading/services';
-import NotFound from '../../not-found';
+import { notFound } from 'next/navigation';
+import { logBotError } from '@/app/lib/server/log-bot-error';
 
 // Enable ISR (Incremental Static Regeneration)
 // Revalidate every 7 days (604800 seconds), relying on on-demand revalidation for updates
@@ -77,9 +78,10 @@ export default async function StreamPage({ params }: { params: Promise<{ id: str
     errorReason = `FreshRSS异常: ${e.message || 'unknown'}`;
   }
 
-  // Service call failed
+  // Service call failed - log and show 404
   if (errorReason) {
-    return <NotFound reason={errorReason} />;
+    await logBotError(`/stream/${id}`, errorReason);
+    notFound();
   }
 
   const { articles, continuation } = articlesData!;

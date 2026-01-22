@@ -2,7 +2,8 @@ import { fetchArticleById, fetchArticleContent } from '@/domains/reading/service
 import { Metadata } from 'next';
 import ArticleDetailClient from '@/domains/reading/components/article/ArticleDetailClient';
 import { stripTags } from '@/domains/reading/utils/content';
-import NotFound from '../../not-found';
+import { notFound } from 'next/navigation';
+import { logBotError } from '@/app/lib/server/log-bot-error';
 
 // Revert to Static/ISR for best performance
 export const revalidate = false;
@@ -69,7 +70,10 @@ export default async function ArticlePage({ params }: { params: Promise<{ id: st
         reason = `文章不存在: ID ${id}`;
     }
 
-    return <NotFound reason={reason} />;
+    // 先记录日志（不调用 headers()，不影响 ISR）
+    await logBotError(`/article/${id}`, reason);
+    // 然后调用 Next.js 原生 notFound()
+    notFound();
   }
 
   const article = result.article;

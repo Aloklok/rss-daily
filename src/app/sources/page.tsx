@@ -2,7 +2,8 @@ import { fetchSubscriptions } from '@/domains/reading/services';
 import SourceFilterClient from '@/domains/reading/components/search/SourceFilterClient';
 import { Metadata } from 'next';
 import { Suspense } from 'react';
-import NotFound from '../not-found';
+import { notFound } from 'next/navigation';
+import { logBotError } from '@/app/lib/server/log-bot-error';
 
 export const metadata: Metadata = {
   title: '按订阅源浏览 | RSS Briefing Hub',
@@ -21,12 +22,13 @@ export default async function SourcesPage() {
     subscriptions = await fetchSubscriptions();
   } catch (e: any) {
     console.error('[SourcesPage] fetchSubscriptions failed:', e);
-    errorReason = `FreshRSS服务异常: ${e.message || 'unknown'}`;
+    errorReason = `FreshRSS异常: ${e.message || 'unknown'}`;
   }
 
-  // If service call failed, show NotFound with precise reason
+  // If service call failed, log and show 404
   if (errorReason) {
-    return <NotFound reason={errorReason} />;
+    await logBotError('/sources', errorReason);
+    notFound();
   }
 
   return (

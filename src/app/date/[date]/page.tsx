@@ -3,7 +3,8 @@ import { fetchBriefingData, fetchAvailableDates } from '@/domains/reading/servic
 import { BRIEFING_IMAGE_WIDTH, BRIEFING_IMAGE_HEIGHT } from '@/domains/intelligence/constants';
 import BriefingClient from '@/domains/reading/components/briefing/BriefingClient';
 import { getTodayInShanghai } from '@/domains/reading/utils/date';
-import NotFound from '../../not-found';
+import { notFound } from 'next/navigation';
+import { logBotError } from '@/app/lib/server/log-bot-error';
 import { resolveBriefingImage } from '@/shared/utils/imageUtils';
 import { toShortId } from '@/shared/utils/idHelpers';
 
@@ -229,7 +230,8 @@ export default async function BriefingPage({ params }: { params: Promise<{ date:
   // Audit: Log explicit debug info if data is missing (which might cause soft 404s)
   // Audit: Handle Empty Data with Explicit 404
   if (allArticles.length === 0) {
-    return <NotFound reason="zero_articles_for_valid_date" />;
+    await logBotError(`/date/${date}`, '数据不存在: 该日期无文章');
+    notFound();
   }
 
   // Prefetch header image

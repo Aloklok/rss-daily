@@ -108,7 +108,20 @@ graph TD
 
 1. `proxy.ts` 的 `getRoutePattern()` 函数根据路径推断路由模式
 2. 搜索引擎放行时注入 `x-route-pattern` header
-3. `not-found.tsx` 的 `determineErrorReason()` 函数根据上下文计算分类
+3. **页面组件**在检测到 404 情况时：
+   - 调用 `logBotError(path, reason)` 记录到 `bot_hits` 表
+   - 然后调用 `notFound()` 返回 404 UI
+4. `not-found.tsx` 作为兜底，处理直接触发的 404
+
+**日志记录流程**：
+
+```
+页面组件 → logBotError() → /api/system/log-error → logServerBotHit() → Supabase
+                                ↓
+                           notFound()
+                                ↓
+                          not-found.tsx (纯 UI)
+```
 
 ## 7. 维护说明
 
