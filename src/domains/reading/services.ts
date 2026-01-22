@@ -376,49 +376,111 @@ export async function fetchArticleFromFreshRSS(id: string): Promise<Article | nu
   }
 }
 
-export async function fetchArticleById(id: string): Promise<Article | null> {
+// Result type for fetchArticleById with detailed error tracking
+export type FetchArticleResult =
+  | { success: true; article: Article }
+  | {
+      success: false;
+      article: null;
+      errorSource: 'supabase' | 'freshrss' | 'both';
+      errorMessage: string;
+    };
+
+export async function fetchArticleById(id: string): Promise<FetchArticleResult> {
   if (process.env.CI && !process.env.VERCEL) {
     return {
-      id,
-      created_at: new Date().toISOString(),
-      title: 'Mock Article',
-      link: 'http://example.com',
-      sourceName: 'Mock Source',
-      published: new Date().toISOString(),
-      category: 'Uncategorized',
-      briefingSection: BRIEFING_SECTIONS.REGULAR,
-      keywords: [],
-      verdict: { type: 'Neutral', score: 0, importance: BRIEFING_SECTIONS.REGULAR },
-      summary: 'Mock summary',
-      tldr: 'Mock TLDR',
-      highlights: 'Mock Highlights',
-      critiques: '',
-      marketTake: '',
-      tags: [],
+      success: true,
+      article: {
+        id,
+        created_at: new Date().toISOString(),
+        title: 'Mock Article',
+        link: 'http://example.com',
+        sourceName: 'Mock Source',
+        published: new Date().toISOString(),
+        category: 'Uncategorized',
+        briefingSection: BRIEFING_SECTIONS.REGULAR,
+        keywords: [],
+        verdict: { type: 'Neutral', score: 0, importance: BRIEFING_SECTIONS.REGULAR },
+        summary: 'Mock summary',
+        tldr: 'Mock TLDR',
+        highlights: 'Mock Highlights',
+        critiques: '',
+        marketTake: '',
+        tags: [],
+      },
     };
   }
-  const supabase = getSupabaseClient();
-  const fullId = toFullId(id);
-  const { data, error } = await supabase
-    .from('articles_view')
-    .select('*')
-    .eq('id', fullId)
-    .single();
 
-  if (error || !data) {
-    console.log(`Article ${id} not found in Supabase. Attempting FreshRSS fallback...`);
-    const fallbackArticle = await fetchArticleFromFreshRSS(id);
-    if (fallbackArticle) return fallbackArticle;
-    return null;
+  let supabaseError: string | null = null;
+  let freshRssError: string | null = null;
+
+  // 1. Try Supabase first
+  try {
+    const supabase = getSupabaseClient();
+    const fullId = toFullId(id);
+    const { data, error } = await supabase
+      .from('articles_view')
+      .select('*')
+      .eq('id', fullId)
+      .single();
+
+    if (!error && data) {
+      return {
+        success: true,
+        article: {
+          ...data,
+          highlights: cleanAIContent(data.highlights),
+          critiques: cleanAIContent(data.critiques),
+          marketTake: cleanAIContent(data.marketTake),
+          tldr: cleanAIContent(data.tldr),
+        },
+      };
+    }
+    // Supabase returned no data (not an exception, just not found)
+    supabaseError = error?.message || 'not found';
+  } catch (e: any) {
+    supabaseError = e.message || 'connection failed';
+    console.error(`[fetchArticleById] Supabase exception for ${id}:`, e);
   }
 
-  return {
-    ...data,
-    highlights: cleanAIContent(data.highlights),
-    critiques: cleanAIContent(data.critiques),
-    marketTake: cleanAIContent(data.marketTake),
-    tldr: cleanAIContent(data.tldr),
-  };
+  // 2. Fallback to FreshRSS
+  console.log(
+    `Article ${id} not found in Supabase (${supabaseError}). Attempting FreshRSS fallback...`,
+  );
+  try {
+    const fallbackArticle = await fetchArticleFromFreshRSS(id);
+    if (fallbackArticle) {
+      return { success: true, article: fallbackArticle };
+    }
+    freshRssError = 'not found';
+  } catch (e: any) {
+    freshRssError = e.message || 'connection failed';
+    console.error(`[fetchArticleById] FreshRSS exception for ${id}:`, e);
+  }
+
+  // 3. Both failed - return detailed error
+  if (supabaseError && freshRssError) {
+    return {
+      success: false,
+      article: null,
+      errorSource: 'both',
+      errorMessage: `Supabase: ${supabaseError}; FreshRSS: ${freshRssError}`,
+    };
+  } else if (freshRssError) {
+    return {
+      success: false,
+      article: null,
+      errorSource: 'freshrss',
+      errorMessage: freshRssError,
+    };
+  } else {
+    return {
+      success: false,
+      article: null,
+      errorSource: 'supabase',
+      errorMessage: supabaseError || 'unknown',
+    };
+  }
 }
 
 export const getAvailableFilters = unstable_cache(

@@ -13,13 +13,15 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const article = await fetchArticleById(id);
+  const result = await fetchArticleById(id);
 
-  if (!article) {
+  if (!result.success) {
     return {
       title: 'Article Not Found',
     };
   }
+
+  const article = result.article;
 
   // Truncate summary for description
   const description = article.summary
@@ -44,12 +46,33 @@ export async function generateMetadata({
 export default async function ArticlePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  // 1. Fetch metadata (Supabase)
-  const article = await fetchArticleById(id);
-  // Soft 404: Return 200 OK with NotFound UI to avoid SEO penalties/Bing errors
-  if (!article) {
-    return <NotFound reason={`Article with ID ${id} not found in DB or FreshRSS`} />;
+  // Fetch article with detailed error tracking
+  const result = await fetchArticleById(id);
+
+  // Handle failure with precise error classification
+  if (!result.success) {
+    const errorSource = result.errorSource;
+    const errorMessage = result.errorMessage;
+
+    let reason: string;
+    switch (errorSource) {
+      case 'supabase':
+        reason = `Supabase异常: ${errorMessage}`;
+        break;
+      case 'freshrss':
+        reason = `FreshRSS异常: ${errorMessage}`;
+        break;
+      case 'both':
+        reason = `服务异常: ${errorMessage}`;
+        break;
+      default:
+        reason = `文章不存在: ID ${id}`;
+    }
+
+    return <NotFound reason={reason} />;
   }
+
+  const article = result.article;
 
   // 2. Fetch full content (FreshRSS) - Server Side
   // This content is cached by ISR.

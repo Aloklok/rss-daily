@@ -5,16 +5,32 @@ import { logServerBotHit } from '@/domains/security/services/bot-logger';
 /**
  * Determine error_reason category based on context:
  * - 路由不存在: Route pattern is unknown (Edge layer didn't recognize path)
- * - 数据不存在: Route exists but business logic returned 404 (e.g., article ID invalid)
- * - ISR构建失败: Route exists but ISR generation failed (external service timeout)
+ * - Supabase异常: Supabase service call failed
+ * - FreshRSS异常: FreshRSS service call failed
+ * - 服务异常: Both services failed
+ * - 文章不存在: Article ID not found in database
+ * - 数据不存在: Other business logic 404
+ * - 未知错误: Route exists but no specific reason (fallback)
  */
 function determineErrorReason(
   routePattern: string | null,
   businessReason: string | undefined,
 ): string {
-  // Case 1: Business logic explicitly passed a reason (e.g., "Article not found")
-  if (businessReason && businessReason !== 'Path not matched') {
-    return `数据不存在: ${businessReason}`;
+  // Case 1: Business logic explicitly passed a categorized reason
+  // These prefixes are set by page components
+  if (businessReason) {
+    // Service-level errors (from fetchArticleById with detailed tracking)
+    if (businessReason.startsWith('Supabase异常:')) return businessReason;
+    if (businessReason.startsWith('FreshRSS异常:')) return businessReason;
+    if (businessReason.startsWith('FreshRSS服务异常:')) return businessReason;
+    if (businessReason.startsWith('服务异常:')) return businessReason;
+    // Data-level errors
+    if (businessReason.startsWith('文章不存在:')) return businessReason;
+    if (businessReason === 'zero_articles_for_valid_date') return '数据不存在: 该日期无文章';
+    // Any other non-default reason
+    if (businessReason !== 'Path not matched') {
+      return `数据不存在: ${businessReason}`;
+    }
   }
 
   // Case 2: Edge layer didn't recognize this path pattern -> Route truly doesn't exist
@@ -22,8 +38,8 @@ function determineErrorReason(
     return '路由不存在';
   }
 
-  // Case 3: Route pattern exists but no business reason -> Likely ISR build failure
-  return `ISR构建失败: ${routePattern}`;
+  // Case 3: Route pattern exists but no business reason -> Unknown error
+  return `未知错误: ${routePattern}`;
 }
 
 export default async function NotFound({ reason }: { reason?: string }) {
