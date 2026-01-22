@@ -8,6 +8,10 @@ async function logFallbackError(headersList: Headers) {
     const userAgent = headersList.get('user-agent') || '';
     const path =
       headersList.get('x-current-path') || headersList.get('x-invoke-path') || '/unknown';
+
+    // 如果连路径都获取不到 (通常是绕过 middleware 的内部请求或静态资源)，记录也无意义，直接忽略
+    if (path === '/unknown') return;
+
     const routePattern = headersList.get('x-route-pattern');
 
     // 策略调整：
