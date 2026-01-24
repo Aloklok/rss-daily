@@ -38,10 +38,13 @@ async function logFallbackError(headersList: Headers) {
     if (!path) {
       path = '(unknown_path)';
       reason = '静态资源缺失或绕过';
-      // 收集所有 headers 用于调试诊断
-      const headerDump: Record<string, string> = {};
-      headersList.forEach((v, k) => (headerDump[k] = v));
-      debugMeta = { debug_headers: headerDump };
+      // 收集关键 headers 用于诊断（避免泄露敏感信息）
+      debugMeta = {
+        debug_referer: headersList.get('referer') || 'none',
+        debug_host: headersList.get('host') || 'none',
+        debug_accept: headersList.get('accept')?.substring(0, 50) || 'none',
+        debug_route_pattern: headersList.get('x-route-pattern') || 'none',
+      };
     }
 
     await logServerBotHit(path, userAgent, headersList, 404, {

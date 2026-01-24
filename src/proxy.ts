@@ -6,6 +6,8 @@ import {
   AI_ARCHIVE_BOTS_PATTERN,
   INTERNAL_WARMUP_PATTERN,
   extractSearchEngineName,
+  extractSeoScraperName,
+  extractAiArchiveName,
 } from '@/domains/security/constants';
 
 /**
@@ -169,6 +171,7 @@ export function proxy(request: NextRequest): NextResponse | Response {
       {
         referer,
         malicious_pattern: 'wp/php/env/git',
+        error_reason: '恶意路径扫描',
       } as any,
       requestId,
     );
@@ -205,15 +208,33 @@ export function proxy(request: NextRequest): NextResponse | Response {
 
   // --- Security Rule 4: SEO Scrapers & Aggressive Bots (Cloudflare Style) ---
   if (SEO_SCRAPER_BOTS_PATTERN.test(userAgent)) {
-    console.warn(`[BOT-BLOCKED] Scraper: ${userAgent} | Path: ${path}`);
-    logBotHit('SEO爬虫', path, userAgent, 403, country, { referer } as any, requestId);
+    const seoName = extractSeoScraperName(userAgent);
+    console.warn(`[BOT-BLOCKED] Scraper: ${seoName} | Path: ${path}`);
+    logBotHit(
+      seoName,
+      path,
+      userAgent,
+      403,
+      country,
+      { referer, error_reason: 'SEO商业爬虫拦截' } as any,
+      requestId,
+    );
     return new Response('Access Denied: Automated scraping is not permitted.', { status: 403 });
   }
 
   // --- Security Rule 5: Specific AI & Archive Bots ---
   if (AI_ARCHIVE_BOTS_PATTERN.test(userAgent)) {
-    console.warn(`[BOT-BLOCKED] AI/Archive: ${userAgent} | Path: ${path}`);
-    logBotHit('AI数据采集', path, userAgent, 403, country, { referer } as any, requestId);
+    const aiName = extractAiArchiveName(userAgent);
+    console.warn(`[BOT-BLOCKED] AI/Archive: ${aiName} | Path: ${path}`);
+    logBotHit(
+      aiName,
+      path,
+      userAgent,
+      403,
+      country,
+      { referer, error_reason: 'AI机器人拦截' } as any,
+      requestId,
+    );
     return new Response('Access Denied: AI training/archiving is restricted.', { status: 403 });
   }
 

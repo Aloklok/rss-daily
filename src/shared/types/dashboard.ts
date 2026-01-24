@@ -2,6 +2,8 @@ export interface BotStat {
     name: string;
     allowed_count: number;
     blocked_count: number;
+    status_403_count: number;
+    status_404_count: number;
     error_paths: string[];
 }
 

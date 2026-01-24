@@ -546,25 +546,41 @@ export default function DashboardPage(): React.JSX.Element {
                   <h3 className="text-[11px] font-black tracking-widest text-red-800 uppercase">
                     异常流量与安全审计 (4xx/5xx)
                   </h3>
-                  <span className="rounded-md bg-red-500 px-2 py-0.5 text-[9px] font-black text-white shadow-sm shadow-red-500/30">
-                    拦截类别
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-md bg-red-500 px-2 py-0.5 text-[9px] font-black text-white shadow-sm shadow-red-500/30">
+                      403 拦截
+                    </span>
+                    <span className="rounded-md bg-violet-400 px-2 py-0.5 text-[9px] font-black text-white shadow-sm shadow-violet-400/30">
+                      404 探测
+                    </span>
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                   {otherBots.length > 0 ? (
                     otherBots.slice(0, 8).map((bot, idx) => {
+                      const is403Dominant =
+                        (bot.status_403_count || 0) >= (bot.status_404_count || 0);
+                      const bgColor = is403Dominant
+                        ? 'border-red-100 bg-red-50/30'
+                        : 'border-violet-100 bg-violet-50/30';
+                      const textColor = is403Dominant ? 'text-red-600' : 'text-violet-600';
                       const total = bot.allowed_count + bot.blocked_count;
                       return (
                         <div
                           key={idx}
-                          className="flex items-center gap-3 rounded-lg border border-red-100 bg-red-50/30 p-3"
+                          className={`flex items-center gap-3 rounded-lg border p-3 ${bgColor}`}
                         >
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-[10px] font-bold text-stone-600">
                               {bot.name || 'Unknown'}
                             </p>
+                            <p className="mt-0.5 text-[8px] font-medium text-stone-400">
+                              {bot.status_403_count || 0} 拦截 / {bot.status_404_count || 0} 探测
+                            </p>
                           </div>
-                          <div className="text-right font-mono text-sm font-black text-red-600 tabular-nums">
+                          <div
+                            className={`text-right font-mono text-sm font-black tabular-nums ${textColor}`}
+                          >
                             {total}
                           </div>
                         </div>

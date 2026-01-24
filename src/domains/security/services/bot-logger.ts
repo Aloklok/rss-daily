@@ -49,7 +49,33 @@ export async function logServerBotHit(
     // Try to extract the first token as the name (e.g. "Python/3.9" -> "Python", "Go-http-client" -> "Go-http-client")
     const match = userAgent.match(/^([a-zA-Z0-9.\-_]+)/);
     if (match && match[1]) {
-      botName = match[1];
+      const token = match[1].toLowerCase();
+      // 过滤浏览器伪装 UA（真实浏览器不会被记录，因为不满足后续 isAuditTarget 条件）
+      if (token === 'mozilla') {
+        // 检测是否为恶意路径探测（/admin, /login 等常见后台路径）
+        const MALICIOUS_PATH_PATTERN =
+          /^\/(admin|login|register|user|administrator|wp-|\.env|\.git)/i;
+        if (MALICIOUS_PATH_PATTERN.test(path)) {
+          botName = '目录扫描';
+        } else {
+          botName = '未知浏览器';
+        }
+      } else if (
+        [
+          'curl',
+          'wget',
+          'python',
+          'go-http-client',
+          'okhttp',
+          'python-requests',
+          'python-urllib',
+        ].includes(token)
+      ) {
+        // 这些工具类 UA 访问非 API 路径，大概率是扫描器
+        botName = '脚本探测';
+      } else {
+        botName = match[1];
+      }
     }
   }
 
@@ -64,18 +90,7 @@ export async function logServerBotHit(
     isSearchEngine ||
     botName === 'SEO商业爬虫' ||
     botName === 'AI BOT' ||
-    // Legacy support (though we extract names now, fallback strings exist)
-    botName === 'SEO爬虫' ||
-    botName === 'AI数据采集' ||
-    // Specific names fallback logic not needed if generic check suffices, but 'botName' now holds 'GPTBot' etc.
-    // GPTBot is NOT 'AI BOT' string.
-    // So we need to check if it WAS identified as such.
-    // But wait, 'isSearchEngine' boolean handles the good bots.
-    // What handles the bad bots logic?
-    // We used constants patterns to set botName.
-    // We should rely on the Regex test result we ALREADY did.
-    // But we didn't store the boolean result of "is this an AI bot".
-    // Let's optimize:
+    // 依赖正则测试结果，确保精确提取的名称（如 GPTBot, AhrefsBot）也被记录
     SEO_SCRAPER_BOTS_PATTERN.test(userAgent) ||
     AI_ARCHIVE_BOTS_PATTERN.test(userAgent);
 

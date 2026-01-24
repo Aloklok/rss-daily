@@ -145,12 +145,19 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     if (existing) {
       existing.allowed_count += bot.allowed_count;
       existing.blocked_count += bot.blocked_count;
+      existing.status_403_count += bot.status_403_count || 0;
+      existing.status_404_count += bot.status_404_count || 0;
       // Merge error paths
       if (bot.error_paths) {
         existing.error_paths = [...(existing.error_paths || []), ...bot.error_paths].slice(0, 5);
       }
     } else {
-      aggregatedBotsMap.set(groupName, { ...bot, name: groupName });
+      aggregatedBotsMap.set(groupName, {
+        ...bot,
+        name: groupName,
+        status_403_count: bot.status_403_count || 0,
+        status_404_count: bot.status_404_count || 0,
+      });
     }
   });
 

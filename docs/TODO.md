@@ -45,6 +45,8 @@
 - [ ] **Embedding 异步化**: 从 `revalidate` 关键路径剥离 embedding 自动生成，改为队列异步补齐，避免外部配额/429 影响缓存更新链路。改动难度：中，性能提升：低（侧重稳定性）。
 - [ ] **缓存一致性操作手册**: 明确“数据缓存（unstable_cache tags）+ 页面 ISR（revalidatePath）”必须成对失效的规则，并补充排障步骤与兜底策略。改动难度：低，性能提升：无（侧重一致性与可运维）。
 - [ ] **类型安全强化**: 将 `any` 类型声明替换为 Supabase 自动生成的强类型，实现全链路 Type-Safe。改动难度：中，性能提升：无（侧重代码质量）。
+- [ ] **恶意扫描聚合视图**: 在 Supabase 中创建 `bot_hits_daily_summary` 视图，按日期/Bot 名称/状态码聚合统计，方便 Dashboard 快速查询。改动难度：低，性能提升：低（侧重运维效率）。
+- [ ] **IP 封禁决策支持**: 在 `bot_hits.meta` 中记录 IP 哈希，添加 Supabase Function 定期分析高频恶意 IP 并生成封禁建议，通过 Vercel Edge Config 实现动态封禁。改动难度：高，性能提升：低（侧重安全防护）。
 
 ### 🧪 自动化测试与质量
 
