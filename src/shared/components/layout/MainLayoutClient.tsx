@@ -54,6 +54,13 @@ export default function MainLayoutClient({
     checkAdminStatus();
   }, [checkAdminStatus]);
 
+  // Sync available filters when they change (e.g. after language navigation)
+  useEffect(() => {
+    if (initialAvailableFilters) {
+      useArticleStore.setState({ availableFilters: initialAvailableFilters });
+    }
+  }, [initialAvailableFilters]);
+
   // Handle body overflow for mobile sidebar only
   useEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth < 768 && isMobileOpen) {

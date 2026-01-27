@@ -28,13 +28,17 @@ interface SourceFilterClientProps {
 // ... (existing code)
 
 // Custom Card with Summary on Right (matching SearchListItem style)
-const SourceListItem: React.FC<{ articleId: string | number; dict: Dictionary }> = ({ articleId, dict }) => {
+const SourceListItem: React.FC<{ articleId: string | number; dict: Dictionary }> = ({
+  articleId,
+  dict,
+}) => {
   const openModal = useUIStore((state) => state.openModal);
   const article = useArticleStore((state) => state.articlesById[articleId]);
   const { userTagLabels } = useArticleMetadata(article);
 
   if (!article) return null;
 
+  const sourceName = getDisplayLabel(article.sourceName, 'feed', dict.lang === 'zh' ? 'zh' : 'en');
   const hasSummary = !!(article.tldr || article.summary);
 
   const handleClick = () => {
@@ -57,9 +61,13 @@ const SourceListItem: React.FC<{ articleId: string | number; dict: Dictionary }>
           </h3>
 
           <div className="mb-4 flex items-center gap-3 text-xs font-bold tracking-wider text-stone-500 uppercase">
-            <span className="text-stone-700 dark:text-stone-400">{article.sourceName}</span>
+            <span className="text-stone-700 dark:text-stone-400">{sourceName}</span>
             <span className="size-1 rounded-full bg-stone-300 dark:bg-stone-600"></span>
-            <span>{new Date(article.published).toLocaleDateString(dict.lang === 'zh' ? 'zh-CN' : 'en-US')}</span>
+            <span>
+              {new Date(article.published).toLocaleDateString(
+                dict.lang === 'zh' ? 'zh-CN' : 'en-US',
+              )}
+            </span>
           </div>
 
           {userTagLabels.length > 0 && (
@@ -69,7 +77,7 @@ const SourceListItem: React.FC<{ articleId: string | number; dict: Dictionary }>
                   key={tag}
                   className={`rounded-full px-2.5 py-1 text-xs font-semibold ${getRandomColorClass(tag)}`}
                 >
-                  {tag}
+                  {getDisplayLabel(tag, 'tag', dict.lang === 'zh' ? 'zh' : 'en')}
                 </span>
               ))}
             </div>
@@ -100,7 +108,11 @@ const SourceListItem: React.FC<{ articleId: string | number; dict: Dictionary }>
   );
 };
 
-export default function SourceFilterClient({ subscriptions, dict, tableName = 'articles_view' }: SourceFilterClientProps) {
+export default function SourceFilterClient({
+  subscriptions,
+  dict,
+  tableName = 'articles_view',
+}: SourceFilterClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sourceId = searchParams.get('source');
@@ -182,7 +194,10 @@ export default function SourceFilterClient({ subscriptions, dict, tableName = 'a
               >
                 <option value="">{dict.sources.placeholder}</option>
                 {sortedCategories.map((category) => (
-                  <optgroup key={category} label={getDisplayLabel(category, 'category', dict.lang as 'zh' | 'en')}>
+                  <optgroup
+                    key={category}
+                    label={getDisplayLabel(category, 'category', dict.lang as 'zh' | 'en')}
+                  >
                     {groupedSubscriptions[category].map((sub) => (
                       <option key={sub.id} value={sub.id}>
                         {getDisplayLabel(sub.title, 'feed', dict.lang as 'zh' | 'en')}

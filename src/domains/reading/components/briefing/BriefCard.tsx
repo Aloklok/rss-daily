@@ -534,14 +534,14 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   showActions = true,
   dict = zh,
 }) => {
-  const lang = dict === zh ? 'zh' : 'en';
+  const lang = dict.lang === 'zh' ? 'zh' : 'en';
 
   const displaySourceName = getDisplayLabel(article.sourceName || '', 'feed', lang);
   const displayVerdictType = getDisplayLabel(article.verdict?.type || '', 'verdict', lang);
   const displayCategory = getDisplayLabel(article.category || '', 'category', lang);
 
   const publishedDate = new Date(article.published).toLocaleDateString(
-    dict === zh ? 'zh-CN' : 'en-US',
+    dict.lang === 'zh' ? 'zh-CN' : 'en-US',
     {
       month: 'long',
       day: 'numeric',

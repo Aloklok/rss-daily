@@ -35,38 +35,65 @@ const BATCH_SIZE = 5; // 每批次翻译 5 篇
 const CONCURRENCY = 3; // 并发请求数，加速整体进度
 const DELAY_BETWEEN_BATCHES_MS = 1000; // 批次间隔稍微缩小
 
+/**
+ * 递归获取所有 ID，突破 Supabase 1000 条限制
+ */
+async function fetchAllIds(tableName: string, hasSummary: boolean = false) {
+  let allIds: { id: string | number }[] = [];
+  let from = 0;
+  const PAGE_SIZE = 1000;
+
+  while (true) {
+    let query = supabase
+      .from(tableName)
+      .select('id')
+      .range(from, from + PAGE_SIZE - 1);
+
+    if (hasSummary) {
+      query = query.not('summary', 'is', null);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error(`❌ Failed to fetch IDs from ${tableName}:`, error);
+      throw error;
+    }
+
+    if (!data || data.length === 0) break;
+
+    allIds = allIds.concat(data);
+    if (data.length < PAGE_SIZE) break;
+    from += PAGE_SIZE;
+  }
+
+  return allIds;
+}
+
 async function backfillTranslations() {
   console.log('🌐 Starting backfill translations (Concurrent Mode)...');
   console.log(`🤖 Model: ${DEFAULT_TRANSLATION_MODEL}`);
   console.log(`📦 Batch Size: ${BATCH_SIZE} | ⚡ Concurrency: ${CONCURRENCY}`);
 
-  // ... 获取 ID 逻辑保持不变
   if (limit) {
     console.log(`📊 Limit: ${limit} articles`);
   }
 
-  // 1. 获取所有 ID 以进行精准差集计算
-  const { data: allArticleIds, error: allIdsError } = await supabase
-    .from('articles')
-    .select('id')
-    .not('summary', 'is', null);
+  // 1. 获取所有 ID 以进行精准差集计算 (全量抓取)
+  let allArticleIdList: (string | number)[] = [];
+  let translatedIdSet = new Set<string | number>();
 
-  if (allIdsError) {
-    console.error('❌ Failed to fetch article IDs:', allIdsError);
+  try {
+    const [allIds, tIds] = await Promise.all([
+      fetchAllIds('articles', true),
+      fetchAllIds('articles_en'),
+    ]);
+    allArticleIdList = allIds.map((r) => r.id);
+    translatedIdSet = new Set(tIds.map((r) => r.id));
+  } catch (_e) {
     return;
   }
 
-  const { data: translatedIds, error: translatedError } = await supabase
-    .from('articles_en')
-    .select('id');
-
-  if (translatedError) {
-    console.error('❌ Failed to fetch translated IDs:', translatedError);
-    return;
-  }
-
-  const translatedIdSet = new Set((translatedIds || []).map((r) => r.id));
-  const allArticleIdList = (allArticleIds || []).map((r) => r.id);
   const untranslatedIds = allArticleIdList.filter((id) => !translatedIdSet.has(id));
   const totalPending = untranslatedIds.length;
 

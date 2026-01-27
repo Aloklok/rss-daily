@@ -318,7 +318,9 @@ const Briefing: React.FC<BriefingProps> = ({
             <div className="flex flex-row items-start justify-between gap-4 pr-10 md:pr-0">
               {/* Left: Date - Compact Layout (White Text) */}
               <div className="flex flex-col text-white">
-                <h1 className="sr-only">{date} 每日AI全栈架构技术简报</h1>
+                <h1 className="sr-only">
+                  {date} {dict.nav.seoTitle}
+                </h1>
                 <div className="flex flex-col gap-3.5">
                   <div
                     aria-hidden="true"

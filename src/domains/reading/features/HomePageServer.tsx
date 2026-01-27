@@ -36,12 +36,17 @@ async function getHomePageData(lang: Lang) {
 
   const articles = Object.values(groupedArticles).flat();
   const rawTags = (tagsResult as any).tags || [];
+  const validTagIds = new Set<string>(rawTags.map((t: any) => String(t.id)));
   const tags = rawTags.map((t: any) => ({
     ...t,
     label: getDisplayLabel(t.label, 'tag', lang),
   }));
 
-  return { initialDate, articles, headerImageUrl, dates, tags };
+  // Pure data for SSR
+  const { purifyArticles } = await import('@/domains/reading/utils/label-display');
+  const clientArticles = purifyArticles(articles, lang, validTagIds);
+
+  return { initialDate, articles: clientArticles, headerImageUrl, dates, tags };
 }
 
 // Metadata Generator

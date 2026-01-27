@@ -31,6 +31,7 @@
 - [ ] **图片 LCP 与尺寸优化 (LCP/CLS)**: 确认首页/日期页首图 `priority + fetchPriority="high"`、`sizes` 与实际布局匹配，避免大图过度下载；确保固定尺寸/占位避免 CLS。验收：CLS ≤ 0.10；LCP ≤ 2.5s（p75）。
 - [ ] **文章正文清洗预计算/缓存 (详情页 TTFB/LCP，SEO 保持直出)**: `fetchArticleContent()` 的 sanitize + 二次查 Supabase title 会增加 TTFB；考虑入库时预清洗/写回，或对清洗结果按文章 ID 缓存；正文仍需服务端直出（No-JS 可读）。验收：详情页缓存命中 TTFB ≤ 600ms；LCP ≤ 2.5s（p75）。
 - [x] **Revalidate 逻辑参数化抽象 (2026.01.25)**: 针对双表结构，已将 revalidate 路由重构为通用 Service。通过 `lang` 参数动态决定清理的 Path 和 Tag，消除了中英文冗余。
+- [ ] **渲染策略统一 (Known Issue)**: 英文版 Layout 使用 Select (GET) 保持了全静态，而中文版 Layout 使用 RPC (POST) 导致 `/sources` 等页面回落为动态渲染。长期需评估是否统一使用 RPC + `force-static` 方案以平衡大规模数据性能与静态化需求。
 
 ### 🧹 DDD 收尾 (可选)
 
@@ -54,6 +55,20 @@
 - [ ] **E2E 边界稳定性**: 完善 Playwright Mock 系统,模拟 500/404 及弱网环境,验证 UI 鲁棒性。改动难度:中,性能提升:无。
 - [ ] **状态同步 E2E 测试**: 完成 `e2e/tests/aggregation.spec.ts` (当前已跳过),验证"确认更新策略"、零冗余请求、定向缓存清除及刷新持久化。需解决 Mock 环境下的按钮定位问题。改动难度:中,性能提升:无。
 - [ ] **功能测试补齐**: 补充对"全站搜索"、"无限滚动"以及"移动端侧边栏"交互的自动化覆盖。改动难度:中,性能提升:无。
+- [x] Fix Tag Flicker (Folder Filtering)
+  - [x] Update `purifyArticle` to support tag ID filtering.
+  - [x] Apply tag filtering to `StreamPageServer.tsx`.
+  - [x] Apply tag filtering to `HomePageServer.tsx`.
+  - [x] Update Documentation.
+- [x] Add Category & Title Validation
+  - [x] Add `category` to `requiredFields` in `translate.ts`.
+  - [x] Ensure strict validation prevents fallback to Chinese content.
+- [x] Rename Sidebar Label "每日更新" to "日历"
+- [x] **全站英文版 SEO 与内容去中文化 (2026.01.28)**:
+  - **服务端脱敏 (SSR Purification)**: 在 `HomePageServer`, `StreamPageServer`, `ArticlePageEn` 以及 `SourcesPageServer` 中引入 `purifyArticle` 和 `purifySubscriptions` 助手，确保 Hydration Payload 中不包含原始中文标签和源名称。
+  - **稳健语言识别 (Robust Detection)**: 将全站 `dict === zh` 判断逻辑替换为属性判断 `dict.lang === 'zh'`，解决了 SSR 序列化导致的引用丢失问题，确保 UI 标签在 Hydration 后依然保持正确语言。
+  - **侧边栏同步 (Sidebar Sync)**: 在 `MainLayoutClient` 中增加了对 `initialAvailableFilters` 的监听同步，确保跨语言导航时全局 Store 能立即刷新。
+  - **标签 ID 保护**: 优化了脱敏逻辑，仅转换显示用 Label，完整保留 Tag ID 字符串，确保客户端颜色匹配和过滤逻辑正常工作。
 - [ ] **SEO 自动化扫描**: 验证各日期页面的 Canonical URL、JSON-LD 及 Meta 数据在 ISR 构建后的一致性。改动难度：低，性能提升：无。
 - [ ] **向量索引优化 (HNSW)**: 当文章数量达到 20k+ 时，重新开启 HNSW 索引以维持毫秒级检索延迟（目前 1k+ 数据全表扫描更快且更准）。
 

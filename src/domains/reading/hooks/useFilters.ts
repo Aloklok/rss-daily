@@ -46,10 +46,16 @@ export const useFilters = ({ initialDates, initialAvailableFilters }: UseFilters
   const queryClient = useQueryClient();
   const storeAvailableFilters = useArticleStore((state) => state.availableFilters);
   // Use initial data if store is empty (SSR/Hydration)
-  const availableFilters =
-    storeAvailableFilters.tags.length > 0 || storeAvailableFilters.categories.length > 0
-      ? storeAvailableFilters
-      : initialAvailableFilters || { tags: [], categories: [] };
+  // Hydrate available filters: favor initialAvailableFilters (fresh SSR data) over potentially stale store data
+  const availableFilters = useMemo(() => {
+    if (
+      initialAvailableFilters &&
+      (initialAvailableFilters.tags.length > 0 || initialAvailableFilters.categories.length > 0)
+    ) {
+      return initialAvailableFilters;
+    }
+    return storeAvailableFilters;
+  }, [initialAvailableFilters, storeAvailableFilters]);
   // const setAvailableFilters = useArticleStore(state => state.setAvailableFilters); // Keep this but remove the 'availableFilters' const definition line 43
   const setAvailableFilters = useArticleStore((state) => state.setAvailableFilters);
 

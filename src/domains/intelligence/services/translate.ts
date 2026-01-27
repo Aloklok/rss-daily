@@ -71,7 +71,7 @@ function buildTranslationPrompt(article: ArticleToTranslate): string {
    - **No Chinese**: Ensure 100% English - zero Chinese characters or punctuation.
    - **Persona**: Maintain the "Senior Architect" voice (sharp, professional).
    - **Completeness**: No content loss during translation.
-   - **no empty field**: if the orignal text is none,then set "none".
+   - **no empty field**: if the orignal text is none or null,then set as "none".
 ### SOURCE CONTENT:
 Title: ${article.title || ''}
 Category: ${article.category || ''}
@@ -305,9 +305,10 @@ export async function translateBatchAndSave(
 
         seenIds.add(translated.id);
 
-        // 严格字段校验：确保关键内容字段不为空
+        // 严格字段校验：确保关键内容字段不为空且为字符串
         const requiredFields = [
           'title',
+          'category',
           'summary',
           'tldr',
           'highlights',
@@ -316,12 +317,19 @@ export async function translateBatchAndSave(
         ];
         const hasEmptyField = requiredFields.some((field) => {
           const val = (translated as any)[field];
-          return !val || val.trim() === '' || val.toLowerCase() === 'empty' || val === '无';
+          // Fix: Check type before trim to avoid runtime crash on non-string values
+          return (
+            !val ||
+            typeof val !== 'string' ||
+            val.trim() === '' ||
+            val.toLowerCase() === 'empty' ||
+            val === '无'
+          );
         });
 
         if (hasEmptyField) {
           console.warn(
-            `[Translate] Skipping article ${original.id} due to empty fields in AI response.`,
+            `[Translate] Skipping article ${original.id} due to empty or invalid fields in AI response.`,
           );
           return null;
         }
@@ -329,7 +337,7 @@ export async function translateBatchAndSave(
         // 严格：自查是否包含中文字符 (Regex check for Chinese)
         const containsChinese = requiredFields.some((field) => {
           const val = (translated as any)[field];
-          return /[\u4e00-\u9fa5]/.test(val || '');
+          return typeof val === 'string' && /[\u4e00-\u9fa5]/.test(val || '');
         });
 
         if (containsChinese) {
@@ -357,8 +365,17 @@ export async function translateBatchAndSave(
       })
       .filter(Boolean);
 
+    // Fix: Allow partial success. Only return error if ZERO records are valid.
     if (recordsToUpsert.length === 0) {
-      return { success: false, count: 0, error: 'No matching articles found in AI response' };
+      // It's possible all were filtered out due to validation.
+      // We return success: false BUT with count: 0 so the caller knows nothing was saved,
+      // but strictly speaking, if it was just validation failure, maybe we shouldn't treat it as a "System Error".
+      // However, to keep logging clear:
+      return {
+        success: false,
+        count: 0,
+        error: 'No valid translated articles passed validation in this batch',
+      };
     }
 
     // 使用 upsert 批量存入

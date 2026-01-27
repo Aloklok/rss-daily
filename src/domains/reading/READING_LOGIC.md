@@ -143,4 +143,10 @@ Client-side components (`SidebarView.tsx`) **MUST** use `getSlugLink` with the c
 ### 5.4 Source Name Display
 
 - **Translation**: Source names (`article.sourceName`) are translated using `feedTranslations` in `feed-dictionary.ts`.
-- **Implementation**: `StreamListItem.tsx` uses `getDisplayLabel(article.sourceName, 'feed', ...)` to ensure "AWS 安全" displays as "AWS Security" in English contexts, consistent with the Sources page.
+- **Implementation**: `StreamListItem.tsx` uses `getDisplayLabel(article.sourceName, 'feed', ...)` to ensure "AWS 安全" displays as "AWS Security" in English contexts.
+- **净化层 (Purification Layer)**:
+  - **核心函数**: `purifyArticle(article, lang, validTagIds?)`。负责将单个文章对象进行多语言脱敏及标签清洗。
+  - **标签清洗 (Folder Filtering)**: 通过可选的 `validTagIds` (白名单)，物理剔除 `article.tags` 中不属于合法标签列表的 ID（即过滤掉 FreshRSS 中的分类文件夹 ID）。此逻辑全局生效，彻底解决了 Stream 页面标签“闪现消失”的 flickering 问题。
+  - **处理字段**: `sourceName` (订阅源), `tags` (标签列表), `category` (分类), `verdict.type` (智核评级名称)。
+  - **批量处理**: `purifyArticles` / `purifySubscriptions` 基于核心函数实现大规模数据脱敏。
+  - **应用场景**: 各大 Server 组件（`HomePageServer`, `StreamPageServer`, `BriefingPageServer`, `ArchivePageServer`）在下发数据给客户端前统一调用，确保 HTML 源码（Hydration Payload）中内容的纯净度。

@@ -7,7 +7,7 @@ import ArticleTitleStar from '../article/ArticleTitleStar';
 import { getRandomColorClass } from '@/shared/utils/colorUtils';
 import EmptyState from '@/shared/ui/EmptyState';
 import LoadMoreButton from '@/shared/ui/LoadMoreButton';
-import { Dictionary, zh } from '@/app/i18n/dictionaries';
+import { Dictionary } from '@/app/i18n/dictionaries';
 
 interface ArticleListProps {
   articleIds: (string | number)[];
@@ -20,7 +20,10 @@ interface ArticleListProps {
 }
 
 // Internal customized card for SearchList only
-const SearchListItem: React.FC<{ articleId: string | number; dict: Dictionary }> = ({ articleId, dict }) => {
+const SearchListItem: React.FC<{ articleId: string | number; dict: Dictionary }> = ({
+  articleId,
+  dict,
+}) => {
   const openModal = useUIStore((state) => state.openModal);
   const article = useArticleStore((state) => state.articlesById[articleId]);
 
@@ -46,7 +49,11 @@ const SearchListItem: React.FC<{ articleId: string | number; dict: Dictionary }>
           <div className="mb-4 flex items-center gap-3 text-xs font-bold tracking-wider text-stone-500 uppercase">
             <span className="text-stone-700 dark:text-stone-600">{article.sourceName}</span>
             <span className="size-1 rounded-full bg-stone-300"></span>
-            <span>{new Date(article.published).toLocaleDateString(dict === zh ? 'zh-CN' : 'en-US')}</span>
+            <span>
+              {new Date(article.published).toLocaleDateString(
+                dict.lang === 'zh' ? 'zh-CN' : 'en-US',
+              )}
+            </span>
           </div>
 
           {userTagLabels.length > 0 && (
@@ -132,19 +139,17 @@ const SearchList: React.FC<ArticleListProps> = ({
         ))}
       </div>
 
-      {
-        hasNextPage && (
-          <div className="mt-20 text-center">
-            <LoadMoreButton
-              onClick={() => fetchNextPage?.()}
-              isLoading={isFetchingNextPage || false}
-              label={dict.search.loadMore}
-              className="rounded-full bg-stone-100 px-8 py-4 font-bold transition-colors hover:bg-stone-200 disabled:opacity-50 dark:bg-stone-800 dark:hover:bg-stone-700"
-            />
-          </div>
-        )
-      }
-    </div >
+      {hasNextPage && (
+        <div className="mt-20 text-center">
+          <LoadMoreButton
+            onClick={() => fetchNextPage?.()}
+            isLoading={isFetchingNextPage || false}
+            label={dict.search.loadMore}
+            className="rounded-full bg-stone-100 px-8 py-4 font-bold transition-colors hover:bg-stone-200 disabled:opacity-50 dark:bg-stone-800 dark:hover:bg-stone-700"
+          />
+        </div>
+      )}
+    </div>
   );
 };
 

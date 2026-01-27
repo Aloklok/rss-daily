@@ -88,13 +88,14 @@ const Sidebar = React.memo<SidebarProps>(
 
     // Local state to prevent "flash" of selection during navigation
     const [isNavigatingToSource, setIsNavigatingToSource] = useState(false);
+    const isSourcesPage = pathname === '/sources' || pathname === '/en/sources';
 
     useEffect(() => {
-      if (pathname?.startsWith('/sources') && isNavigatingToSource) {
+      if (isSourcesPage && isNavigatingToSource) {
         // Defer update to avoid "setState in effect" warning
         setTimeout(() => setIsNavigatingToSource(false), 0);
       }
-    }, [pathname, isNavigatingToSource]);
+    }, [isSourcesPage, isNavigatingToSource]);
 
     const {
       activeTab,
@@ -251,7 +252,7 @@ const Sidebar = React.memo<SidebarProps>(
               router.push(`${basePath}/sources`);
             }}
             className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium shadow-sm transition-all hover:shadow-md active:scale-95 ${
-              pathname?.startsWith('/sources')
+              isSourcesPage
                 ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:ring-blue-800'
                 : 'bg-white text-stone-700 hover:bg-stone-50 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700'
             }`}
@@ -325,9 +326,7 @@ const Sidebar = React.memo<SidebarProps>(
             />
             <SidebarExplore
               availableFilters={availableFilters}
-              activeFilter={
-                pathname?.startsWith('/sources') || isNavigatingToSource ? null : activeFilter
-              }
+              activeFilter={isSourcesPage || isNavigatingToSource ? null : activeFilter}
               onFilterSelect={handleFilterSelect}
               selectedArticleId={selectedArticleId}
               dict={dict}
@@ -342,9 +341,7 @@ const Sidebar = React.memo<SidebarProps>(
               datesForMonth={datesForMonth}
               dailyStatuses={dailyStatuses}
               onToggleDailyStatus={onToggleDailyStatus}
-              activeFilter={
-                pathname?.startsWith('/sources') || isNavigatingToSource ? null : activeFilter
-              }
+              activeFilter={isSourcesPage || isNavigatingToSource ? null : activeFilter}
               onDateSelect={handleDateSelect}
               selectedArticleId={selectedArticleId}
               dict={dict}

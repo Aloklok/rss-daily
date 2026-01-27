@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Sidebar from './SidebarView';
 import { useFilters } from '@/domains/reading/hooks/useFilters';
 import { useUIStore } from '@/shared/store/uiStore';
 import { useArticleStore } from '@/domains/interaction/store/articleStore';
 import { Article } from '@/types';
 import { toShortId } from '@/shared/utils/idHelpers';
+import { resolveFilterFromPathname } from '@/shared/utils/url-resolver';
 
 import { Dictionary } from '@/app/i18n/dictionaries';
 
@@ -25,8 +26,23 @@ export default function SidebarClient({
   dict,
 }: SidebarClientProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const setSelectedArticleId = useUIStore((state) => state.setSelectedArticleId);
+  const setActiveFilter = useUIStore((state) => state.setActiveFilter);
   const addArticles = useArticleStore((state) => state.addArticles);
+
+  // Sync URL state to Store (handle language switch / refresh)
+  React.useEffect(() => {
+    const filter = resolveFilterFromPathname(pathname);
+    // If URL implies a filter, force it.
+    // If URL is root or unknow, filter is null, which is also correct for "All" view usually.
+    // But we might want to respect "Initial Load" logic if it's complex.
+    // For now, if resolved filter is non-null, use it.
+    // If activeFilter is already set matching this, setActiveFilter handles dedup internally.
+    if (filter) {
+      setActiveFilter(filter);
+    }
+  }, [pathname, setActiveFilter]);
 
   const {
     isInitialLoad,

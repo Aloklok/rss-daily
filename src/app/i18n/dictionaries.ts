@@ -9,6 +9,7 @@ export const zh = {
     sources: '按订阅源浏览',
     about: '关于',
     dailyBriefing: '每日简报',
+    seoTitle: '每日AI全栈架构技术简报',
   },
   briefing: {
     header: {
@@ -194,6 +195,7 @@ export const en: Dictionary = {
     sources: 'Browse by Source',
     about: 'About',
     dailyBriefing: 'Daily Briefing',
+    seoTitle: 'Daily AI Full-Stack Architecture Tech Briefing',
   },
   briefing: {
     header: {

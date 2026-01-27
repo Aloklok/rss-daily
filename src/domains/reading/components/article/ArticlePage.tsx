@@ -7,7 +7,7 @@ import { getRandomColorClass } from '@/shared/utils/colorUtils';
 import ArticleTitleStar from './ArticleTitleStar';
 import { useArticleContent } from '@/domains/reading/hooks/useArticleContent';
 import { useSelectAll } from '@/shared/hooks/dom/useSelectAll';
-import { Dictionary, zh } from '@/app/i18n/dictionaries';
+import { Dictionary } from '@/app/i18n/dictionaries';
 import { getDisplayLabel } from '@/domains/reading/utils/label-display';
 
 interface ArticleDetailProps {
@@ -49,7 +49,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
   useSelectAll(contentRef);
 
   // Determine display data: prefer fetched content, fallback to prop article
-  const lang = dict === zh ? 'zh' : 'en';
+  const lang = dict.lang === 'zh' ? 'zh' : 'en';
   const displayTitle = (content && content.title) || article.title;
   const displaySource = getDisplayLabel(
     (content && content.source) || article.sourceName || '',
