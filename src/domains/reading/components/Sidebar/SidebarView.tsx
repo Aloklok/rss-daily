@@ -183,10 +183,11 @@ const Sidebar = React.memo<SidebarProps>(
           <div className="relative flex items-center gap-1">
             <Link
               href={pathname?.startsWith('/en') ? '/en/archive' : '/archive'}
-              className={`flex cursor-pointer items-center justify-center rounded-full p-1.5 transition-colors ${pathname?.includes('/archive')
-                ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400'
-                : 'text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-midnight-card'
-                }`}
+              className={`flex cursor-pointer items-center justify-center rounded-full p-1.5 transition-colors ${
+                pathname?.includes('/archive')
+                  ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400'
+                  : 'dark:hover:bg-midnight-card text-gray-500 hover:bg-gray-200 dark:text-gray-400'
+              }`}
               title={dict.archive.title}
               aria-label={dict.archive.title}
               prefetch={false}
@@ -249,10 +250,11 @@ const Sidebar = React.memo<SidebarProps>(
               const basePath = pathname?.startsWith('/en') ? '/en' : '';
               router.push(`${basePath}/sources`);
             }}
-            className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium shadow-sm transition-all hover:shadow-md active:scale-95 ${pathname?.startsWith('/sources')
-              ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:ring-blue-800'
-              : 'bg-white text-stone-700 hover:bg-stone-50 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700'
-              }`}
+            className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium shadow-sm transition-all hover:shadow-md active:scale-95 ${
+              pathname?.startsWith('/sources')
+                ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:ring-blue-800'
+                : 'bg-white text-stone-700 hover:bg-stone-50 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700'
+            }`}
           >
             <span className="flex size-8 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
               <svg
@@ -351,7 +353,7 @@ const Sidebar = React.memo<SidebarProps>(
         </div>
 
         <SidebarTrends
-          isActive={pathname?.includes('/trends') ?? false}
+          isActive={activeFilter?.type === 'trends'}
           dict={dict}
           onClick={() => {
             setActiveFilter({ type: 'trends', value: '' });

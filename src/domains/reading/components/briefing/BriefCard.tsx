@@ -201,12 +201,12 @@ const Callout: React.FC<CalloutProps> = memo(({ themeKey, title, content }) => {
   const theme = CALLOUT_THEMES[themeKey];
   const colors = calloutCardClasses[theme.color];
   return (
-    <aside className={`rounded-2xl p-6 ${colors.bg}`}>
+    <aside className={`rounded-2xl p-6 pb-4 ${colors.bg}`}>
       <div className="mb-3 flex items-center gap-x-3">
         <span className="text-2xl">{theme.icon}</span>
         <h4 className={`text-lg font-bold ${colors.title}`}>{title}</h4>
       </div>
-      <div className={`${colors.body} text-base leading-relaxed font-medium whitespace-pre-line`}>
+      <div className={`${colors.body} text-sm leading-relaxed font-medium whitespace-pre-line`}>
         {parseFormattedText(content, colors.emphasis)}
       </div>
     </aside>
@@ -593,7 +593,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
             )}
           </button>
         </h3>
-        <div className="dark:bg-midnight-metadata-bg dark:border-midnight-badge space-y-3 rounded-lg border border-gray-200 bg-gray-100 p-6">
+        <div className="dark:bg-midnight-metadata-bg dark:border-midnight-badge space-y-3 rounded-lg border border-gray-200 bg-gray-100 px-6 pt-6 pb-4">
           <div className="flex flex-wrap items-center gap-x-4 text-sm text-black">
             <span>{displaySourceName}</span>
             <span>&bull;</span>

@@ -10,10 +10,10 @@
   - `SidebarContainer.tsx` + `SidebarView.tsx`: 交互侧边栏（筛选、刷新、收藏等 UI 行为）。
 - **`briefing/`**:
   - `BriefingView.tsx`: 负责简报的视觉分段。
-    - **早中晚按钮**: 响应式布局 (`shrink-0`)，解决了 Windows 系统下的挤压问题。
-    - **TOC 优化**: 针对 2K 屏调整了标题字号，优化层级感。
+    - **早中晚按钮**: 响应式布局 (`shrink-0`)，解决了 Windows 系统下的挤压问题；桌面端尺寸放宽至 `52px` 以适配大屏。
+    - **布局宽度**: 引入 `2xl:max-w-7xl` (1280px) 策略，优化 2K 屏下的横向排布。
   - `BriefCard.tsx`: 高度压缩的信息密度展现。
-    - **字体优化**: 内容字体调整至 `text-base` 以适配 2K 高分屏阅读体验。
+    - **字体优化**: 内容字体调整至 `text-sm` (14px) 以确保高信息密度。
 - **`article/`**:
   - `ArticlePage.tsx`: 独立页阅读器。
   - `ArticleReaderView.tsx`: 弹窗式阅读器。
