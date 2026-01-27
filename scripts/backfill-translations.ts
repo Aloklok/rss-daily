@@ -1,0 +1,180 @@
+/**
+ * 存量文章翻译脚本
+ *
+ * 将所有未翻译的中文文章批量翻译为英文
+ *
+ * 上下文计算：
+ * - Qwen3-8B 上下文窗口：128K tokens
+ * - 每篇文章约 2500 tokens（输入+输出）
+ * - 理论上限：~50 篇/批次
+ * - 保守设置：逐篇翻译，避免上下文溢出和 API 限频
+ *
+ * 使用方法：
+ *   npx tsx scripts/backfill-translations.ts [--limit N]
+ *
+ * 参数：
+ *   --limit N    限制翻译数量（用于测试）
+ */
+import * as dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
+
+import { createClient } from '@supabase/supabase-js';
+import { translateBatchAndSave } from '../src/domains/intelligence/services/translate';
+import { DEFAULT_TRANSLATION_MODEL } from '../src/domains/intelligence/constants';
+
+const supabaseUrl = process.env.SUPABASE_URL!;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// 解析命令行参数
+const limitArg = process.argv.find((arg) => arg.startsWith('--limit='));
+const limit = limitArg ? parseInt(limitArg.split('=')[1], 10) : undefined;
+
+// 配置
+const BATCH_SIZE = 5; // 每批次翻译 5 篇
+const CONCURRENCY = 3; // 并发请求数，加速整体进度
+const DELAY_BETWEEN_BATCHES_MS = 1000; // 批次间隔稍微缩小
+
+async function backfillTranslations() {
+  console.log('🌐 Starting backfill translations (Concurrent Mode)...');
+  console.log(`🤖 Model: ${DEFAULT_TRANSLATION_MODEL}`);
+  console.log(`📦 Batch Size: ${BATCH_SIZE} | ⚡ Concurrency: ${CONCURRENCY}`);
+
+  // ... 获取 ID 逻辑保持不变
+  if (limit) {
+    console.log(`📊 Limit: ${limit} articles`);
+  }
+
+  // 1. 获取所有 ID 以进行精准差集计算
+  const { data: allArticleIds, error: allIdsError } = await supabase
+    .from('articles')
+    .select('id')
+    .not('summary', 'is', null);
+
+  if (allIdsError) {
+    console.error('❌ Failed to fetch article IDs:', allIdsError);
+    return;
+  }
+
+  const { data: translatedIds, error: translatedError } = await supabase
+    .from('articles_en')
+    .select('id');
+
+  if (translatedError) {
+    console.error('❌ Failed to fetch translated IDs:', translatedError);
+    return;
+  }
+
+  const translatedIdSet = new Set((translatedIds || []).map((r) => r.id));
+  const allArticleIdList = (allArticleIds || []).map((r) => r.id);
+  const untranslatedIds = allArticleIdList.filter((id) => !translatedIdSet.has(id));
+  const totalPending = untranslatedIds.length;
+
+  console.log(`✅ Already translated: ${translatedIdSet.size} articles`);
+  console.log(`📉 Total pending: ${totalPending} articles`);
+
+  if (totalPending === 0) {
+    console.log('✨ All articles processed!');
+    return;
+  }
+
+  const activeLimit = limit || 100;
+  const idsToProcess = untranslatedIds.slice(0, activeLimit);
+
+  // 2. 获取目标文章内容
+  const { data: finalArticles, error: contentError } = await supabase
+    .from('articles')
+    .select(
+      'id, title, category, summary, tldr, highlights, critiques, "marketTake", keywords, link, "sourceName", published, n8n_processing_date, verdict',
+    )
+    .in('id', idsToProcess)
+    .order('published', { ascending: false });
+
+  if (contentError) {
+    console.error('❌ Failed to fetch content:', contentError);
+    return;
+  }
+
+  const total = finalArticles.length;
+  console.log(`📝 Total articles in this run: ${total}`);
+
+  // 3. 并发批量处理
+  let totalSuccess = 0;
+  let totalFailed = 0;
+  let completedCount = 0;
+
+  // 将文章切分为等额批次
+  const batches: any[][] = [];
+  for (let i = 0; i < total; i += BATCH_SIZE) {
+    batches.push(finalArticles.slice(i, i + BATCH_SIZE));
+  }
+
+  console.log(`🚀 Processing ${batches.length} batches with concurrency of ${CONCURRENCY}...\n`);
+
+  // 定义单个任务执行器
+  const processBatch = async (batch: any[], batchIndex: number) => {
+    const chunk = batch.map((article) => ({
+      id: String(article.id),
+      title: article.title || '',
+      category: article.category || '',
+      summary: article.summary || '',
+      tldr: article.tldr || '',
+      highlights: article.highlights || '',
+      critiques: article.critiques || '',
+      marketTake: article.marketTake || '',
+      keywords: Array.isArray(article.keywords) ? article.keywords : [],
+      link: article.link,
+      sourceName: article.sourceName,
+      published: article.published,
+      n8n_processing_date: article.n8n_processing_date,
+      verdict: article.verdict,
+    }));
+
+    try {
+      const result = await translateBatchAndSave(chunk, DEFAULT_TRANSLATION_MODEL);
+      completedCount += chunk.length;
+      const progress = ((completedCount / total) * 100).toFixed(1);
+
+      if (result.success) {
+        totalSuccess += result.count;
+        console.log(
+          `✅ [${completedCount}/${total}] (${progress}%) Batch #${batchIndex + 1} Success: ${result.count}/${chunk.length} stored.`,
+        );
+        if (result.count < chunk.length) {
+          totalFailed += chunk.length - result.count;
+        }
+      } else {
+        totalFailed += chunk.length;
+        console.error(
+          `❌ [${completedCount}/${total}] Batch #${batchIndex + 1} Failed: ${result.error}`,
+        );
+      }
+    } catch (e: any) {
+      completedCount += chunk.length;
+      totalFailed += chunk.length;
+      console.error(`💥 Batch #${batchIndex + 1} Fatal error: ${e.message}`);
+    }
+  };
+
+  // 使用简单的并行池逻辑
+  for (let i = 0; i < batches.length; i += CONCURRENCY) {
+    const pool = batches
+      .slice(i, i + CONCURRENCY)
+      .map((batch, idx) => processBatch(batch, i + idx));
+    await Promise.all(pool);
+
+    if (i + CONCURRENCY < batches.length) {
+      await new Promise((resolve) => setTimeout(resolve, DELAY_BETWEEN_BATCHES_MS));
+    }
+  }
+
+  // 4. 输出结果
+  console.log('\n' + '='.repeat(60));
+  console.log('🏁 Batch backfill completed!');
+  console.log(`✅ Success (Total): ${totalSuccess}`);
+  console.log(`❌ Failed (Total): ${totalFailed}`);
+  console.log(`📉 Still remaining overall: ${totalPending - totalSuccess} articles`);
+  console.log('='.repeat(60));
+}
+
+backfillTranslations().catch(console.error);
