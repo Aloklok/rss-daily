@@ -29,7 +29,15 @@
 
 ---
 
-## 2. 领域常量
+## 2. UI 国际化 (i18n)
+
+交互相关的 UI 文本（如“已收藏”、“标记已读”）已通过 `dictionaries.ts` 中的 `actions` 和 `sidebar` 分组实现国际化。
+- 组件通过 Props 接收 `dict` 对象。
+- 状态更新时，对应的文本标签会自动根据当前语言环境进行切换。
+
+---
+
+## 3. 领域常量
 
 文件路径: `src/domains/interaction/constants.ts`
 

@@ -4,6 +4,7 @@ import '@testing-library/jest-dom';
 import { vi, describe, it, expect } from 'vitest';
 import { useUIStore } from '@/shared/store/uiStore';
 import ArticleDetail from '@/domains/reading/components/article/ArticlePage';
+import { zh } from '@/app/i18n/dictionaries';
 import FloatingActionButtons from '@/domains/interaction/components/FloatingActionButtons';
 import AIChatModal from '@/domains/intelligence/components/ai/AIChatModal';
 import { MOCK_ARTICLE } from './mockData';
@@ -104,7 +105,7 @@ describe('AccessControl 组件级权限验证', () => {
     const queryClient = createTestQueryClient();
     render(
       <QueryClientProvider client={queryClient}>
-        <ArticleDetail article={mockArticle as any} />
+        <ArticleDetail article={mockArticle as any} dict={zh} />
       </QueryClientProvider>,
     );
 
@@ -120,7 +121,7 @@ describe('AccessControl 组件级权限验证', () => {
     const queryClient = createTestQueryClient();
     render(
       <QueryClientProvider client={queryClient}>
-        <ArticleDetail article={mockArticle as any} />
+        <ArticleDetail article={mockArticle as any} dict={zh} />
       </QueryClientProvider>,
     );
 

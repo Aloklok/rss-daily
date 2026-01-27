@@ -10,6 +10,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const slot = searchParams.get('slot') as TimeSlot | null;
   const articleIdsParam = searchParams.get('articleIds');
   const includeState = searchParams.get('include_state') === 'true';
+  const tableName = searchParams.get('table') || 'articles_view';
 
   // 1. Logic Regression: Query by IDs using Domain Service
   if (articleIdsParam) {
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     if (ids.length > 0) {
-      let articles = await fetchArticlesByIds(ids);
+      let articles = await fetchArticlesByIds(ids, tableName);
 
       // Handle interaction states if requested
       if (includeState && articles.length > 0) {
@@ -44,7 +45,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ message: 'Date parameter is required.' }, { status: 400 });
   }
 
-  const groupedArticles = await fetchBriefingData(date, slot);
+  // Choose language based on table name
+  const lang = (tableName === 'articles_en' || tableName === 'articles_view_en') ? 'en' : 'zh';
+  const groupedArticles = await fetchBriefingData(date, lang, slot);
 
   // 3. Logic Regression: Attach States using Interaction Adapters
   if (includeState) {

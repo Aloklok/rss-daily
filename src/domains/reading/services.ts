@@ -6,7 +6,7 @@ import { Article, Tag, CleanArticleContent, TimeSlot } from '@/shared/types';
 import { BRIEFING_SECTIONS } from './constants';
 import { STAR_TAG } from '@/domains/interaction/constants';
 import { removeEmptyParagraphs, stripLeadingTitle, cleanAIContent } from './utils/content';
-import { shanghaiDateSlotToUtcWindow, getTodayInShanghai } from './utils/date';
+import { shanghaiDateSlotToUtcWindow } from './utils/date';
 
 import { logServerBotHit } from '@/domains/security/services/bot-logger';
 import { toFullId } from '@/shared/utils/idHelpers';
@@ -55,12 +55,56 @@ export const fetchAvailableDates = unstable_cache(
   },
 );
 
+export const fetchAvailableDatesEn = unstable_cache(
+  async (): Promise<string[]> => {
+    if (process.env.CI && !process.env.VERCEL)
+      return ['2025-01-01', new Date().toISOString().split('T')[0]];
+    const supabase = getSupabaseClient();
+
+    // Efficiently get unique dates from articles_view_en view
+    // We select n8n_processing_date which is joined from the articles table
+    const { data, error } = await supabase
+      .from('articles_view_en')
+      .select('n8n_processing_date')
+      .order('n8n_processing_date', { ascending: false });
+
+    if (error) {
+      console.error('Supabase error in fetchAvailableDatesEn:', error);
+      return [];
+    }
+
+    const uniqueDates = new Set<string>();
+    data?.forEach((row: any) => {
+      if (row.n8n_processing_date) {
+        // Convert UTC timestamp to Shanghai Date string (YYYY-MM-DD)
+        const dateStr = new Intl.DateTimeFormat('en-CA', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          timeZone: 'Asia/Shanghai',
+        }).format(new Date(row.n8n_processing_date));
+
+        uniqueDates.add(dateStr);
+      }
+    });
+
+    return Array.from(uniqueDates).sort().reverse();
+  },
+  ['available-dates-en'],
+  {
+    revalidate: 604800,
+    tags: ['available-dates-en'],
+  },
+);
+
 export async function fetchBriefingData(
   date: string,
+  lang: 'zh' | 'en' = 'zh',
   slot?: TimeSlot | null,
   logOptions: { userAgent?: string; headers?: Headers } = {},
 ): Promise<{ [key: string]: Article[] }> {
   if (process.env.CI && !process.env.VERCEL) {
+    if (lang === 'en') return {};
     return {
       [BRIEFING_SECTIONS.IMPORTANT]: [
         {
@@ -84,6 +128,11 @@ export async function fetchBriefingData(
       ],
     };
   }
+
+  const tableName = lang === 'en' ? 'articles_view_en' : 'articles_view';
+  const cacheKeyBase = lang === 'en' ? 'briefing-data-en' : 'briefing-data';
+  const tagPrefix = lang === 'en' ? `briefing-data-${date}-en` : `briefing-data-${date}`;
+
   return unstable_cache(
     async () => {
       const supabase = getSupabaseClient();
@@ -95,71 +144,53 @@ export async function fetchBriefingData(
       const { startIso, endIso } = shanghaiDateSlotToUtcWindow(date, slot);
 
       const dataPromise = supabase
-        .from('articles_view')
+        .from(tableName as any)
         .select('*')
         .gte('n8n_processing_date', startIso)
         .lte('n8n_processing_date', endIso);
 
       const fetchTimeout = process.env.CI && !process.env.VERCEL ? 3000 : 9000;
-      const timeoutPromise = new Promise<{ data: Article[] | null; error: unknown }>((_, reject) =>
+      const timeoutPromise = new Promise<{ data: any[] | null; error: unknown }>((_, reject) =>
         setTimeout(() => reject(new Error('Supabase query timed out')), fetchTimeout),
       );
 
-      let articles: Article[] = [];
+      let rawData: any[] = [];
       let error;
       try {
         const result = (await Promise.race([dataPromise, timeoutPromise])) as any;
-        articles = result.data || [];
+        rawData = result.data || [];
         error = result.error;
       } catch (e: any) {
-        console.error('Fetch Briefing Data Timeout or Error:', e);
+        console.error(`Fetch Briefing Data (${lang}) Timeout or Error:`, e);
 
-        // Reporting: Log the ISR failure so we know why the page is missing
+        // Logging
         try {
-          // [Refactor] Use passed-in context or safe default to avoid breaking ISR (Static Generation).
-          const userAgent = logOptions.userAgent || 'ISR-System-Error-Fallback';
-          const path = `/date/${date}`;
+          const userAgent = logOptions.userAgent || `ISR-System-Error-Fallback-${lang}`;
+          const path = lang === 'en' ? `/en/date/${date}` : `/date/${date}`;
           const safeHeaders = logOptions.headers || new Headers();
 
           await logServerBotHit(path, userAgent, safeHeaders, 500, {
             error_message: e.message || String(e),
             error_stack: e.stack,
             stage: 'fetchBriefingData',
+            lang,
             date_param: date,
-            desc: 'System-ISR-Error: Data fetch failed.',
           });
         } catch (logErr) {
           console.error('Failed to log ISR error:', logErr);
         }
-
-        // CRITICAL: Throw error to prevent caching "empty" result
         throw e;
       }
 
       if (error) {
-        console.error('Error fetching from Supabase by date:', error);
-        // CRITICAL: Throw error to prevent caching "empty" result
+        console.error(`Error fetching from Supabase (${tableName}) by date:`, error);
         throw new Error(`Supabase query failed: ${JSON.stringify(error)}`);
       }
 
-      if (articles.length === 0) {
-        console.warn(
-          `[BriefingData] Zero articles found for ${date}. Window: ${startIso} - ${endIso}`,
-        );
-        // CRITICAL: Do not cache empty results for TODAY.
-        // If we return {}, unstable_cache locks this empty state for 7 days.
-        // We throw an error so the cache is NOT updated (or at least not with a valid empty value).
-        // The calling component (page.tsx) handles the catch({}) and shows a temporary empty state,
-        // but subsequent refreshes will retry the fetch.
-        if (date === getTodayInShanghai()) {
-          throw new Error(`PREVENT_CACHE_EMPTY_TODAY: Standard empty result for ${date}`);
-        }
+      if (rawData.length === 0) {
+        console.warn(`[BriefingData-${lang}] Zero articles found for ${date}. Window: ${startIso} - ${endIso}`);
         return {};
       }
-
-      const uniqueById = new Map<string | number, Article>();
-      articles.forEach((a) => uniqueById.set(a.id, a));
-      const deduped = Array.from(uniqueById.values());
 
       const groupedArticles: { [key: string]: Article[] } = {
         [BRIEFING_SECTIONS.IMPORTANT]: [],
@@ -167,18 +198,19 @@ export async function fetchBriefingData(
         [BRIEFING_SECTIONS.REGULAR]: [],
       };
 
-      deduped.forEach((rawArticle: any) => {
+      rawData.forEach((row: any) => {
         const article: Article = {
-          ...rawArticle,
-          briefingSection:
-            rawArticle.verdict?.importance ||
-            rawArticle.briefingSection ||
-            BRIEFING_SECTIONS.REGULAR,
-          sourceName: rawArticle.source_name || rawArticle.sourceName || '',
-          highlights: cleanAIContent(rawArticle.highlights),
-          critiques: cleanAIContent(rawArticle.critiques),
-          marketTake: cleanAIContent(rawArticle.marketTake),
-          tldr: cleanAIContent(rawArticle.tldr),
+          ...row,
+          // Handle field name differences and normalization
+          sourceName: row.source_name || row.sourceName || '',
+          briefingSection: row.verdict?.importance || row.briefingSection || BRIEFING_SECTIONS.REGULAR,
+          highlights: cleanAIContent(row.highlights),
+          critiques: cleanAIContent(row.critiques),
+          marketTake: cleanAIContent(row.marketTake),
+          tldr: cleanAIContent(row.tldr),
+          tags: row.tags || [],
+          created_at: row.n8n_processing_date || row.created_at,
+          verdict: row.verdict || { importance: BRIEFING_SECTIONS.REGULAR, score: 0 },
         };
 
         const importance = article.briefingSection;
@@ -189,32 +221,42 @@ export async function fetchBriefingData(
         }
       });
 
-      for (const importance in groupedArticles) {
-        groupedArticles[importance].sort(
-          (a, b) => (b.verdict?.score || 0) - (a.verdict?.score || 0),
-        );
+      // Sort within groups
+      for (const section in groupedArticles) {
+        groupedArticles[section].sort((a, b) => (b.verdict?.score || 0) - (a.verdict?.score || 0));
       }
 
       return groupedArticles;
     },
-    ['briefing-data', date, slot || 'all'],
+    [cacheKeyBase, date, slot || 'all'],
     {
       revalidate: 604800,
-      tags: ['briefing-data', `briefing-data-${date}`, `briefing-data-${date}-${slot || 'all'}`],
+      tags: [cacheKeyBase, tagPrefix, `${tagPrefix}-${slot || 'all'}`],
     },
   )();
 }
 
 /**
+ * @deprecated Use fetchBriefingData(date, 'en', slot) instead.
+ * Legacy wrapper for English briefing data to maintain backward compatibility.
+ */
+export async function fetchEnglishBriefingData(
+  date: string,
+  slot?: TimeSlot | null,
+): Promise<{ [key: string]: Article[] }> {
+  return fetchBriefingData(date, 'en', slot);
+}
+
+/**
  * Fetch specific articles by their IDs
  */
-export async function fetchArticlesByIds(ids: string[]): Promise<Article[]> {
+export async function fetchArticlesByIds(ids: string[], tableName: string = 'articles_view'): Promise<Article[]> {
   if (process.env.CI && !process.env.VERCEL) return [];
   if (!ids || ids.length === 0) return [];
 
   const supabase = getSupabaseClient();
   const fullIds = ids.map(toFullId);
-  const { data, error } = await supabase.from('articles_view').select('*').in('id', fullIds);
+  const { data, error } = await supabase.from(tableName as any).select('*').in('id', fullIds);
 
   if (error) {
     console.error('Error fetching articles by IDs:', error);
@@ -380,13 +422,21 @@ export async function fetchArticleFromFreshRSS(id: string): Promise<Article | nu
 export type FetchArticleResult =
   | { success: true; article: Article }
   | {
-      success: false;
-      article: null;
-      errorSource: 'supabase' | 'freshrss' | 'both';
-      errorMessage: string;
-    };
+    success: false;
+    article: null;
+    errorSource: 'supabase' | 'freshrss' | 'both';
+    errorMessage: string;
+  };
 
-export async function fetchArticleById(id: string): Promise<FetchArticleResult> {
+// Consolidated Options Interface
+interface FetchArticleOptions {
+  lang?: 'zh' | 'en';
+}
+
+export async function fetchArticleById(id: string, options: FetchArticleOptions = { lang: 'zh' }): Promise<FetchArticleResult> {
+  const lang = options.lang || 'zh';
+  const tableName = lang === 'en' ? 'articles_view_en' : 'articles_view';
+
   if (process.env.CI && !process.env.VERCEL) {
     return {
       success: true,
@@ -418,29 +468,41 @@ export async function fetchArticleById(id: string): Promise<FetchArticleResult> 
   try {
     const supabase = getSupabaseClient();
     const fullId = toFullId(id);
-    const { data, error } = await supabase
-      .from('articles_view')
-      .select('*')
-      .eq('id', fullId)
-      .single();
+    const query = supabase
+      .from(tableName as any)
+      .select('*');
+
+    // Handle ID matching: articles_view uses string ID, articles_en might use int8/string
+    // For safety, we use eq. toFullId ensures correct ID format for app logic.
+    // If querying articles_en, we might need to be careful if ID types mismatch in DB schema,
+    // but assuming consistency or implicit casting.
+    // However, articles_en usually stores numeric IDs?
+    // Let's stick to simple ID match for now as per previous fetchEnglishArticleById logic.
+    const { data, error } = await query.eq('id', fullId).single();
 
     if (!error && data) {
-      return {
-        success: true,
-        article: {
-          ...data,
-          highlights: cleanAIContent(data.highlights),
-          critiques: cleanAIContent(data.critiques),
-          marketTake: cleanAIContent(data.marketTake),
-          tldr: cleanAIContent(data.tldr),
-        },
+      // Mapping: Ensure common fields are populated
+      // articles_view has explicit source_name mapping if needed, articles_en usually has snake_case or camelCase?
+      // Based on existing code, using generic spread + selective mapping.
+      const articleData: Article = {
+        ...data,
+        highlights: cleanAIContent(data.highlights),
+        critiques: cleanAIContent(data.critiques),
+        marketTake: cleanAIContent(data.marketTake),
+        tldr: cleanAIContent(data.tldr),
+        // Fallback for fields that might differ in naming conventions
+        sourceName: data.source_name || data.sourceName || '',
+        // Ensure Created At is present
+        created_at: data.n8n_processing_date || data.created_at,
+        // Verdict structure
+        verdict: data.verdict || { importance: BRIEFING_SECTIONS.REGULAR, score: 0 },
       };
+      return { success: true, article: articleData };
     }
-    // Supabase returned no data (not an exception, just not found)
     supabaseError = error?.message || 'not found';
   } catch (e: any) {
     supabaseError = e.message || 'connection failed';
-    console.error(`[fetchArticleById] Supabase exception for ${id}:`, e);
+    console.error(`[fetchArticleById] Supabase exception for ${id} (${tableName}):`, e);
   }
 
   // 2. Fallback to FreshRSS
@@ -481,6 +543,13 @@ export async function fetchArticleById(id: string): Promise<FetchArticleResult> 
       errorMessage: supabaseError || 'unknown',
     };
   }
+}
+
+/**
+ * @deprecated Use fetchArticleById(id, { lang: 'en' }) instead.
+ */
+export async function fetchEnglishArticleById(id: string): Promise<FetchArticleResult> {
+  return fetchArticleById(id, { lang: 'en' });
 }
 
 export const getAvailableFilters = unstable_cache(

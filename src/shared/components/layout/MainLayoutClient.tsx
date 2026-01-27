@@ -6,12 +6,14 @@ import { useUIStore } from '@/shared/store/uiStore';
 import { useArticleStore } from '@/domains/interaction/store/articleStore'; // Import article store
 import SidebarClient from '@/domains/reading/components/Sidebar/SidebarContainer';
 import FloatingActionButtons from '@/domains/interaction/components/FloatingActionButtons';
+import { Dictionary } from '@/app/i18n/dictionaries';
 
 interface MainLayoutClientProps {
   children: React.ReactNode;
   initialDates: string[];
   initialAvailableFilters: { tags: any[]; categories: any[] };
   initialStarredHeaders?: { id: string | number; title: string; tags: string[] }[]; // Update type
+  dict: Dictionary;
 }
 
 export default function MainLayoutClient({
@@ -19,6 +21,7 @@ export default function MainLayoutClient({
   initialDates,
   initialAvailableFilters,
   initialStarredHeaders = [],
+  dict,
 }: MainLayoutClientProps) {
   // Use new split state
   const isMobileOpen = useUIStore((state) => state.isMobileOpen);
@@ -73,9 +76,8 @@ export default function MainLayoutClient({
       {/* Mobile Overlay: Hidden on Desktop (md:hidden) */}
       {/* Only show if Mobile Sidebar is Open */}
       <div
-        className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 md:hidden ${
-          isMobileOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
-        }`}
+        className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 md:hidden ${isMobileOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+          }`}
         onClick={() => setMobileSidebarOpen(false)}
         aria-hidden="true"
       />
@@ -92,6 +94,7 @@ export default function MainLayoutClient({
           initialDates={initialDates}
           initialAvailableFilters={initialAvailableFilters}
           initialStarredHeaders={initialStarredHeaders}
+          dict={dict}
         />
       </div>
 
@@ -177,9 +180,8 @@ export default function MainLayoutClient({
         className={`dark:bg-midnight-bg bg-paper-texture flex min-w-0 flex-1 flex-col bg-neutral-50 dark:bg-none`}
       >
         <div
-          className={`mx-auto w-full px-2 pt-2 md:px-8 md:pt-4 ${
-            pathname === '/admin/briefing' ? 'max-w-7xl' : 'max-w-3xl'
-          }`}
+          className={`mx-auto w-full px-2 pt-2 md:px-8 md:pt-4 ${pathname === '/admin/briefing' ? 'max-w-7xl' : 'max-w-3xl'
+            }`}
         >
           {children}
         </div>

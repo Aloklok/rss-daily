@@ -12,6 +12,7 @@ import ArticleModalHeader from './ArticleModalHeader';
 import ArticleReaderView from './ArticleReaderView';
 import ArticleBriefingView from './ArticleBriefingView';
 import ArticleModalActions from './ArticleModalActions';
+import { Dictionary } from '@/app/i18n/dictionaries';
 
 interface UnifiedArticleModalProps {
   article: Article;
@@ -22,6 +23,7 @@ interface UnifiedArticleModalProps {
     tagsToRemove: string[],
   ) => Promise<any>;
   initialMode?: 'briefing' | 'reader';
+  dict: Dictionary;
 }
 
 const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({
@@ -29,6 +31,7 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({
   onClose,
   onStateChange,
   initialMode = 'briefing',
+  dict,
 }) => {
   const [viewMode, setViewMode] = useState<'briefing' | 'reader'>(initialMode);
 
@@ -107,7 +110,7 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({
         <button
           onClick={onClose}
           className="absolute top-4 right-4 z-50 cursor-pointer rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-          title="关闭"
+          title={dict.modal.close}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -125,7 +128,7 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({
           </svg>
         </button>
 
-        <ArticleModalHeader viewMode={viewMode} setViewMode={setViewMode} onClose={onClose} />
+        <ArticleModalHeader viewMode={viewMode} setViewMode={setViewMode} onClose={onClose} dict={dict} />
 
         {/* Content Body */}
         <div className="dark:bg-midnight-bg grow overflow-x-hidden overflow-y-auto bg-neutral-50">
@@ -137,6 +140,7 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({
               hasBriefingData={hasBriefingData}
               onReaderModeRequest={() => setViewMode('reader')}
               onStateChange={onStateChange}
+              dict={dict}
             />
           ) : (
             <ArticleReaderView
@@ -144,6 +148,7 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({
               readerContent={readerContent ?? null}
               isLoading={isLoadingReader}
               userTagLabels={userTagLabels}
+              dict={dict}
             />
           )}
         </div>

@@ -1,6 +1,10 @@
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Filter } from '@/types';
+import { useUIStore } from '@/shared/store/uiStore';
+import { getTodayInShanghai } from '@/domains/reading/utils/date';
+import { Dictionary } from '@/app/i18n/dictionaries';
 
 interface SidebarBriefingProps {
   isInitialLoading: boolean;
@@ -13,10 +17,8 @@ interface SidebarBriefingProps {
   activeFilter: Filter | null;
   onDateSelect: (date: string) => void;
   selectedArticleId: string | number | null;
+  dict: Dictionary;
 }
-
-import { useUIStore } from '@/shared/store/uiStore';
-import { getTodayInShanghai } from '@/domains/reading/utils/date';
 
 const StatusIcon: React.FC<{ completed: boolean; onClick: (e: React.MouseEvent) => void }> = ({
   completed,
@@ -64,11 +66,12 @@ const StatusIcon: React.FC<{ completed: boolean; onClick: (e: React.MouseEvent) 
   );
 };
 
-const formatMonthForDisplay = (month: string) => {
+const formatMonthForDisplay = (month: string, dict: Dictionary) => {
   if (!month) return '';
   const [year, monthNum] = month.split('-');
   const date = new Date(parseInt(year), parseInt(monthNum) - 1);
-  return date.toLocaleString('zh-CN', { year: 'numeric', month: 'long' });
+  const locale = dict.lang === 'zh' ? 'zh-CN' : 'en-US';
+  return date.toLocaleString(locale, { year: 'numeric', month: 'long' });
 };
 
 const SidebarBriefing: React.FC<SidebarBriefingProps> = ({
@@ -82,10 +85,18 @@ const SidebarBriefing: React.FC<SidebarBriefingProps> = ({
   activeFilter,
   onDateSelect,
   selectedArticleId,
+  dict,
 }) => {
+  const pathname = usePathname();
   const isAdmin = useUIStore((state) => state.isAdmin);
   const isFilterActive = (type: string, value: string) => {
-    return activeFilter?.type === type && activeFilter?.value === value && !selectedArticleId;
+    // Legacy support for non-date filters (if any) or strict filter mode
+    if (type !== 'date') {
+      return activeFilter?.type === type && activeFilter?.value === value && !selectedArticleId;
+    }
+    // Pathname based matching for Date
+    // Current Format: /date/2025-01-26 or /en/date/2025-01-26
+    return pathname?.includes(`/date/${value}`);
   };
 
   const currentMonth = getTodayInShanghai().substring(0, 7);
@@ -122,7 +133,7 @@ const SidebarBriefing: React.FC<SidebarBriefingProps> = ({
               />
             </svg>
           </div>
-          <span className="text-sm font-medium">本月暂无简报</span>
+          <span className="text-sm font-medium">{dict.briefing.empty.dateEmpty}</span>
         </div>
       ) : (
         <nav className="flex grow flex-col gap-2 overflow-y-auto pr-1 pb-4">
@@ -130,25 +141,25 @@ const SidebarBriefing: React.FC<SidebarBriefingProps> = ({
             const isActive = isFilterActive('date', date);
             const isCompleted = dailyStatuses[date] || false;
             const dateObj = new Date(date + 'T00:00:00');
-            const displayDatePart = dateObj.toLocaleDateString('zh-CN', {
+            const locale = dict.lang === 'zh' ? 'zh-CN' : 'en-US';
+            const displayDatePart = dateObj.toLocaleDateString(locale, {
               month: 'long',
               day: 'numeric',
             });
-            const displayDayOfWeekPart = dateObj.toLocaleDateString('zh-CN', { weekday: 'short' });
+            const displayDayOfWeekPart = dateObj.toLocaleDateString(locale, { weekday: 'short' });
 
             return (
               <Link
                 prefetch={false}
                 key={date}
-                href={`/date/${date}`}
+                href={dict.lang === 'zh' ? `/date/${date}` : `/en/date/${date}`}
                 onClick={() => onDateSelect(date)}
-                className={`group flex w-full items-center justify-between rounded-lg border border-transparent px-4 py-2 text-left transition-all duration-200 ${
-                  isActive
-                    ? 'bg-indigo-600 text-white shadow-md'
-                    : isCompleted && isAdmin
-                      ? 'dark:hover:bg-midnight-card text-gray-400 hover:bg-gray-100 dark:text-gray-500'
-                      : 'dark:hover:bg-midnight-card text-gray-700 hover:bg-gray-100 dark:text-gray-200'
-                } cursor-pointer`}
+                className={`group flex w-full items-center justify-between rounded-lg border border-transparent px-4 py-2 text-left transition-all duration-200 ${isActive
+                  ? 'bg-indigo-600 text-white shadow-md'
+                  : isCompleted && isAdmin
+                    ? 'dark:hover:bg-midnight-card text-gray-400 hover:bg-gray-100 dark:text-gray-500'
+                    : 'dark:hover:bg-midnight-card text-gray-700 hover:bg-gray-100 dark:text-gray-200'
+                  } cursor-pointer`}
               >
                 <div className="flex items-center gap-3">
                   <StatusIcon
@@ -163,11 +174,10 @@ const SidebarBriefing: React.FC<SidebarBriefingProps> = ({
                   </span>
                 </div>
                 <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                    isActive
-                      ? 'bg-white/20 text-white'
-                      : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200 dark:bg-black/20 dark:text-gray-500 dark:group-hover:bg-black/40'
-                  }`}
+                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${isActive
+                    ? 'bg-white/20 text-white'
+                    : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200 dark:bg-black/20 dark:text-gray-500 dark:group-hover:bg-black/40'
+                    }`}
                 >
                   {displayDayOfWeekPart}
                 </span>
@@ -189,14 +199,14 @@ const SidebarBriefing: React.FC<SidebarBriefingProps> = ({
           >
             {allDisplayMonths.map((month) => (
               <option key={month} value={month}>
-                {formatMonthForDisplay(month)}
+                {formatMonthForDisplay(month, dict)}
               </option>
             ))}
           </select>
           <div className="dark:bg-midnight-card dark:border-midnight-border pointer-events-none flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-gray-700 shadow-xs transition-all duration-200 group-hover:border-indigo-300 dark:text-gray-200 dark:group-hover:border-indigo-700">
             <div className="flex items-center gap-2">
               <span className="text-gray-400 dark:text-gray-500">📅</span>
-              <span className="text-sm font-semibold">{formatMonthForDisplay(selectedMonth)}</span>
+              <span className="text-sm font-semibold">{formatMonthForDisplay(selectedMonth, dict)}</span>
             </div>
             <svg
               className="h-4 w-4 text-gray-400 transition-colors group-hover:text-indigo-500 dark:text-gray-500"

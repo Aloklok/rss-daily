@@ -9,16 +9,20 @@ import { useArticleStore } from '@/domains/interaction/store/articleStore';
 import { Article } from '@/types';
 import { toShortId } from '@/shared/utils/idHelpers';
 
+import { Dictionary } from '@/app/i18n/dictionaries';
+
 interface SidebarClientProps {
   initialDates: string[];
   initialAvailableFilters: { tags: any[]; categories: any[] };
   initialStarredHeaders?: { id: string | number; title: string; tags: string[] }[]; // Update type
+  dict: Dictionary;
 }
 
 export default function SidebarClient({
   initialDates,
   initialAvailableFilters,
   initialStarredHeaders = [],
+  dict,
 }: SidebarClientProps) {
   const router = useRouter();
   const setSelectedArticleId = useUIStore((state) => state.setSelectedArticleId);
@@ -48,9 +52,10 @@ export default function SidebarClient({
     (article: Article) => {
       setSelectedArticleId(article.id);
       addArticles([article]);
-      router.push(`/article/${toShortId(String(article.id))}?view=page`);
+      const basePath = dict.lang === 'zh' ? '' : '/en';
+      router.push(`${basePath}/article/${toShortId(String(article.id))}?view=page`);
     },
-    [setSelectedArticleId, addArticles, router],
+    [setSelectedArticleId, addArticles, router, dict.lang],
   );
 
   // Mock toggle for now or implement real logic if needed
@@ -73,6 +78,7 @@ export default function SidebarClient({
         onToggleDailyStatus={handleToggleDailyStatusWrapper}
         initialStarredHeaders={initialStarredHeaders}
         availableFilters={availableFilters}
+        dict={dict}
       />
     </div>
   );

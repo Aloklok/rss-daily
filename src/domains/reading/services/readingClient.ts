@@ -52,11 +52,12 @@ export const getAvailableDates = (): Promise<string[]> => {
 export const getBriefingReportsByDate = async (
   date: string,
   slot?: TimeSlot,
-  options?: { includeState?: boolean },
+  options?: { includeState?: boolean; tableName?: string },
 ): Promise<BriefingReport[]> => {
   const params: Record<string, string> = { date };
   if (slot) params.slot = slot;
   if (options?.includeState) params.include_state = 'true';
+  if (options?.tableName) params.table = options.tableName;
 
   try {
     const timestamp = Date.now().toString();
@@ -65,7 +66,9 @@ export const getBriefingReportsByDate = async (
     });
     if (!data || Object.values(data).every((arr) => arr.length === 0)) return [];
 
-    const reportTitle = `${new Date(date).toLocaleString('zh-CN', { month: 'long', day: 'numeric' })} 简报`;
+    const isEn = typeof window !== 'undefined' && window.location.pathname.includes('/en');
+    const monthDay = new Date(date).toLocaleString(isEn ? 'en-US' : 'zh-CN', { month: 'long', day: 'numeric' });
+    const reportTitle = isEn ? `${monthDay} Briefing` : `${monthDay} 简报`;
     return [{ id: 1, title: reportTitle, articles: data }];
   } catch {
     return [];
@@ -74,12 +77,14 @@ export const getBriefingReportsByDate = async (
 
 export const getArticlesDetails = (
   articleIds: (string | number)[],
+  tableName: string = 'articles_view',
 ): Promise<Record<string, Article>> => {
   if (!articleIds || articleIds.length === 0) {
     return Promise.resolve({});
   }
   const params = new URLSearchParams();
   articleIds.forEach((id) => params.append('articleIds', String(id)));
+  params.append('table', tableName);
 
   const timestamp = Date.now().toString();
   return apiClient.request<Record<string, Article>>(
@@ -177,9 +182,10 @@ export const updateDailyStatus = async (date: string, isCompleted: boolean) => {
 export const searchArticlesByKeyword = (
   query: string,
   page: number = 1,
+  tableName: string = 'articles_view',
 ): Promise<{ articles: Article[]; isFallback: boolean; errorSnippet?: string }> => {
   const timestamp = Date.now().toString();
   return apiClient.request('/api/articles/search', {
-    params: { query, page: String(page), _t: timestamp },
+    params: { query, page: String(page), table: tableName, _t: timestamp },
   });
 };

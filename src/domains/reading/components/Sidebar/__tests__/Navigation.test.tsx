@@ -5,6 +5,7 @@ import Sidebar from '../SidebarView';
 import { useUIStore } from '@/shared/store/uiStore';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
+import { zh } from '@/app/i18n/dictionaries';
 
 // Mock Next.js navigation
 const mockPush = vi.fn();
@@ -53,6 +54,7 @@ describe('侧边栏导航 (Sidebar Navigation)', () => {
     onToggleDailyStatus: vi.fn(),
     availableFilters: { categories: [], tags: [] },
     initialStarredHeaders: [],
+    dict: zh,
   };
 
   beforeEach(() => {

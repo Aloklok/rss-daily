@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import Sidebar from '../SidebarView';
+import { zh } from '@/app/i18n/dictionaries';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
@@ -44,6 +45,7 @@ describe('归档入口验证 (Archive Link Verification)', () => {
     onToggleDailyStatus: vi.fn(),
     availableFilters: { categories: [], tags: [] },
     initialStarredHeaders: [],
+    dict: zh,
   };
 
   beforeEach(() => {
@@ -58,7 +60,7 @@ describe('归档入口验证 (Archive Link Verification)', () => {
     );
 
     // 查找带有特定 title 或 aria-label 的图标链接
-    const archiveLink = screen.getByRole('link', { name: /查看历史归档/i });
+    const archiveLink = screen.getByRole('link', { name: zh.archive.title });
 
     // 验证链接存在
     expect(archiveLink).toBeInTheDocument();

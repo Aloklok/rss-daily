@@ -1,5 +1,6 @@
 import React from 'react';
 import ReloadPWAButton from '@/domains/reading/components/Sidebar/ReloadPWAButton';
+import { Dictionary, zh } from '@/app/i18n/dictionaries';
 
 // 1. 定义配置类型
 type LinkTheme =
@@ -21,7 +22,7 @@ interface LinkConfig {
   url: string;
   theme: LinkTheme;
   iconPath: React.ReactNode;
-  category: string; // 新增分类字段
+  category: 'tools' | 'trends' | 'databases'; // 新增分类字段
 }
 
 // 2. 定义样式映射
@@ -134,7 +135,7 @@ const LINKS: LinkConfig[] = [
     title: 'NotebookLM',
     url: 'https://notebooklm.google.com/',
     theme: 'indigo',
-    category: '工具',
+    category: 'tools',
     iconPath: (
       <path
         strokeLinecap="round"
@@ -148,7 +149,7 @@ const LINKS: LinkConfig[] = [
     title: 'Hugging Face',
     url: 'https://huggingface.co/collections',
     theme: 'yellow',
-    category: '工具',
+    category: 'tools',
     iconPath: (
       <path
         strokeLinecap="round"
@@ -164,7 +165,7 @@ const LINKS: LinkConfig[] = [
     title: 'GitHub Trending',
     url: 'https://github.com/trending',
     theme: 'slate',
-    category: '趋势',
+    category: 'trends',
     iconPath: (
       <path
         strokeLinecap="round"
@@ -178,7 +179,7 @@ const LINKS: LinkConfig[] = [
     title: 'Best of JS',
     url: 'https://bestofjs.org/trends/monthly',
     theme: 'yellow',
-    category: '趋势',
+    category: 'trends',
     iconPath: (
       <path
         strokeLinecap="round"
@@ -192,7 +193,7 @@ const LINKS: LinkConfig[] = [
     title: 'TIOBE Index',
     url: 'https://www.tiobe.com/tiobe-index/',
     theme: 'green',
-    category: '趋势',
+    category: 'trends',
     iconPath: (
       <path
         strokeLinecap="round"
@@ -206,7 +207,7 @@ const LINKS: LinkConfig[] = [
     title: 'Cloudflare Radar',
     url: 'https://radar.cloudflare.com/',
     theme: 'orange',
-    category: '趋势',
+    category: 'trends',
     iconPath: (
       <path
         strokeLinecap="round"
@@ -220,7 +221,7 @@ const LINKS: LinkConfig[] = [
     title: 'Thoughtworks Radar',
     url: 'https://www.thoughtworks.com/radar',
     theme: 'pink',
-    category: '趋势',
+    category: 'trends',
     iconPath: <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />,
   },
   {
@@ -228,7 +229,7 @@ const LINKS: LinkConfig[] = [
     title: 'SRG Research',
     url: 'https://www.srgresearch.com/research',
     theme: 'teal',
-    category: '趋势',
+    category: 'trends',
     iconPath: (
       <path
         strokeLinecap="round"
@@ -243,7 +244,7 @@ const LINKS: LinkConfig[] = [
     title: 'Chatbot Arena',
     url: 'https://lmarena.ai/leaderboard',
     theme: 'purple',
-    category: '趋势',
+    category: 'trends',
     iconPath: (
       <path
         strokeLinecap="round"
@@ -259,7 +260,7 @@ const LINKS: LinkConfig[] = [
     title: 'moDB 墨天轮',
     url: 'https://www.modb.pro/dbRank',
     theme: 'blue',
-    category: '数据库',
+    category: 'databases',
     iconPath: (
       <path
         strokeLinecap="round"
@@ -273,7 +274,7 @@ const LINKS: LinkConfig[] = [
     title: 'DB Engines',
     url: 'https://db-engines.com/en/ranking',
     theme: 'red',
-    category: '数据库',
+    category: 'databases',
     iconPath: (
       <path
         strokeLinecap="round"
@@ -351,7 +352,7 @@ const LinkCard: React.FC<{ config: LinkConfig }> = ({ config }) => {
 };
 
 // 5. 导出主组件
-const TrendsView: React.FC = () => {
+const TrendsView: React.FC<{ dict?: Dictionary }> = ({ dict = zh }) => {
   // 按分类分组
   const groupedLinks = LINKS.reduce(
     (acc, link) => {
@@ -365,19 +366,19 @@ const TrendsView: React.FC = () => {
   );
 
   // 定义分类顺序
-  const categoryOrder = ['工具', '趋势', '数据库'];
+  const categoryOrder: Array<'tools' | 'trends' | 'databases'> = ['tools', 'trends', 'databases'];
 
   // 分类配置
   const CATEGORY_CONFIG: Record<string, { accent: string; text: string }> = {
-    工具: {
+    tools: {
       accent: 'bg-indigo-600',
       text: 'text-gray-900 dark:text-midnight-text-primary',
     },
-    趋势: {
+    trends: {
       accent: 'bg-orange-600',
       text: 'text-gray-900 dark:text-midnight-text-primary',
     },
-    数据库: {
+    databases: {
       accent: 'bg-blue-600',
       text: 'text-gray-900 dark:text-midnight-text-primary',
     },
@@ -387,10 +388,10 @@ const TrendsView: React.FC = () => {
     <div className="mx-auto w-full max-w-5xl px-4 py-8">
       <div className="mb-12">
         <h2 className="dark:text-midnight-text-primary text-3xl font-bold tracking-tight text-gray-900">
-          趋势工具
+          {dict.trends.title}
         </h2>
         <p className="dark:text-midnight-text-secondary mt-2 text-gray-500">
-          探索最新的技术趋势和行业动态
+          {dict.trends.subtitle}
         </p>
       </div>
 
@@ -404,7 +405,7 @@ const TrendsView: React.FC = () => {
             <div key={category}>
               <div className="mb-6 flex items-center">
                 <div className={`h-7 w-1.5 rounded-full ${config.accent} mr-3 shadow-xs`}></div>
-                <h3 className={`text-xl font-bold ${config.text} tracking-wide`}>{category}</h3>
+                <h3 className={`text-xl font-bold ${config.text} tracking-wide`}>{dict.trends[category]}</h3>
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

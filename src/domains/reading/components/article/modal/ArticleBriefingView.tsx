@@ -10,6 +10,8 @@ import { useArticleStore } from '@/domains/interaction/store/articleStore';
 import { DEFAULT_MODEL_ID } from '@/domains/intelligence/constants';
 import { ModelSelector } from '@/domains/intelligence/components/ai/ModelSelector';
 
+import { Dictionary } from '@/app/i18n/dictionaries';
+
 interface ArticleBriefingViewProps {
   article: Article;
   readerContent: CleanArticleContent | null | undefined;
@@ -21,6 +23,7 @@ interface ArticleBriefingViewProps {
     tagsToAdd: string[],
     tagsToRemove: string[],
   ) => Promise<any>;
+  dict: Dictionary;
 }
 const ArticleBriefingView: React.FC<ArticleBriefingViewProps> = ({
   article,
@@ -29,6 +32,7 @@ const ArticleBriefingView: React.FC<ArticleBriefingViewProps> = ({
   hasBriefingData,
   onReaderModeRequest,
   onStateChange,
+  dict,
 }) => {
   const isAdmin = useUIStore((state) => state.isAdmin);
   const { showToast } = useAppToast();
@@ -50,7 +54,7 @@ const ArticleBriefingView: React.FC<ArticleBriefingViewProps> = ({
       const result = await generateBriefingAction(article, readerContent?.content, selectedModel);
 
       if (result.success) {
-        showToast('智能简报生成成功', 'success');
+        showToast(dict.modal.generateSuccess, 'success');
 
         // --- 1. Consolue Logs (Explicit) ---
         console.log('✅ Briefing Generated Successfully!');
@@ -92,11 +96,11 @@ const ArticleBriefingView: React.FC<ArticleBriefingViewProps> = ({
           // If UnifiedArticleModal receives 'article' prop from a parent list that reads from store, it works.
         }
       } else {
-        showToast(`生成失败: ${result.error}`, 'error');
+        showToast(`${dict.modal.generateError}: ${result.error}`, 'error');
         console.error('Generaton Failed:', result.error);
       }
     } catch (err) {
-      showToast('生成过程中发生错误', 'error');
+      showToast(dict.modal.generateError, 'error');
       console.error(err);
     } finally {
       setIsGenerating(false);
@@ -108,7 +112,7 @@ const ArticleBriefingView: React.FC<ArticleBriefingViewProps> = ({
       <div className="flex h-64 flex-col items-center justify-center space-y-4">
         <LoadingSpinner />
         <p className="text-sm text-gray-500">
-          {isGenerating ? '正在生成简报...' : '正在检查简报状态...'}
+          {isGenerating ? dict.modal.generating : dict.modal.loading}
         </p>
       </div>
     );
@@ -133,15 +137,15 @@ const ArticleBriefingView: React.FC<ArticleBriefingViewProps> = ({
             />
           </svg>
         </div>
-        <h3 className="mb-2 text-lg font-medium text-gray-900">暂无智能简报</h3>
-        <p className="mb-6 text-gray-500">该文章尚未完成 AI 分析，请直接阅读原文。</p>
+        <h3 className="mb-2 text-lg font-medium text-gray-900">{dict.modal.noBriefing}</h3>
+        <p className="mb-6 text-gray-500">{dict.modal.noBriefingDesc}</p>
 
         <div className="flex flex-col items-center gap-3">
           <button
             onClick={onReaderModeRequest}
             className="cursor-pointer rounded-md bg-blue-600 px-4 py-2 text-white shadow-xs transition-colors hover:bg-blue-700"
           >
-            切换到原文阅读
+            {dict.modal.switchToReader}
           </button>
 
           {isAdmin && (
@@ -166,7 +170,7 @@ const ArticleBriefingView: React.FC<ArticleBriefingViewProps> = ({
                 >
                   <path d="M15.98 1.804a1 1 0 00-1.96 0l-.24 1.192a1 1 0 01-.784.785l-1.192.238a1 1 0 000 1.96l1.192.238a1 1 0 01.785.785l.238 1.192a1 1 0 001.96 0l.238-1.192a1 1 0 01.785-.785l1.192-.238a1 1 0 000-1.96l-1.192-.238a1 1 0 01-.785-.785l-.238-1.192zM6.949 5.684a1 1 0 00-1.898 0l-.683 5.618a1 1 0 01-.718.784l-5.618.683a1 1 0 000 1.898l5.618.683a1 1 0 01.718.784l.683 5.618a1 1 0 001.898 0l.683-5.618a1 1 0 01.718-.784l5.618-.683a1 1 0 000-1.898l-5.618-.683a1 1 0 01-.718-.784l-.683-5.618z" />
                 </svg>
-                <span>{isGenerating ? '正在生成...' : '⚡️ 生成智能简报'}</span>
+                <span>{isGenerating ? dict.modal.generatingMsg : dict.modal.generateAction}</span>
               </button>
             </div>
           )}
@@ -210,7 +214,7 @@ const ArticleBriefingView: React.FC<ArticleBriefingViewProps> = ({
                 clipRule="evenodd"
               />
             </svg>
-            <span>{isGenerating ? '正在重新生成...' : '⚡️ 重新生成简报'}</span>
+            <span>{isGenerating ? dict.modal.recodeGenerating : dict.modal.regenerateAction}</span>
           </button>
         </div>
       )}

@@ -20,6 +20,7 @@ import { Filter, Article, TimeSlot, Tag } from '@/types';
 import { getArticleTimeSlot } from '@/domains/reading/utils/date';
 
 import { useQueryClient } from '@tanstack/react-query';
+import { Dictionary } from '@/app/i18n/dictionaries';
 
 interface MainContentClientProps {
   initialDate?: string;
@@ -31,6 +32,8 @@ interface MainContentClientProps {
   isHomepage?: boolean; // New prop
   initialTimeSlot?: TimeSlot | null;
   today: string; // Required prop for hydration consistency
+  dict: Dictionary;
+  tableName?: string; // Optional Table Name for Search/Data Fetching
 }
 
 export default function MainContentClient({
@@ -42,7 +45,10 @@ export default function MainContentClient({
   isHomepage = false, // Default to false
   initialTimeSlot,
   initialTags = [], // New prop with default
+
   today,
+  dict,
+  tableName = 'articles_view',
 }: MainContentClientProps) {
   const storeActiveFilter = useUIStore((state) => state.activeFilter);
   const setAvailableFilters = useArticleStore((state) => state.setAvailableFilters);
@@ -182,6 +188,7 @@ export default function MainContentClient({
     dateToUse || null,
     querySlot,
     dateToUse === initialDate && !querySlot ? initialArticleIds : undefined,
+    tableName,
   );
 
   const {
@@ -200,7 +207,7 @@ export default function MainContentClient({
     fetchNextPage: fetchNextSearchResult,
     hasNextPage: hasNextSearchResult,
     isFetchingNextPage: isFetchingNextSearchResult,
-  } = useSearchResults(activeFilter?.type === 'search' ? activeFilter.value : null);
+  } = useSearchResults(activeFilter?.type === 'search' ? activeFilter.value : null, tableName);
 
   // Handlers
   const handleOpenArticle = (article: Article) => {
@@ -252,14 +259,14 @@ export default function MainContentClient({
   // Render Logic
   if (selectedArticleId) {
     const article =
-      articlesById[selectedArticleId] || initialArticles.find((a) => a.id === selectedArticleId);
+      articlesById[String(selectedArticleId)] || initialArticles.find((a) => a.id === selectedArticleId);
     if (article) {
-      return <ArticleDetailClient article={article} />;
+      return <ArticleDetailClient article={article} dict={dict} />;
     }
   }
 
   if (activeFilter?.type === 'trends') {
-    return <TrendsView />;
+    return <TrendsView dict={dict} />;
   }
 
   if (activeFilter?.type === 'category' || activeFilter?.type === 'tag') {
@@ -285,6 +292,7 @@ export default function MainContentClient({
         fetchNextPage={fetchNextSearchResult}
         hasNextPage={hasNextSearchResult}
         isFetchingNextPage={isFetchingNextSearchResult}
+        dict={dict}
       />
     );
   }
@@ -302,7 +310,7 @@ export default function MainContentClient({
         headerImageUrl={dateToUse === initialDate ? initialHeaderImageUrl : undefined}
         timeSlot={timeSlot}
         selectedReportId={1}
-        onReportSelect={() => {}}
+        onReportSelect={() => { }}
         onReaderModeRequest={handleReaderModeRequest}
         onStateChange={async (id, add, remove) => {
           await updateArticleState({ articleId: id, tagsToAdd: add, tagsToRemove: remove });
@@ -320,6 +328,9 @@ export default function MainContentClient({
         }
         articles={initialArticles} // Pass initial objects for fallback lookup
         isToday={dateToUse === today}
+        dict={dict}
+        prevDate={null} // Homepage logic might need prev/next logic if we support history nav within home, but currently it's date based filter. Briefing requires prev/next?
+        nextDate={null}
       />
     );
   }

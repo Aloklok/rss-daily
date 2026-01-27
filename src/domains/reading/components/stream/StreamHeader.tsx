@@ -1,4 +1,5 @@
 import React, { memo, useMemo } from 'react';
+import { Dictionary, zh } from '@/app/i18n/dictionaries';
 
 const GRADIENTS = [
   'from-rose-100 via-rose-200 to-orange-100 dark:from-rose-900/40 dark:via-fuchsia-900/40 dark:to-indigo-900/40',
@@ -13,10 +14,11 @@ interface ArticleListHeaderProps {
   count: number;
   description?: React.ReactNode;
   showCount?: boolean;
+  dict?: Dictionary;
 }
 
 const ArticleListHeader: React.FC<ArticleListHeaderProps> = memo(
-  ({ title, count, description, showCount = true }) => {
+  ({ title, description, dict = zh }) => {
     // Generate deterministic gradient based on title char codes
     const randomGradient = useMemo(() => {
       if (!title) return GRADIENTS[0];
@@ -36,18 +38,12 @@ const ArticleListHeader: React.FC<ArticleListHeaderProps> = memo(
             {title}
           </h1>
 
-          {showCount && (
-            <div className="mt-3 flex items-center gap-2 font-medium text-gray-700 opacity-80 dark:text-gray-200">
-              <span className="text-xs tracking-widest uppercase">Collection</span>
-              <span className="h-px w-8 bg-current opacity-50"></span>
-              <span className="text-sm">{count} Articles</span>
-            </div>
-          )}
+
 
           {description && (
             <div className="mt-6 border-t border-black/5 pt-4 text-sm dark:border-white/10">
               <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                <span className="shrink-0 font-bold text-gray-900 dark:text-white">Related:</span>
+                <span className="shrink-0 font-bold text-gray-900 dark:text-white">{dict.stream.related}:</span>
                 <div className="leading-relaxed font-medium text-gray-700 opacity-90 dark:text-gray-200">
                   {description}
                 </div>

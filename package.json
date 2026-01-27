@@ -24,6 +24,7 @@
     "chat-prompt:push": "npx tsx scripts/push-chat-prompt.ts",
     "search:backfill": "npx tsx scripts/backfill-embeddings.ts",
     "search:update": "npx tsx scripts/update-search-rpc.ts",
+    "translate:backfill": "npx tsx scripts/backfill-translations.ts",
     "prepare": "husky"
   },
   "browserslist": [
@@ -60,6 +61,7 @@
     "@testing-library/react": "^16.3.1",
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "^25.0.9",
+    "@types/node-fetch": "^2.6.13",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@types/sanitize-html": "^2.16.0",
@@ -79,6 +81,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "msw": "^2.12.7",
+    "node-fetch": "^3.3.2",
     "openapi-typescript": "^7.10.1",
     "playwright": "^1.57.0",
     "postcss": "^8.4.38",

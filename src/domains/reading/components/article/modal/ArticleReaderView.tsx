@@ -4,11 +4,14 @@ import LoadingSpinner from '@/shared/ui/Spinner';
 import { getRandomColorClass } from '@/shared/utils/colorUtils';
 import { removeEmptyParagraphs } from '@/domains/reading/utils/content';
 
+import { Dictionary } from '@/app/i18n/dictionaries';
+
 interface ArticleReaderViewProps {
   article: Article;
   readerContent: CleanArticleContent | null;
   isLoading: boolean;
   userTagLabels: string[];
+  dict: Dictionary;
 }
 
 const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
@@ -16,6 +19,7 @@ const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
   readerContent,
   isLoading,
   userTagLabels,
+  dict,
 }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
@@ -76,14 +80,14 @@ const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
   if (!readerContent)
     return (
       <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-        <p>无法加载文章内容。</p>
+        <p>{dict.modal.error}</p>
         <a
           href={article.link}
           target="_blank"
           rel="noopener noreferrer"
           className="mt-2 inline-block text-blue-600 dark:text-blue-400"
         >
-          查看原文
+          {dict.modal.viewOriginal}
         </a>
       </div>
     );
@@ -94,7 +98,7 @@ const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
         {readerContent.title}
       </h1>
       <div className="mb-6 border-b border-gray-200 pb-4 dark:border-stone-700">
-        <p className="text-gray-500 dark:text-gray-400">来源: {readerContent.source}</p>
+        <p className="text-gray-500 dark:text-gray-400">{dict.reader.source}: {readerContent.source}</p>
         {userTagLabels.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-2">
             {userTagLabels.map((label) => (
@@ -111,7 +115,7 @@ const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
           <button
             onClick={handleCopy}
             className="flex cursor-pointer items-center gap-1.5 rounded-full bg-stone-200 px-3 py-1.5 text-sm font-medium text-stone-800 transition-colors hover:bg-stone-300 dark:bg-stone-700 dark:text-stone-200 dark:hover:bg-stone-600"
-            title="复制全文"
+            title={dict.reader.copyAll}
           >
             {copied ? (
               <>
@@ -127,7 +131,7 @@ const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                     clipRule="evenodd"
                   />
                 </svg>
-                <span className="cursor-pointer text-green-600 dark:text-green-400">已复制</span>
+                <span className="cursor-pointer text-green-600 dark:text-green-400">{dict.reader.copied}</span>
               </>
             ) : (
               <>
@@ -140,7 +144,7 @@ const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                   <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
                   <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
                 </svg>
-                <span className="cursor-pointer">复制</span>
+                <span className="cursor-pointer">{dict.reader.copy}</span>
               </>
             )}
           </button>
@@ -159,7 +163,7 @@ const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
               <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
               <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
             </svg>
-            <span className="cursor-pointer">原文</span>
+            <span className="cursor-pointer">{dict.reader.original}</span>
           </a>
         </div>
       </div>

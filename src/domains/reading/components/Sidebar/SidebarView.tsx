@@ -10,6 +10,9 @@ import { useUIStore } from '@/shared/store/uiStore';
 
 import dynamic from 'next/dynamic';
 
+import { Dictionary } from '@/app/i18n/dictionaries';
+import { getSlugLink } from '@/domains/reading/utils/slug-helper';
+
 // Dynamic imports for code splitting
 const SidebarSearch = dynamic(() => import('./SidebarSearch'), {
   loading: () => (
@@ -54,7 +57,8 @@ interface SidebarProps {
   dailyStatuses: Record<string, boolean>;
   onToggleDailyStatus: (date: string, currentStatus: boolean) => void;
   initialStarredHeaders?: { id: string | number; title: string; tags: string[] }[];
-  availableFilters: AvailableFilters; // Add prop
+  availableFilters: AvailableFilters;
+  dict: Dictionary; // Add dict prop
 }
 
 const Sidebar = React.memo<SidebarProps>(
@@ -70,7 +74,8 @@ const Sidebar = React.memo<SidebarProps>(
     onToggleDailyStatus,
     onOpenArticle,
     initialStarredHeaders,
-    availableFilters, // Destructure
+    availableFilters,
+    dict, // Destructure dict
   }) => {
     const router = useRouter();
     const pathname = usePathname();
@@ -109,8 +114,9 @@ const Sidebar = React.memo<SidebarProps>(
       if (trimmedQuery) {
         setActiveFilter({ type: 'search', value: trimmedQuery });
         setSelectedArticleId(null);
+        const basePath = pathname?.startsWith('/en') ? '/en' : '';
         console.log('Navigating to root with params');
-        router.push(`/?filter=search&value=${encodeURIComponent(trimmedQuery)}`);
+        router.push(`${basePath}/?filter=search&value=${encodeURIComponent(trimmedQuery)}`);
       }
     };
 
@@ -125,17 +131,20 @@ const Sidebar = React.memo<SidebarProps>(
     const handleFilterSelect = (filter: Filter) => {
       setActiveFilter(filter);
       setSelectedArticleId(null);
+      const basePath = pathname?.startsWith('/en') ? '/en' : '';
 
-      if (filter.type === 'category' || filter.type === 'tag') {
-        router.push(`/stream/${encodeURIComponent(filter.value)}`);
+      if (filter.type === 'category') {
+        router.push(getSlugLink(filter.value, dict.lang as 'zh' | 'en', 'category'));
+      } else if (filter.type === 'tag') {
+        router.push(getSlugLink(filter.value, dict.lang as 'zh' | 'en', 'tag'));
       } else if (filter.type === 'search') {
-        router.push(`/?filter=search&value=${encodeURIComponent(filter.value)}`);
+        router.push(`${basePath}/?filter=search&value=${encodeURIComponent(filter.value)}`);
       } else if (filter.type === 'date') {
-        router.push(`/date/${filter.value}`);
+        router.push(`${basePath}/date/${filter.value}`);
       } else if (filter.type === 'trends') {
-        router.push('/trends');
+        router.push(`${basePath}/trends`);
       } else {
-        router.push('/');
+        router.push(`${basePath}/`);
       }
     };
 
@@ -143,7 +152,8 @@ const Sidebar = React.memo<SidebarProps>(
       // Don't set activeFilter here. Let navigation handle it.
       // setActiveFilter({ type: 'date', value: date });
       setSelectedArticleId(null);
-      router.push(`/date/${date}`);
+      const basePath = pathname?.startsWith('/en') ? '/en' : '';
+      router.push(`${basePath}/date/${date}`);
     };
 
     const tabButtonClass = (isActive: boolean) =>
@@ -172,10 +182,13 @@ const Sidebar = React.memo<SidebarProps>(
           </div>
           <div className="relative flex items-center gap-1">
             <Link
-              href="/archive"
-              className="dark:hover:bg-midnight-card flex cursor-pointer items-center justify-center rounded-full p-1.5 text-gray-500 transition-colors hover:bg-gray-200 dark:text-gray-400"
-              title="查看历史归档"
-              aria-label="查看历史归档"
+              href={pathname?.startsWith('/en') ? '/en/archive' : '/archive'}
+              className={`flex cursor-pointer items-center justify-center rounded-full p-1.5 transition-colors ${pathname?.includes('/archive')
+                ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400'
+                : 'text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-midnight-card'
+                }`}
+              title={dict.archive.title}
+              aria-label={dict.archive.title}
               prefetch={false}
             >
               <svg
@@ -198,8 +211,8 @@ const Sidebar = React.memo<SidebarProps>(
               onClick={handleRefreshClick}
               disabled={isLoading}
               className="dark:hover:bg-midnight-card cursor-pointer rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-200 disabled:cursor-wait dark:text-gray-400"
-              title="刷新内容"
-              aria-label="刷新内容"
+              title="Refresh" // Ideally add refresh to dict
+              aria-label="Refresh"
             >
               <svg
                 className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`}
@@ -218,12 +231,12 @@ const Sidebar = React.memo<SidebarProps>(
             </button>
           </div>
         </div>
-
         {useUIStore((state) => state.isAdmin) && (
           <SidebarSearch
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             onSearch={handleSearchSubmit}
+            dict={dict}
           />
         )}
 
@@ -233,13 +246,13 @@ const Sidebar = React.memo<SidebarProps>(
               setIsNavigatingToSource(true);
               setActiveFilter(null);
               setSelectedArticleId(null);
-              router.push('/sources');
+              const basePath = pathname?.startsWith('/en') ? '/en' : '';
+              router.push(`${basePath}/sources`);
             }}
-            className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium shadow-sm transition-all hover:shadow-md active:scale-95 ${
-              pathname?.startsWith('/sources')
-                ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:ring-blue-800'
-                : 'bg-white text-stone-700 hover:bg-stone-50 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700'
-            }`}
+            className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium shadow-sm transition-all hover:shadow-md active:scale-95 ${pathname?.startsWith('/sources')
+              ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:ring-blue-800'
+              : 'bg-white text-stone-700 hover:bg-stone-50 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700'
+              }`}
           >
             <span className="flex size-8 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
               <svg
@@ -257,7 +270,7 @@ const Sidebar = React.memo<SidebarProps>(
                 />
               </svg>
             </span>
-            <span>按订阅源浏览</span>
+            <span>{dict.nav.sources}</span>
           </button>
         </div>
 
@@ -268,7 +281,7 @@ const Sidebar = React.memo<SidebarProps>(
           >
             <div className="flex items-center justify-center gap-2">
               <span>🏷️</span>
-              <span>分类</span>
+              <span>{dict.archive.filters.categories}</span>
             </div>
           </button>
           <button
@@ -277,7 +290,7 @@ const Sidebar = React.memo<SidebarProps>(
           >
             <div className="flex items-center justify-center gap-2">
               <span>📅</span>
-              <span>日历</span>
+              <span>{dict.briefing.header.dailyUpdates}</span>
             </div>
           </button>
         </div>
@@ -299,11 +312,12 @@ const Sidebar = React.memo<SidebarProps>(
               starredCount={starredCount}
               activeFilter={activeFilter}
               selectedArticleId={selectedArticleId}
+              dict={dict}
               onSelect={() => {
                 if (activeFilter?.type === 'trends') {
                   setActiveFilter(null);
                   setSelectedArticleId(null);
-                  router.push('/');
+                  router.push(pathname?.startsWith('/en') ? '/en' : '/');
                 }
               }}
             />
@@ -314,6 +328,7 @@ const Sidebar = React.memo<SidebarProps>(
               }
               onFilterSelect={handleFilterSelect}
               selectedArticleId={selectedArticleId}
+              dict={dict}
             />
           </div>
           <div className={activeTab === 'calendar' ? 'block h-full' : 'hidden'}>
@@ -330,16 +345,19 @@ const Sidebar = React.memo<SidebarProps>(
               }
               onDateSelect={handleDateSelect}
               selectedArticleId={selectedArticleId}
+              dict={dict}
             />
           </div>
         </div>
 
         <SidebarTrends
-          isActive={activeFilter?.type === 'trends' && !selectedArticleId}
+          isActive={pathname?.includes('/trends') ?? false}
+          dict={dict}
           onClick={() => {
             setActiveFilter({ type: 'trends', value: '' });
             setSelectedArticleId(null);
-            router.push('/trends');
+            const basePath = pathname?.startsWith('/en') ? '/en' : '';
+            router.push(`${basePath}/trends`);
           }}
         />
       </aside>

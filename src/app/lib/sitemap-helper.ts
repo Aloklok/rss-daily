@@ -1,23 +1,47 @@
 import { getSupabaseClient } from '@/shared/infrastructure/supabase';
 import { getFreshRssClient } from '@/shared/infrastructure/fresh-rss';
+import { getSlugLink } from '@/domains/reading/utils/slug-helper';
+import { UNCATEGORIZED_LABEL } from '@/domains/reading/constants';
 
-export async function getSitemapUrls(): Promise<SitemapURL[]> {
+export async function getSitemapUrls(lang: 'zh' | 'en' = 'zh'): Promise<SitemapURL[]> {
   const supabase = getSupabaseClient();
+  const baseUrl = 'https://www.alok-rss.top';
+  const langPrefix = lang === 'en' ? '/en' : '';
+  const baseFullUrl = `${baseUrl}${langPrefix}`;
 
-  // 1. Fetch all available dates (Full History via RPC)
-  // detailed in: docs/SEO.md (Sitemap Generation)
-  const { data, error } = await supabase.rpc('get_unique_dates');
+  // 1. Fetch available dates for the specific language
+  let dates: string[] = [];
+  if (lang === 'zh') {
+    const { data, error } = await supabase.rpc('get_unique_dates');
+    if (error) {
+      console.error('Supabase error fetching ZH sitemap dates:', error);
+    } else {
+      dates = data?.map((d: { date_str: string }) => d.date_str) || [];
+    }
+  } else {
+    // English needs actual translated content
+    const { data, error } = await supabase
+      .from('articles_view_en')
+      .select('n8n_processing_date')
+      .order('n8n_processing_date', { ascending: false });
 
-  if (error) {
-    console.error('Supabase error fetching sitemap data:', error);
-    return [];
+    if (error) {
+      console.error('Supabase error fetching EN sitemap dates:', error);
+    } else {
+      const uniqueDates = new Set<string>();
+      data?.forEach((row: any) => {
+        if (row.n8n_processing_date) {
+          const dateStr = new Date(row.n8n_processing_date).toISOString().split('T')[0];
+          uniqueDates.add(dateStr);
+        }
+      });
+      dates = Array.from(uniqueDates).sort().reverse();
+    }
   }
 
-  // RPC returns { date_str: string }[] - already formatted as YYYY-MM-DD
-  const dates = data?.map((d: { date_str: string }) => d.date_str) || [];
-  const baseUrl = 'https://www.alok-rss.top';
+  const latestDate = dates.length > 0 ? dates[0] : undefined;
 
-  // 2. Fetch active Tags AND Categories from FreshRSS
+  // 2. Fetch active Tags AND Categories from FreshRSS (Same for both langs)
   let tagUrls: string[] = [];
   let categoryUrls: string[] = [];
 
@@ -25,86 +49,89 @@ export async function getSitemapUrls(): Promise<SitemapURL[]> {
     const freshRss = getFreshRssClient();
     const tagData = await freshRss.get<{ tags: { id: string; type: string; count?: number }[] }>(
       '/tag/list',
-      {
-        output: 'json',
-        with_counts: '1',
-      },
+      { output: 'json', with_counts: '1' },
     );
 
     if (tagData.tags) {
       const validItems = tagData.tags.filter(
-        (tag) => !tag.id.includes('/state/com.google/') && !tag.id.includes('/state/org.freshrss/'),
+        (tag) => {
+          const decodedId = decodeURIComponent(tag.id);
+          return (
+            !tag.id.includes('/state/com.google/') &&
+            !tag.id.includes('/state/org.freshrss/') &&
+            !decodedId.endsWith(UNCATEGORIZED_LABEL) &&
+            !decodedId.endsWith('Uncategorized')
+          );
+        }
       );
 
       // Categories (Folders)
       categoryUrls = validItems
         .filter((tag) => tag.type === 'folder')
-        .map((tag) => `${baseUrl}/stream/${encodeURIComponent(tag.id)}`);
+        .map((tag) => `${baseUrl}${getSlugLink(tag.id, lang, 'category')}`);
 
       // Tags (Labels) - Top 50
       tagUrls = validItems
         .filter((tag) => tag.type !== 'folder')
         .sort((a, b) => (b.count || 0) - (a.count || 0))
         .slice(0, 50)
-        .map((tag) => `${baseUrl}/stream/${encodeURIComponent(tag.id)}`);
+        .map((tag) => `${baseUrl}${getSlugLink(tag.id, lang, 'tag')}`);
     }
   } catch (e) {
-    console.error('Failed to fetch filters for sitemap:', e);
+    console.error(`Failed to fetch filters for ${lang} sitemap:`, e);
   }
 
   // 3. Construct URLs with lastmod
-  const urls = [
+  const today = new Intl.DateTimeFormat('en-CA', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    timeZone: 'Asia/Shanghai',
+  }).format(new Date());
+
+  const urls: SitemapURL[] = [
     {
-      url: `${baseUrl}/`,
-      lastmod: dates.length > 0 ? dates[0] : undefined, // Homepage updates with latest briefing
+      url: `${baseFullUrl}/`,
+      lastmod: latestDate,
       changefreq: 'daily',
       priority: '1.0',
     },
     {
-      url: `${baseUrl}/archive`,
-      lastmod: dates.length > 0 ? dates[0] : undefined, // Archive updates with any new content
-      changefreq: 'daily',
-      priority: '0.7',
-    },
-    {
-      url: `${baseUrl}/trends`,
-      lastmod: dates.length > 0 ? dates[0] : undefined, // Trends data changes daily
+      url: `${baseFullUrl}/archive`,
+      lastmod: latestDate,
       changefreq: 'daily',
       priority: '0.8',
     },
+    {
+      url: `${baseFullUrl}/trends`,
+      lastmod: latestDate,
+      changefreq: 'daily',
+      priority: '0.8',
+    },
+    {
+      url: `${baseFullUrl}/sources`,
+      lastmod: latestDate,
+      changefreq: 'daily',
+      priority: '0.7',
+    },
 
     ...dates.map((date: string) => {
-      // Check if it's today (simple string comparison works because dates array is YYYY-MM-DD strings)
-      // We need to get "Today" in Shanghai timezone to match the data format.
-      const today = new Intl.DateTimeFormat('en-CA', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        timeZone: 'Asia/Shanghai',
-      }).format(new Date());
-
       const isToday = date === today;
-
       return {
-        url: `${baseUrl}/date/${date}`,
-        // Critical SEO Fix:
-        // If the date is TODAY, we use the current ISO timestamp as lastmod.
-        // This tells crawlers "This page has changed right now!" (since the cache is 1h).
-        // If the date is PAST, we just use the date string (YYYY-MM-DD) which serves as a stable anchor.
-        lastmod: isToday ? new Date().toISOString() : date,
-        changefreq: isToday ? 'hourly' : 'weekly', // Hourly for today to encourage re-crawling
+        url: `${baseFullUrl}/date/${date}`,
+        lastmod: date,
+        changefreq: isToday ? 'hourly' : 'weekly',
         priority: isToday ? '0.9' : '0.8',
       };
     }),
     ...categoryUrls.map((url) => ({
-      url: url,
-      // Categories update daily, no lastmod calculation needed
+      url,
       changefreq: 'daily',
       priority: '0.6',
     })),
     ...tagUrls.map((url) => ({
-      url: url,
-      lastmod: dates.length > 0 ? dates[0] : undefined, // Tags update with new content, use latest daily date
+      url,
+      lastmod: latestDate,
       changefreq: 'daily',
       priority: '0.6',
     })),

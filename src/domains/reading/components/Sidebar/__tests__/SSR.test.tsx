@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { renderToString } from 'react-dom/server';
 import Sidebar from '../SidebarView';
 import { useUIStore } from '@/shared/store/uiStore';
+import { zh } from '@/app/i18n/dictionaries';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
@@ -32,6 +33,7 @@ describe('SSR 兼容性验证 (No-JS Crawlability)', () => {
     onToggleDailyStatus: vi.fn(),
     availableFilters: { categories: [], tags: [] },
     initialStarredHeaders: [],
+    dict: zh,
   };
 
   it('在服务端渲染阶段应包含归档链接', () => {
@@ -48,6 +50,6 @@ describe('SSR 兼容性验证 (No-JS Crawlability)', () => {
 
     // 验证 HTML 字符串中是否包含关键的 a 标签和 href
     expect(html).toContain('href="/archive"');
-    expect(html).toContain('aria-label="查看历史归档"');
+    expect(html).toContain(`aria-label="${zh.archive.title}"`);
   });
 });

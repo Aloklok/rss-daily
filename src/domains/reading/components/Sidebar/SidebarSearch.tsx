@@ -1,17 +1,18 @@
-import React from 'react';
+import { Dictionary } from '@/app/i18n/dictionaries';
 
 interface SidebarSearchProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   onSearch: (e: React.FormEvent) => void;
+  dict: Dictionary;
 }
 
-const SidebarSearch: React.FC<SidebarSearchProps> = ({ searchQuery, setSearchQuery, onSearch }) => {
+const SidebarSearch: React.FC<SidebarSearchProps> = ({ searchQuery, setSearchQuery, onSearch, dict }) => {
   return (
     <form onSubmit={onSearch} className="relative">
       <input
         type="text"
-        placeholder="搜索简报关键词..."
+        placeholder={dict.search.placeholder}
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         className="dark:bg-midnight-card dark:border-midnight-border w-full rounded-xl border border-stone-200 bg-white py-2 pr-4 pl-10 text-sm placeholder-gray-400 shadow-sm transition-all focus:border-transparent focus:ring-2 focus:ring-indigo-500 focus:outline-none dark:text-white dark:placeholder-gray-500"

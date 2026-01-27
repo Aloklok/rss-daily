@@ -113,7 +113,8 @@ export async function logServerBotHit(
   }
 
   try {
-    const country = headers.get('x-vercel-ip-country') || '';
+    // Extract Geo Info (Priority: Cloudflare -> Vercel)
+    const country = headers.get('cf-ipcountry') || headers.get('x-vercel-ip-country') || '';
     const requestId = headers.get('x-vercel-id');
     // Extract error reason:
     // 1. Explicitly passed 'error_reason' in meta (from logBotError / API)

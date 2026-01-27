@@ -5,7 +5,7 @@ import { headers } from 'next/headers';
  * Triggers a background fetch to hit the page and populate the ISR/CDN cache.
  * This should be called AFTER revalidateTag/revalidatePath.
  */
-export async function prewarmCache(date: string) {
+export async function prewarmCache(date: string, lang: 'zh' | 'en' = 'zh') {
   try {
     const headersList = await headers();
     const host = headersList.get('host');
@@ -14,15 +14,17 @@ export async function prewarmCache(date: string) {
     // We don't use absolute URLs in fetch usually if it's internal,
     // but for CDN pre-warming we want a real request to the edge.
     const baseUrl = `${protocol}://${host}`;
+    const prefix = lang === 'en' ? '/en' : '';
 
-    const targets = [`${baseUrl}/date/${date}`];
+    const targets = [`${baseUrl}${prefix}/date/${date}`];
 
     // If it's today, also warm the homepage
     const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai' }).format(
       new Date(),
     );
     if (date === today) {
-      targets.push(`${baseUrl}/`);
+      // Home
+      targets.push(`${baseUrl}${prefix === '' ? '/' : prefix}`);
     }
 
     console.log(`[Pre-warm] Starting background warming for: ${targets.join(', ')}`);

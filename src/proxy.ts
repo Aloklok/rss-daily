@@ -47,6 +47,7 @@ function logBotHit(
   country: string = '',
   meta?: Record<string, unknown>,
   requestId?: string,
+  errorReason?: string,
 ) {
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -79,6 +80,7 @@ function logBotHit(
       user_agent: userAgent,
       status: status,
       ip_country: country || null,
+      error_reason: errorReason || (meta?.error_reason as string) || null,
       meta: meta || null,
     }),
   })
@@ -108,8 +110,8 @@ function logBotHit(
 
 export function proxy(request: NextRequest): NextResponse | Response {
   const url = new URL(request.url);
-  // Extract Geo Info (Vercel specific header, as request.geo is deprecated in Next 15+)
-  const country = request.headers.get('x-vercel-ip-country') || '';
+  // Extract Geo Info (Priority: Cloudflare -> Vercel)
+  const country = request.headers.get('cf-ipcountry') || request.headers.get('x-vercel-ip-country') || '';
   const referer = request.headers.get('referer') || '';
   const requestId = request.headers.get('x-vercel-id') || undefined;
 
@@ -171,9 +173,9 @@ export function proxy(request: NextRequest): NextResponse | Response {
       {
         referer,
         malicious_pattern: 'wp/php/env/git',
-        error_reason: '恶意路径扫描',
       } as any,
       requestId,
+      '恶意路径扫描',
     );
     return new Response('Access Denied: Path is not permitted.', { status: 403 });
   }
@@ -216,8 +218,9 @@ export function proxy(request: NextRequest): NextResponse | Response {
       userAgent,
       403,
       country,
-      { referer, error_reason: 'SEO商业爬虫拦截' } as any,
+      { referer } as any,
       requestId,
+      'SEO商业爬虫拦截',
     );
     return new Response('Access Denied: Automated scraping is not permitted.', { status: 403 });
   }
@@ -232,8 +235,9 @@ export function proxy(request: NextRequest): NextResponse | Response {
       userAgent,
       403,
       country,
-      { referer, error_reason: 'AI机器人拦截' } as any,
+      { referer } as any,
       requestId,
+      'AI机器人拦截',
     );
     return new Response('Access Denied: AI training/archiving is restricted.', { status: 403 });
   }

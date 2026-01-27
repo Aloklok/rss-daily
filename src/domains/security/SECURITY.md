@@ -4,10 +4,13 @@
 
 ## 1. 核心职责
 
-- **流量审计**: 识别并记录所有自动化（Bot）流量，区分合规爬虫与恶意扫描。
-- **访问控制**: 在 Edge 层（Proxy）实施 WAF 级别的 UA 拦截和路径过滤。
+- **流量审计 (核心)**: 识别并记录所有自动化（Bot）流量，区分合规爬虫与恶意扫描。
+- **访问控制**: 由 Cloudflare 承接外部 WAF 防御；本地 `proxy.ts` 实施业务级 UAI 拦截作为二道防线。
 - **SEO 健康监测**: 精准追踪死链来源，监控搜索引擎抓取状态。
 - **5xx 错误归因**: 记录导致服务器错误的机器人请求，辅助系统稳定性优化。
+
+> [!NOTE]
+> **架构微调 (2026-01-27)**: 由于开启了 Cloudflare 代理 (Orange Cloud)，大部分恶意流量拦截已交由 Cloudflare 边缘节点处理。本地系统的职责已从“流量清洗”转向“深度审计与收录分析”。
 
 ## 2. 统一常量管理 (`src/domains/security/constants.ts`)
 
@@ -32,11 +35,12 @@
 
 1.  **Geo-IP 识别**: 从 Vercel 边缘提取 `ip_country`，实现地理分析。
 2.  **选择性审计 (Lean Audit)**:
-    - **静默放行**: 识别 Sentry, Vercel, Uptime 等工具类机器人并直接放行，**不记录日志**。
-    - **黑名单阻断**: 拦截高频 SEO 爬虫、AI 机器人及恶意路径扫描（`.env`, `wp-admin`, `.php` 等）。
-3.  **Header 注入**: 注入 `x-current-path` 和 `x-route-pattern` 供后续 404/5xx 页面获取原始请求路径。
+    - **Cloudflare 拦截**: 大部分恶意路径、SEO/AI 爬虫由 Cloudflare WAF 直接阻断，此类请求**不记录**在本地 `bot_hits` 表中。
+    - **本地兜底审计**: 漏网的恶意扫描或特定业务拦截（如 `.env`）仍由本地记录。
+3.  **Header 对齐**: 优先读取 `cf-ipcountry` 获取精确的 Geo-IP 地理分析数据。
+4.  **Header 注入**: 注入 `x-current-path` 和 `x-route-pattern` 供后续 404/5xx 页面获取原始请求路径。
 4.  **精准命名**: 使用 `extractSeoScraperName()` 和 `extractAiArchiveName()` 提取具体 Bot 名称，如 `AhrefsBot`、`GPTBot`。
-5.  **error_reason 注入**: 403 拦截时注入 `error_reason` 字段（如 `恶意路径扫描`、`SEO商业爬虫拦截`、`AI机器人拦截`）。
+5.  **error_reason 写入**: 403 拦截时直接将分类原因写入数据库顶层的 `error_reason` 字段。
 
 ### 3.2 Bot 日志服务 (`src/domains/security/services/bot-logger.ts`)
 
@@ -143,7 +147,9 @@ graph TD
 | **FreshRSS异常**    | `FreshRSS异常: {错误信息}` | FreshRSS API 调用失败                  |
 | **文章不存在**      | `文章不存在: ID xxx ...`   | 文章 ID 在两个服务中均未找到           |
 | **数据不存在**      | `数据不存在: {原因}`       | 其他业务逻辑返回的 404                 |
-| **静态资源缺失**    | `静态资源缺失或绕过`       | 静态资源 404 或绕过代理的请求          |
+| **API/内部绕过**    | `Supabase内部请求(API绕过)`| 绕过中间件的内部 API 请求 (如 pg_net)  |
+| **爬虫尝试**        | `静态资源缺失或爬虫尝试`   | 疑似爬虫访问不存在的静态文件           |
+| **静态资源缺失**    | `静态资源缺失或绕过`       | 正常浏览器访问缺失的静态文件           |
 
 ## 7. 维护说明
 

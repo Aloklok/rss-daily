@@ -29,5 +29,7 @@
 ## 🛠️ 其他全局规范
 
 - **架构总览**: [ARCHITECTURE.md](./ARCHITECTURE.md)
+- **国际化方案**: [I18N.md](./I18N.md)
+  - *相关字典*: [feed-dictionary.ts](../src/app/i18n/feed-dictionary.ts) (动态映射)
 - **测试体系**: [TESTING.md](./TESTING.md)
 - **任务清单**: [TODO.md](./TODO.md)

@@ -4,6 +4,7 @@ import React, { useEffect, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import Briefing from './BriefingView';
 import { Article, Tag } from '@/types';
+import { Dictionary } from '@/app/i18n/dictionaries'; // Import Dictionary
 import { useArticleStore } from '@/domains/interaction/store/articleStore';
 import { useUIStore } from '@/shared/store/uiStore';
 import { useBriefingArticles } from '@/domains/reading/hooks/useArticles';
@@ -19,6 +20,7 @@ interface BriefingClientProps {
   prevDate?: string | null;
   nextDate?: string | null;
   initialTags?: Tag[]; // New Prop
+  dict: Dictionary; // New I18n Prop
 }
 
 export default function BriefingClient({
@@ -29,6 +31,7 @@ export default function BriefingClient({
   prevDate,
   nextDate,
   initialTags = [],
+  dict,
 }: BriefingClientProps): React.ReactElement {
   const articlesById = useArticleStore((state) => state.articlesById);
   const setAvailableFilters = useArticleStore((state) => state.setAvailableFilters);
@@ -159,7 +162,7 @@ export default function BriefingClient({
       headerImageUrl={headerImageUrl}
       timeSlot={timeSlot}
       selectedReportId={1} // Default to 1 as Briefing.tsx hardcodes a single report with ID 1
-      onReportSelect={() => {}} // No-op for now
+      onReportSelect={() => { }} // No-op for now
       onReaderModeRequest={(article) => openModal(article.id, 'reader')}
       onStateChange={handleStateChange}
       onTimeSlotChange={setTimeSlot}
@@ -173,6 +176,7 @@ export default function BriefingClient({
       isToday={isToday}
       prevDate={prevDate}
       nextDate={nextDate}
+      dict={dict}
     />
   );
 }

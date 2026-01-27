@@ -13,17 +13,21 @@ import { Article } from '@/shared/types';
 // --- 数据融合辅助函数 ---
 
 // 负责为 “FreshRSS文章” 补充 “Supabase详情”
-async function mergeWithSupabaseDetails(freshArticles: Article[]): Promise<Article[]> {
+async function mergeWithSupabaseDetails(freshArticles: Article[], tableName: string = 'articles_view'): Promise<Article[]> {
   if (!freshArticles || freshArticles.length === 0) return [];
 
   try {
     const articleIds = freshArticles.map((a) => a.id);
-    const supaDetailsById = await getArticlesDetails(articleIds);
+    const supaDetailsById = await getArticlesDetails(articleIds, tableName);
     return freshArticles.map((freshArticle) => {
       const supaDetails = supaDetailsById[freshArticle.id];
       // 合并时，以 FreshRSS 的数据为基础，用 Supabase 的详情（AI字段）覆盖它
       // 之前的错误顺序导致空字符串覆盖了有价值的内容
-      return supaDetails ? { ...freshArticle, ...supaDetails } : freshArticle;
+      if (supaDetails) {
+        const resolvedTitle = supaDetails.title || freshArticle.title;
+        return { ...freshArticle, ...supaDetails, title: resolvedTitle };
+      }
+      return freshArticle;
     });
   } catch (error) {
     console.warn('Failed to merge Supabase details, returning fresh articles only:', error);
@@ -39,11 +43,11 @@ async function mergeWithSupabaseDetails(freshArticles: Article[]): Promise<Artic
 export async function fetchBriefingArticles(
   date: string,
   slot: string | null,
-  options?: { includeState?: boolean },
+  options?: { includeState?: boolean; tableName?: string },
 ): Promise<Article[]> {
   if (process.env.NODE_ENV === 'development') {
     console.log(
-      `[Loader] Fetching briefing for date: ${date}, slot: ${slot}, includeState: ${options?.includeState}`,
+      `[Loader] Fetching briefing for date: ${date}, slot: ${slot}, includeState: ${options?.includeState}, table: ${options?.tableName}`,
     );
   }
   const fetchedReports = await getBriefingReportsByDate(date, slot as any, options);
@@ -78,6 +82,7 @@ export async function fetchFilteredArticles(
   continuation?: string,
   n: number = 20,
   merge: boolean = false, // Optimization: Default to false to skip client-side waterfall. List UI doesn't show AI data.
+  tableName: string = 'articles_view',
 ): Promise<{ articles: Article[]; continuation?: string }> {
   console.log(
     `[Loader] Requesting articles for: ${filterValue}, continuation: ${continuation}, merge: ${merge}`,
@@ -90,9 +95,9 @@ export async function fetchFilteredArticles(
   // 对于无限滚动列表，UI不显示AI字段，所以跳过这一步可以消除“闪烁”并显著加速
   if (merge) {
     if (process.env.NODE_ENV === 'development') {
-      console.log('[Loader] Merging with Supabase details for Tag Page SSR...');
+      console.log(`[Loader] Merging with Supabase details (${tableName}) for Tag Page SSR...`);
     }
-    const mergedArticles = await mergeWithSupabaseDetails(response.articles);
+    const mergedArticles = await mergeWithSupabaseDetails(response.articles, tableName);
     return { ...response, articles: mergedArticles };
   }
 
@@ -121,13 +126,14 @@ export async function fetchStarredArticleHeaders(): Promise<
 export async function fetchSearchResults(
   query: string,
   page: number = 1,
+  tableName: string = 'articles_view',
 ): Promise<{
   articles: Article[];
   continuation?: number;
   isFallback?: boolean;
   errorSnippet?: string;
 }> {
-  const result = await searchArticlesByKeyword(query, page);
+  const result = await searchArticlesByKeyword(query, page, tableName);
   const supaArticles = result.articles;
   if (supaArticles.length === 0) return { ...result, articles: [] };
 

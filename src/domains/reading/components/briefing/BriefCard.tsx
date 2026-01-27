@@ -8,15 +8,18 @@ import { useArticleMetadata } from '@/domains/reading/hooks/useArticleMetadata';
 import { getRandomColorClass } from '@/shared/utils/colorUtils';
 import { toShortId } from '@/shared/utils/idHelpers';
 import { STAR_TAG, READ_TAG } from '@/domains/interaction/constants';
-import ArticleTitleStar from '../article/ArticleTitleStar';
+
+import { Dictionary, zh } from '@/app/i18n/dictionaries';
+import { getDisplayLabel } from '@/domains/reading/utils/label-display';
+import ArticleTitleStar from '@/domains/reading/components/article/ArticleTitleStar';
 
 // 1. 【修改】将所有辅助组件和常量移至文件顶层，使其不随 ArticleCard 的渲染而重新创建
 
 const CALLOUT_THEMES = {
-  一句话总结: { icon: '📝', color: 'pink' },
-  技术洞察: { icon: '🔬', color: 'blue' },
-  值得注意: { icon: '⚠️', color: 'brown' },
-  市场观察: { icon: '📈', color: 'green' },
+  summary: { icon: '📝', color: 'pink' },
+  insights: { icon: '🔬', color: 'blue' },
+  notable: { icon: '⚠️', color: 'brown' },
+  market: { icon: '📈', color: 'green' },
 } as const;
 const calloutCardClasses = {
   pink: {
@@ -190,11 +193,12 @@ const IconCircle: React.FC<{ className?: string }> = memo(({ className }) => (
 IconCircle.displayName = 'IconCircle';
 
 interface CalloutProps {
-  title: keyof typeof CALLOUT_THEMES;
+  themeKey: keyof typeof CALLOUT_THEMES;
+  title: string;
   content: string;
 }
-const Callout: React.FC<CalloutProps> = memo(({ title, content }) => {
-  const theme = CALLOUT_THEMES[title];
+const Callout: React.FC<CalloutProps> = memo(({ themeKey, title, content }) => {
+  const theme = CALLOUT_THEMES[themeKey];
   const colors = calloutCardClasses[theme.color];
   return (
     <aside className={`rounded-2xl p-6 ${colors.bg}`}>
@@ -219,12 +223,13 @@ interface ActionButtonsProps {
     tagsToRemove: string[],
   ) => Promise<void>;
   className?: string;
+  dict: Dictionary;
 }
 
 import { useUIStore } from '@/shared/store/uiStore';
 
 const ActionButtons: React.FC<ActionButtonsProps> = memo(
-  ({ article, onReaderModeRequest, onStateChange, className }) => {
+  ({ article, onReaderModeRequest, onStateChange, className, dict }) => {
     const { isStarred, isRead, userTagLabels: displayedUserTags } = useArticleMetadata(article);
     const isAdmin = useUIStore((state) => state.isAdmin);
 
@@ -273,7 +278,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = memo(
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                <span className="cursor-pointer">阅读</span>
+                <span className="cursor-pointer">{dict.actions.read}</span>
               </button>
               {isAdmin && (
                 <>
@@ -294,7 +299,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = memo(
                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                       </svg>
                     )}
-                    <span className="cursor-pointer">{isStarred ? '已收藏' : '收藏'}</span>
+                    <span className="cursor-pointer">{isStarred ? dict.actions.starred : dict.actions.star}</span>
                   </button>
                   <button
                     onClick={() => handleToggleState('read')}
@@ -308,7 +313,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = memo(
                     ) : (
                       <IconCircle />
                     )}
-                    <span className="cursor-pointer">{isRead ? '已读' : '标记已读'}</span>
+                    <span className="cursor-pointer">{isRead ? dict.actions.readStatus : dict.actions.markRead}</span>
                   </button>
                   <div className="relative" onClick={(e) => e.stopPropagation()}>
                     <button
@@ -327,7 +332,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = memo(
                           clipRule="evenodd"
                         />
                       </svg>
-                      <span className="cursor-pointer">标签</span>
+                      <span className="cursor-pointer">{dict.actions.tags}</span>
                     </button>
                     {isTagPopoverOpen && (
                       <TagPopover
@@ -371,7 +376,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = memo(
                 <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
                 <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
               </svg>
-              <span className="cursor-pointer">原文</span>
+              <span className="cursor-pointer">{dict.actions.source}</span>
             </a>
           </div>
         </div>
@@ -396,7 +401,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = memo(
                   d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                 />
               </svg>
-              <span className="sr-only cursor-pointer text-xs">阅读</span>
+              <span className="sr-only cursor-pointer text-xs">{dict.actions.read}</span>
             </button>
             {isAdmin && (
               <>
@@ -418,7 +423,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = memo(
                     </svg>
                   )}
                   <span className="sr-only cursor-pointer text-xs">
-                    {isStarred ? '已收藏' : '收藏'}
+                    {isStarred ? dict.actions.starred : dict.actions.star}
                   </span>
                 </button>
                 <button
@@ -434,7 +439,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = memo(
                     <IconCircle className="size-7" />
                   )}
                   <span className="sr-only cursor-pointer text-xs">
-                    {isRead ? '已读' : '标记已读'}
+                    {isRead ? dict.actions.readStatus : dict.actions.markRead}
                   </span>
                 </button>
                 <div className="relative" onClick={(e) => e.stopPropagation()}>
@@ -454,7 +459,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = memo(
                         clipRule="evenodd"
                       />
                     </svg>
-                    <span className="sr-only cursor-pointer text-xs">标签</span>
+                    <span className="sr-only cursor-pointer text-xs">{dict.actions.tags}</span>
                   </button>
                   {isTagPopoverOpen && (
                     <TagPopover
@@ -481,7 +486,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = memo(
                 <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
                 <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
               </svg>
-              <span className="sr-only cursor-pointer text-xs">原文</span>
+              <span className="sr-only cursor-pointer text-xs">{dict.actions.source}</span>
             </a>
           </div>
           {displayedUserTags.length > 0 && (
@@ -500,7 +505,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = memo(
             </div>
           )}
         </div>
-      </div>
+      </div >
     );
   },
 );
@@ -515,6 +520,7 @@ interface ArticleCardProps {
     tagsToRemove: string[],
   ) => Promise<void>;
   showActions?: boolean;
+  dict?: Dictionary;
 }
 
 const ArticleCard: React.FC<ArticleCardProps> = ({
@@ -522,9 +528,15 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   onReaderModeRequest,
   onStateChange,
   showActions = true,
+  dict = zh,
 }) => {
-  // 2. 【删除】内部组件定义已全部移出
-  const publishedDate = new Date(article.published).toLocaleDateString('zh-CN', {
+  const lang = dict === zh ? 'zh' : 'en';
+
+  const displaySourceName = getDisplayLabel(article.sourceName || '', 'feed', lang);
+  const displayVerdictType = getDisplayLabel(article.verdict?.type || '', 'verdict', lang);
+  const displayCategory = getDisplayLabel(article.category || '', 'category', lang);
+
+  const publishedDate = new Date(article.published).toLocaleDateString(dict === zh ? 'zh-CN' : 'en-US', {
     month: 'long',
     day: 'numeric',
   });
@@ -565,7 +577,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           <button
             onClick={handleCopy}
             className={`ml-3 inline-block rounded-sm p-1 align-middle transition-all duration-200 ${isCopied ? 'text-green-500' : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-white/5 dark:hover:text-gray-300'} cursor-pointer`}
-            title={isCopied ? '复制成功' : '复制文章内容'}
+            title={isCopied ? dict.card.copySuccess : dict.card.copyContent}
           >
             {isCopied ? (
               <IconCheck className="cursor-pointer" />
@@ -576,19 +588,19 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
         </h3>
         <div className="dark:bg-midnight-metadata-bg dark:border-midnight-badge space-y-3 rounded-lg border border-gray-200 bg-gray-100 p-6">
           <div className="flex flex-wrap items-center gap-x-4 text-sm text-black">
-            <span>{article.sourceName}</span>
+            <span>{displaySourceName}</span>
             <span>&bull;</span>
-            <span>发布于 {publishedDate}</span>
+            <span>{dict.card.publishedAt} {publishedDate}</span>
           </div>
           <div className="flex flex-wrap items-center text-sm text-stone-600">
-            <span className="mr-2 font-medium">{article.verdict.type}</span>
+            <span className="mr-2 font-medium">{displayVerdictType}</span>
             <span className="mr-2">&bull;</span>
-            <span className="mr-2 font-medium">{article.category}</span>
+            <span className="mr-2 font-medium">{displayCategory}</span>
             <span className="mr-2">&bull;</span>
             <span
               className={`font-semibold ${article.verdict.score >= 8 ? 'text-green-600' : article.verdict.score >= 6 ? 'text-amber-600' : 'text-red-600'}`}
             >
-              评分: {article.verdict.score}/10
+              {dict.card.score}: {article.verdict.score}/10
             </span>
           </div>
           {allKeywords && allKeywords.length > 0 && (
@@ -607,16 +619,17 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
       </header>
 
       <div className="mt-6 grid grid-cols-1 gap-8 @min-[35rem]:grid-cols-2">
-        <Callout title="一句话总结" content={article.summary || ''} />
-        <Callout title="技术洞察" content={article.highlights} />
-        <Callout title="值得注意" content={article.critiques} />
-        <Callout title="市场观察" content={article.marketTake} />
+        <Callout themeKey="summary" title={dict.card.summary} content={article.summary || ''} />
+        <Callout themeKey="insights" title={dict.card.insights} content={article.highlights} />
+        <Callout themeKey="notable" title={dict.card.notable} content={article.critiques} />
+        <Callout themeKey="market" title={dict.card.market} content={article.marketTake} />
       </div>
       {showActions && (
         <ActionButtons
           article={article}
           onReaderModeRequest={onReaderModeRequest}
           onStateChange={onStateChange}
+          dict={dict}
         />
       )}
     </article>

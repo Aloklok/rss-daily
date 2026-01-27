@@ -4,14 +4,18 @@ import React, { useEffect } from 'react';
 import { AvailableFilters } from '@/shared/types';
 import SidebarClient from './SidebarContainer';
 
+import { Dictionary } from '@/app/i18n/dictionaries';
+
 interface SidebarClientMountProps {
   initialDates: string[];
   initialAvailableFilters: AvailableFilters;
+  dict: Dictionary;
 }
 
 export default function SidebarClientMount({
   initialDates,
   initialAvailableFilters,
+  dict,
 }: SidebarClientMountProps) {
   useEffect(() => {
     const ssr = document.getElementById('sidebar-ssr-nav');
@@ -27,6 +31,7 @@ export default function SidebarClientMount({
       initialDates={initialDates}
       initialAvailableFilters={initialAvailableFilters}
       initialStarredHeaders={[]}
+      dict={dict}
     />
   );
 }

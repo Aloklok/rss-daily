@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { BRIEFING_IMAGE_WIDTH, BRIEFING_IMAGE_HEIGHT, BRIEFING_SECTIONS } from '../../constants';
 import ArticleGroup from './BriefGroup';
 import { getShanghaiHour } from '@/domains/reading/utils/date';
+import { Dictionary } from '@/app/i18n/dictionaries';
 
 interface ReportContentProps {
   report: BriefingReport;
@@ -19,15 +20,22 @@ interface ReportContentProps {
     tagsToAdd: string[],
     tagsToRemove: string[],
   ) => Promise<void>;
+  dict: Dictionary;
 }
 
 const ReportContent: React.FC<ReportContentProps> = memo(
-  ({ report, onReaderModeRequest, onStateChange }) => {
+  ({ report, onReaderModeRequest, onStateChange, dict }) => {
     const importanceOrder = [
       BRIEFING_SECTIONS.IMPORTANT,
       BRIEFING_SECTIONS.MUST_KNOW,
       BRIEFING_SECTIONS.REGULAR,
     ];
+
+    const importanceLabels: Record<string, string> = {
+      [BRIEFING_SECTIONS.IMPORTANT]: dict.briefing.sections.important,
+      [BRIEFING_SECTIONS.MUST_KNOW]: dict.briefing.sections.mustKnow,
+      [BRIEFING_SECTIONS.REGULAR]: dict.briefing.sections.regular,
+    };
 
     const handleJump = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
       e.preventDefault();
@@ -53,7 +61,7 @@ const ReportContent: React.FC<ReportContentProps> = memo(
     if (allArticlesCount === 0) {
       return (
         <div className="py-20 text-center">
-          <p className="text-2xl font-semibold text-stone-600">此时间段内暂无文章。</p>
+          <p className="text-2xl font-semibold text-stone-600">{dict.briefing.empty.noData}</p>
         </div>
       );
     }
@@ -64,17 +72,17 @@ const ReportContent: React.FC<ReportContentProps> = memo(
         <div className="mb-6 rounded-3xl border border-stone-200 bg-white p-6 shadow-lg shadow-stone-200/50 transition-all duration-500 hover:shadow-xl hover:shadow-stone-200/60 md:mb-10 dark:border-white/10 dark:bg-gray-900 dark:shadow-none">
           <div className="md:hidden">
             <h2 className="flex items-center font-serif text-2xl font-bold text-stone-800 dark:text-white">
-              <span>📚 目录</span>
+              <span>📚 {dict.briefing.navigation.toc}</span>
               <span className="mx-2 font-light text-stone-400">/</span>
-              <span>📝 摘要</span>
+              <span>📝 {dict.briefing.navigation.summary}</span>
             </h2>
           </div>
           <div className="hidden grid-cols-2 gap-x-6 md:grid">
             <h2 className="font-serif text-2xl font-bold text-stone-800 dark:text-white">
-              📚 目录
+              📚 {dict.briefing.navigation.toc}
             </h2>
             <h2 className="font-serif text-2xl font-bold text-stone-800 dark:text-white">
-              📝 摘要
+              📝 {dict.briefing.navigation.summary}
             </h2>
           </div>
 
@@ -93,7 +101,7 @@ const ReportContent: React.FC<ReportContentProps> = memo(
                         className="text-base font-semibold text-rose-800 hover:underline dark:text-rose-400"
                       >
                         <span className="mr-2"></span>
-                        {importance}
+                        {importanceLabels[importance] || importance}
                       </a>
                     </div>
                     <div className="hidden py-2 md:block"></div>
@@ -143,6 +151,7 @@ const ReportContent: React.FC<ReportContentProps> = memo(
               articles={report.articles[importance]}
               onReaderModeRequest={onReaderModeRequest}
               onStateChange={onStateChange}
+              dict={dict}
             />
           ))}
         </div>
@@ -175,6 +184,7 @@ interface BriefingProps {
   nextDate?: string | null;
   verdictFilter?: string | null;
   onVerdictFilterChange?: (type: string | null) => void;
+  dict: Dictionary;
 }
 
 const Briefing: React.FC<BriefingProps> = ({
@@ -195,6 +205,7 @@ const Briefing: React.FC<BriefingProps> = ({
   nextDate,
   verdictFilter,
   onVerdictFilterChange,
+  dict,
 }) => {
   // 1. 【新增】内部订阅文章数据
   const articlesById = useArticleStore((state) => state.articlesById);
@@ -260,21 +271,22 @@ const Briefing: React.FC<BriefingProps> = ({
 
   const getGreeting = () => {
     const hour = currentHour ?? getShanghaiHour();
-    if (hour >= 23 || hour < 3) return '深夜好';
-    if (hour >= 3 && hour < 5) return '凌晨好';
-    if (hour >= 5 && hour < 9) return '早上好';
-    if (hour >= 9 && hour < 11) return '上午好';
-    if (hour >= 11 && hour < 14) return '中午好';
-    if (hour >= 14 && hour < 17) return '下午好';
-    if (hour >= 17 && hour < 19) return '傍晚好';
-    return '晚上好';
+    if (hour >= 23 || hour < 3) return dict.briefing.greetings.lateNight;
+    if (hour >= 3 && hour < 5) return dict.briefing.greetings.earlyMorning;
+    if (hour >= 5 && hour < 9) return dict.briefing.greetings.morning;
+    if (hour >= 9 && hour < 11) return dict.briefing.greetings.midMorning;
+    if (hour >= 11 && hour < 14) return dict.briefing.greetings.noon;
+    if (hour >= 14 && hour < 17) return dict.briefing.greetings.afternoon;
+    if (hour >= 17 && hour < 19) return dict.briefing.greetings.evening;
+    return dict.briefing.greetings.night;
   };
 
   const renderHeader = () => {
     if (date) {
       const dateObj = new Date(date + 'T00:00:00');
-      const datePart = dateObj.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });
-      const weekdayPart = dateObj.toLocaleDateString('zh-CN', { weekday: 'long' });
+      const locale = dict.lang === 'zh' ? 'zh-CN' : 'en-US';
+      const datePart = dateObj.toLocaleDateString(locale, { month: 'long', day: 'numeric' });
+      const weekdayPart = dateObj.toLocaleDateString(locale, { weekday: 'long' });
 
       return (
         <header className="group relative mb-5 overflow-hidden rounded-2xl shadow-md transition-all duration-500 hover:shadow-xl md:mb-8">
@@ -282,7 +294,7 @@ const Briefing: React.FC<BriefingProps> = ({
           <div className="absolute inset-0 z-0">
             <Image
               src={imgSrc}
-              alt="RSS简报封面背景"
+              alt={dict.briefing.header.coverAlt}
               fill
               priority
               fetchPriority="high"
@@ -312,7 +324,7 @@ const Briefing: React.FC<BriefingProps> = ({
                     aria-hidden="true"
                     className="font-serif text-4xl leading-none font-medium tracking-tight text-balance drop-shadow-md md:text-6xl"
                   >
-                    {isToday ? '今天' : datePart}
+                    {isToday ? dict.common.today : datePart}
                   </div>
                   <div className="flex items-center gap-1.5 self-start rounded-full bg-white/20 px-2.5 py-1 text-xs text-white/95 drop-shadow-xs md:gap-2 md:px-4 md:py-1.5 md:text-base">
                     {isToday && (
@@ -333,14 +345,14 @@ const Briefing: React.FC<BriefingProps> = ({
                   <div className="flex items-center gap-3">
                     {(['morning', 'afternoon', 'evening'] as const).map((slotOption) => {
                       const labelMap: Record<TimeSlot, string> = {
-                        morning: '早',
-                        afternoon: '中',
-                        evening: '晚',
+                        morning: dict.briefing.filters.morning,
+                        afternoon: dict.briefing.filters.afternoon,
+                        evening: dict.briefing.filters.evening,
                       };
                       const titleMap: Record<TimeSlot, string> = {
-                        morning: '早上',
-                        afternoon: '中午',
-                        evening: '晚上',
+                        morning: dict.briefing.filters.morning,
+                        afternoon: dict.briefing.filters.afternoon,
+                        evening: dict.briefing.filters.evening,
                       };
 
                       const isSelected = timeSlot === slotOption;
@@ -349,11 +361,10 @@ const Briefing: React.FC<BriefingProps> = ({
                           key={slotOption}
                           onClick={() => onTimeSlotChange(isSelected ? null : slotOption)}
                           style={{ WebkitBackdropFilter: isSelected ? 'none' : 'blur(16px)' }}
-                          className={`flex size-[44px] items-center justify-center rounded-full border border-white/20 font-serif text-base transition-all duration-300 ${
-                            isSelected
-                              ? 'scale-110 border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)] dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900 dark:shadow-[0_0_15px_rgba(251,191,36,0.6)]'
-                              : 'bg-transparent text-white/90 backdrop-blur-md hover:border-white/40 hover:bg-white/20'
-                          } cursor-pointer`}
+                          className={`flex size-[44px] items-center justify-center rounded-full border border-white/20 font-serif text-base transition-all duration-300 ${isSelected
+                            ? 'scale-110 border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)] dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900 dark:shadow-[0_0_15px_rgba(251,191,36,0.6)]'
+                            : 'bg-transparent text-white/90 backdrop-blur-md hover:border-white/40 hover:bg-white/20'
+                            } cursor-pointer`}
                           title={titleMap[slotOption]}
                         >
                           {labelMap[slotOption]}
@@ -366,8 +377,8 @@ const Briefing: React.FC<BriefingProps> = ({
                   {onVerdictFilterChange && (
                     <div className="flex items-center gap-3">
                       {[
-                        { id: '知识洞察型', label: '洞察', title: '深度知识与洞察' },
-                        { id: '新闻事件型', label: '新闻', title: '时事新闻与更新' },
+                        { id: '知识洞察型', label: dict.briefing.filters.insight, title: dict.briefing.filters.insight },
+                        { id: '新闻事件型', label: dict.briefing.filters.news, title: dict.briefing.filters.news },
                       ].map((type) => {
                         const isSelected = verdictFilter === type.id;
                         return (
@@ -375,11 +386,10 @@ const Briefing: React.FC<BriefingProps> = ({
                             key={type.id || 'all'}
                             onClick={() => onVerdictFilterChange(isSelected ? null : type.id)}
                             style={{ WebkitBackdropFilter: isSelected ? 'none' : 'blur(8px)' }}
-                            className={`flex h-10 min-w-[44px] items-center justify-center rounded-full border border-white/20 px-3.5 font-serif text-sm transition-all duration-300 ${
-                              isSelected
-                                ? 'border-white bg-white text-black shadow-[0_0_10px_rgba(255,255,255,0.4)] dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900'
-                                : 'bg-transparent text-white/80 backdrop-blur-sm hover:bg-white/10'
-                            } cursor-pointer`}
+                            className={`flex h-10 min-w-[44px] items-center justify-center rounded-full border border-white/20 px-3.5 font-serif text-sm transition-all duration-300 ${isSelected
+                              ? 'border-white bg-white text-black shadow-[0_0_10px_rgba(255,255,255,0.4)] dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900'
+                              : 'bg-transparent text-white/80 backdrop-blur-sm hover:bg-white/10'
+                              } cursor-pointer`}
                             title={type.title}
                           >
                             {type.label}
@@ -398,9 +408,9 @@ const Briefing: React.FC<BriefingProps> = ({
               <div className="flex items-center gap-2">
                 {(['morning', 'afternoon', 'evening'] as const).map((slotOption) => {
                   const labelMap: Record<TimeSlot, string> = {
-                    morning: '早',
-                    afternoon: '中',
-                    evening: '晚',
+                    morning: dict.briefing.filters.morning,
+                    afternoon: dict.briefing.filters.afternoon,
+                    evening: dict.briefing.filters.evening,
                   };
                   const isSelected = timeSlot === slotOption;
                   return (
@@ -408,11 +418,10 @@ const Briefing: React.FC<BriefingProps> = ({
                       key={slotOption}
                       onClick={() => onTimeSlotChange(isSelected ? null : slotOption)}
                       style={{ WebkitBackdropFilter: isSelected ? 'none' : 'blur(12px)' }}
-                      className={`flex size-8 items-center justify-center rounded-full border border-white/20 font-serif text-xs transition-all duration-300 ${
-                        isSelected
-                          ? 'scale-110 border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)] dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900 dark:shadow-[0_0_15px_rgba(251,191,36,0.6)]'
-                          : 'bg-transparent text-white/90 backdrop-blur-md'
-                      } cursor-pointer`}
+                      className={`flex size-8 items-center justify-center rounded-full border border-white/20 font-serif text-xs transition-all duration-300 ${isSelected
+                        ? 'scale-110 border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)] dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900 dark:shadow-[0_0_15px_rgba(251,191,36,0.6)]'
+                        : 'bg-transparent text-white/90 backdrop-blur-md'
+                        } cursor-pointer`}
                     >
                       {labelMap[slotOption]}
                     </button>
@@ -426,8 +435,8 @@ const Briefing: React.FC<BriefingProps> = ({
               {onVerdictFilterChange && (
                 <div className="flex items-center gap-2">
                   {[
-                    { id: '知识洞察型', label: '洞察' },
-                    { id: '新闻事件型', label: '新闻' },
+                    { id: '知识洞察型', label: dict.briefing.filters.insight },
+                    { id: '新闻事件型', label: dict.briefing.filters.news },
                   ].map((type) => {
                     const isSelected = verdictFilter === type.id;
                     return (
@@ -435,11 +444,10 @@ const Briefing: React.FC<BriefingProps> = ({
                         key={type.id || 'all'}
                         onClick={() => onVerdictFilterChange(isSelected ? null : type.id)}
                         style={{ WebkitBackdropFilter: isSelected ? 'none' : 'blur(8px)' }}
-                        className={`flex h-7 min-w-[32px] items-center justify-center rounded-full border border-white/20 px-2 font-serif text-[10px] transition-all duration-300 ${
-                          isSelected
-                            ? 'border-white bg-white text-black dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900'
-                            : 'bg-transparent text-white/80 backdrop-blur-sm'
-                        } cursor-pointer`}
+                        className={`flex h-7 min-w-[32px] items-center justify-center rounded-full border border-white/20 px-2 font-serif text-[10px] transition-all duration-300 ${isSelected
+                          ? 'border-white bg-white text-black dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900'
+                          : 'bg-transparent text-white/80 backdrop-blur-sm'
+                          } cursor-pointer`}
                       >
                         {type.label}
                       </button>
@@ -453,17 +461,27 @@ const Briefing: React.FC<BriefingProps> = ({
             <div className="border-t border-white/20 pt-2.5 md:pt-4">
               <p className="font-serif text-sm leading-relaxed text-white/95 drop-shadow-xs md:text-lg">
                 {isToday ? (
-                  <span>{getGreeting()}，欢迎阅读今日简报</span>
+                  <span>
+                    {getGreeting()}
+                    {dict.briefing.greetings.welcomeToday}
+                  </span>
                 ) : (
-                  <span>欢迎阅读本期简报</span>
+                  <span>{dict.briefing.greetings.welcome}</span>
                 )}
                 {reports.length > 0 && (
                   <span>
-                    ，共{' '}
-                    <span className="font-variant-numeric tabular-nums">
-                      {reports.reduce((acc, r) => acc + Object.values(r.articles).flat().length, 0)}
-                    </span>{' '}
-                    篇文章。
+                    {(() => {
+                      const count = reports.reduce((acc, r) => acc + Object.values(r.articles).flat().length, 0);
+                      const isEn = dict.lang === 'en';
+                      const articleLabel = isEn ? (count === 1 ? 'article' : 'articles') : '篇文章。';
+                      const countTemplate = isToday && isEn
+                        ? (dict.briefing.greetings as any).articleCountToday
+                        : dict.briefing.greetings.articleCount;
+
+                      return countTemplate
+                        .replace('{count}', count.toString())
+                        .replace('{articles}', articleLabel);
+                    })()}
                   </span>
                 )}
               </p>
@@ -492,13 +510,14 @@ const Briefing: React.FC<BriefingProps> = ({
                 report={report}
                 onReaderModeRequest={onReaderModeRequest}
                 onStateChange={onStateChange}
+                dict={dict}
               />
             ))}
           </div>
         ) : (
           <div className="py-20 text-center" data-testid="briefing-empty">
             <p className="text-2xl font-semibold text-stone-600">
-              {isToday ? '暂无简报，请稍后查看。' : '该日期下没有简报。'}
+              {isToday ? dict.briefing.empty.todayEmpty : dict.briefing.empty.dateEmpty}
             </p>
           </div>
         )}
@@ -512,7 +531,7 @@ const Briefing: React.FC<BriefingProps> = ({
               </span>
               <div>
                 <span className="mb-0.5 block text-sm font-bold tracking-wider text-black uppercase opacity-100">
-                  上一篇
+                  {dict.briefing.navigation.prev}
                 </span>
                 <span className="text-xl font-extrabold text-black transition-colors group-hover:text-indigo-600">
                   {prevDate}
@@ -530,7 +549,7 @@ const Briefing: React.FC<BriefingProps> = ({
             >
               <div>
                 <span className="mb-0.5 block text-sm font-bold tracking-wider text-black uppercase opacity-100">
-                  下一篇
+                  {dict.briefing.navigation.next}
                 </span>
                 <span className="text-xl font-extrabold text-black transition-colors group-hover:text-indigo-600">
                   {nextDate}

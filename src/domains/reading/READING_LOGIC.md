@@ -1,6 +1,6 @@
 # 阅读领域核心逻辑与组件 (Reading Logic & Components)
 
-本文档映射了 `reading` 领域的渲染架构、导航逻辑与关键时间算法。
+本文档映射了 `reading` 领域的渲染架构、导航逻辑、关键时间算法以及**国际化 (i18n)** 适配方案。
 
 ## 1. 核心组件映射
 
@@ -19,7 +19,13 @@
   - `services.ts`: 核心导出。封装了简报聚合（Supabase 内容 + FreshRSS 状态）、分类标签获取等业务逻辑。
     - **缓存策略**:
       - **日期列表 (`fetchAvailableDates`)**: 边缘缓存 7 天 (`unstable_cache` + tags)，与页面 ISR 周期对齐。依赖 Webhook (`available-dates`) 实现跨天或新内容的即时刷新。
-      - **简报数据 (`fetchBriefingData`)**: 边缘缓存 7 天 (`briefing-data`)。对于**“今日”**数据，实施 **Cache Poisoning Prevention**：若返回空结果，抛出异常以阻止缓存锁定，确保后续请求能重试查库。
+      - **英文日期列表 (`fetchAvailableDatesEn`)**: **[i18n 专项]** 专门针对 `articles_en` 表进行聚合，并将 UTC 时间戳转换为上海时区的日期字符串，防止时区差导致的侧边栏日期冗余或 404。
+    - **元数据对齐与瘦身架构**: 系统采用了 **“瘦身表 + 视图” (Lean Table + View)** 模型：
+      - **物理层**: `articles_en` 表物理上仅存储翻译后的长文本和 Model 标签。不再冗余存储 `link`, `published`, `n8n_processing_date` 和 `verdict` 评分。
+      - **展现层**: 通过 `articles_view_en` 视图实时关联主表。这确保了如果管理员在主表修改了文章评分或日期，英文版视图会 **立即自动更新**，而无需重新运行翻译任务。
+      - **本地化 (Localization)**: `sourceName` 和 `verdict.type` 保留原始中文标识符（Original Keys），由渲染层（UI）动态调用字典进行翻译显示。
+    - **简报数据 (`fetchBriefingData`)**: **[架构统一]** 核心数据聚合函数。支持 `lang` 参数 ('zh' | 'en')，自动处理物理视图映射（ZH -> `articles_view`, EN -> `articles_view_en`）。边缘缓存 7 天。
+    - **英文简报数据 (`fetchEnglishBriefingData`)**: 已简化为 `fetchBriefingData(date, 'en')` 的封装，确保中英文逻辑 100% 对齐。
       - **封面图片 (`resolveBriefingImage`)**: 边缘缓存 7 天 (`briefing-image`)，强制与页面生命周期同步，防止 `300s` 短板效应。
       - **分类标签 (`getAvailableFilters`)**: 边缘缓存 7 天，极少变动。
   - `articleLoader.ts`: 负责文章详情的深度获取与清洗。
@@ -84,3 +90,44 @@
 > 1. **Proxy 重定向**: `src/proxy.ts` 负责捕获所有残存的长 ID 访问并 301 重定向至短 ID URL。
 > 2. **后端转换**: `services.ts` 的所有入口函数（如 `fetchArticleById`）在接收到 URL 参数后，必须第一时间执行 `toFullId()` 转换。
 > 3. **统一性**: 禁止直接将长 ID 泄露到前端 URL 中，也禁止直接将短 ID 发送给 Supabase/FreshRSS，以免造成 404 或命中降级逻辑。
+## 5. 国际化适配 (Internationalization)
+
+阅读领域是全站 i18n 的重点，通过 `src/app/i18n/dictionaries.ts` 实现中英文解耦。
+
+### 5.1 服务端驱动
+- **页面入口 (Briefing)**: `BriefingPageServer.tsx` 根据路由参数 `lang` 选择 `zh` 或 `en` 字典。
+- **页面入口 (Stream)**: `StreamPageServer.tsx` 统一了聚合页的中英文逻辑，自动处理 Hreflang 注入与元数据生成。
+- **SEO 适配**: Title 和 Meta Description 的生成逻辑已本地化。例如，英文模式下日期显示为 `January 25, 2026`。
+
+### 5.2 组件透传
+- **Dict Prop**: 所有核心组件（`BriefingView`, `SidebarView`, `BriefCard`）均接收一个 `dict` Prop。
+- **日期本地化**: 统一使用 `dateObj.toLocaleDateString(locale, ...)`，其中 `locale` 由 `dict === zh ? 'zh-CN' : 'en-US'` 判定。
+
+### 3. URL Structure & Slug Logic
+The application uses **Clean Slugs** for stream pages, separated by type to avoid collisions and ensure friendly URLs.
+
+**Pattern:**
+-   **Categories**: `/stream/category/[slug]`
+-   **Tags**: `/stream/tag/[slug]`
+-   **English**: `/en/stream/category/[slug]`, `/en/stream/tag/[slug]`
+
+**Logic (`slug-helper.ts`):**
+1.  **Generation (`getSlugLink`)**:
+    -   Takes raw ID (e.g., "user/-/label/Frontend").
+    -   Lookup in dictionaries (`categoryTranslations`, `tagTranslations`).
+    -   If found, use the defined English slug (e.g., "frontend").
+    -   If not found, auto-slugify the raw ID.
+    -   **Important**: Uses `type` ('category' | 'tag') to determine the correct path segment.
+
+2.  **Resolution (`resolveSlugId`)**:
+    -   In `StreamPageServer.tsx`, takes the URL `slug` and `type`.
+    -   Strictly searches the corresponding dictionary based on `type`.
+    -   Reconstructs the original FreshRSS ID (restores `user/-/label/` prefix if needed).
+    -   **Emoji Fix**: Automatically strips generic emojis from IDs to match dictionary keys (e.g., "📦 工程实践" -> "工程实践").
+
+**Note on Navigation:**
+Client-side components (`SidebarView.tsx`) **MUST** use `getSlugLink` with the correct `type` to generate these URLs. Do not handle URL construction manually.
+
+### 5.4 Source Name Display
+-   **Translation**: Source names (`article.sourceName`) are translated using `feedTranslations` in `feed-dictionary.ts`.
+-   **Implementation**: `StreamListItem.tsx` uses `getDisplayLabel(article.sourceName, 'feed', ...)` to ensure "AWS 安全" displays as "AWS Security" in English contexts, consistent with the Sources page.

@@ -5,15 +5,18 @@ import { useRouter } from 'next/navigation';
 import ArticleDetail from './ArticlePage';
 import { Article, CleanArticleContent } from '@/types';
 import { useArticleStore } from '@/domains/interaction/store/articleStore';
+import { Dictionary } from '@/app/i18n/dictionaries';
 
 interface ArticleDetailClientProps {
   article: Article;
   initialContent?: CleanArticleContent | null;
+  dict: Dictionary;
 }
 
 export default function ArticleDetailClient({
   article: initialArticle,
   initialContent,
+  dict,
 }: ArticleDetailClientProps) {
   const router = useRouter();
   // Try to get the live article from the store to ensure we have the latest tags/state.
@@ -32,5 +35,5 @@ export default function ArticleDetailClient({
     router.push('/');
   };
 
-  return <ArticleDetail article={article} onClose={handleClose} initialContent={initialContent} />;
+  return <ArticleDetail article={article} onClose={handleClose} initialContent={initialContent} dict={dict} />;
 }

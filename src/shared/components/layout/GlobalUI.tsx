@@ -9,7 +9,9 @@ import UnifiedArticleModal from '@/domains/reading/components/article/modal/Unif
 import { useUpdateArticleState } from '@/domains/interaction/hooks/useArticleMutations';
 import AIChatModal from '@/domains/intelligence/components/ai/AIChatModal';
 
-export default function GlobalUI() {
+import { Dictionary } from '@/app/i18n/dictionaries';
+
+export default function GlobalUI({ dict }: { dict?: Dictionary }) {
   const { toast, hideToast } = useAppToast();
   const modalArticleId = useUIStore((state) => state.modalArticleId);
   const modalInitialMode = useUIStore((state) => state.modalInitialMode);
@@ -39,13 +41,14 @@ export default function GlobalUI() {
         onClose={hideToast}
         type={toast.type}
       />
-      {selectedArticle && (
+      {selectedArticle && dict && (
         <UnifiedArticleModal
           key={selectedArticle.id}
           article={selectedArticle}
           onClose={closeModal}
           onStateChange={handleStateChange}
           initialMode={modalInitialMode}
+          dict={dict}
         />
       )}
       <AIChatModal />

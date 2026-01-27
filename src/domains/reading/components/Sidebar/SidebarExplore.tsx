@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
+import { getSlugLink } from '@/domains/reading/utils/slug-helper';
 import Link from 'next/link';
-import { AvailableFilters, Filter } from '@/types';
+import { Dictionary } from '@/app/i18n/dictionaries';
+import { AvailableFilters, Filter } from '@/shared/types';
+import { getDisplayLabel, normalizeLabel, sortLabels } from '@/domains/reading/utils/label-display';
 
 interface SidebarExploreProps {
   availableFilters: AvailableFilters;
   activeFilter: Filter | null;
   onFilterSelect: (filter: Filter) => void;
   selectedArticleId: string | number | null;
+  dict: Dictionary;
 }
 
 const SidebarExplore: React.FC<SidebarExploreProps> = ({
@@ -14,6 +18,7 @@ const SidebarExplore: React.FC<SidebarExploreProps> = ({
   activeFilter,
   onFilterSelect,
   selectedArticleId,
+  dict,
 }) => {
   const [categoriesExpanded, setCategoriesExpanded] = useState(false);
 
@@ -45,7 +50,7 @@ const SidebarExplore: React.FC<SidebarExploreProps> = ({
           className="mb-1 flex w-full cursor-pointer items-center justify-between px-2 py-1 text-left text-base font-bold text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
         >
           <div className="flex items-center gap-2">
-            <span>📂 分类</span>
+            <span>📂 {dict.sidebar.categories}</span>
           </div>
           <svg
             className={`h-4 w-4 transition-transform duration-200 ${categoriesExpanded ? 'rotate-90' : ''}`}
@@ -60,17 +65,19 @@ const SidebarExplore: React.FC<SidebarExploreProps> = ({
         <div
           className={`ml-3 space-y-0.5 border-l-2 border-gray-100 pl-3 dark:border-gray-800 ${categoriesExpanded ? 'block' : 'hidden'}`}
         >
-          {availableFilters.categories
-            .filter((category) => category.label !== '未分类')
+          {sortLabels(availableFilters.categories)
+            .filter((category) => normalizeLabel(category.id) !== '未分类')
+
+
             .map((category) => (
               <Link
                 key={category.id}
-                href={`/stream/${encodeURIComponent(category.id)}`}
+                href={getSlugLink(category.id, dict.lang as 'zh' | 'en', 'category')}
                 onClick={(e) => handleCategoryClick(e, category.id)}
                 prefetch={false}
                 className={listItemButtonClass(isFilterActive('category', category.id))}
               >
-                <span className="flex-1 truncate">{category.label}</span>
+                <span className="flex-1 truncate">{getDisplayLabel(category.id, 'category', dict.lang as 'zh' | 'en')}</span>
                 {category.count !== undefined && category.count > 0 && (
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs font-medium ${isFilterActive('category', category.id) ? 'bg-white/20 text-white' : 'dark:bg-midnight-badge bg-gray-100 text-gray-500 dark:text-gray-400'}`}
@@ -86,7 +93,7 @@ const SidebarExplore: React.FC<SidebarExploreProps> = ({
       {/* 标签 */}
       <div className="flex flex-col">
         <div className="mb-1 flex w-full items-center gap-2 px-2 py-1 text-left text-base font-bold text-gray-600 dark:text-gray-300">
-          <span>🏷️ 标签</span>
+          <span>🏷️ {dict.sidebar.tags}</span>
         </div>
         <div className="grid grid-cols-2 gap-2 px-1">
           {availableFilters.tags.map((tag) => {
@@ -99,12 +106,12 @@ const SidebarExplore: React.FC<SidebarExploreProps> = ({
             return (
               <Link
                 key={tag.id}
-                href={`/stream/${encodeURIComponent(tag.id)}`}
+                href={getSlugLink(tag.id, dict.lang as 'zh' | 'en')}
                 onClick={(e) => handleTagClick(e, tag.id)}
                 prefetch={false}
                 className={`flex w-full items-center justify-between rounded-md border px-2.5 py-1.5 text-left text-sm font-medium transition-all duration-200 ${colorClass} cursor-pointer`}
               >
-                <span className="truncate">#{tag.label}</span>
+                <span className="truncate">#{getDisplayLabel(tag.id, 'tag', dict.lang as 'zh' | 'en')}</span>
                 {tag.count !== undefined && tag.count > 0 && (
                   <span className={`text-xs opacity-60 ${isActive ? 'text-white' : ''}`}>
                     {tag.count}

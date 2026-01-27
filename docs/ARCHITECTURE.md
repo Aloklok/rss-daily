@@ -23,10 +23,13 @@
 ```
 src/
 ├── domains/                  # 业务领域层
-│   ├── intelligence/         # 🧠 智能领域 (AI 对话、RAG、向量检索)
+│   ├── intelligence/         # 🧠 智能领域 (AI 对话、RAG、向量检索、翻译逻辑)
 │   │   ├── components/       #    - AI 相关组件
 │   │   ├── prompts/          #    - Prompt 模板 (PROMPT.MD, CHAT_PROMPT.MD)
 │   │   └── INTELLIGENCE.md   #    - 领域技术文档
+│   ├── system/               # ⚙️ 系统领域 (Webhook 编排、Revalidate、自动化生命周期)
+│   │   ├── services/         #    - 系统核心服务
+│   │   └── SYSTEM.md         #    - 领域技术文档
 │   ├── reading/              # 📖 阅读领域 (文章渲染、日期逻辑、筛选)
 │   │   ├── components/       #    - 简报、侧边栏、文章卡片等
 │   │   ├── hooks/            #    - 查询类 Hooks (useArticles, useFilters...)
@@ -63,83 +66,39 @@ src/
 3. **文档就近**: 领域技术文档 (`*.md`) 放在领域根目录，与代码共存。
 4. **绝对路径**: 全部使用 `@/` 别名，消除相对路径维护成本。
 
-## 2. 后端服务集成
+## 1.2 国际化架构 (Internationalization)
 
-### Supabase
+项目采用 **路径路由 (Path-based Routing)** 与 **数据隔离** 相结合的国际化策略：
 
-提供文章的核心内容和自定义元数据。
+- **路由策略**:
+  - `/(zh)`: 默认中文环境（根路径）。
+  - `/en`: 英文环境。
+  - **实现模式**: 采用“壳页面”模式。`/en/page.tsx` 仅负责注入 `lang="en"` 和 `dict={en}`，核心逻辑完全复用。
+- **数据隔离与双表模型**:
+  - **数据隔离与双表模型**:
+  - **分层存储 (Lean Translation Architecture)**: 
+    - **主表 (`articles`)**: 存储所有原始中文数据 + 物理元数据（链接、发布时间、上海处理时间、AI 评分与重要性）。这是元数据的 **单一事实来源 (Single Source of Truth)**。
+    - **翻译表 (`articles_en`)**: 物理上仅存储翻译后的文本内容（Title, Summary, MarketTake 等）和任务元数据（Model ID）。不再冗余存储原始链接和时间列。
+  - **展现层视图 (`articles_view_en`)**: 通过数据库视图实时 `JOIN` 主表与翻译表。英文版前端请求始终指向该视图，确保元数据（如评分修订、日期调整）在双语环境下能够自动、绝对地同步。
+- **元数据动态本地化**:
+  - 系统在物理层保留原始中文标识符（如 `sourceName` 和 `verdict.type`），通过 `label-display.ts` 在 UI 渲染层实时调用字典进行多语言转换。这避免了因字典微调而导致的数据库刷表需求。
+- **统一简报服务**:
+  - `fetchBriefingData` 已被重构为全站统一的简报聚合服务。它通过 `lang` 参数驱动底层物理表/视图映射（ZH -> `articles_view`, EN -> `articles_view_en`）。
+- **统一缓存验证**:
+  - 即使数据表物理分配，但验证逻辑已统一。`RevalidateService` 会自动处理英文版缺失物理日期字段的情况，通过回溯主表补齐，确保 ISR 刷新正常。
+- **全链路自动化工作流 (Full-link Automation)**:
+  - 详情请查阅系统领域文档：[SYSTEM.md](../src/domains/system/SYSTEM.md)。
 
-> 详细字段定义请查看 [src/shared/types/article.ts](../src/shared/types/article.ts) 或 [src/shared/types/generated/supabase.ts](../src/shared/types/generated/supabase.ts)。
-
-### FreshRSS
-
-提供 RSS 订阅管理、文章状态和标签。
-
-> 详细 API 定义请查看 [src/shared/types/generated/freshrss-greader.ts](../src/shared/types/generated/freshrss-greader.ts)。
-
-### 统一数据模型
-
-前端通过**数据融合**，将上述两个数据源的信息合并成一个统一的 `Article` 对象：
-
-1.  **Supabase**: 提供文章的核心内容 (Content, Summary, Verdict)。
-2.  **FreshRSS**: 提供文章的元数据 (Read/Starred Status, Tags)。
-3.  **融合逻辑**: `Article` 对象的 `tags` 数组是融合模型的集中体现，混合了多种"标签类"信息，确保前端组件（如卡片、模态框）可以统一处理。
-
-### 统一标识符架构 (Hybrid ID System)
-
-为了平衡存储效率与系统兼容性，项目对文章 ID 实施双轨制：
-
-- **存储策略**:
-  - **FreshRSS**: 维护原始短码（Hex ID），负责交互状态。
-  - **Supabase**: 维持 Google Reader 兼容的长码（`tag:google.com,2005:reader/item/...`），负责内容沉淀。
-- **转换协议**:
-  - 所有从页面进入的数据服务层（`services.ts`）必须强制执行 `toFullId()` 转换。这保证了用户可以通过短 ID 极简访问，而后台能通过长 ID 精准对账，同时找回 AI 摘要等核心资产。
-
-## 4. 边缘代理与安全防御 (`proxy.ts`)
-
-本项目废弃了传统的 API API 鉴权模式，转而采用 Next.js Middleware/Proxy (`src/proxy.ts`) 在边缘侧处理请求过滤、鉴权与审计。
-
-- **安全拦截规则**:
-  1.  **核心路径豁免**: 强制放行 `robots.txt` 和 `sitemap.xml`，符合 SEO 标准。
-  2.  **恶意路径封禁**: 阻断常见的扫描特征路径（如 `wp-admin`, `.env`, `.git`），直接返回 403。
-  3.  **搜索引擎白名单**: 显式放行合规爬虫 (`Baiduspider`, `Googlebot`, `Bingbot` 等)，并采用“单请求单记录”审计：初始以 200 状态 UPSERT 记录，若后续触发业务报错则原地修正。
-  4.  **Bot 自动拦截**: 针对已知的高频抓取工具和 AI 爬虫实施 IP/UA 级拦截 (403)。
-- **智能 404 追踪**:
-  - 利用 Header 注入技术 (`x-current-path`)，解决了 Next.js 内部重写导致路径丢失的问题。
-  - `not-found.tsx` 可准确捕获并归因死链来源（例如精准记录 Googlebot 正在尝试访问的旧链接）。
-- **Bot 流量分流审计 (看板中心)**:
-  - **单请求生命周期审计**: 通过 `request_id` 追踪请求从边缘进入到业务结算的全过程，彻底解决日志重复与状态矛盾。
-  - **数据持久化**: 所有 Bot 流量异步写入 Supabase `bot_hits` 表（以 `request_id` 为主键），并包含地理位置与报错原因。
+---
 
 ## 4. 混合搜索架构 (Hybrid Search)
 
 系统采用 **混合搜索 (Hybrid Search)** 策略，结合了传统关键词匹配与语义理解：
 
 - **技术栈**: Supabase `pgvector` + Gemini `gemini-embedding-001` (2026 新一代模型)。
-- **决策层 (Selection Layer)**:
-  - **Chat Orchestrator**: 位于 `intelligence` 领域，统一管控 RAG 全流水线。
-  - **AI Router**: 被 Orchestrator 调用，在检索前判定意图。
-- **算法细节 (Ranking Strategy)**:
-  - **非对称匹配 (Asymmetric Matching)**:
-    - **Query 路**: 搜索输入使用 `RETRIEVAL_QUERY` 任务类型，提取搜索意图特征。
-    - **Document 路**: 文章数据使用 `RETRIEVAL_DOCUMENT` 任务类型，提取描述性知识特征。这确保了短查询能精准匹配长文本。
-  - **混合排序权重**:
-    1.  **Priority 1 (原文匹配)**: 标题字符串字面包含 (`ILIKE`)，权重最高。专门解决“复制标题搜索”场景。
-    2.  **Priority 2 (标题高相关)**: 标题关键词命中 (`&@~`) 或 向量极强语义相关 (Similarity > 0.88)。
-    3.  **Priority 3 (标签/主题)**: 分类、关键词命中 或 向量强语义相关 (Similarity > 0.80)。
-    4.  **Priority 4 (正文补录/摘要)**: 摘要命中 (`summary`) 或 向量中等语义相关 (Similarity > 0.65)。
-    5.  **Priority 5 (语义兜底)**: 仅满足基础语义门槛 (Similarity > 0.60)，不具备词面匹配特性。
-  - **语义召回门槛**: `semantic_threshold` 设定为 **0.60**。
-- **高性能向量裁切 (Matryoshka/MRL)**:
-  - **背景**: 新模型原生支持 3072 维，但我们利用其 Matryoshka 特性，裁切至 **768 维** 输出。
-  - **优势**: 保持了 >99% 的检索精度，同时完美兼容现有数据库结构，节省了 75% 的存储与索引计算成本。
-  - **多语言表现**: 该模型原生解决了旧版本 (004) 的中文短语“标识符塌陷”现象，无需额外的字符补丁。
-- **搜索容错机制 (Fault Tolerance)**:
-  - **优雅降级**: 若 Google Embedding API 不可用（如配额耗尽或服务波动），后端会自动捕获错误并向 Supabase 传递 `null` 向量。
-  - **自动切换**: 数据库 RPC `hybrid_search_articles` 已支持空向量处理，将自动降级为纯关键词匹配模式，确保搜索功能的 100% 可用性。
-- **自动化与运维**:
-  - **全链路触达**: 向量生成已集成至 `scripts` (存量)、`intelligence` 服务 (增量) 和 `webhook` (自动补全)。
-  - **维护工具**: 提供 `pnpm run search:backfill` 和 `pnpm run search:update`。
+- **多语言现状**:
+  - **中文**: 启用全量向量生成与检索。
+  - **英文**: 目前采用 **关键词 (ILIKE)** 模式，暂时禁用了自动 Embedding 生成（但表结构中保留 `embedding` 字段以便未来扩展）。
 
 ## 4. 渲染与缓存策略
 
@@ -251,6 +210,7 @@ Admin 后台采用 **Server Actions** 处理长耗时任务（如批量 AI 简�
   - 排除内部系统状态（`/state/com.google/`, `/state/org.freshrss/`）
   - 保留用户创建的自定义分类和标签
   - **排序策略**: 侧边栏保持 FreshRSS API 返回的原始顺序；订阅源浏览页（Source Filter）采用权重置顶策略（核心分类优先展示）
+- **展示层适配**: 所有分类、标签、订阅源名称在渲染前必须经过 `label-display.ts` 处理，实现剥离前缀、正则剔除 Emoji 变体符以及多语言字典映射。
 
 ### 4.8 缓存预热系统 (Cache Warmup System)
 

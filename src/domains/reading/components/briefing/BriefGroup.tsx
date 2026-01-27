@@ -3,6 +3,8 @@
 import React, { memo } from 'react';
 import { Article } from '@/shared/types';
 import ArticleCard from './BriefCard';
+import { Dictionary } from '@/app/i18n/dictionaries';
+import { BRIEFING_SECTIONS } from '../../constants';
 
 const DecorativeDivider = () => (
   <div className="my-8 flex items-center justify-center">
@@ -21,6 +23,7 @@ interface ArticleGroupProps {
     tagsToAdd: string[],
     tagsToRemove: string[],
   ) => Promise<void>;
+  dict: Dictionary;
 }
 
 const ArticleGroup: React.FC<ArticleGroupProps> = ({
@@ -28,7 +31,13 @@ const ArticleGroup: React.FC<ArticleGroupProps> = ({
   articles,
   onReaderModeRequest,
   onStateChange,
+  dict,
 }) => {
+  const importanceLabels: Record<string, string> = {
+    [BRIEFING_SECTIONS.IMPORTANT]: dict.briefing.sections.important,
+    [BRIEFING_SECTIONS.MUST_KNOW]: dict.briefing.sections.mustKnow,
+    [BRIEFING_SECTIONS.REGULAR]: dict.briefing.sections.regular,
+  };
   if (!articles || articles.length === 0) {
     return null;
   }
@@ -43,7 +52,7 @@ const ArticleGroup: React.FC<ArticleGroupProps> = ({
           className="transform-gpu border-b-2 border-transparent bg-transparent px-4 py-3 backdrop-blur-sm [border-image:linear-gradient(to_right,#c8b382,#b9975d,#e7d8ac)_1]"
         >
           <h2 className="font-serif text-[1.35rem] leading-tight font-bold text-[#7a1e16]">
-            {importance}
+            {importanceLabels[importance] || importance}
           </h2>
         </div>
       </header>
@@ -56,6 +65,7 @@ const ArticleGroup: React.FC<ArticleGroupProps> = ({
                 article={article}
                 onReaderModeRequest={onReaderModeRequest}
                 onStateChange={onStateChange}
+                dict={dict}
               />
             </div>
             {index < articles.length - 1 && <DecorativeDivider />}

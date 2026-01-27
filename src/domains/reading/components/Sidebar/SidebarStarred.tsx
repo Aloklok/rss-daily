@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Article, Filter } from '@/types';
+import { Dictionary } from '@/app/i18n/dictionaries';
 import { toShortId } from '@/shared/utils/idHelpers';
 
 interface SidebarStarredProps {
@@ -13,6 +14,7 @@ interface SidebarStarredProps {
   activeFilter: Filter | null;
   selectedArticleId: string | number | null;
   onSelect?: () => void;
+  dict: Dictionary;
 }
 
 const SidebarStarred: React.FC<SidebarStarredProps> = ({
@@ -25,6 +27,7 @@ const SidebarStarred: React.FC<SidebarStarredProps> = ({
   activeFilter: _activeFilter,
   selectedArticleId,
   onSelect,
+  dict,
 }) => {
   // const isFilterActive = activeFilter?.type === 'starred';
   const listItemButtonClass = (isActive: boolean) =>
@@ -40,7 +43,7 @@ const SidebarStarred: React.FC<SidebarStarredProps> = ({
         className="mb-1 flex w-full cursor-pointer items-center justify-between px-2 py-1 text-left text-base font-bold text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
       >
         <div className="flex items-center gap-2">
-          <span>⭐ 我的收藏</span>
+          <span>⭐ {dict.sidebar.starred}</span>
         </div>
         <div className="flex items-center gap-2">
           {starredCount > 0 && (
@@ -78,7 +81,7 @@ const SidebarStarred: React.FC<SidebarStarredProps> = ({
             <Link
               prefetch={false}
               key={article.id}
-              href={`/article/${toShortId(String(article.id))}?view=page`}
+              href={`${dict.lang === 'zh' ? '' : '/en'}/article/${toShortId(String(article.id))}?view=page`}
               onClick={(_e) => {
                 // Optional: update store but let Link handle nav
                 onArticleClick(article);

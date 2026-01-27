@@ -1,15 +1,19 @@
-import Image from 'next/image';
 import Link from 'next/link';
+import Image from 'next/image';
+import { getSlugLink } from '@/domains/reading/utils/slug-helper';
 import { AvailableFilters } from '@/shared/types';
+import { Dictionary } from '@/app/i18n/dictionaries';
 
 interface SidebarNavServerProps {
   initialDates: string[];
   initialAvailableFilters: AvailableFilters;
+  dict: Dictionary;
 }
 
 export default function SidebarNavServer({
   initialDates,
   initialAvailableFilters,
+  dict,
 }: SidebarNavServerProps) {
   const dates = initialDates.slice(0, 30);
   const categories = (initialAvailableFilters.categories || []).filter((c) => c.label !== '未分类');
@@ -34,10 +38,10 @@ export default function SidebarNavServer({
           </div>
         </div>
         <Link
-          href="/archive"
+          href={dict.lang === 'zh' ? '/archive' : '/en/archive'}
           className="dark:hover:bg-midnight-card flex cursor-pointer items-center justify-center rounded-full p-1.5 text-gray-500 transition-colors hover:bg-gray-200 dark:text-gray-400"
-          title="查看历史归档"
-          aria-label="查看历史归档"
+          title={dict.archive.title}
+          aria-label={dict.archive.title}
           prefetch={false}
         >
           <svg
@@ -61,13 +65,13 @@ export default function SidebarNavServer({
       <div className="space-y-4">
         <div className="flex flex-col">
           <div className="mb-1 flex w-full items-center gap-2 px-2 py-1 text-left text-base font-bold text-gray-600 dark:text-gray-300">
-            <span>📅 最近日期</span>
+            <span>📅 {dict.briefing.header.dailyUpdates}</span>
           </div>
           <div className="ml-1 space-y-1">
             {dates.map((date) => (
               <Link
                 key={date}
-                href={`/date/${date}`}
+                href={dict.lang === 'zh' ? `/date/${date}` : `/en/date/${date}`}
                 prefetch={false}
                 className="dark:hover:bg-midnight-card block rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-200"
               >
@@ -80,13 +84,13 @@ export default function SidebarNavServer({
         {categories.length > 0 && (
           <div className="flex flex-col">
             <div className="mb-1 flex w-full items-center gap-2 px-2 py-1 text-left text-base font-bold text-gray-600 dark:text-gray-300">
-              <span>🗂️ 分类</span>
+              <span>🗂️ {dict.archive.filters.categories}</span>
             </div>
             <div className="ml-1 space-y-1">
               {categories.map((c) => (
                 <Link
                   key={c.id}
-                  href={`/stream/${encodeURIComponent(c.id)}`}
+                  href={getSlugLink(c.id, dict.lang as 'zh' | 'en')}
                   prefetch={false}
                   className="dark:hover:bg-midnight-card flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-200"
                 >
@@ -105,13 +109,13 @@ export default function SidebarNavServer({
         {tags.length > 0 && (
           <div className="flex flex-col">
             <div className="mb-1 flex w-full items-center gap-2 px-2 py-1 text-left text-base font-bold text-gray-600 dark:text-gray-300">
-              <span>🏷️ 标签</span>
+              <span>🏷️ {dict.archive.filters.tags}</span>
             </div>
             <div className="grid grid-cols-2 gap-2 px-1">
               {tags.slice(0, 20).map((t) => (
                 <Link
                   key={t.id}
-                  href={`/stream/${encodeURIComponent(t.id)}`}
+                  href={getSlugLink(t.id, dict.lang as 'zh' | 'en', 'tag')}
                   prefetch={false}
                   className="dark:hover:bg-midnight-card flex w-full items-center justify-between rounded-md border border-transparent px-2.5 py-1.5 text-left text-sm font-medium text-gray-600 transition-all duration-200 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
                 >
@@ -127,7 +131,7 @@ export default function SidebarNavServer({
 
         <div className="px-1">
           <Link
-            href="/sources"
+            href={dict.lang === 'zh' ? '/sources' : '/en/sources'}
             prefetch={false}
             className="flex w-full items-center gap-3 rounded-xl bg-white px-4 py-3 text-sm font-medium text-stone-700 shadow-sm transition-all hover:bg-stone-50 hover:shadow-md active:scale-95 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700"
           >
@@ -147,7 +151,7 @@ export default function SidebarNavServer({
                 />
               </svg>
             </span>
-            <span>订阅源</span>
+            <span>{dict.nav.sources}</span>
           </Link>
         </div>
       </div>

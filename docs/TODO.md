@@ -30,6 +30,8 @@
 - [ ] **AI RAG 成本/延迟优化**: 对 `match_count`、相似度阈值、重排触发条件做分级策略（短查询/闲聊优先 DIRECT），减少 embedding/RPC/重排调用次数。改动难度：中，性能提升：中（AI 端到端延迟下降）。
 - [ ] **图片 LCP 与尺寸优化 (LCP/CLS)**: 确认首页/日期页首图 `priority + fetchPriority="high"`、`sizes` 与实际布局匹配，避免大图过度下载；确保固定尺寸/占位避免 CLS。验收：CLS ≤ 0.10；LCP ≤ 2.5s（p75）。
 - [ ] **文章正文清洗预计算/缓存 (详情页 TTFB/LCP，SEO 保持直出)**: `fetchArticleContent()` 的 sanitize + 二次查 Supabase title 会增加 TTFB；考虑入库时预清洗/写回，或对清洗结果按文章 ID 缓存；正文仍需服务端直出（No-JS 可读）。验收：详情页缓存命中 TTFB ≤ 600ms；LCP ≤ 2.5s（p75）。
+- [x] **Revalidate 逻辑参数化抽象 (2026.01.25)**: 针对双表结构，已将 revalidate 路由重构为通用 Service。通过 `lang` 参数动态决定清理的 Path 和 Tag，消除了中英文冗余。
+
 
 ### 🧹 DDD 收尾 (可选)
 
@@ -185,3 +187,9 @@
   - **智能 404 追踪**: 利用 Header 注入技术，准确记录并归因死链来源（如 Googlebot 访问具体路径及状态）。
   - **可视化审计**: 升级 Admin 看板，提供鼠标悬停查看错误路径、状态码等深度审计功能。
 - [x] **Cache Poisoning Fix (2026.01.21)**: 修复 `fetchBriefingData` 在“今日”无数据时锁定 7 天空缓存的 Bug，新增 Empty Result 异常抛出机制作为 ISR 安全网。
+- [x] **国际化架构升级 (I18n) (2026.01.25)**: 实现了双表模型、Hreflang 注入及独立 Sitemap 索引。
+- [x] **简报服务与 Sitemap 统一化 (2026.01.26)**:
+  - **简报逻辑**: 合并 ZH/EN 数据获取为单一通用的 `fetchBriefingData` 函数，实现 100% 逻辑对齐。
+  - **Sitemap 逻辑**: 打造通用 Sitemap 生成引擎，英文版补齐了分类、标签及订阅源路径，实现 SEO 维度对称。
+  - **数据同步**: 优化翻译流水线，实现了 `verdict` 分值与重要性的跨表同步。
+

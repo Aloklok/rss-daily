@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ArticleReaderView from '@/domains/reading/components/article/modal/ArticleReaderView';
 import { MOCK_ARTICLE } from '@/shared/utils/__tests__/mockData';
+import { zh } from '@/app/i18n/dictionaries';
 
 describe('ArticleReaderView (Vitest Browser)', () => {
   it('应正确渲染文章的核心内容', () => {
@@ -24,6 +25,7 @@ describe('ArticleReaderView (Vitest Browser)', () => {
         readerContent={mockReaderContent}
         isLoading={false}
         userTagLabels={[]}
+        dict={zh}
       />,
     );
 
@@ -55,6 +57,7 @@ describe('ArticleReaderView (Vitest Browser)', () => {
         readerContent={mockReaderContent}
         isLoading={false}
         userTagLabels={[]}
+        dict={zh}
       />,
     );
     // 此处原有的 expect 可能需要调整，因为 MOCK_ARTICLE 中可能没有 "加密认证"

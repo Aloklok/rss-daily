@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useTransition } from 'react';
+import React, { useCallback, useEffect, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import LoadMoreButton from '@/shared/ui/LoadMoreButton';
 import { useFilteredArticles } from '@/domains/reading/hooks/useArticles';
@@ -9,7 +9,9 @@ import { useUIStore } from '@/shared/store/uiStore';
 import { useArticleMetadata } from '@/domains/reading/hooks/useArticleMetadata';
 import ArticleTitleStar from '../article/ArticleTitleStar';
 import { getRandomColorClass } from '@/shared/utils/colorUtils';
-import { CATEGORY_ORDER, UNCATEGORIZED_LABEL } from '@/domains/reading/constants';
+import { getDisplayLabel, normalizeLabel, sortLabels } from '@/domains/reading/utils/label-display';
+import { Dictionary } from '@/app/i18n/dictionaries';
+import { UNCATEGORIZED_LABEL } from '@/domains/reading/constants';
 
 interface Subscription {
   id: string;
@@ -19,15 +21,14 @@ interface Subscription {
 
 interface SourceFilterClientProps {
   subscriptions: Subscription[];
+  dict: Dictionary;
+  tableName?: string;
 }
 
-const getOrderIndex = (name: string) => {
-  const cleanName = (name || '').trim().toLowerCase();
-  return CATEGORY_ORDER.findIndex((keyword) => cleanName.includes(keyword.toLowerCase()));
-};
+// ... (existing code)
 
 // Custom Card with Summary on Right (matching SearchListItem style)
-const SourceListItem: React.FC<{ articleId: string | number }> = ({ articleId }) => {
+const SourceListItem: React.FC<{ articleId: string | number; dict: Dictionary }> = ({ articleId, dict }) => {
   const openModal = useUIStore((state) => state.openModal);
   const article = useArticleStore((state) => state.articlesById[articleId]);
   const { userTagLabels } = useArticleMetadata(article);
@@ -58,7 +59,7 @@ const SourceListItem: React.FC<{ articleId: string | number }> = ({ articleId })
           <div className="mb-4 flex items-center gap-3 text-xs font-bold tracking-wider text-stone-500 uppercase">
             <span className="text-stone-700 dark:text-stone-400">{article.sourceName}</span>
             <span className="size-1 rounded-full bg-stone-300 dark:bg-stone-600"></span>
-            <span>{new Date(article.published).toLocaleDateString('zh-CN')}</span>
+            <span>{new Date(article.published).toLocaleDateString(dict.lang === 'zh' ? 'zh-CN' : 'en-US')}</span>
           </div>
 
           {userTagLabels.length > 0 && (
@@ -80,7 +81,7 @@ const SourceListItem: React.FC<{ articleId: string | number }> = ({ articleId })
       <div className="dark:border-midnight-border flex shrink-0 flex-col justify-center border-t border-stone-300 pt-4 md:w-1/3 md:border-t-0 md:border-l md:pt-0 md:pl-6">
         <p className="line-clamp-4 text-sm leading-relaxed font-medium text-stone-600 opacity-80 transition-opacity group-hover:opacity-100 dark:text-stone-400">
           {article.tldr || article.summary || (
-            <span className="italic opacity-50">暂无简报，点击阅读原文</span>
+            <span className="italic opacity-50">{dict.sources.noBriefingTip}</span>
           )}
         </p>
         <div className="mt-4 flex justify-end">
@@ -99,31 +100,29 @@ const SourceListItem: React.FC<{ articleId: string | number }> = ({ articleId })
   );
 };
 
-export default function SourceFilterClient({ subscriptions }: SourceFilterClientProps) {
+export default function SourceFilterClient({ subscriptions, dict, tableName = 'articles_view' }: SourceFilterClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sourceId = searchParams.get('source');
   const [isPending, startTransition] = useTransition();
 
-  // Use the existing hook to fetch articles based on the source ID (which is treated as a stream ID)
-  // useFilteredArticles logic in `hooks/useArticles.ts` connects to `fetchFilteredArticles`
-  // which uses `getArticlesByLabel` (supports arbitrary stream IDs).
-  // This aligns with "StreamList-like" behavior.
-  // merge=true ensures we get Supabase data (summaries) joined in.
+  // ... (useFilteredArticles logic unchanged)
+
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useFilteredArticles(
     sourceId,
     undefined,
     true,
+    tableName,
   );
 
-  // Flatten the infinite query data
   const articleIds = data?.pages.flatMap((page) => page.articles) || [];
 
   // Group subscriptions by category
   const groupedSubscriptions = React.useMemo(() => {
     const groups: Record<string, Subscription[]> = {};
     subscriptions.forEach((sub) => {
-      const cat = sub.category || UNCATEGORIZED_LABEL;
+      // Normalize category label first
+      const cat = normalizeLabel(sub.category || UNCATEGORIZED_LABEL);
       if (!groups[cat]) {
         groups[cat] = [];
       }
@@ -133,41 +132,27 @@ export default function SourceFilterClient({ subscriptions }: SourceFilterClient
   }, [subscriptions]);
 
   const sortedCategories = React.useMemo(() => {
-    const categories = Object.keys(groupedSubscriptions);
-
-    return categories.sort((a, b) => {
-      // Special case: '未分类' or similar should always be last
-      const isUncategorizedA =
-        a === UNCATEGORIZED_LABEL || a.toLowerCase().includes('uncategorized');
-      const isUncategorizedB =
-        b === UNCATEGORIZED_LABEL || b.toLowerCase().includes('uncategorized');
-
-      if (isUncategorizedA && !isUncategorizedB) return 1;
-      if (!isUncategorizedA && isUncategorizedB) return -1;
-
-      const indexA = getOrderIndex(a);
-      const indexB = getOrderIndex(b);
-
-      if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-      if (indexA !== -1) return -1;
-      if (indexB !== -1) return 1;
-
-      return a.localeCompare(b, 'zh-Hans-CN');
-    });
+    return sortLabels(Object.keys(groupedSubscriptions));
   }, [groupedSubscriptions]);
+
+  // Effect to scroll to top when source changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [sourceId]);
 
   const handleSourceChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const newSource = e.target.value;
+      const basePath = dict.lang === 'zh' ? '' : '/en';
       startTransition(() => {
         if (newSource) {
-          router.push(`/sources?source=${encodeURIComponent(newSource)}`);
+          router.push(`${basePath}/sources?source=${encodeURIComponent(newSource)}`);
         } else {
-          router.push('/sources');
+          router.push(`${basePath}/sources`);
         }
       });
     },
-    [router],
+    [router, dict.lang],
   );
 
   return (
@@ -177,15 +162,15 @@ export default function SourceFilterClient({ subscriptions }: SourceFilterClient
         <div className="mb-12 flex flex-col items-center justify-between gap-6 md:flex-row">
           <div>
             <h1 className="font-serif text-3xl font-bold text-stone-900 md:text-4xl">
-              按订阅源浏览
+              {dict.sources.title}
             </h1>
-            <p className="mt-2 text-sm text-stone-500">From RSS subscriptions</p>
+            <p className="mt-2 text-sm text-stone-500">{dict.sources.subtitle}</p>
           </div>
 
           {/* Source Selector */}
           <div className="w-full md:w-72">
             <label htmlFor="source-select" className="sr-only">
-              选择订阅源
+              {dict.sources.selectLabel}
             </label>
             <div className="relative">
               <select
@@ -195,12 +180,12 @@ export default function SourceFilterClient({ subscriptions }: SourceFilterClient
                 className="w-full appearance-none rounded-xl border border-stone-200 bg-white px-4 py-3 pr-10 text-stone-700 shadow-sm transition-all hover:border-stone-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-stone-700 dark:bg-stone-800 dark:text-stone-200"
                 disabled={isPending}
               >
-                <option value="">-- 选择一个订阅源 --</option>
+                <option value="">{dict.sources.placeholder}</option>
                 {sortedCategories.map((category) => (
-                  <optgroup key={category} label={category}>
+                  <optgroup key={category} label={getDisplayLabel(category, 'category', dict.lang as 'zh' | 'en')}>
                     {groupedSubscriptions[category].map((sub) => (
                       <option key={sub.id} value={sub.id}>
-                        {sub.title}
+                        {getDisplayLabel(sub.title, 'feed', dict.lang as 'zh' | 'en')}
                       </option>
                     ))}
                   </optgroup>
@@ -227,7 +212,7 @@ export default function SourceFilterClient({ subscriptions }: SourceFilterClient
               {articleIds.length > 0 ? (
                 <div className="space-y-4">
                   {articleIds.map((id) => (
-                    <SourceListItem key={id} articleId={id} />
+                    <SourceListItem key={id} articleId={id} dict={dict} />
                   ))}
 
                   {/* Load More Trigger */}
@@ -236,7 +221,7 @@ export default function SourceFilterClient({ subscriptions }: SourceFilterClient
                       <LoadMoreButton
                         onClick={() => fetchNextPage()}
                         isLoading={isFetchingNextPage}
-                        label="加载更多文章"
+                        label={dict.sources.loadMore}
                         className="rounded-full bg-white/50 px-8 py-3 font-medium text-stone-600 shadow-sm backdrop-blur-md transition-all hover:bg-white/80 hover:shadow-md active:scale-95 disabled:opacity-50 dark:bg-stone-800/50 dark:text-stone-300 dark:hover:bg-stone-800/80"
                       />
                     </div>
@@ -245,7 +230,7 @@ export default function SourceFilterClient({ subscriptions }: SourceFilterClient
               ) : (
                 !isLoading && (
                   <div className="flex flex-col items-center justify-center py-20 text-center opacity-60">
-                    <p>暂无文章</p>
+                    <p>{dict.sources.noArticles}</p>
                   </div>
                 )
               )}
@@ -259,7 +244,7 @@ export default function SourceFilterClient({ subscriptions }: SourceFilterClient
           ) : (
             <div className="flex h-96 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-stone-200/50 text-center dark:border-stone-800/50">
               <div className="mb-4 text-5xl opacity-50 grayscale">📡</div>
-              <h3 className="text-lg font-medium text-stone-900">请点击下拉框选择订阅源</h3>
+              <h3 className="text-lg font-medium text-stone-900">{dict.sources.emptyTip}</h3>
             </div>
           )}
         </div>

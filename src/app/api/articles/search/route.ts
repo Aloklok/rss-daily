@@ -12,6 +12,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   const searchParams = request.nextUrl.searchParams;
   const query = searchParams.get('query');
+  const table = searchParams.get('table') || 'articles_view';
   const page = parseInt(searchParams.get('page') || '1', 10);
   const pageSize = 20;
 
@@ -22,6 +23,25 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const supabase = getSupabaseClient();
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
+
+  // Simple Search for English articles (No Vector Store yet)
+  if (table === 'articles_en' || table === 'articles_view_en') {
+    const { data: enData, error: enError } = await supabase
+      .from('articles_view_en')
+      .select('*')
+      .or(`title.ilike.%${query}%,summary.ilike.%${query}%`)
+      .order('published', { ascending: false })
+      .range(from, to);
+
+    if (enError) {
+      return NextResponse.json({ message: enError.message }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      articles: enData || [],
+      isFallback: true, // Always fallback logic for now
+    });
+  }
 
   try {
     let queryEmbedding: number[] | null = null;

@@ -38,7 +38,7 @@ export default function GlobalError({
           errorDigest: error.digest,
           reason: `Client 500: ${error.message || 'Unknown Error'}`,
         }),
-      }).catch(() => {});
+      }).catch(() => { });
     }
   }, [error]);
 
@@ -46,17 +46,22 @@ export default function GlobalError({
     <html>
       <body className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4 text-center">
         <h1 className="mb-4 text-6xl font-bold text-red-500">500</h1>
-        <h2 className="mb-4 text-2xl font-semibold text-gray-800">致命错误</h2>
+        <h2 className="mb-4 text-2xl font-semibold text-gray-800">
+          {window.location.pathname.startsWith('/en') ? 'Critical Error' : '致命错误'}
+        </h2>
         <p className="mb-8 max-w-md text-gray-600">
-          应用遇到了无法恢复的错误。请刷新页面或稍后重试。
+          {window.location.pathname.startsWith('/en')
+            ? 'The application encountered an unrecoverable error. Please refresh the page or try again later.'
+            : '应用遇到了无法恢复的错误。请刷新页面或稍后重试。'
+          }
         </p>
         <button
           onClick={reset}
           className="rounded-full bg-indigo-600 px-6 py-2 text-white shadow-lg transition-colors hover:bg-indigo-700"
         >
-          刷新页面
+          {window.location.pathname.startsWith('/en') ? 'Refresh Page' : '刷新页面'}
         </button>
-        {error.digest && <p className="mt-8 text-xs text-gray-400">错误 ID: {error.digest}</p>}
+        {error.digest && <p className="mt-8 text-xs text-gray-400">Error ID: {error.digest}</p>}
       </body>
     </html>
   );

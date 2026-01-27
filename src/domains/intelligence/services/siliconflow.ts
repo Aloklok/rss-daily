@@ -1,7 +1,11 @@
 // { "name": "supabase", "used": false }
 
-const SILICONFLOW_API_KEY = process.env.GUIJI_API_KEY;
 const SILICONFLOW_API_URL = 'https://api.siliconflow.cn/v1/chat/completions';
+
+// 延迟获取 API Key，确保脚本模式下 dotenv 已加载
+function getApiKey(): string | undefined {
+  return process.env.GUIJI_API_KEY;
+}
 
 /**
  * SiliconFlow Chat Completion Handler
@@ -12,7 +16,7 @@ export async function chatWithSiliconFlow(
   modelName: string,
   useSearch: boolean = false,
 ): Promise<ReadableStream> {
-  if (!SILICONFLOW_API_KEY) {
+  if (!getApiKey()) {
     throw new Error('GUIJI_API_KEY is not defined');
   }
 
@@ -20,24 +24,24 @@ export async function chatWithSiliconFlow(
   // SiliconFlow supports OpenAI-compatible tool definitions
   const tools = useSearch
     ? [
-        {
-          type: 'function',
-          function: {
-            name: 'google_search',
-            description: 'Perform a google search to get latest information.',
-            parameters: {
-              type: 'object',
-              properties: {
-                query: {
-                  type: 'string',
-                  description: 'The search query string',
-                },
+      {
+        type: 'function',
+        function: {
+          name: 'google_search',
+          description: 'Perform a google search to get latest information.',
+          parameters: {
+            type: 'object',
+            properties: {
+              query: {
+                type: 'string',
+                description: 'The search query string',
               },
-              required: ['query'],
             },
+            required: ['query'],
           },
         },
-      ]
+      },
+    ]
     : undefined;
 
   // 2. Prepare Request Body
@@ -60,7 +64,7 @@ export async function chatWithSiliconFlow(
   const response = await fetch(SILICONFLOW_API_URL, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${SILICONFLOW_API_KEY}`,
+      Authorization: `Bearer ${getApiKey()}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),
@@ -157,7 +161,7 @@ export async function* streamSiliconFlow(
   modelName: string,
   useSearch: boolean = false,
 ) {
-  if (!SILICONFLOW_API_KEY) {
+  if (!getApiKey()) {
     throw new Error('GUIJI_API_KEY is not defined');
   }
 
@@ -167,24 +171,24 @@ export async function* streamSiliconFlow(
   const tools =
     useSearch && !isGLMLegacy
       ? [
-          {
-            type: 'function',
-            function: {
-              name: 'google_search',
-              description: 'Perform a google search to get latest information.',
-              parameters: {
-                type: 'object',
-                properties: {
-                  query: {
-                    type: 'string',
-                    description: 'The search query string',
-                  },
+        {
+          type: 'function',
+          function: {
+            name: 'google_search',
+            description: 'Perform a google search to get latest information.',
+            parameters: {
+              type: 'object',
+              properties: {
+                query: {
+                  type: 'string',
+                  description: 'The search query string',
                 },
-                required: ['query'],
               },
+              required: ['query'],
             },
           },
-        ]
+        },
+      ]
       : undefined;
 
   // Sanitize messages
@@ -242,7 +246,7 @@ export async function* streamSiliconFlow(
   const response = await fetch(SILICONFLOW_API_URL, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${SILICONFLOW_API_KEY}`,
+      Authorization: `Bearer ${getApiKey()}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),
@@ -329,28 +333,38 @@ export function cleanDeepSeekContent(content: string): string {
 }
 
 /**
- * Non-streaming generation for Briefings
+ * Non-streaming generation for Briefings (Aggregated internally to prevent timeouts)
  */
-export async function generateSiliconFlow(messages: any[], modelName: string): Promise<string> {
-  if (!SILICONFLOW_API_KEY) {
+export async function generateSiliconFlow(
+  messages: any[],
+  modelName: string,
+  max_tokens: number = 16000,
+  jsonMode: boolean = false,
+): Promise<string> {
+  if (!getApiKey()) {
     throw new Error('GUIJI_API_KEY is not defined');
   }
 
-  const body = {
+  const body: any = {
     model: modelName,
     messages: messages.map((m) => ({
       role: m.role,
       content: m.content,
     })),
-    stream: false, // Explicitly disable streaming
-    temperature: 0.7,
-    max_tokens: 4096,
+    stream: true, // Use streaming internally
+    temperature: 0.5, // Set to 0.5 for stable structural output
+    max_tokens: max_tokens,
+    enable_thinking: false, // Explicitly disable thinking mode for faster, direct response
   };
+
+  if (jsonMode) {
+    body.response_format = { type: 'json_object' };
+  }
 
   const response = await fetch(SILICONFLOW_API_URL, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${SILICONFLOW_API_KEY}`,
+      Authorization: `Bearer ${getApiKey()}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),
@@ -362,9 +376,49 @@ export async function generateSiliconFlow(messages: any[], modelName: string): P
     throw new Error(`SiliconFlow API Error: ${response.status} - ${errorText}`);
   }
 
-  const data = await response.json();
-  const content = data.choices?.[0]?.message?.content || '';
+  if (!response.body) throw new Error('No response body');
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let fullContent = '';
+  let buffer = '';
+
+  // Heartbeat printer
+  let lastDotTime = Date.now();
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed === 'data: [DONE]') continue;
+      if (trimmed.startsWith('data: ')) {
+        try {
+          const data = JSON.parse(trimmed.slice(6));
+          const content = data.choices?.[0]?.delta?.content || '';
+          fullContent += content;
+
+          // Process heartbeat (print a dot every 500ms while generating)
+          const now = Date.now();
+          if (now - lastDotTime > 500) {
+            process.stdout.write('.');
+            lastDotTime = now;
+          }
+        } catch (_e) {
+          // ignore parse errors
+        }
+      }
+    }
+  }
+
+  // Clear the dot line
+  if (fullContent) process.stdout.write('\n');
 
   // Filter out thinking block for DeepSeek R1 models
-  return cleanDeepSeekContent(content);
+  return cleanDeepSeekContent(fullContent);
 }

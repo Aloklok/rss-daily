@@ -17,6 +17,7 @@ export const useBriefingArticles = (
   date: string | null,
   slot: string | null,
   initialData?: (string | number)[],
+  tableName: string = 'articles_view',
 ) => {
   const today = getTodayInShanghai();
   const addArticles = useArticleStore((state) => state.addArticles);
@@ -24,12 +25,12 @@ export const useBriefingArticles = (
     // 【核心修复 #2】
     // 当 slot 为 null 时，我们给它一个明确的字符串 'all'。
     // 这可以确保 react-query 将 ['briefing', date, null] 和 ['briefing', date, 'all'] 视为两个不同的缓存条目。
-    queryKey: ['briefing', date, slot || 'all'],
+    queryKey: ['briefing', date, slot || 'all', tableName],
     queryFn: async () => {
       if (!date) return [];
       // queryFn 接收的仍然是原始的 slot (可以是 null)
       // 【核心优化】开启聚合模式：fetchBriefingArticles 内部会一次性把 Supabase 内容和 FreshRSS 状态取回来
-      const completeArticles = await fetchBriefingArticles(date, slot, { includeState: true });
+      const completeArticles = await fetchBriefingArticles(date, slot, { includeState: true, tableName });
       addArticles(completeArticles);
       return completeArticles.map((a) => a.id);
     },
@@ -61,12 +62,14 @@ export const useBriefingArticles = (
 export const useFilteredArticles = (
   filterValue: string | null,
   initialData?: any,
+
   merge: boolean = false,
+  tableName: string = 'articles_view',
 ) => {
   const addArticles = useArticleStore((state) => state.addArticles);
 
   return useInfiniteQuery({
-    queryKey: ['articles', filterValue],
+    queryKey: ['articles', filterValue, tableName, merge],
     queryFn: async ({ pageParam }) => {
       if (!filterValue) return { articles: [], continuation: undefined };
 
@@ -76,6 +79,7 @@ export const useFilteredArticles = (
         pageParam as string | undefined,
         20,
         merge,
+        tableName,
       );
 
       // Add articles to the store
@@ -138,16 +142,16 @@ export const useStarredArticles = (
 
 // 2. 【增加】在文件末尾添加新的 useSearchResults Hook
 // 2. 【增加】搜索 Hook (升级为 Infinite Query)
-export const useSearchResults = (query: string | null) => {
+export const useSearchResults = (query: string | null, tableName: string = 'articles_view') => {
   const addArticles = useArticleStore((state) => state.addArticles);
   const showToast = useToastStore((state) => state.showToast);
 
   return useInfiniteQuery({
-    queryKey: ['search', query],
+    queryKey: ['search', query, tableName],
     queryFn: async ({ pageParam = 1 }) => {
       if (!query) return { articles: [], continuation: undefined };
 
-      const result = await fetchSearchResults(query, pageParam as number);
+      const result = await fetchSearchResults(query, pageParam as number, tableName);
       addArticles(result.articles);
 
       // 如果发生了 Fallback，且是第一页，则给管理员提示

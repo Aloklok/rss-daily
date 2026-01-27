@@ -8,13 +8,14 @@ import { mapFreshItemToMinimalArticle } from '@/domains/reading/adapters/fresh-r
 // Fetch details from Supabase (Bypassing /api/get-briefings)
 async function fetchSupabaseDetails(
   articleIds: (string | number)[],
+  tableName: string = 'articles',
 ): Promise<Record<string, Article>> {
   if (articleIds.length === 0) return {};
   const supabase = getSupabaseClient();
 
   // We only need specific fields that might be missing from FreshRSS
   const { data, error } = await supabase
-    .from('articles')
+    .from(tableName as any)
     .select('*')
     .in('id', articleIds.map(String));
 
@@ -37,6 +38,7 @@ export async function fetchFilteredArticlesSSR(
   filterValue: string,
   n: number = 20,
   merge: boolean = true,
+  tableName: string = 'articles',
 ): Promise<{ articles: Article[]; continuation?: string }> {
   console.log(`[SSR] Fetching articles for: ${filterValue} (Merge: ${merge})`);
 
@@ -67,12 +69,17 @@ export async function fetchFilteredArticlesSSR(
   // 2. MergeSupabase details if requested
   if (merge && freshArticles.length > 0) {
     const articleIds = freshArticles.map((a) => a.id);
-    const supaDetailsMap = await fetchSupabaseDetails(articleIds);
+    const supaDetailsMap = await fetchSupabaseDetails(articleIds, tableName);
 
     freshArticles = freshArticles.map((freshArticle) => {
       const supaDetails = supaDetailsMap[freshArticle.id];
       // Supabase details (AI summary, etc.) must overwrite FreshRSS placeholders
-      return supaDetails ? { ...freshArticle, ...supaDetails } : freshArticle;
+      // Priority: Supabase Title > FreshRSS Title
+      if (supaDetails) {
+        const resolvedTitle = supaDetails.title || freshArticle.title;
+        return { ...freshArticle, ...supaDetails, title: resolvedTitle };
+      }
+      return freshArticle;
     });
   }
 

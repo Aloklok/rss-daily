@@ -93,7 +93,8 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
     await queryClient.invalidateQueries({ queryKey: ['briefing'] });
     handleResetFilter();
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    router.push('/');
+    const basePath = pathname?.startsWith('/en') ? '/en' : '';
+    router.push(`${basePath}/`);
   };
 
   // Internal Logic
@@ -146,11 +147,10 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
             <div className="relative" onClick={(e) => e.stopPropagation()}>
               <button
                 onClick={() => setIsTagPopoverOpen((prev) => !prev)}
-                className={`cursor-pointer rounded-full p-2.5 text-white shadow-lg transition-all md:p-3 ${
-                  userTagLabels.length > 0
+                className={`cursor-pointer rounded-full p-2.5 text-white shadow-lg transition-all md:p-3 ${userTagLabels.length > 0
                     ? 'bg-sky-600 hover:bg-sky-700'
                     : 'bg-gray-800 hover:bg-gray-950'
-                }`}
+                  }`}
                 aria-label="Tag article"
               >
                 <svg
@@ -183,9 +183,8 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
                 );
               }}
               disabled={isUpdatingArticle}
-              className={`cursor-pointer rounded-full p-2.5 text-white shadow-lg transition-all disabled:bg-gray-500 md:p-3 ${
-                isStarred ? 'bg-amber-500 hover:bg-amber-600' : 'bg-gray-800 hover:bg-gray-950'
-              }`}
+              className={`cursor-pointer rounded-full p-2.5 text-white shadow-lg transition-all disabled:bg-gray-500 md:p-3 ${isStarred ? 'bg-amber-500 hover:bg-amber-600' : 'bg-gray-800 hover:bg-gray-950'
+                }`}
               aria-label={isStarred ? 'Remove from favorites' : 'Add to favorites'}
             >
               {isStarred ? (

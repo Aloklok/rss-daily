@@ -146,3 +146,28 @@ export const MODELS = [
 
 export const BRIEFING_IMAGE_WIDTH = 1200;
 export const BRIEFING_IMAGE_HEIGHT = 630;
+
+// --- Translation Models (用于文章多语言翻译) ---
+export const TRANSLATION_MODELS = [
+  {
+    id: 'Qwen/Qwen3-8B',
+    name: 'Qwen3-8B',
+    desc: '限免，支持结构化 JSON 输出，推荐',
+    quota: 'Free',
+    provider: 'siliconflow' as const,
+    supportsJson: true, // 支持 JSON 格式输出
+  },
+  {
+    id: 'tencent/Hunyuan-MT-7B',
+    name: 'Hunyuan-MT-7B',
+    desc: 'WMT25 翻译冠军，7B参数，32K上下文，内容翻译专用',
+    quota: 'Free',
+    provider: 'siliconflow' as const,
+    supportsJson: false, // 仅输出纯文本
+    params: '7B',
+    contextWindow: 32000,
+    useCase: '内容翻译',
+  },
+];
+
+export const DEFAULT_TRANSLATION_MODEL = 'Qwen/Qwen3-8B';

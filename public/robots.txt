@@ -36,3 +36,4 @@ User-agent: SemrushBot
 Disallow: /
 
 Sitemap: https://www.alok-rss.top/sitemap.xml
+Sitemap: https://www.alok-rss.top/en/sitemap.xml

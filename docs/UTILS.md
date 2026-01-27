@@ -12,7 +12,7 @@
 
 ### 📅 阅读与日期逻辑
 
-包含上海时间转换、文章时段计算、UTC 窗口映射等。
+包含上海时间转换、文章时段计算、UTC 窗口映射，以及**分类/Feed 国际化展示工具 (`label-display.ts`)**。
 
 👉 **[READING_LOGIC.md](../src/domains/reading/READING_LOGIC.md)**
 

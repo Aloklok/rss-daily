@@ -7,17 +7,21 @@ import { getRandomColorClass } from '@/shared/utils/colorUtils';
 import ArticleTitleStar from './ArticleTitleStar';
 import { useArticleContent } from '@/domains/reading/hooks/useArticleContent';
 import { useSelectAll } from '@/shared/hooks/dom/useSelectAll';
+import { Dictionary, zh } from '@/app/i18n/dictionaries';
+import { getDisplayLabel } from '@/domains/reading/utils/label-display';
 
 interface ArticleDetailProps {
   article: Article;
   onClose?: () => void;
   initialContent?: CleanArticleContent | null;
+  dict: Dictionary;
 }
 
 const ArticleDetail: React.FC<ArticleDetailProps> = ({
   article,
   onClose: _onClose,
   initialContent,
+  dict,
 }) => {
   // 【Refactor】Use Unified Hook for Data Fetching & Caching
   const { data: content, isLoading, error } = useArticleContent(article, initialContent);
@@ -45,8 +49,9 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
   useSelectAll(contentRef);
 
   // Determine display data: prefer fetched content, fallback to prop article
+  const lang = dict === zh ? 'zh' : 'en';
   const displayTitle = (content && content.title) || article.title;
-  const displaySource = (content && content.source) || article.sourceName;
+  const displaySource = getDisplayLabel((content && content.source) || article.sourceName || '', 'feed', lang);
   const displayContent = content && content.content;
 
   return (
@@ -60,7 +65,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
             />
             <span className="align-middle">{displayTitle}</span>
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">来源: {displaySource}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">{dict.reader.source}: {displaySource}</p>
 
           {/* 【核心修改】在这里渲染标签 */}
           {userTagLabels.length > 0 && (
@@ -79,7 +84,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
             <button
               onClick={handleCopy}
               className="flex cursor-pointer items-center gap-1.5 rounded-full bg-stone-200 px-3 py-1.5 text-sm font-medium text-stone-800 transition-colors hover:bg-stone-300 dark:bg-stone-700 dark:text-stone-200 dark:hover:bg-stone-600"
-              title="复制全文"
+              title={dict.reader.copyFull}
             >
               {copied ? (
                 <>
@@ -95,7 +100,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                       clipRule="evenodd"
                     />
                   </svg>
-                  <span className="cursor-pointer text-green-600 dark:text-green-400">已复制</span>
+                  <span className="cursor-pointer text-green-600 dark:text-green-400">{dict.reader.copied}</span>
                 </>
               ) : (
                 <>
@@ -108,7 +113,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                     <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
                     <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
                   </svg>
-                  <span className="cursor-pointer">复制</span>
+                  <span className="cursor-pointer">{dict.reader.copy}</span>
                 </>
               )}
             </button>
@@ -117,7 +122,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
               target="_blank"
               rel="noopener noreferrer"
               className="flex cursor-pointer items-center gap-1.5 rounded-full bg-stone-200 px-3 py-1.5 text-sm font-medium text-stone-800 transition-colors hover:bg-stone-300 dark:bg-stone-700 dark:text-stone-200 dark:hover:bg-stone-600"
-              title="打开原文"
+              title={dict.reader.openOriginal}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -128,7 +133,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                 <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
                 <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
               </svg>
-              <span className="cursor-pointer">原文</span>
+              <span className="cursor-pointer">{dict.reader.original}</span>
             </a>
           </div>
         </header>
@@ -140,7 +145,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
           </div>
         ) : error ? (
           <div className="p-8 text-center text-red-600">
-            <p>无法加载文章内容：{error instanceof Error ? error.message : 'Unknown error'}</p>
+            <p>{dict.reader.error}: {error instanceof Error ? error.message : 'Unknown error'}</p>
           </div>
         ) : displayContent ? (
           <div
@@ -152,8 +157,8 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
           />
         ) : (
           <div className="py-10 text-gray-500">
-            <p>正在获取全文内容...</p>
-            <p className="mt-2 text-sm">如果长时间未加载，请尝试点击上方“原文”按钮。</p>
+            <p>{dict.reader.loading}</p>
+            <p className="mt-2 text-sm">{dict.reader.loadingTip}</p>
           </div>
         )}
       </article>

@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { page } from '@vitest/browser/context'; // Keeping this for now as the deprecation is just a warning, or I can try 'vitest/browser' if I am sure. Let's stick to fixing path first to be safe, or just ignore the warning which is non-fatal. Actually the error was import resolution.
 import SidebarView from '../SidebarView';
 import { useUIStore } from '@/shared/store/uiStore';
+import { zh } from '@/app/i18n/dictionaries';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
@@ -49,6 +50,7 @@ describe('侧边栏可见性 (Sidebar Visibility)', () => {
     onToggleDailyStatus: vi.fn(),
     availableFilters: { categories: [], tags: [] },
     initialStarredHeaders: [],
+    dict: zh,
   };
 
   it('在桌面端应正常显示 (Desktop Render)', async () => {

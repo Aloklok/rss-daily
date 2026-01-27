@@ -4,17 +4,22 @@ import LayoutChromeClient from '@/shared/components/layout/LayoutChromeClient';
 import SidebarNavServer from '@/domains/reading/components/Sidebar/SidebarNavServer';
 import SidebarLazyClient from '@/domains/reading/components/Sidebar/SidebarLazyClient';
 import FloatingActionButtonsIsland from '@/domains/interaction/components/FloatingActionButtonsIsland';
+import LanguageSwitcher from '@/shared/components/i18n/LanguageSwitcher';
+
+import { Dictionary } from '@/app/i18n/dictionaries';
 
 interface MainLayoutServerProps {
   children: React.ReactNode;
   initialDates: string[];
   initialAvailableFilters: AvailableFilters;
+  dict: Dictionary;
 }
 
 export default function MainLayoutServer({
   children,
   initialDates,
   initialAvailableFilters,
+  dict,
 }: MainLayoutServerProps) {
   return (
     <div className="dark:bg-midnight-sidebar flex min-h-screen flex-col bg-gray-50 font-sans md:flex-row">
@@ -31,6 +36,7 @@ export default function MainLayoutServer({
             <SidebarNavServer
               initialDates={initialDates}
               initialAvailableFilters={initialAvailableFilters}
+              dict={dict}
             />
           </div>
           <div id="sidebar-skeleton" className="absolute inset-0" aria-hidden="true">
@@ -68,11 +74,13 @@ export default function MainLayoutServer({
           <SidebarLazyClient
             initialDates={initialDates}
             initialAvailableFilters={initialAvailableFilters}
+            dict={dict}
           />
         </div>
       </div>
 
-      <div className="dark:bg-midnight-bg bg-paper-texture flex min-w-0 flex-1 flex-col bg-neutral-50 dark:bg-none">
+      <div className="relative dark:bg-midnight-bg bg-paper-texture flex min-w-0 flex-1 flex-col bg-neutral-50 dark:bg-none">
+        <LanguageSwitcher />
         <div className="mx-auto w-full max-w-3xl px-2 pt-2 md:px-8 md:pt-4">{children}</div>
         <FloatingActionButtonsIsland />
       </div>

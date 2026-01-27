@@ -1,0 +1,36 @@
+
+> briefing-hub@1.0.0 test /Users/Alok/alok-rss-daily
+> vitest
+
+
+[1m[44m DEV [49m[22m [34mv4.0.16 [39m[90m/Users/Alok/alok-rss-daily[39m
+
+[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Unhandled Errors [49m[22m[31m⎯⎯⎯⎯⎯⎯[39m
+[31m[1m
+Vitest caught 1 unhandled error during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯[39m[1m[41m Unhandled Error [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+[31m[1mError[22m: Failed to connect to the browser session "97972364-40c2-4b08-8663-c2caa8457303" [chromium] within the timeout.[39m
+[90m [2m❯[22m Timeout._onTimeout node_modules/.pnpm/vitest@4.0.16_@edge-runtime+vm@3.2.0_@opentelemetry+api@1.9.0_@types+node@25.0.9_@vites_5c58ca7e5b00f54ce72d5d456838f44d/node_modules/vitest/dist/chunks/cli-api.BKg19Fvw.js:[2m5619:33[22m[39m
+[90m [2m❯[22m listOnTimeout node:internal/timers:[2m605:17[22m[39m
+[90m [2m❯[22m processTimers node:internal/timers:[2m541:7[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39m
+
+
+[2m Test Files [22m [90m (19)[39m
+[2m      Tests [22m [2mno tests[22m
+[2m     Errors [22m [1m[31m1 error[39m[22m
+[2m   Start at [22m 22:39:14
+[2m   Duration [22m 60.66s[2m (transform 0ms, setup 0ms, import 0ms, tests 0ms, environment 0ms)[22m
+
+[1m[7m[35m HTML [39m[27m[22m [35mReport is generated[39m
+[2m       You can run [22m[1mnpx vite preview --outDir reports/vitest[22m[2m to see the test results.[22m
+[1m[41m FAIL [49m[22m [31mTests failed. Watching for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+c[3J[1m[44m RERUN [49m[22m [34m[2msrc/domains/reading/components/Sidebar/__tests__/ArchiveLink.test.tsx [22m[34mx1 [34m[39m
+
+[31mCancelling test run. Press CTRL+c again to exit forcefully.
+[39m
+ ELIFECYCLE  Test failed. See above for more details.

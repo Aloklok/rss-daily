@@ -25,6 +25,14 @@ Briefing Hub 作为一个内容聚合平台，SEO 是其核心增长引擎。我
   - **全量历史自动化**: 使用 RPC (`get_unique_dates`) 突破 API 分页限制，自动将所有历史有记录的日期（包括所有分类和活跃 Top 50 标签）推送到 `sitemap.xml`，确保无遗漏。
 - **全路径覆盖 (Enhanced)**: 额外补全了 `/trends` (趋势) 和 `/sources` (源管理) 路径，提升长青内容权重。
 - **三维发现路径 (New)**: 在归档页建立了基于“日期、主题 (Category/Tag)、来源 (Source)”的深度导航。
+- **多语言 SEO (I18n)**:
+  - **Hreflang**: 自动注入 `zh` 和 `en` 的 `hreflang` 标记（如 `<link rel="alternate" hreflang="en" ...>`），帮助 Google 识别地理和语言版本。
+  - **通用 Sitemap 引擎**:
+    - 全站 Sitemap 逻辑已整合至单一辅助函数 `getSitemapUrls(lang)`。
+    - **中文版**: 通过 `/sitemap.xml` (API) 输出，包含全量文章、聚合页、归档页及活跃标签。
+    - **英文版**: 通过 `/en/sitemap.xml` 输出。实现了与中文版 **100% 的路由对称**，自动包含英文环境下的分类页、Top 50 标签页、归档页及趋势页。
+    - **精准索引**: 英文版通过 `articles_en` 表动态校验，确保仅索引已有翻译内容的日期页，优化抓取预算。同时，统一使用文章最新生成日期作为 `lastmod`。
+  - **独立索引**: 英文版 (`/en`) 拥有独立的 Canonical URL，确保权重在翻译版本间正确分片。
 
 ## 4. 路由收录决策 (Crawl & Index Policy)
 
@@ -46,6 +54,7 @@ Briefing Hub 作为一个内容聚合平台，SEO 是其核心增长引擎。我
 - **CollectionPage**: 首页作为历史归档的集合页面。
 - **Source Indexing (New)**: 为归档页新增的来源链接建立文本语义关联，强化爬虫对来源品牌名的抓取。
 - **Deep Content Rich Snippets**: 在 `ListItem` 中注入全量 AI 摘要，而非简单标题，提升信息密度。
+- **Language Switcher (New)**: 在页面正文区域（左上角）增加了显式的语言切换按钮。它使用标准 `<a>` 标签 (`Link` 组件) 构建，为 Googlebot 提供了一条从中文版通往对应英文版本的物理发现路径。
 - **JSON-LD 精简策略 (Top N)**: 首页 JSON-LD 的 `itemListElement` 仅包含前 **20** 篇高权重文章，而非全量注入。此举在保持核心结构化数据的同时，减少了 ~80% 的 HTML 体积，显著改善 FCP 和爬虫解析效率。
 
 ## 5. 关键词策略

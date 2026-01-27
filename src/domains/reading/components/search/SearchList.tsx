@@ -7,6 +7,7 @@ import ArticleTitleStar from '../article/ArticleTitleStar';
 import { getRandomColorClass } from '@/shared/utils/colorUtils';
 import EmptyState from '@/shared/ui/EmptyState';
 import LoadMoreButton from '@/shared/ui/LoadMoreButton';
+import { Dictionary, zh } from '@/app/i18n/dictionaries';
 
 interface ArticleListProps {
   articleIds: (string | number)[];
@@ -15,10 +16,11 @@ interface ArticleListProps {
   fetchNextPage?: () => void;
   hasNextPage?: boolean;
   isFetchingNextPage?: boolean;
+  dict: Dictionary;
 }
 
 // Internal customized card for SearchList only
-const SearchListItem: React.FC<{ articleId: string | number }> = ({ articleId }) => {
+const SearchListItem: React.FC<{ articleId: string | number; dict: Dictionary }> = ({ articleId, dict }) => {
   const openModal = useUIStore((state) => state.openModal);
   const article = useArticleStore((state) => state.articlesById[articleId]);
 
@@ -44,7 +46,7 @@ const SearchListItem: React.FC<{ articleId: string | number }> = ({ articleId })
           <div className="mb-4 flex items-center gap-3 text-xs font-bold tracking-wider text-stone-500 uppercase">
             <span className="text-stone-700 dark:text-stone-600">{article.sourceName}</span>
             <span className="size-1 rounded-full bg-stone-300"></span>
-            <span>{new Date(article.published).toLocaleDateString('zh-CN')}</span>
+            <span>{new Date(article.published).toLocaleDateString(dict === zh ? 'zh-CN' : 'en-US')}</span>
           </div>
 
           {userTagLabels.length > 0 && (
@@ -89,23 +91,24 @@ const SearchList: React.FC<ArticleListProps> = ({
   fetchNextPage,
   hasNextPage,
   isFetchingNextPage,
+  dict,
 }) => {
   const activeFilter = useUIStore((state) => state.activeFilter);
 
   const filterLabel = useMemo(() => {
-    if (!activeFilter) return '搜索结果';
+    if (!activeFilter) return dict.search.title;
     if (activeFilter.type === 'search') return `"${decodeURIComponent(activeFilter.value)}"`;
     const parts = activeFilter.value.split('/');
     return decodeURIComponent(parts[parts.length - 1]);
   }, [activeFilter]);
 
-  if (isLoading) return <div className="py-20 text-center">Loading...</div>;
+  if (isLoading) return <div className="py-20 text-center">{dict.common.loading}</div>;
 
   if (articleIds.length === 0) {
     return (
       <EmptyState
         icon={<div className="mb-4 text-6xl grayscale">📂</div>}
-        message="No articles found."
+        message={dict.search.noData}
       />
     );
   }
@@ -119,27 +122,29 @@ const SearchList: React.FC<ArticleListProps> = ({
         </h2>
         <div className="mb-6 h-2 w-24 bg-blue-600 dark:bg-blue-400"></div>
         <p className="text-sm font-medium tracking-widest text-stone-500 uppercase">
-          Found {articleIds.length} Articles
+          {dict.search.found.replace('{count}', String(articleIds.length))}
         </p>
       </div>
 
       <div className="space-y-8">
         {articleIds.map((id) => (
-          <SearchListItem key={id} articleId={id} />
+          <SearchListItem key={id} articleId={id} dict={dict} />
         ))}
       </div>
 
-      {hasNextPage && (
-        <div className="mt-20 text-center">
-          <LoadMoreButton
-            onClick={() => fetchNextPage?.()}
-            isLoading={isFetchingNextPage || false}
-            label="View More Archives"
-            className="rounded-full bg-stone-100 px-8 py-4 font-bold transition-colors hover:bg-stone-200 disabled:opacity-50 dark:bg-stone-800 dark:hover:bg-stone-700"
-          />
-        </div>
-      )}
-    </div>
+      {
+        hasNextPage && (
+          <div className="mt-20 text-center">
+            <LoadMoreButton
+              onClick={() => fetchNextPage?.()}
+              isLoading={isFetchingNextPage || false}
+              label={dict.search.loadMore}
+              className="rounded-full bg-stone-100 px-8 py-4 font-bold transition-colors hover:bg-stone-200 disabled:opacity-50 dark:bg-stone-800 dark:hover:bg-stone-700"
+            />
+          </div>
+        )
+      }
+    </div >
   );
 };
 

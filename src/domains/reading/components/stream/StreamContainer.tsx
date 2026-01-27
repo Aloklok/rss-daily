@@ -5,17 +5,24 @@ import { useFilteredArticles } from '@/domains/reading/hooks/useArticles';
 import StreamArticleListItem from './StreamListItem';
 import { useArticleStore } from '@/domains/interaction/store/articleStore';
 import { Article } from '@/types';
+import { Dictionary, zh } from '@/app/i18n/dictionaries';
 
 interface StreamListProps {
   filterValue: string;
   initialArticles: Article[];
   initialContinuation?: string;
+  dict?: Dictionary;
+  tableName?: string;
+  merge?: boolean;
 }
 
 export default function StreamList({
   filterValue,
   initialArticles,
   initialContinuation,
+  dict = zh,
+  tableName = 'articles_view',
+  merge = false,
 }: StreamListProps) {
   // Construct initialData for useInfiniteQuery
   const initialData = {
@@ -39,6 +46,8 @@ export default function StreamList({
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useFilteredArticles(
     filterValue,
     initialData,
+    merge,
+    tableName,
   );
 
   // const articlesById = useArticleStore((state) => state.articlesById); <--- REMOVED dependency
@@ -64,7 +73,7 @@ export default function StreamList({
         // Logic: StreamListItem handles store lookup.
         // If store has update, it uses store. If not (SSR), it uses this initialArticle.
         return (
-          <StreamArticleListItem key={id} articleId={id} initialArticle={initialArticlesMap[id]} />
+          <StreamArticleListItem key={id} articleId={id} initialArticle={initialArticlesMap[id]} dict={dict} />
         );
       })}
 
@@ -75,7 +84,7 @@ export default function StreamList({
             disabled={isFetchingNextPage}
             className="cursor-pointer rounded-full bg-blue-600 px-6 py-2 text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
           >
-            <span className="cursor-pointer">{isFetchingNextPage ? '加载中...' : '加载更多'}</span>
+            <span className="cursor-pointer">{isFetchingNextPage ? dict.stream.loading : dict.stream.loadMore}</span>
           </button>
         </div>
       )}

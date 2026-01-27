@@ -2,6 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import BriefingView from '../BriefingView';
 import { MOCK_ARTICLES_POOL } from '../../../../../../tests/e2e/mocks/data';
+import { zh } from '@/app/i18n/dictionaries';
 
 // 基础 Mock 数据生成器
 const getMockProps = (slot: string | null = 'morning') => ({
@@ -21,6 +22,7 @@ const getMockProps = (slot: string | null = 'morning') => ({
   articles: Object.values(MOCK_ARTICLES_POOL),
   verdictFilter: null,
   onVerdictFilterChange: vi.fn(),
+  dict: zh,
 });
 
 describe('BriefingView 组件渲染与交互测试', () => {
@@ -41,7 +43,7 @@ describe('BriefingView 组件渲染与交互测试', () => {
     const props = getMockProps('morning');
     render(<BriefingView {...props} />);
 
-    const afternoonBtn = screen.getByTitle('中午');
+    const afternoonBtn = screen.getByTitle(zh.briefing.filters.afternoon);
     fireEvent.click(afternoonBtn);
 
     expect(props.onTimeSlotChange).toHaveBeenCalledWith('afternoon');
@@ -51,7 +53,7 @@ describe('BriefingView 组件渲染与交互测试', () => {
     const props = getMockProps('morning');
     render(<BriefingView {...props} />);
 
-    const newsFilter = screen.getByTitle('时事新闻与更新');
+    const newsFilter = screen.getByTitle(zh.briefing.filters.news);
     fireEvent.click(newsFilter);
 
     expect(props.onVerdictFilterChange).toHaveBeenCalled();

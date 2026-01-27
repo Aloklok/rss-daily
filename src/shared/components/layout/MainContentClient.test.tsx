@@ -3,7 +3,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import MainContentClient from './MainContentClient';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useUIStore } from '@/shared/store/uiStore';
+
 import { useArticleStore } from '@/domains/interaction/store/articleStore';
+import { zh } from '@/app/i18n/dictionaries';
 
 // Mock Child Components to isolate MainContentClient logic
 vi.mock('@/domains/reading/components/article/ArticleDetailClient', () => ({
@@ -105,6 +107,7 @@ describe('MainContentClient 集成测试 (跨天水合)', () => {
           initialActiveFilter={{ type: 'date', value: today }}
           isHomepage={true}
           today={today}
+          dict={zh}
         />
       </QueryClientProvider>,
     );
@@ -134,6 +137,7 @@ describe('MainContentClient 集成测试 (跨天水合)', () => {
           initialActiveFilter={{ type: 'date', value: today }}
           isHomepage={true}
           today={today}
+          dict={zh}
         />
       </QueryClientProvider>,
     );
@@ -160,6 +164,7 @@ describe('MainContentClient 集成测试 (跨天水合)', () => {
           initialActiveFilter={{ type: 'search', value: 'AI' }}
           isHomepage={false}
           today={today}
+          dict={zh}
         />
       </QueryClientProvider>,
     );
@@ -187,6 +192,7 @@ describe('MainContentClient 集成测试 (跨天水合)', () => {
           initialArticles={[]}
           today={today}
           isHomepage={true}
+          dict={zh}
         />
       </QueryClientProvider>,
     );
