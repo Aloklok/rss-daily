@@ -1,8 +1,12 @@
 {
   "crons": [
     {
-      "path": "/api/system/warmup",
+      "path": "/api/system/warmup?lang=zh",
       "schedule": "0 2 * * 0"
+    },
+    {
+      "path": "/api/system/warmup?lang=en",
+      "schedule": "5 2 * * 0"
     }
   ]
 }

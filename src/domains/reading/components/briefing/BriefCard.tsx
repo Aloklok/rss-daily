@@ -206,7 +206,7 @@ const Callout: React.FC<CalloutProps> = memo(({ themeKey, title, content }) => {
         <span className="text-2xl">{theme.icon}</span>
         <h4 className={`text-lg font-bold ${colors.title}`}>{title}</h4>
       </div>
-      <div className={`${colors.body} text-[15px] leading-relaxed font-medium whitespace-pre-line`}>
+      <div className={`${colors.body} text-base leading-relaxed font-medium whitespace-pre-line`}>
         {parseFormattedText(content, colors.emphasis)}
       </div>
     </aside>
@@ -299,7 +299,9 @@ const ActionButtons: React.FC<ActionButtonsProps> = memo(
                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                       </svg>
                     )}
-                    <span className="cursor-pointer">{isStarred ? dict.actions.starred : dict.actions.star}</span>
+                    <span className="cursor-pointer">
+                      {isStarred ? dict.actions.starred : dict.actions.star}
+                    </span>
                   </button>
                   <button
                     onClick={() => handleToggleState('read')}
@@ -313,7 +315,9 @@ const ActionButtons: React.FC<ActionButtonsProps> = memo(
                     ) : (
                       <IconCircle />
                     )}
-                    <span className="cursor-pointer">{isRead ? dict.actions.readStatus : dict.actions.markRead}</span>
+                    <span className="cursor-pointer">
+                      {isRead ? dict.actions.readStatus : dict.actions.markRead}
+                    </span>
                   </button>
                   <div className="relative" onClick={(e) => e.stopPropagation()}>
                     <button
@@ -505,7 +509,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = memo(
             </div>
           )}
         </div>
-      </div >
+      </div>
     );
   },
 );
@@ -536,10 +540,13 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   const displayVerdictType = getDisplayLabel(article.verdict?.type || '', 'verdict', lang);
   const displayCategory = getDisplayLabel(article.category || '', 'category', lang);
 
-  const publishedDate = new Date(article.published).toLocaleDateString(dict === zh ? 'zh-CN' : 'en-US', {
-    month: 'long',
-    day: 'numeric',
-  });
+  const publishedDate = new Date(article.published).toLocaleDateString(
+    dict === zh ? 'zh-CN' : 'en-US',
+    {
+      month: 'long',
+      day: 'numeric',
+    },
+  );
   const allKeywords = [...(article.keywords || [])];
   const [isCopied, setIsCopied] = useState(false);
 
@@ -590,7 +597,9 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
           <div className="flex flex-wrap items-center gap-x-4 text-sm text-black">
             <span>{displaySourceName}</span>
             <span>&bull;</span>
-            <span>{dict.card.publishedAt} {publishedDate}</span>
+            <span>
+              {dict.card.publishedAt} {publishedDate}
+            </span>
           </div>
           <div className="flex flex-wrap items-center text-sm text-stone-600">
             <span className="mr-2 font-medium">{displayVerdictType}</span>

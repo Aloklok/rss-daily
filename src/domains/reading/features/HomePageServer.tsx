@@ -11,6 +11,7 @@ import { toShortId } from '@/shared/utils/idHelpers';
 import { getCurrentTimeSlot, getTodayInShanghai } from '@/domains/reading/utils/date';
 import MainContentClient from '@/shared/components/layout/MainContentClient';
 import { zh, en } from '@/app/i18n/dictionaries';
+import { getDisplayLabel } from '@/domains/reading/utils/label-display';
 
 type Lang = 'zh' | 'en';
 
@@ -34,7 +35,11 @@ async function getHomePageData(lang: Lang) {
   ]);
 
   const articles = Object.values(groupedArticles).flat();
-  const tags = (tagsResult as any).tags;
+  const rawTags = (tagsResult as any).tags || [];
+  const tags = rawTags.map((t: any) => ({
+    ...t,
+    label: getDisplayLabel(t.label, 'tag', lang),
+  }));
 
   return { initialDate, articles, headerImageUrl, dates, tags };
 }

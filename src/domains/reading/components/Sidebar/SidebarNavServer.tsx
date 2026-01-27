@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { getSlugLink } from '@/domains/reading/utils/slug-helper';
 import { AvailableFilters } from '@/shared/types';
 import { Dictionary } from '@/app/i18n/dictionaries';
+import { getDisplayLabel } from '@/domains/reading/utils/label-display';
 
 interface SidebarNavServerProps {
   initialDates: string[];
@@ -94,7 +95,9 @@ export default function SidebarNavServer({
                   prefetch={false}
                   className="dark:hover:bg-midnight-card flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-200"
                 >
-                  <span className="truncate">{c.label}</span>
+                  <span className="truncate">
+                    {getDisplayLabel(c.label, 'category', dict.lang as 'zh' | 'en')}
+                  </span>
                   {c.count !== undefined && c.count > 0 && (
                     <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500 dark:bg-black/20 dark:text-gray-500">
                       {c.count}
@@ -119,7 +122,9 @@ export default function SidebarNavServer({
                   prefetch={false}
                   className="dark:hover:bg-midnight-card flex w-full items-center justify-between rounded-md border border-transparent px-2.5 py-1.5 text-left text-sm font-medium text-gray-600 transition-all duration-200 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
                 >
-                  <span className="truncate">#{t.label}</span>
+                  <span className="truncate">
+                    #{getDisplayLabel(t.label, 'tag', dict.lang as 'zh' | 'en')}
+                  </span>
                   {t.count !== undefined && t.count > 0 && (
                     <span className="text-xs opacity-60">{t.count}</span>
                   )}

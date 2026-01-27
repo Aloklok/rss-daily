@@ -13,7 +13,7 @@
 - **Embedding 模型**: `gemini-embedding-001`
 - **向量化字段**: `title` + `category` + `keywords` + `summary` + `tldr`
 - **逻辑**: 通过将分类和关键词硬编码进向量内容，确保了语义搜索时不仅能匹配到内容相似，还能匹配到“分类正确”的文章。
-- **现状**: 
+- **现状**:
   - **中文**: 启用全量向量化。
   - **英文**: 暂时禁用自动向量化 (Revalidate Service跳过），保留关键词搜索能力。
 
@@ -24,14 +24,17 @@
 - **触发机制**：由系统领域的 Webhook 编排驱动，详情见 [SYSTEM.md](../system/SYSTEM.md)。
 - **模型**: `Qwen3-8B` (SiliconFlow)。
 - **翻译策略**:
-    - **批量处理 (True Batching)**: 为了最大化利用 Qwen3-8B 的 128K 上下文窗口，批量脚本现采用“提示词批量化”策略（5 篇/包）。Webhook 触发则采用单篇即时处理以保障实时性。
-    - **幂等更新 (Upsert)**: 翻译任务采用 `upsert` (onConflict: id) 逻辑，确保多次运行或 API 重放时数据一致性。
-    - **风格**: 采用 Modern, Clear Technical English。保持专业背景（首席架构师身份），避免晦涩学术词汇。
-    - **格式原则 (CRITICAL)**: **严格遵守原文 Markdown 格式**。除非原文已有加粗，否则 AI 禁止擅自对标题和摘要进行加粗。
-    - **元数据对齐 (Metadata Alignment)**：系统采用 **“瘦身表 + 视图” (Lean Table + View)** 架构：
-        - **`articles_en` (表)**：物理上只存储翻译后的文本字段和任务元数据。
-        - **`articles_view_en` (视图)**：通过 ID 实时关联主表 `articles` 和翻译表 `articles_en`，确保评分、日期等元数据在全站范围内保持物理上的单一事实来源。
-        - **动态本地化**：UI 层在渲染视图数据时，根据当前语言动态调用字典进行 `sourceName` 和 `verdict.type` 的翻译显示。
+  - **批量处理 (True Batching)**: 为了最大化利用 Qwen3-8B 的 128K 上下文窗口，批量脚本现采用“提示词批量化”策略（5 篇/包）。Webhook 触发则采用单篇即时处理以保障实时性。
+  - **幂等更新 (Upsert)**: 翻译任务采用 `upsert` (onConflict: id) 逻辑，确保多次运行或 API 重放时数据一致性。
+  - **风格**: 采用 Modern, Clear Technical English。保持专业背景（首席架构师身份），避免晦涩学术词汇。
+  - **格式原则 (CRITICAL)**: **严格遵守原文 Markdown 格式**。除非原文已有加粗，否则 AI 禁止擅自对标题和摘要进行加粗。
+  - **元数据对齐 (Metadata Alignment)**：系统采用 **“瘦身表 + 视图” (Lean Table + View)** 架构：
+    - **`articles_en` (表)**：物理上只存储翻译后的文本字段和任务元数据。
+    - **`articles_view_en` (视图)**：通过 ID 实时关联主表 `articles` 和翻译表 `articles_en`，确保评分、日期等元数据在全站范围内保持物理上的单一事实来源。
+    - **动态本地化**：UI 层在渲染视图数据时，根据当前语言动态调用字典进行 `sourceName` 和 `verdict.type` 的翻译显示。
+  - **鲁棒性设计 (Robustness)**:
+    - **防幻觉校验**: 针对 AI 可能返回非 String 类型（如数组/数字）导致崩溃的问题 (`val.trim`)，实施了强制类型转换防御。
+    - **字段完整性**: Prompt 显式要求 AI 对空字段填充 "none"，防止 JSON 结构缺失。
 
 ### 1. 意图识别与编排 (Intelligence Orchestration)
 

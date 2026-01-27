@@ -26,27 +26,23 @@ jobs:
         run: sleep 60
 
       # --- 1. 亚洲区域预热 (Vercel API - 日本节点) ---
-      - name: Warmup Asia Edge (Vercel API)
+      # --- 1. 亚洲区域预热 (Vercel API - ZH) ---
+      - name: Warmup Asia Edge (ZH)
         run: |
-          echo "🇯🇵 Triggering Asia warmup via Vercel API..."
-          # Capture HTTP status and body
-          response=$(curl -s -w "\n%{http_code}" "https://www.alok-rss.top/api/system/warmup")
-
-          # Extract body and status (last line is status)
+          echo "🇯🇵 Triggering Asia warmup (ZH) via Vercel API..."
+          response=$(curl -s -w "\n%{http_code}" "https://www.alok-rss.top/api/system/warmup?lang=zh")
           http_code=$(echo "$response" | tail -n1)
           body=$(echo "$response" | sed '$d')
 
           echo "HTTP Status: $http_code"
-
           if [ "$http_code" -eq 200 ]; then
             echo "$body" | jq .
-            REGION=$(echo "$body" | jq -r '.ingressRegion // "unknown"')
-            echo "✅ Warmup completed from edge region: $REGION"
           else
-            echo "❌ Warmup Failed:"
-            echo "$body"
-            exit 1
+            echo "❌ ZH Warmup Failed (Non-blocking)"
           fi
+
+      # --- 2. 美国区域预热 (GitHub Runner - All) ---
+      # (Existing step below...)
 
       # --- 2. 美国区域预热 (GitHub Runner 直接 Curl) ---
       # 优点:
@@ -61,7 +57,13 @@ jobs:
 
           # 1. 抓取并提取所有 URL
           # 使用 grep 和 sed 提取 xml 中的链接
-          URLS=$(curl -s $SITEMAP_URL | grep "<loc>" | sed 's/.*<loc>\(.*\)<\/loc>.*/\1/')
+          URLS_CN=$(curl -s "https://www.alok-rss.top/sitemap.xml" | grep "<loc>" | sed 's/.*<loc>\(.*\)<\/loc>.*/\1/')
+          URLS_EN=$(curl -s "https://www.alok-rss.top/en/sitemap.xml" | grep "<loc>" | sed 's/.*<loc>\(.*\)<\/loc>.*/\1/')
+
+          # 合并 URL 列表
+          URLS="$URLS_CN
+          $URLS_EN"
+
           TOTAL=$(echo "$URLS" | wc -l | xargs)
 
           echo "Found $TOTAL pages in sitemap."
@@ -129,3 +131,16 @@ jobs:
                 totalTimeMs: $time
               }
             }'
+
+      # --- 3. 亚洲区域预热 (Vercel API - EN) ---
+      - name: Warmup Asia Edge (EN)
+        run: |
+          echo "🇺🇸/🇯🇵 Triggering Asia warmup (EN) via Vercel API..."
+          response=$(curl -s -w "\n%{http_code}" "https://www.alok-rss.top/api/system/warmup?lang=en")
+          http_code=$(echo "$response" | tail -n1)
+
+          if [ "$http_code" -eq 200 ]; then
+             echo "✅ EN Warmup Triggered Success"
+          else
+             echo "❌ EN Warmup Failed (Non-blocking)"
+          fi

@@ -71,17 +71,17 @@ const ReportContent: React.FC<ReportContentProps> = memo(
         {/* Table of Contents & Summary Section */}
         <div className="mb-6 rounded-3xl border border-stone-200 bg-white p-6 shadow-lg shadow-stone-200/50 transition-all duration-500 hover:shadow-xl hover:shadow-stone-200/60 md:mb-10 dark:border-white/10 dark:bg-gray-900 dark:shadow-none">
           <div className="md:hidden">
-            <h2 className="flex items-center font-serif text-2xl font-bold text-stone-800 dark:text-white">
+            <h2 className="flex items-center font-serif text-lg font-bold text-stone-800 dark:text-white">
               <span>📚 {dict.briefing.navigation.toc}</span>
               <span className="mx-2 font-light text-stone-400">/</span>
               <span>📝 {dict.briefing.navigation.summary}</span>
             </h2>
           </div>
           <div className="hidden grid-cols-2 gap-x-6 md:grid">
-            <h2 className="font-serif text-2xl font-bold text-stone-800 dark:text-white">
+            <h2 className="font-serif text-lg font-bold text-stone-800 dark:text-white">
               📚 {dict.briefing.navigation.toc}
             </h2>
-            <h2 className="font-serif text-2xl font-bold text-stone-800 dark:text-white">
+            <h2 className="font-serif text-lg font-bold text-stone-800 dark:text-white">
               📝 {dict.briefing.navigation.summary}
             </h2>
           </div>
@@ -98,7 +98,7 @@ const ReportContent: React.FC<ReportContentProps> = memo(
                       <a
                         href={`#${sectionId}`}
                         onClick={(e) => handleJump(e, sectionId)}
-                        className="text-base font-semibold text-rose-800 hover:underline dark:text-rose-400"
+                        className="text-sm font-semibold text-rose-800 hover:underline dark:text-rose-400"
                       >
                         <span className="mr-2"></span>
                         {importanceLabels[importance] || importance}
@@ -112,11 +112,11 @@ const ReportContent: React.FC<ReportContentProps> = memo(
                         <a
                           href={`#article-${article.id}`}
                           onClick={(e) => handleJump(e, `article-${article.id}`)}
-                          className="leading-tight font-medium text-sky-600 hover:text-blue-300 dark:text-blue-400 dark:hover:text-sky-200"
+                          className="text-sm leading-tight font-medium text-sky-600 hover:text-blue-300 dark:text-blue-400 dark:hover:text-sky-200"
                         >
                           {article.title}
                         </a>
-                        <p className="mt-2 text-base leading-tight text-stone-600 dark:text-gray-50">
+                        <p className="mt-2 text-sm leading-tight text-stone-600 dark:text-gray-50">
                           {article.tldr}
                         </p>
                       </div>
@@ -125,12 +125,12 @@ const ReportContent: React.FC<ReportContentProps> = memo(
                           <a
                             href={`#article-${article.id}`}
                             onClick={(e) => handleJump(e, `article-${article.id}`)}
-                            className="leading-tight font-medium text-sky-600 decoration-sky-300 decoration-2 hover:text-blue-300 hover:underline dark:text-blue-400 dark:hover:text-sky-200"
+                            className="text-sm leading-tight font-medium text-sky-600 decoration-sky-300 decoration-2 hover:text-blue-300 hover:underline dark:text-blue-400 dark:hover:text-sky-200"
                           >
                             {article.title}
                           </a>
                         </div>
-                        <div className="flex items-start py-2 text-base leading-tight text-stone-600 dark:text-gray-50">
+                        <div className="flex items-start py-2 text-sm leading-tight text-stone-600 dark:text-gray-50">
                           {article.tldr}
                         </div>
                       </div>
@@ -361,10 +361,11 @@ const Briefing: React.FC<BriefingProps> = ({
                           key={slotOption}
                           onClick={() => onTimeSlotChange(isSelected ? null : slotOption)}
                           style={{ WebkitBackdropFilter: isSelected ? 'none' : 'blur(16px)' }}
-                          className={`flex size-[44px] items-center justify-center rounded-full border border-white/20 font-serif text-base transition-all duration-300 ${isSelected
-                            ? 'scale-110 border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)] dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900 dark:shadow-[0_0_15px_rgba(251,191,36,0.6)]'
-                            : 'bg-transparent text-white/90 backdrop-blur-md hover:border-white/40 hover:bg-white/20'
-                            } cursor-pointer`}
+                          className={`flex size-[44px] shrink-0 items-center justify-center rounded-full border border-white/20 font-serif text-base transition-all duration-300 ${
+                            isSelected
+                              ? 'scale-110 border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)] dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900 dark:shadow-[0_0_15px_rgba(251,191,36,0.6)]'
+                              : 'bg-transparent text-white/90 backdrop-blur-md hover:border-white/40 hover:bg-white/20'
+                          } cursor-pointer`}
                           title={titleMap[slotOption]}
                         >
                           {labelMap[slotOption]}
@@ -377,8 +378,16 @@ const Briefing: React.FC<BriefingProps> = ({
                   {onVerdictFilterChange && (
                     <div className="flex items-center gap-3">
                       {[
-                        { id: '知识洞察型', label: dict.briefing.filters.insight, title: dict.briefing.filters.insight },
-                        { id: '新闻事件型', label: dict.briefing.filters.news, title: dict.briefing.filters.news },
+                        {
+                          id: '知识洞察型',
+                          label: dict.briefing.filters.insight,
+                          title: dict.briefing.filters.insight,
+                        },
+                        {
+                          id: '新闻事件型',
+                          label: dict.briefing.filters.news,
+                          title: dict.briefing.filters.news,
+                        },
                       ].map((type) => {
                         const isSelected = verdictFilter === type.id;
                         return (
@@ -386,10 +395,11 @@ const Briefing: React.FC<BriefingProps> = ({
                             key={type.id || 'all'}
                             onClick={() => onVerdictFilterChange(isSelected ? null : type.id)}
                             style={{ WebkitBackdropFilter: isSelected ? 'none' : 'blur(8px)' }}
-                            className={`flex h-10 min-w-[44px] items-center justify-center rounded-full border border-white/20 px-3.5 font-serif text-sm transition-all duration-300 ${isSelected
-                              ? 'border-white bg-white text-black shadow-[0_0_10px_rgba(255,255,255,0.4)] dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900'
-                              : 'bg-transparent text-white/80 backdrop-blur-sm hover:bg-white/10'
-                              } cursor-pointer`}
+                            className={`flex h-10 min-w-[44px] items-center justify-center rounded-full border border-white/20 px-3.5 font-serif text-sm transition-all duration-300 ${
+                              isSelected
+                                ? 'border-white bg-white text-black shadow-[0_0_10px_rgba(255,255,255,0.4)] dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900'
+                                : 'bg-transparent text-white/80 backdrop-blur-sm hover:bg-white/10'
+                            } cursor-pointer`}
                             title={type.title}
                           >
                             {type.label}
@@ -418,10 +428,11 @@ const Briefing: React.FC<BriefingProps> = ({
                       key={slotOption}
                       onClick={() => onTimeSlotChange(isSelected ? null : slotOption)}
                       style={{ WebkitBackdropFilter: isSelected ? 'none' : 'blur(12px)' }}
-                      className={`flex size-8 items-center justify-center rounded-full border border-white/20 font-serif text-xs transition-all duration-300 ${isSelected
-                        ? 'scale-110 border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)] dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900 dark:shadow-[0_0_15px_rgba(251,191,36,0.6)]'
-                        : 'bg-transparent text-white/90 backdrop-blur-md'
-                        } cursor-pointer`}
+                      className={`flex size-8 items-center justify-center rounded-full border border-white/20 font-serif text-xs transition-all duration-300 ${
+                        isSelected
+                          ? 'scale-110 border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)] dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900 dark:shadow-[0_0_15px_rgba(251,191,36,0.6)]'
+                          : 'bg-transparent text-white/90 backdrop-blur-md'
+                      } cursor-pointer`}
                     >
                       {labelMap[slotOption]}
                     </button>
@@ -444,10 +455,11 @@ const Briefing: React.FC<BriefingProps> = ({
                         key={type.id || 'all'}
                         onClick={() => onVerdictFilterChange(isSelected ? null : type.id)}
                         style={{ WebkitBackdropFilter: isSelected ? 'none' : 'blur(8px)' }}
-                        className={`flex h-7 min-w-[32px] items-center justify-center rounded-full border border-white/20 px-2 font-serif text-[10px] transition-all duration-300 ${isSelected
-                          ? 'border-white bg-white text-black dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900'
-                          : 'bg-transparent text-white/80 backdrop-blur-sm'
-                          } cursor-pointer`}
+                        className={`flex h-7 min-w-[32px] items-center justify-center rounded-full border border-white/20 px-2 font-serif text-[10px] transition-all duration-300 ${
+                          isSelected
+                            ? 'border-white bg-white text-black dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900'
+                            : 'bg-transparent text-white/80 backdrop-blur-sm'
+                        } cursor-pointer`}
                       >
                         {type.label}
                       </button>
@@ -471,12 +483,20 @@ const Briefing: React.FC<BriefingProps> = ({
                 {reports.length > 0 && (
                   <span>
                     {(() => {
-                      const count = reports.reduce((acc, r) => acc + Object.values(r.articles).flat().length, 0);
+                      const count = reports.reduce(
+                        (acc, r) => acc + Object.values(r.articles).flat().length,
+                        0,
+                      );
                       const isEn = dict.lang === 'en';
-                      const articleLabel = isEn ? (count === 1 ? 'article' : 'articles') : '篇文章。';
-                      const countTemplate = isToday && isEn
-                        ? (dict.briefing.greetings as any).articleCountToday
-                        : dict.briefing.greetings.articleCount;
+                      const articleLabel = isEn
+                        ? count === 1
+                          ? 'article'
+                          : 'articles'
+                        : '篇文章。';
+                      const countTemplate =
+                        isToday && isEn
+                          ? (dict.briefing.greetings as any).articleCountToday
+                          : dict.briefing.greetings.articleCount;
 
                       return countTemplate
                         .replace('{count}', count.toString())

@@ -48,10 +48,22 @@ export async function GET(request: Request) {
   const results: WarmupResult[] = [];
 
   try {
-    // 1. Get ALL URLs from Sitemap Helper (API + Static + Tags)
+    // 1. Get URLs based on 'lang' param
+    const { searchParams } = new URL(request.url);
+    const lang = searchParams.get('lang') || 'all'; // 'zh', 'en', or 'all'
+
     // Now unified with GitHub Actions logic
-    const sitemapItems = await getSitemapUrls();
-    const urls = sitemapItems.map((item) => item.url);
+    const urls: string[] = [];
+
+    if (lang === 'zh' || lang === 'all') {
+      const zhSitemapItems = await getSitemapUrls('zh');
+      urls.push(...zhSitemapItems.map((item) => item.url));
+    }
+
+    if (lang === 'en' || lang === 'all') {
+      const enSitemapItems = await getSitemapUrls('en');
+      urls.push(...enSitemapItems.map((item) => item.url));
+    }
 
     // Process in batches for concurrency control
     for (let i = 0; i < urls.length; i += CONCURRENCY) {
