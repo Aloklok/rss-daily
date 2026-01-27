@@ -51,11 +51,15 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
   // Determine display data: prefer fetched content, fallback to prop article
   const lang = dict === zh ? 'zh' : 'en';
   const displayTitle = (content && content.title) || article.title;
-  const displaySource = getDisplayLabel((content && content.source) || article.sourceName || '', 'feed', lang);
+  const displaySource = getDisplayLabel(
+    (content && content.source) || article.sourceName || '',
+    'feed',
+    lang,
+  );
   const displayContent = content && content.content;
 
   return (
-    <div className="overflow-x-hidden p-2 md:p-8">
+    <div className="mx-auto max-w-3xl overflow-x-hidden p-2 md:p-8">
       <article>
         <header className="mb-3 border-b border-gray-200 pb-3 md:mb-6 md:pb-6 dark:border-stone-700">
           <h1 className="dark:text-midnight-text-reader mb-2 font-serif text-3xl font-bold text-gray-900 md:text-4xl">
@@ -65,7 +69,9 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
             />
             <span className="align-middle">{displayTitle}</span>
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{dict.reader.source}: {displaySource}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {dict.reader.source}: {displaySource}
+          </p>
 
           {/* 【核心修改】在这里渲染标签 */}
           {userTagLabels.length > 0 && (
@@ -100,7 +106,9 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
                       clipRule="evenodd"
                     />
                   </svg>
-                  <span className="cursor-pointer text-green-600 dark:text-green-400">{dict.reader.copied}</span>
+                  <span className="cursor-pointer text-green-600 dark:text-green-400">
+                    {dict.reader.copied}
+                  </span>
                 </>
               ) : (
                 <>
@@ -145,7 +153,9 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
           </div>
         ) : error ? (
           <div className="p-8 text-center text-red-600">
-            <p>{dict.reader.error}: {error instanceof Error ? error.message : 'Unknown error'}</p>
+            <p>
+              {dict.reader.error}: {error instanceof Error ? error.message : 'Unknown error'}
+            </p>
           </div>
         ) : displayContent ? (
           <div

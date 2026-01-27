@@ -63,8 +63,8 @@ function buildTranslationPrompt(article: ArticleToTranslate): string {
 ### STYLE GUIDELINES:
 1. **Modern & Clear Technical English**: Use professional yet accessible language. Avoid overly academic or archaic vocabulary
 2. **Formatting (CRITICAL)**: **STRICTLY FOLLOW** the original Markdown formatting (bolding, lists, etc.) from the source.
+   - If a specific term or phrase is **bolded** in the source, ensure the **corresponding English translation** is also **bolded**.
    - DO NOT add extra bolding that isn't in the original text. 
-   - Keep titles clean (usually no bolding).
 3. **Accuracy**: Ensure technical terms are translated correctly (e.g., "DNS resolution", "Service Mesh")
 4. **SELF-CHECK (2nd Pass)**:
    - **Translation Quality**: Scan for mistranslations or awkward phrasing.
@@ -170,7 +170,9 @@ Keywords: ${(article.keywords || []).join(', ')}
 1. **ID PERSISTENCE**: You MUST use the exact "id" provided for each article.
 2. **ONE-TO-ONE MAPPING**: Return exactly ${articles.length} objects.
 3. **NO THINKING**: DO NOT include any reasoning, thinking process, or preamble. Return ONLY the JSON object.
-4. **STYLE**: Modern & Clear Technical English. Follow original Markdown formatting.
+4. **STYLE**: Modern & Clear Technical English.
+   - **Strict Formatting**: If a term is **bolded** in the source, the corresponding English translation MUST also be **bolded**.
+   - Follow all other original Markdown formatting (lists, links, etc.). 
 5. **NULL HANDLING**: If a source field is empty or contains "无" (None), translate it as "None" in the output JSON. DO NOT return an empty string or null.
 6. **SELF-CHECK (2nd Pass)**: 
    - **Quality**: Scan each article for mistranslations, awkward phrasing, or lost technical nuance.

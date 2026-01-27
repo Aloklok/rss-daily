@@ -361,7 +361,7 @@ const Briefing: React.FC<BriefingProps> = ({
                           key={slotOption}
                           onClick={() => onTimeSlotChange(isSelected ? null : slotOption)}
                           style={{ WebkitBackdropFilter: isSelected ? 'none' : 'blur(16px)' }}
-                          className={`flex size-[44px] shrink-0 items-center justify-center rounded-full border border-white/20 font-serif text-base transition-all duration-300 md:size-[52px] md:text-lg ${
+                          className={`flex size-[44px] shrink-0 items-center justify-center rounded-full border border-white/20 font-serif text-base transition-all duration-300 md:size-[52px] md:text-lg 2xl:size-[64px] ${
                             isSelected
                               ? 'scale-110 border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)] dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900 dark:shadow-[0_0_15px_rgba(251,191,36,0.6)]'
                               : 'bg-transparent text-white/90 backdrop-blur-md hover:border-white/40 hover:bg-white/20'
@@ -515,7 +515,7 @@ const Briefing: React.FC<BriefingProps> = ({
 
   return (
     <main className="flex-1 px-2 pt-0 md:px-8 md:pt-0 md:pb-10 lg:px-10 lg:pt-2">
-      <div className="mx-auto max-w-6xl 2xl:max-w-7xl">
+      <div className="mx-auto max-w-6xl 2xl:max-w-5xl">
         {renderHeader()}
 
         {isLoading ? (
