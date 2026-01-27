@@ -38,12 +38,15 @@ export default function GlobalError({
           errorDigest: error.digest,
           reason: `Client 500: ${error.message || 'Unknown Error'}`,
         }),
-      }).catch(() => { });
+      }).catch(() => {});
     }
   }, [error]);
 
   return (
     <html>
+      <head>
+        <title>500 - System Error</title>
+      </head>
       <body className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4 text-center">
         <h1 className="mb-4 text-6xl font-bold text-red-500">500</h1>
         <h2 className="mb-4 text-2xl font-semibold text-gray-800">
@@ -52,8 +55,7 @@ export default function GlobalError({
         <p className="mb-8 max-w-md text-gray-600">
           {window.location.pathname.startsWith('/en')
             ? 'The application encountered an unrecoverable error. Please refresh the page or try again later.'
-            : '应用遇到了无法恢复的错误。请刷新页面或稍后重试。'
-          }
+            : '应用遇到了无法恢复的错误。请刷新页面或稍后重试。'}
         </p>
         <button
           onClick={reset}
