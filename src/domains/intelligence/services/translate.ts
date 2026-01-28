@@ -175,7 +175,7 @@ function cleanJsonString(str: string): string {
 /**
  * 构建批量翻译 Prompt
  */
-function buildBatchTranslationPrompt(articles: ArticleToTranslate[]): string {
+export function buildBatchTranslationPrompt(articles: ArticleToTranslate[]): string {
   const sourceContent = articles
     .map(
       (article) => `
@@ -201,7 +201,7 @@ Keywords: ${(article.keywords || []).join(', ')}
 4. **STYLE**: Modern & Clear Technical English.
    - **Strict Formatting**: If a term is **bolded** in the source, the corresponding English translation MUST also be **bolded**.
    - Follow all other original Markdown formatting (lists, links, etc.). 
-5. **NULL HANDLING**: If a source field is empty or contains "无" (None), translate it as "None" in the output JSON. DO NOT return an empty string or null.
+5. **NULL & EMPTY HANDLING**: If a source field is null, undefined, an empty string, or contains "无" (None), you MUST translate it as the string "None" in the output JSON. DO NOT return an empty string, null, or skip the field. Every field in the schema MUST have a non-empty string value.
 6. **SELF-CHECK (2nd Pass)**: 
    - **Quality**: Scan each article for mistranslations, awkward phrasing, or lost technical nuance.
    - **NO CHINESE**: Ensure ZERO Chinese characters or symbols remain in ANY field.

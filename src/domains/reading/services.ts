@@ -61,34 +61,15 @@ export const fetchAvailableDatesEn = unstable_cache(
       return ['2025-01-01', new Date().toISOString().split('T')[0]];
     const supabase = getSupabaseClient();
 
-    // Efficiently get unique dates from articles_view_en view
-    // We select n8n_processing_date which is joined from the articles table
-    const { data, error } = await supabase
-      .from('articles_view_en')
-      .select('n8n_processing_date')
-      .order('n8n_processing_date', { ascending: false });
+    // Call the optimized RPC function to get unique dates
+    const { data, error } = await supabase.rpc('get_unique_dates_en');
 
     if (error) {
       console.error('Supabase error in fetchAvailableDatesEn:', error);
       return [];
     }
 
-    const uniqueDates = new Set<string>();
-    data?.forEach((row: any) => {
-      if (row.n8n_processing_date) {
-        // Convert UTC timestamp to Shanghai Date string (YYYY-MM-DD)
-        const dateStr = new Intl.DateTimeFormat('en-CA', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          timeZone: 'Asia/Shanghai',
-        }).format(new Date(row.n8n_processing_date));
-
-        uniqueDates.add(dateStr);
-      }
-    });
-
-    return Array.from(uniqueDates).sort().reverse();
+    return data?.map((d: { date_str: string }) => d.date_str) || [];
   },
   ['available-dates-en'],
   {

@@ -158,14 +158,39 @@ async function backfillTranslations() {
     }));
 
     try {
-      const result = await translateBatchAndSave(chunk, DEFAULT_TRANSLATION_MODEL);
+      let result = await translateBatchAndSave(chunk, DEFAULT_TRANSLATION_MODEL);
+
+      // FALLBACK: If batch fails, try each article individually to isolate "bad" articles
+      if (!result.success && chunk.length > 1) {
+        console.warn(
+          `⚠️ Batch #${batchIndex + 1} failed. Falling back to individual processing for ${chunk.length} articles...`,
+        );
+        let subSuccess = 0;
+        for (const item of chunk) {
+          const subResult = await translateBatchAndSave([item], DEFAULT_TRANSLATION_MODEL);
+          if (subResult.success) {
+            subSuccess += subResult.count;
+          } else {
+            console.error(`  ❌ Individual fallback failed for ${item.id}: ${subResult.error}`);
+          }
+        }
+        result = {
+          success: subSuccess > 0,
+          count: subSuccess,
+          error:
+            subSuccess < chunk.length
+              ? `Partial failure (${chunk.length - subSuccess} articles skipped)`
+              : undefined,
+        };
+      }
+
       completedCount += chunk.length;
       const progress = ((completedCount / total) * 100).toFixed(1);
 
       if (result.success) {
         totalSuccess += result.count;
         console.log(
-          `✅ [${completedCount}/${total}] (${progress}%) Batch #${batchIndex + 1} Success: ${result.count}/${chunk.length} stored.`,
+          `✅ [${completedCount}/${total}] (${progress}%) Batch #${batchIndex + 1} Done: ${result.count}/${chunk.length} stored.`,
         );
         if (result.count < chunk.length) {
           totalFailed += chunk.length - result.count;
