@@ -210,7 +210,13 @@ describe('全部已读按钮 (Mark All Read)', () => {
     render(<FloatingActionButtons isAdmin={true} />);
 
     // 验证 1: 确保 API Hook 是带着正确的 TimeSlot 调用的
-    expect(mockUseBriefingArticles).toHaveBeenCalledWith('2023-01-01', 'evening');
+    // 参数签名已更新为: (date, slot, initialData?, tableName?)
+    expect(mockUseBriefingArticles).toHaveBeenCalledWith(
+      '2023-01-01',
+      'evening',
+      undefined,
+      'articles_view',
+    );
 
     // 触发 "全部已读"
     const btn = screen.getByLabelText('Mark all as read');

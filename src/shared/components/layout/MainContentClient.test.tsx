@@ -116,7 +116,7 @@ describe('MainContentClient 集成测试 (跨天水合)', () => {
     expect(screen.getByTestId('mock-briefing')).toBeInTheDocument();
 
     // 关键检查：今天的缓存必须是空的（undefined），因为我们阻止了污染。
-    const todayCache = queryClient.getQueryData(['briefing', today, 'all']);
+    const todayCache = queryClient.getQueryData(['briefing', today, 'all', 'articles_view']);
     expect(todayCache).toBeUndefined();
   });
 
@@ -143,7 +143,7 @@ describe('MainContentClient 集成测试 (跨天水合)', () => {
     );
 
     // 断言：检查“今天”的查询缓存
-    const todayCache = queryClient.getQueryData(['briefing', today, 'all']);
+    const todayCache = queryClient.getQueryData(['briefing', today, 'all', 'articles_view']);
     expect(todayCache).toEqual(['2']); // 应该包含 ID
   });
 
@@ -172,7 +172,7 @@ describe('MainContentClient 集成测试 (跨天水合)', () => {
     expect(screen.getByTestId('mock-search-list')).toBeInTheDocument();
 
     // 断言：简报缓存不应被修改
-    const briefingCache = queryClient.getQueryData(['briefing', today, 'all']);
+    const briefingCache = queryClient.getQueryData(['briefing', today, 'all', 'articles_view']);
     expect(briefingCache).toBeUndefined();
   });
 
