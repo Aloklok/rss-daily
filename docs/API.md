@@ -21,7 +21,7 @@ API 路由按照业务领域进行组织：
 
 - **`articles/`**: 核心文章管理。
   - `POST /api/articles`: 获取单篇文章的清洗后内容。
-  - `GET /api/articles/list`: 获取文章列表 (只走 FreshRSS, 去除 Supabase 融合以提速)。
+  - `GET /api/articles/list`: 获取文章列表 (基于 FreshRSS 筛选，融合 Supabase 英文/AI 元数据)。采用 `select('*')` 与显式字段映射确保数据完整性。
   - `GET /api/articles/search`: **[混合搜索]** 同时调用 Gemini 生成向量并执行 Supabase RPC `hybrid_search_articles`。
   - `POST /api/articles/state`: 统一的文章状态读写 (已读/收藏/标签)。
 - **`briefings/`**: 简报数据服务。- **简报数据 (`fetchBriefingData`)**: **[架构统一]** 核心数据聚合函数。支持 `lang` 参数 ('zh' | 'en')，自动处理物理表映射、分值排序与三级分组逻辑。边缘缓存 7 天。- **英文简报数据 (`fetchEnglishBriefingData`)**: 已简化为 `fetchBriefingData(date, 'en')` 的封装，确保中英文逻辑 100% 对齐。
@@ -43,7 +43,7 @@ API 路由按照业务领域进行组织：
     - **多维转换**: 不仅支持 `sourceName` 和 `tags` 的翻译，还涵盖了 `category` 和 `verdict.type` (智核评级) 的字典映射。
     - **标签白名单**: 集成了物理脱敏逻辑，通过白名单剔除文章对象中的分类 ID (Folders)，彻底消除 UI 闪烁。
     - **ID 保护**: 采用“标签名称转换、ID 字符串保护”策略，确保 client-side 颜色匹配逻辑不受翻译影响。
-    - **全链路集成**: 已深度集成至 `HomePageServer`, `StreamPageServer`, `BriefingPageServer`, `ArchivePageServer` 等核心 Server 组件。
+    - **全链路集成**: 已深度集成至 `HomePageServer`, `StreamPageServer`, `BriefingPageServer`, `ArchivePageServer` 等核心 Server 组件，以及客户端的 `UnifiedArticleModal`。
   - `intelligence/services/chat-orchestrator.ts`: AI 聊天编排调度。
   - `intelligence/services/english-briefing-sync.ts`: **[新]** 负责将中文简报数据翻译并同步至 `articles_en` 表。
     - **元数据对齐**: 系统采用了 **“瘦身表 + 视图”** 架构。`articles_en` 表仅存储翻译后的长文本字段，而 `link`, `published`, `verdict` (评分/重要性) 则通过视图 `articles_view_en` 实时从主表拉取。这消除了数据冗余，确保了多语言元数据的绝对一致性。

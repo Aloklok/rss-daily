@@ -17,6 +17,34 @@ function getSupabase(): SupabaseClient {
   return _supabase;
 }
 
+// Migrated constants
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 2000;
+
+/**
+ * 助手函数：带指数退避的重试封装
+ */
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  onRetry?: (error: any, attempt: number) => void,
+  maxRetries: number = MAX_RETRIES,
+): Promise<T> {
+  let lastError: any;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (e) {
+      lastError = e;
+      if (onRetry) onRetry(e, attempt);
+      if (attempt < maxRetries) {
+        const delay = RETRY_DELAY_MS * Math.pow(2, attempt - 1);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+  }
+  throw lastError;
+}
+
 /**
  * 需要翻译的文章字段
  */
@@ -264,7 +292,7 @@ export async function translateAndSave(
 }
 
 /**
- * 批量翻译并保存 (核心方法)
+ * 批量翻译并保存 (核心方法 - 包含重试逻辑)
  */
 export async function translateBatchAndSave(
   articles: ArticleToTranslate[],
@@ -275,120 +303,116 @@ export async function translateBatchAndSave(
   const prompt = buildBatchTranslationPrompt(articles);
 
   try {
-    const aiResult = await generateSiliconFlow(
-      [
-        {
-          role: 'system',
-          content:
-            'You are a professional software architect and technical translator. Always output valid JSON objects in the requested schema.',
-        },
-        { role: 'user', content: prompt },
-      ],
-      modelId,
-      16000,
-      true, // Enable JSON mode
+    return await withRetry(
+      async () => {
+        const aiResult = await generateSiliconFlow(
+          [
+            {
+              role: 'system',
+              content:
+                'You are a professional software architect and technical translator. Always output valid JSON objects in the requested schema.',
+            },
+            { role: 'user', content: prompt },
+          ],
+          modelId,
+          16000,
+          true, // Enable JSON mode
+        );
+
+        const translatedList = parseBatchTranslationResult(aiResult);
+
+        if (!translatedList || translatedList.length === 0) {
+          throw new Error('AI returned empty or invalid results (Parse Failure)');
+        }
+
+        // 准备数据库记录并进行 ID 去重
+        const seenIds = new Set<string>();
+        const recordsToUpsert = [];
+        const failedIds = [];
+
+        for (const translated of translatedList) {
+          if (!translated.id || seenIds.has(translated.id)) continue;
+
+          const original = articles.find((a) => String(a.id) === String(translated.id));
+          if (!original) continue;
+
+          seenIds.add(translated.id);
+
+          // 核心校验逻辑：对齐 backfill 脚本的严谨性
+          const requiredFields = [
+            'title',
+            'category',
+            'summary',
+            'tldr',
+            'highlights',
+            'critiques',
+            'marketTake',
+          ];
+
+          // 1. 空值校验
+          const hasEmptyField = requiredFields.some((field) => {
+            const val = (translated as any)[field];
+            return (
+              !val ||
+              typeof val !== 'string' ||
+              val.trim() === '' ||
+              val.toLowerCase() === 'empty' ||
+              val === '无'
+            );
+          });
+
+          // 2. 中文校验
+          const containsChinese = requiredFields.some((field) => {
+            const val = (translated as any)[field];
+            return typeof val === 'string' && /[\u4e00-\u9fa5]/.test(val || '');
+          });
+
+          if (hasEmptyField || containsChinese) {
+            const reason = hasEmptyField ? 'Empty Field' : 'Contains Chinese';
+            console.warn(`[Translate] Validation failed for article ${original.id} (${reason})`);
+            failedIds.push(original.id);
+            continue;
+          }
+
+          recordsToUpsert.push({
+            id: original.id,
+            title: translated.title,
+            summary: translated.summary,
+            tldr: translated.tldr,
+            highlights: translated.highlights,
+            critiques: translated.critiques,
+            marketTake: translated.marketTake,
+            keywords: translated.keywords,
+            category: translated.category || original.category,
+            model_used: modelId,
+          });
+        }
+
+        // 语义校验触发重试：如果处理后的文章数量少于原本请求的数量，且还没有达到最大重试次数，则抛错触发重试
+        if (recordsToUpsert.length < articles.length) {
+          const missingCount = articles.length - recordsToUpsert.length;
+          throw new Error(
+            `Semantic validation failed: ${missingCount} articles failed quality check (${failedIds.join(', ')})`,
+          );
+        }
+
+        // 使用 upsert 批量存入
+        const { error: dbError } = await getSupabase()
+          .from('articles_en')
+          .upsert(recordsToUpsert, { onConflict: 'id' });
+
+        if (dbError) {
+          throw new Error(`Supabase Upsert Failure: ${dbError.message}`);
+        }
+
+        return { success: true, count: recordsToUpsert.length };
+      },
+      (error, attempt) => {
+        console.warn(`[Translate API] Attempt ${attempt} failed: ${error.message}. Retrying...`);
+      },
     );
-    const translatedList = parseBatchTranslationResult(aiResult);
-
-    if (!translatedList || translatedList.length === 0) {
-      return { success: false, count: 0, error: 'AI returned empty or invalid results' };
-    }
-
-    // 准备数据库记录并进行 ID 去重
-    const seenIds = new Set<string>();
-    const recordsToUpsert = translatedList
-      .map((translated) => {
-        if (!translated.id || seenIds.has(translated.id)) return null;
-
-        const original = articles.find((a) => String(a.id) === String(translated.id));
-        if (!original) return null;
-
-        seenIds.add(translated.id);
-
-        // 严格字段校验：确保关键内容字段不为空且为字符串
-        const requiredFields = [
-          'title',
-          'category',
-          'summary',
-          'tldr',
-          'highlights',
-          'critiques',
-          'marketTake',
-        ];
-        const hasEmptyField = requiredFields.some((field) => {
-          const val = (translated as any)[field];
-          // Fix: Check type before trim to avoid runtime crash on non-string values
-          return (
-            !val ||
-            typeof val !== 'string' ||
-            val.trim() === '' ||
-            val.toLowerCase() === 'empty' ||
-            val === '无'
-          );
-        });
-
-        if (hasEmptyField) {
-          console.warn(
-            `[Translate] Skipping article ${original.id} due to empty or invalid fields in AI response.`,
-          );
-          return null;
-        }
-
-        // 严格：自查是否包含中文字符 (Regex check for Chinese)
-        const containsChinese = requiredFields.some((field) => {
-          const val = (translated as any)[field];
-          return typeof val === 'string' && /[\u4e00-\u9fa5]/.test(val || '');
-        });
-
-        if (containsChinese) {
-          console.warn(
-            `[Translate] Skipping article ${original.id} because it contains Chinese characters.`,
-          );
-          return null;
-        }
-
-        return {
-          id: original.id,
-          title: translated.title,
-          summary: translated.summary,
-          tldr: translated.tldr,
-          highlights: translated.highlights,
-          critiques: translated.critiques,
-          marketTake: translated.marketTake,
-          keywords: translated.keywords,
-          category: translated.category || original.category,
-          // 核心架构改进：不再持久化冗余元数据。
-          // 仅存储翻译内容和任务信息，元数据（link, sourceName, published 等）
-          // 将通过数据库视图 articles_view_en 从主表动态关联获取。
-          model_used: modelId,
-        };
-      })
-      .filter(Boolean);
-
-    // Fix: Allow partial success. Only return error if ZERO records are valid.
-    if (recordsToUpsert.length === 0) {
-      // It's possible all were filtered out due to validation.
-      // We return success: false BUT with count: 0 so the caller knows nothing was saved,
-      // but strictly speaking, if it was just validation failure, maybe we shouldn't treat it as a "System Error".
-      // However, to keep logging clear:
-      return {
-        success: false,
-        count: 0,
-        error: 'No valid translated articles passed validation in this batch',
-      };
-    }
-
-    // 使用 upsert 批量存入
-    const { error: dbError } = await getSupabase()
-      .from('articles_en')
-      .upsert(recordsToUpsert, { onConflict: 'id' });
-
-    if (dbError) {
-      return { success: false, count: 0, error: dbError.message };
-    }
-
-    return { success: true, count: recordsToUpsert.length };
   } catch (e: any) {
+    console.error(`[Translate API] All ${MAX_RETRIES} attempts failed:`, e.message);
     return { success: false, count: 0, error: e.message };
   }
 }

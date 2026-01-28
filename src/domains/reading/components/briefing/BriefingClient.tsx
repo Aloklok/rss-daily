@@ -32,7 +32,8 @@ export default function BriefingClient({
   nextDate,
   initialTags = [],
   dict,
-}: BriefingClientProps): React.ReactElement {
+  lang,
+}: BriefingClientProps & { lang: 'zh' | 'en' }): React.ReactElement {
   const articlesById = useArticleStore((state) => state.articlesById);
   const setAvailableFilters = useArticleStore((state) => state.setAvailableFilters);
 
@@ -87,11 +88,11 @@ export default function BriefingClient({
   useEffect(() => {
     if (articles.length > 0) {
       queryClient.setQueryData(
-        ['briefing', date, 'all'],
+        ['briefing', date, 'all', lang === 'en' ? 'articles_view_en' : 'articles_view'],
         articles.map((a) => a.id),
       );
     }
-  }, [articles, queryClient, date]);
+  }, [articles, queryClient, date, lang]);
 
   // Set active filter to date
   useEffect(() => {
@@ -111,11 +112,13 @@ export default function BriefingClient({
   // 1. Optimized Fetch Logic:
   const shouldUseSpecificSlot = articles.length === 0 && !!timeSlot;
   const querySlot = shouldUseSpecificSlot ? timeSlot : 'all';
+  const tableName = lang === 'en' ? 'articles_view_en' : 'articles_view';
 
   const { data: fetchedArticleIds, isLoading } = useBriefingArticles(
     date,
     querySlot,
     initialArticleIds,
+    tableName,
   );
 
   // 2. Client-Side Filtering
@@ -162,7 +165,7 @@ export default function BriefingClient({
       headerImageUrl={headerImageUrl}
       timeSlot={timeSlot}
       selectedReportId={1} // Default to 1 as Briefing.tsx hardcodes a single report with ID 1
-      onReportSelect={() => { }} // No-op for now
+      onReportSelect={() => {}} // No-op for now
       onReaderModeRequest={(article) => openModal(article.id, 'reader')}
       onStateChange={handleStateChange}
       onTimeSlotChange={setTimeSlot}

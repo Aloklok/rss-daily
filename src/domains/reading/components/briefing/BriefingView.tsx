@@ -516,7 +516,7 @@ const Briefing: React.FC<BriefingProps> = ({
   };
 
   return (
-    <main className="flex-1 px-2 pt-0 md:px-8 md:pt-0 md:pb-10 lg:px-10 lg:pt-2">
+    <main className="flex-1 px-2 pt-0 md:px-6 md:pt-0 md:pb-10 lg:px-10 lg:pt-2">
       <div className="mx-auto max-w-6xl 2xl:max-w-5xl">
         {renderHeader()}
 

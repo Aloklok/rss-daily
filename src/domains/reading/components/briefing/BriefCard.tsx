@@ -73,29 +73,38 @@ const parseFormattedText = (text: string, emphasisClass: string = 'font-semibold
   });
 };
 
-const formatArticleForClipboard = (article: Article): string => {
-  const publishedDate = new Date(article.published).toLocaleDateString('zh-CN', {
-    month: 'long',
-    day: 'numeric',
-  });
+const formatArticleForClipboard = (
+  article: Article,
+  dict: Dictionary,
+  lang: 'zh' | 'en',
+): string => {
+  const publishedDate = new Date(article.published).toLocaleDateString(
+    lang === 'zh' ? 'zh-CN' : 'en-US',
+    {
+      month: 'long',
+      day: 'numeric',
+    },
+  );
   const keywords = (article.keywords || []).join('\n');
+
+  const isEn = lang === 'en';
 
   return [
     article.title,
-    `${article.sourceName} • 发布于 ${publishedDate} `,
-    `${article.verdict.type} • ${article.category} • 评分: ${article.verdict.score}/10`,
+    `${article.sourceName} • ${dict.card.publishedAt} ${publishedDate} `,
+    `${article.verdict.type} • ${article.category} • ${dict.card.score}: ${article.verdict.score}/10`,
     keywords,
     '',
-    '【一句话总结】',
+    isEn ? '[Summary]' : '【一句话总结】',
     article.summary || '',
     '',
-    '【技术洞察】',
+    isEn ? '[Technical Insights]' : '【技术洞察】',
     article.highlights,
     '',
-    '【值得注意】',
+    isEn ? '[Notable]' : '【值得注意】',
     article.critiques,
     '',
-    '【市场观察】',
+    isEn ? '[Market Perspectives]' : '【市场观察】',
     article.marketTake,
   ].join('\n');
 };
@@ -551,7 +560,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({
   const [isCopied, setIsCopied] = useState(false);
 
   const handleCopy = async () => {
-    const text = formatArticleForClipboard(article);
+    const text = formatArticleForClipboard(article, dict, lang);
     try {
       await navigator.clipboard.writeText(text);
       setIsCopied(true);

@@ -188,7 +188,9 @@ export async function fetchBriefingData(
       }
 
       if (rawData.length === 0) {
-        console.warn(`[BriefingData-${lang}] Zero articles found for ${date}. Window: ${startIso} - ${endIso}`);
+        console.warn(
+          `[BriefingData-${lang}] Zero articles found for ${date}. Window: ${startIso} - ${endIso}`,
+        );
         return {};
       }
 
@@ -203,7 +205,8 @@ export async function fetchBriefingData(
           ...row,
           // Handle field name differences and normalization
           sourceName: row.source_name || row.sourceName || '',
-          briefingSection: row.verdict?.importance || row.briefingSection || BRIEFING_SECTIONS.REGULAR,
+          briefingSection:
+            row.verdict?.importance || row.briefingSection || BRIEFING_SECTIONS.REGULAR,
           highlights: cleanAIContent(row.highlights),
           critiques: cleanAIContent(row.critiques),
           marketTake: cleanAIContent(row.marketTake),
@@ -250,26 +253,40 @@ export async function fetchEnglishBriefingData(
 /**
  * Fetch specific articles by their IDs
  */
-export async function fetchArticlesByIds(ids: string[], tableName: string = 'articles_view'): Promise<Article[]> {
+export async function fetchArticlesByIds(
+  ids: string[],
+  tableName: string = 'articles_view',
+): Promise<Article[]> {
   if (process.env.CI && !process.env.VERCEL) return [];
   if (!ids || ids.length === 0) return [];
 
   const supabase = getSupabaseClient();
-  const fullIds = ids.map(toFullId);
-  const { data, error } = await supabase.from(tableName as any).select('*').in('id', fullIds);
+  const { data, error } = await supabase
+    .from(tableName as any)
+    .select('*')
+    .in('id', ids);
 
   if (error) {
     console.error('Error fetching articles by IDs:', error);
     return [];
   }
 
-  return (data || []).map((raw) => ({
-    ...raw,
-    sourceName: raw.source_name || raw.sourceName || '',
-    highlights: cleanAIContent(raw.highlights),
-    critiques: cleanAIContent(raw.critiques),
-    marketTake: cleanAIContent(raw.marketTake),
-    tldr: cleanAIContent(raw.tldr),
+  return (data || []).map((row: any) => ({
+    ...row,
+    sourceName: row.source_name || row.sourceName || '',
+    category: row.category || '',
+    summary: cleanAIContent(row.summary),
+    highlights: cleanAIContent(row.highlights),
+    critiques: cleanAIContent(row.critiques),
+    marketTake: cleanAIContent(row.marketTake),
+    tldr: cleanAIContent(row.tldr),
+    // Ensure verdict structure is consistent
+    verdict: row.verdict || {
+      importance: row.briefingSection || BRIEFING_SECTIONS.REGULAR,
+      score: 0,
+    },
+    // created_at fallback
+    created_at: row.n8n_processing_date || row.created_at,
   }));
 }
 
@@ -422,18 +439,21 @@ export async function fetchArticleFromFreshRSS(id: string): Promise<Article | nu
 export type FetchArticleResult =
   | { success: true; article: Article }
   | {
-    success: false;
-    article: null;
-    errorSource: 'supabase' | 'freshrss' | 'both';
-    errorMessage: string;
-  };
+      success: false;
+      article: null;
+      errorSource: 'supabase' | 'freshrss' | 'both';
+      errorMessage: string;
+    };
 
 // Consolidated Options Interface
 interface FetchArticleOptions {
   lang?: 'zh' | 'en';
 }
 
-export async function fetchArticleById(id: string, options: FetchArticleOptions = { lang: 'zh' }): Promise<FetchArticleResult> {
+export async function fetchArticleById(
+  id: string,
+  options: FetchArticleOptions = { lang: 'zh' },
+): Promise<FetchArticleResult> {
   const lang = options.lang || 'zh';
   const tableName = lang === 'en' ? 'articles_view_en' : 'articles_view';
 
@@ -468,9 +488,7 @@ export async function fetchArticleById(id: string, options: FetchArticleOptions 
   try {
     const supabase = getSupabaseClient();
     const fullId = toFullId(id);
-    const query = supabase
-      .from(tableName as any)
-      .select('*');
+    const query = supabase.from(tableName as any).select('*');
 
     // Handle ID matching: articles_view uses string ID, articles_en might use int8/string
     // For safety, we use eq. toFullId ensures correct ID format for app logic.

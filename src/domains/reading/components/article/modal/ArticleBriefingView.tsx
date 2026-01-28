@@ -186,6 +186,7 @@ const ArticleBriefingView: React.FC<ArticleBriefingViewProps> = ({
         showActions={false}
         onReaderModeRequest={onReaderModeRequest}
         onStateChange={onStateChange}
+        dict={dict}
       />
 
       {isAdmin && (

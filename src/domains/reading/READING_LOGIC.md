@@ -137,8 +137,11 @@ The application uses **Clean Slugs** for stream pages, separated by type to avoi
     - Reconstructs the original FreshRSS ID (restores `user/-/label/` prefix if needed).
     - **Emoji Fix**: Automatically strips generic emojis from IDs to match dictionary keys (e.g., "📦 工程实践" -> "工程实践").
 
-**Note on Navigation:**
-Client-side components (`SidebarView.tsx`) **MUST** use `getSlugLink` with the correct `type` to generate these URLs. Do not handle URL construction manually.
+140: **Note on Navigation:**
+141: Client-side components (`SidebarView.tsx`) **MUST** use `getSlugLink` with the correct `type` to generate these URLs.
+142:
+143: **Active State Logic**:
+144: To handle inconsistencies between URL slugs (clean) and internal IDs (raw/with emojis), `SidebarExplore` uses a **Slug-based comparison**: `getSlug(activeFilter.value) === getSlug(item.id)`. This ensures reliable highlighting even if ID formats differ.
 
 ### 5.4 Source Name Display
 

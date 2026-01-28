@@ -13,7 +13,10 @@ import { Article } from '@/shared/types';
 // --- 数据融合辅助函数 ---
 
 // 负责为 “FreshRSS文章” 补充 “Supabase详情”
-async function mergeWithSupabaseDetails(freshArticles: Article[], tableName: string = 'articles_view'): Promise<Article[]> {
+async function mergeWithSupabaseDetails(
+  freshArticles: Article[],
+  tableName: string = 'articles_view',
+): Promise<Article[]> {
   if (!freshArticles || freshArticles.length === 0) return [];
 
   try {
@@ -89,7 +92,12 @@ export async function fetchFilteredArticles(
   );
 
   // 1. 获取 FreshRSS 数据
-  const response = await getArticlesByLabel({ value: filterValue } as any, continuation, n);
+  const response = await getArticlesByLabel(
+    { value: filterValue } as any,
+    continuation,
+    n,
+    tableName,
+  );
 
   // 2. 根据 merge 参数决定是否融合 Supabase 详情
   // 对于无限滚动列表，UI不显示AI字段，所以跳过这一步可以消除“闪烁”并显著加速

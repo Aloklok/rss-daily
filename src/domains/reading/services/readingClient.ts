@@ -13,7 +13,7 @@ import {
 } from '@/shared/types';
 import { STAR_TAG } from '@/domains/interaction/constants';
 
-const articleCache = new Map<string | number, CleanArticleContent>();
+const articleCache = new Map<string | number, CleanArticleContent | null>();
 
 export const getCurrentTimeSlotInShanghai = (): 'morning' | 'afternoon' | 'evening' => {
   const now = new Date();
@@ -35,8 +35,8 @@ export const getCurrentTimeSlotInShanghai = (): 'morning' | 'afternoon' | 'eveni
   }
 };
 
-export const getRawStarredArticles = (): Promise<Article[]> => {
-  return getArticlesByLabel({ type: 'starred', value: STAR_TAG }, undefined, 50).then(
+export const getRawStarredArticles = (tableName: string = 'articles_view'): Promise<Article[]> => {
+  return getArticlesByLabel({ type: 'starred', value: STAR_TAG }, undefined, 50, tableName).then(
     (res) => res.articles,
   );
 };
@@ -67,7 +67,10 @@ export const getBriefingReportsByDate = async (
     if (!data || Object.values(data).every((arr) => arr.length === 0)) return [];
 
     const isEn = typeof window !== 'undefined' && window.location.pathname.includes('/en');
-    const monthDay = new Date(date).toLocaleString(isEn ? 'en-US' : 'zh-CN', { month: 'long', day: 'numeric' });
+    const monthDay = new Date(date).toLocaleString(isEn ? 'en-US' : 'zh-CN', {
+      month: 'long',
+      day: 'numeric',
+    });
     const reportTitle = isEn ? `${monthDay} Briefing` : `${monthDay} 简报`;
     return [{ id: 1, title: reportTitle, articles: data }];
   } catch {
@@ -95,7 +98,7 @@ export const getArticlesDetails = (
 export const getCleanArticleContent = async (
   article: Article,
   options?: { includeState?: boolean },
-): Promise<CleanArticleContent> => {
+): Promise<CleanArticleContent | null> => {
   if (articleCache.has(article.id)) {
     return articleCache.get(article.id)!;
   }
@@ -110,11 +113,7 @@ export const getCleanArticleContent = async (
     articleCache.set(article.id, content);
     return content;
   } catch {
-    return {
-      title: article.title,
-      source: article.sourceName,
-      content: `<h3>无法加载文章内容</h3><p>获取文章内容时出错。请尝试直接访问原文链接。</p><p><a href="${article.link}" target="_blank" rel="noopener noreferrer">点击此处查看原文</a></p>`,
-    };
+    return null;
   }
 };
 
@@ -141,8 +140,9 @@ export const getArticlesByLabel = (
   filter: Filter,
   continuation?: string,
   n: number = 20,
+  tableName: string = 'articles_view',
 ): Promise<{ articles: Article[]; continuation?: string }> => {
-  const params: Record<string, string> = { value: filter.value, n: String(n) };
+  const params: Record<string, string> = { value: filter.value, n: String(n), table: tableName };
   if (continuation) params.c = continuation;
 
   return apiClient.request<{ articles: Article[]; continuation?: string }>('/api/articles/list', {

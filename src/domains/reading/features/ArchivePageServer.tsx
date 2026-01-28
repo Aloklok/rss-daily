@@ -198,7 +198,9 @@ export async function ArchivePage({ lang }: PageProps) {
             <h2 className="font-serif text-2xl font-bold text-stone-800 dark:text-stone-800">
               {dict.archive.exploreTopics}
             </h2>
-            <p className="mt-2 text-sm text-stone-500">{dict.archive.exploreSubtitle}</p>
+            <p className="mt-2 text-sm text-stone-600 dark:text-stone-700">
+              {dict.archive.exploreSubtitle}
+            </p>
           </div>
 
           <div className="space-y-12">
@@ -216,7 +218,9 @@ export async function ArchivePage({ lang }: PageProps) {
                     className="rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-sm font-medium text-stone-600 transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 dark:border-stone-800 dark:bg-stone-900 dark:text-stone-400"
                   >
                     {getDisplayLabel(cat.label, 'category', lang)}
-                    <span className="ml-1.5 text-xs text-stone-300">{cat.count}</span>
+                    <span className="ml-1.5 text-xs text-stone-400 dark:text-stone-500">
+                      {cat.count}
+                    </span>
                   </Link>
                 ))}
               </div>
@@ -230,7 +234,7 @@ export async function ArchivePage({ lang }: PageProps) {
               <div className="grid gap-6 sm:grid-cols-2">
                 {sortedSourceCategories.map((catName) => (
                   <div key={catName} className="space-y-3">
-                    <h4 className="text-sm font-bold tracking-tight text-stone-500 uppercase">
+                    <h4 className="text-sm font-bold tracking-tight text-stone-600 uppercase dark:text-stone-700">
                       {getDisplayLabel(catName, 'category', lang)}
                     </h4>
                     <div className="flex flex-wrap gap-1.5">
@@ -261,7 +265,7 @@ export async function ArchivePage({ lang }: PageProps) {
                     prefetch={false}
                     key={tag.id}
                     href={getSlugLink(tag.id, lang, 'tag')}
-                    className="rounded-md px-2 py-0.5 text-xs font-medium text-stone-400 transition-all hover:bg-stone-200 hover:text-stone-900 dark:hover:bg-stone-800 dark:hover:text-stone-300"
+                    className="rounded-md px-2 py-0.5 text-xs font-medium text-stone-600 transition-all hover:bg-stone-200 hover:text-stone-900 dark:text-stone-700 dark:hover:bg-stone-800 dark:hover:text-stone-300"
                   >
                     # {getDisplayLabel(tag.label, 'tag', lang)}
                   </Link>
@@ -273,7 +277,9 @@ export async function ArchivePage({ lang }: PageProps) {
       </div>
 
       <div className="mt-20 border-t border-stone-100 pt-8 text-center text-sm text-stone-400 dark:border-stone-800">
-        <p>© {new Date().getFullYear()} RSS Briefing Hub Archive</p>
+        <p className="text-stone-500 dark:text-stone-600">
+          © {new Date().getFullYear()} RSS Briefing Hub Archive
+        </p>
       </div>
     </main>
   );

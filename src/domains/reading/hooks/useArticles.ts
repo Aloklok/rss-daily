@@ -30,7 +30,10 @@ export const useBriefingArticles = (
       if (!date) return [];
       // queryFn 接收的仍然是原始的 slot (可以是 null)
       // 【核心优化】开启聚合模式：fetchBriefingArticles 内部会一次性把 Supabase 内容和 FreshRSS 状态取回来
-      const completeArticles = await fetchBriefingArticles(date, slot, { includeState: true, tableName });
+      const completeArticles = await fetchBriefingArticles(date, slot, {
+        includeState: true,
+        tableName,
+      });
       addArticles(completeArticles);
       return completeArticles.map((a) => a.id);
     },
@@ -99,15 +102,18 @@ export const useFilteredArticles = (
 };
 
 // Update useStarredArticles signature
+// Update useStarredArticles signature
 export const useStarredArticles = (
   initialData?: { id: string | number; title: string; tags: string[] }[],
+  tableName: string = 'articles_view',
+  enabled: boolean = true,
 ) => {
   const setStarredArticleIds = useArticleStore((state) => state.setStarredArticleIds);
   return useQuery({
-    queryKey: ['starredHeaders'],
+    queryKey: ['starredHeaders', tableName],
     queryFn: async () => {
       // 【改】直接调用最底层的 API 函数，获取 FreshRSS 的原始数据
-      const freshArticles = await getRawStarredArticles();
+      const freshArticles = await getRawStarredArticles(tableName);
 
       // 我们只更新 starredArticleIds 列表
       setStarredArticleIds(freshArticles.map((a) => a.id));
@@ -135,6 +141,7 @@ export const useStarredArticles = (
       }));
     },
     initialData: initialData && initialData.length > 0 ? (initialData as any) : undefined,
+    enabled: enabled,
   });
 };
 

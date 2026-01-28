@@ -97,6 +97,8 @@ const Sidebar = React.memo<SidebarProps>(
       }
     }, [isSourcesPage, isNavigatingToSource]);
 
+    const tableName = pathname?.startsWith('/en') ? 'articles_view_en' : 'articles_view';
+
     const {
       activeTab,
       setActiveTab,
@@ -106,7 +108,7 @@ const Sidebar = React.memo<SidebarProps>(
       isLoadingStarred,
       refreshStarred,
       starredCount,
-    } = useSidebar({ initialStarredHeaders }); // Pass to hook
+    } = useSidebar({ initialStarredHeaders, tableName }); // Pass tableName to hook
 
     const handleSearchSubmit = (e: React.FormEvent) => {
       e.preventDefault();

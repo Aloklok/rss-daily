@@ -171,6 +171,7 @@ export async function BriefingPage({ params, lang }: PageProps) {
         nextDate={nextDate}
         initialTags={initialTags}
         dict={dict}
+        lang={lang}
       />
     </>
   );

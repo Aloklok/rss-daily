@@ -88,23 +88,26 @@ export default function SidebarNavServer({
               <span>🗂️ {dict.archive.filters.categories}</span>
             </div>
             <div className="ml-1 space-y-1">
-              {categories.map((c) => (
-                <Link
-                  key={c.id}
-                  href={getSlugLink(c.id, dict.lang as 'zh' | 'en')}
-                  prefetch={false}
-                  className="dark:hover:bg-midnight-card flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-200"
-                >
-                  <span className="truncate">
-                    {getDisplayLabel(c.label, 'category', dict.lang as 'zh' | 'en')}
-                  </span>
-                  {c.count !== undefined && c.count > 0 && (
-                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500 dark:bg-black/20 dark:text-gray-500">
-                      {c.count}
+              {categories.map((c) => {
+                const href = getSlugLink(c.id, dict.lang as 'zh' | 'en');
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    prefetch={false}
+                    className="dark:hover:bg-midnight-card flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-200"
+                  >
+                    <span className="truncate">
+                      {getDisplayLabel(c.label, 'category', dict.lang as 'zh' | 'en')}
                     </span>
-                  )}
-                </Link>
-              ))}
+                    {c.count !== undefined && c.count > 0 && (
+                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500 dark:bg-black/20 dark:text-gray-500">
+                        {c.count}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
             </div>
           </div>
         )}
@@ -115,21 +118,24 @@ export default function SidebarNavServer({
               <span>🏷️ {dict.archive.filters.tags}</span>
             </div>
             <div className="grid grid-cols-2 gap-2 px-1">
-              {tags.slice(0, 20).map((t) => (
-                <Link
-                  key={t.id}
-                  href={getSlugLink(t.id, dict.lang as 'zh' | 'en', 'tag')}
-                  prefetch={false}
-                  className="dark:hover:bg-midnight-card flex w-full items-center justify-between rounded-md border border-transparent px-2.5 py-1.5 text-left text-sm font-medium text-gray-600 transition-all duration-200 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
-                >
-                  <span className="truncate">
-                    #{getDisplayLabel(t.label, 'tag', dict.lang as 'zh' | 'en')}
-                  </span>
-                  {t.count !== undefined && t.count > 0 && (
-                    <span className="text-xs opacity-60">{t.count}</span>
-                  )}
-                </Link>
-              ))}
+              {tags.slice(0, 20).map((t) => {
+                const href = getSlugLink(t.id, dict.lang as 'zh' | 'en', 'tag');
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    prefetch={false}
+                    className="dark:hover:bg-midnight-card flex w-full items-center justify-between rounded-md border border-transparent px-2.5 py-1.5 text-left text-sm font-medium text-gray-600 transition-all duration-200 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
+                  >
+                    <span className="truncate">
+                      #{getDisplayLabel(t.label, 'tag', dict.lang as 'zh' | 'en')}
+                    </span>
+                    {t.count !== undefined && t.count > 0 && (
+                      <span className="text-xs opacity-60">{t.count}</span>
+                    )}
+                  </Link>
+                );
+              })}
             </div>
           </div>
         )}

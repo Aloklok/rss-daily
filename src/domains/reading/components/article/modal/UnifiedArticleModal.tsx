@@ -13,6 +13,7 @@ import ArticleReaderView from './ArticleReaderView';
 import ArticleBriefingView from './ArticleBriefingView';
 import ArticleModalActions from './ArticleModalActions';
 import { Dictionary } from '@/app/i18n/dictionaries';
+import { purifyArticle } from '@/domains/reading/utils/label-display';
 
 interface UnifiedArticleModalProps {
   article: Article;
@@ -47,17 +48,28 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({
     );
   }, [article]);
 
+  const isEn = dict.lang === 'en';
+  const lang = isEn ? 'en' : 'zh';
+  const tableName = isEn ? 'articles_view_en' : 'articles_view';
+
+  // Purify initial article
+  const purifiedArticle = useMemo(() => purifyArticle(article, lang), [article, lang]);
+
   // 1. Hook: Fetch Briefing Data (if missing)
   const { data: enrichedArticle, isLoading: isLoadingBriefing } = useBriefingDetails(
-    article,
+    purifiedArticle,
     hasBriefingData,
     {
       enabled: viewMode === 'briefing',
+      tableName,
     },
   );
 
   // Use enriched data if available to ensure AI title/content overrides FreshRSS
-  const displayArticle = enrichedArticle || article;
+  const displayArticle = useMemo(() => {
+    const raw = enrichedArticle || purifiedArticle;
+    return purifyArticle(raw, lang);
+  }, [enrichedArticle, purifiedArticle, lang]);
 
   // 2. Hook: Fetch Reader Content
   // No initialData passed here because Modal is client-only entry.
@@ -128,7 +140,12 @@ const UnifiedArticleModal: React.FC<UnifiedArticleModalProps> = ({
           </svg>
         </button>
 
-        <ArticleModalHeader viewMode={viewMode} setViewMode={setViewMode} onClose={onClose} dict={dict} />
+        <ArticleModalHeader
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+          onClose={onClose}
+          dict={dict}
+        />
 
         {/* Content Body */}
         <div className="dark:bg-midnight-bg grow overflow-x-hidden overflow-y-auto bg-neutral-50">

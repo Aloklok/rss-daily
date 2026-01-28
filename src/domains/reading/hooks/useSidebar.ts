@@ -10,9 +10,13 @@ export type ActiveTab = 'filters' | 'calendar';
 // Update useSidebar signature
 interface UseSidebarProps {
   initialStarredHeaders?: { id: string | number; title: string; tags: string[] }[];
+  tableName?: string;
 }
 
-export const useSidebar = ({ initialStarredHeaders }: UseSidebarProps = {}) => {
+export const useSidebar = ({
+  initialStarredHeaders,
+  tableName = 'articles_view',
+}: UseSidebarProps = {}) => {
   const pathname = usePathname();
   const [activeTab, setActiveTab] = useState<ActiveTab>(() => {
     if (
@@ -38,13 +42,13 @@ export const useSidebar = ({ initialStarredHeaders }: UseSidebarProps = {}) => {
     }
   }, [activeFilter]);
 
-  // 1. 【核心修改】从 useStarredArticles 中解构 isFetching，传入 initialStarredHeaders
+  // 1. 【核心修改】从 useStarredArticles 中解构 isFetching，传入 initialStarredHeaders 和 tableName
   const {
     data: starredArticlesData,
     isLoading,
     isFetching,
     refetch: refreshStarred,
-  } = useStarredArticles(initialStarredHeaders);
+  } = useStarredArticles(initialStarredHeaders, tableName, starredExpanded);
 
   // 2. 【核心修改】isLoadingStarred 现在应该同时考虑 isLoading 和 isFetching
   // isLoading 用于初始加载的骨架屏，isFetching 用于刷新按钮的旋转动画

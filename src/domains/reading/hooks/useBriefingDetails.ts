@@ -6,14 +6,15 @@ import { useArticleStore } from '@/domains/interaction/store/articleStore';
 export const useBriefingDetails = (
   article: Article,
   hasBriefingData: boolean,
-  options?: { enabled?: boolean },
+  options?: { enabled?: boolean; tableName?: string },
 ) => {
   const updateArticle = useArticleStore((state) => state.updateArticle);
+  const tableName = options?.tableName || 'articles_view';
 
   return useQuery({
-    queryKey: ['article', 'details', article.id],
+    queryKey: ['article', 'details', article.id, tableName],
     queryFn: async () => {
-      const detailsMap = await getArticlesDetails([article.id]);
+      const detailsMap = await getArticlesDetails([article.id], tableName);
       const details = detailsMap[article.id];
       if (details) {
         // Optimistically update the store as well so list view updates

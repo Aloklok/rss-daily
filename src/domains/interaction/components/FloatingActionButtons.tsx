@@ -47,15 +47,23 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
   // Data Fetching for articleIdsInView
   const { data: searchData } = useSearchResults(
     activeFilter?.type === 'search' ? activeFilter.value : null,
+    pathname?.startsWith('/en') ? 'articles_view_en' : 'articles_view',
   );
+
+  const tableName = pathname?.startsWith('/en') ? 'articles_view_en' : 'articles_view';
 
   const { data: briefingArticleIds, isFetching: isBriefingFetching } = useBriefingArticles(
     activeFilter?.type === 'date' ? activeFilter.value : null,
     timeSlot,
+    undefined, // initialData
+    tableName,
   );
 
   const { data: filteredArticlesData } = useFilteredArticles(
     activeFilter?.type === 'category' || activeFilter?.type === 'tag' ? activeFilter.value : null,
+    undefined, // initialData
+    false, // merge
+    tableName,
   );
 
   const filteredArticleIds = useMemo(() => {
@@ -147,10 +155,11 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
             <div className="relative" onClick={(e) => e.stopPropagation()}>
               <button
                 onClick={() => setIsTagPopoverOpen((prev) => !prev)}
-                className={`cursor-pointer rounded-full p-2.5 text-white shadow-lg transition-all md:p-3 ${userTagLabels.length > 0
+                className={`cursor-pointer rounded-full p-2.5 text-white shadow-lg transition-all md:p-3 ${
+                  userTagLabels.length > 0
                     ? 'bg-sky-600 hover:bg-sky-700'
                     : 'bg-gray-800 hover:bg-gray-950'
-                  }`}
+                }`}
                 aria-label="Tag article"
               >
                 <svg
@@ -183,8 +192,9 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
                 );
               }}
               disabled={isUpdatingArticle}
-              className={`cursor-pointer rounded-full p-2.5 text-white shadow-lg transition-all disabled:bg-gray-500 md:p-3 ${isStarred ? 'bg-amber-500 hover:bg-amber-600' : 'bg-gray-800 hover:bg-gray-950'
-                }`}
+              className={`cursor-pointer rounded-full p-2.5 text-white shadow-lg transition-all disabled:bg-gray-500 md:p-3 ${
+                isStarred ? 'bg-amber-500 hover:bg-amber-600' : 'bg-gray-800 hover:bg-gray-950'
+              }`}
               aria-label={isStarred ? 'Remove from favorites' : 'Add to favorites'}
             >
               {isStarred ? (

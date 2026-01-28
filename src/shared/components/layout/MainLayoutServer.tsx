@@ -81,7 +81,7 @@ export default function MainLayoutServer({
 
       <div className="dark:bg-midnight-bg bg-paper-texture relative flex min-w-0 flex-1 flex-col bg-neutral-50 dark:bg-none">
         <LanguageSwitcher />
-        <div className="mx-auto w-full max-w-3xl px-2 pt-2 md:px-8 md:pt-4 2xl:max-w-5xl">
+        <div className="mx-auto w-full max-w-3xl px-2 pt-2 md:px-6 md:pt-4 2xl:max-w-5xl">
           {children}
         </div>
         <FloatingActionButtonsIsland />

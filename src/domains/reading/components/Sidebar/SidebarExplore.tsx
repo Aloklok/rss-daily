@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { getSlugLink } from '@/domains/reading/utils/slug-helper';
+import { getSlug, getSlugLink } from '@/domains/reading/utils/slug-helper';
 import Link from 'next/link';
 import { Dictionary } from '@/app/i18n/dictionaries';
 import { AvailableFilters, Filter } from '@/shared/types';
@@ -35,7 +35,15 @@ const SidebarExplore: React.FC<SidebarExploreProps> = ({
   };
 
   const isFilterActive = (type: Filter['type'], value: string) => {
-    return activeFilter?.type === type && activeFilter?.value === value && !selectedArticleId;
+    // Robust comparison using slugs to handle ID inconsistencies (emojis, etc.)
+    if (activeFilter?.type !== type) return false;
+    if (selectedArticleId) return false;
+
+    // Direct match first (fast path)
+    if (activeFilter.value === value) return true;
+
+    // Slug match fallback
+    return getSlug(activeFilter.value) === getSlug(value);
   };
 
   const listItemButtonClass = (isActive: boolean) =>
@@ -68,7 +76,6 @@ const SidebarExplore: React.FC<SidebarExploreProps> = ({
           {sortLabels(availableFilters.categories)
             .filter((category) => normalizeLabel(category.id) !== '未分类')
 
-
             .map((category) => (
               <Link
                 key={category.id}
@@ -77,7 +84,11 @@ const SidebarExplore: React.FC<SidebarExploreProps> = ({
                 prefetch={false}
                 className={listItemButtonClass(isFilterActive('category', category.id))}
               >
-                <span className="flex-1 truncate">{getDisplayLabel(category.id, 'category', dict.lang as 'zh' | 'en')}</span>
+                {/* Use pre-calculated label from server if available, fallback to getDisplayLabel */}
+                <span className="flex-1 truncate">
+                  {category.label ||
+                    getDisplayLabel(category.id, 'category', dict.lang as 'zh' | 'en')}
+                </span>
                 {category.count !== undefined && category.count > 0 && (
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs font-medium ${isFilterActive('category', category.id) ? 'bg-white/20 text-white' : 'dark:bg-midnight-badge bg-gray-100 text-gray-500 dark:text-gray-400'}`}
@@ -106,12 +117,17 @@ const SidebarExplore: React.FC<SidebarExploreProps> = ({
             return (
               <Link
                 key={tag.id}
-                href={getSlugLink(tag.id, dict.lang as 'zh' | 'en')}
+                href={getSlugLink(tag.id, dict.lang as 'zh' | 'en', 'tag')}
                 onClick={(e) => handleTagClick(e, tag.id)}
                 prefetch={false}
                 className={`flex w-full items-center justify-between rounded-md border px-2.5 py-1.5 text-left text-sm font-medium transition-all duration-200 ${colorClass} cursor-pointer`}
               >
-                <span className="truncate">#{getDisplayLabel(tag.id, 'tag', dict.lang as 'zh' | 'en')}</span>
+                {/* Use pre-calculated label from server if available, fallback to getDisplayLabel */}
+                <span className="truncate">
+                  {tag.label?.startsWith('#')
+                    ? tag.label
+                    : `#${tag.label || getDisplayLabel(tag.id, 'tag', dict.lang as 'zh' | 'en')}`}
+                </span>
                 {tag.count !== undefined && tag.count > 0 && (
                   <span className={`text-xs opacity-60 ${isActive ? 'text-white' : ''}`}>
                     {tag.count}

@@ -33,6 +33,7 @@
     - **`articles_view_en` (视图)**：通过 ID 实时关联主表 `articles` 和翻译表 `articles_en`，确保评分、日期等元数据在全站范围内保持物理上的单一事实来源。
     - **动态本地化**：UI 层在渲染视图数据时，根据当前语言动态调用字典进行 `sourceName` 和 `verdict.type` 的翻译显示。
   - **鲁棒性设计 (Robustness)**:
+    - **自动重试机制 (Retry Logic)**: 引入 `withRetry` 机制，针对网络抖动、AI 幻觉（如输出非 JSON）以及语义校验失败（如翻译结果包含中文）进行 3 次指数退避重试，极大提高了 Webhook 的自动修复率。
     - **防幻觉校验**: 针对 AI 可能返回非 String 类型（如数组/数字）导致崩溃的问题 (`val.trim`)，实施了强制类型转换防御。
     - **字段完整性**: Prompt 显式要求 AI 对空字段填充 "none"，防止 JSON 结构缺失。
 

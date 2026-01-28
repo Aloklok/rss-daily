@@ -81,15 +81,25 @@ export default async function EnRootLayout({ children }: { children: React.React
   ]);
 
   const { getDisplayLabel } = await import('@/domains/reading/utils/label-display');
+  const { getSlug } = await import('@/domains/reading/utils/slug-helper');
+
   const availableFilters = {
-    categories: (rawAvailableFilters.categories || []).map((c) => ({
-      ...c,
-      label: getDisplayLabel(c.label, 'category', 'en'),
-    })),
-    tags: (rawAvailableFilters.tags || []).map((t) => ({
-      ...t,
-      label: getDisplayLabel(t.label, 'tag', 'en'),
-    })),
+    categories: (rawAvailableFilters.categories || [])
+      .map((c) => ({
+        ...c,
+        id: getSlug(c.id), // Transform ID to slug
+        label: getDisplayLabel(c.label, 'category', 'en'),
+      }))
+      // Filter out any categories where label still contains Chinese
+      .filter((c) => !/[\u4e00-\u9fa5]/.test(c.label)),
+    tags: (rawAvailableFilters.tags || [])
+      .map((t) => ({
+        ...t,
+        id: getSlug(t.id), // Transform ID to slug
+        label: getDisplayLabel(t.label, 'tag', 'en'),
+      }))
+      // Filter out any tags where label still contains Chinese
+      .filter((t) => !/[\u4e00-\u9fa5]/.test(t.label)),
   };
 
   return (
