@@ -1,0 +1,1276 @@
+[
+  {
+    "id": "tag:google.com,2005:reader/item/00064965c0513c42",
+    "title": "Daily Global View on January 27, 2026",
+    "fields": {
+      "summary": [
+        "Shanghai Yu Garden New Year Lantern Festival",
+        "Debates among Japan's 7 major party leaders",
+        "India celebrated its 77th Independence Day",
+        "International gold prices broke through $5,100",
+        "Malaysia's King visited Russia",
+        "Kim Jong Un guided the creation of a statue of soldiers aiding Russia",
+        "Thailand's leopard shark release program",
+        "Japanese citizens bid farewell to pandas",
+        "Winter storm hit the United States",
+        "Myanmar's final stage of the general election",
+        "U.S. CBP killed a white male citizen",
+        "Putin visited the Moscow Institute of Physics and Technology",
+        "HERMÈS 2026 Autumn-Winter Men's Fashion Show",
+        "Beijing's Summer Palace opened its ice rink on Kunming Lake",
+        "A major retrospective of Paul Cézanne"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/0006475833f6c065",
+    "title": "Generalized Efficient Large-Scale Generative Recommendation System",
+    "fields": {
+      "marketTake": [
+        "engineering implementation capability",
+        "data scale",
+        "efficiency bottlenecks",
+        "business alignment",
+        "computing cost",
+        "specific scenarios"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000644e6ea017c6f",
+    "title": "How LLMs Learn from the Internet: The Training Process",
+    "fields": {
+      "critiques": [
+        "capital-intensive",
+        "technology-intensive",
+        "Data flywheel",
+        "engineering capabilities",
+        "major challenges",
+        "reinventing the wheel"
+      ],
+      "marketTake": [
+        "main theme",
+        "global investment hotspot",
+        "technological frontier",
+        "universal basic income (UBI)",
+        "work model transformation",
+        "new economic systems",
+        "irreplaceable value",
+        "commercial model limitations",
+        "application boundaries"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/00064352e7ed551c",
+    "title": "Lima Becomes a CNCF Incubation Project",
+    "fields": {
+      "highlights": [
+        "1. Addressing local development pain points",
+        "consistency and efficiency in local development environments",
+        "2. New approach for AI Agent sandboxing",
+        "proactive security practice",
+        "3. Strong ecosystem integration capabilities",
+        "flexibility and extensibility"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/0006464548da4727",
+    "title": "Mentorship Flywheel Effect: How CNCF Cultivates the Next Generation of Cloud-Native Leaders",
+    "fields": {
+      "highlights": [
+        "Mentorship Flywheel Effect",
+        "core mechanism",
+        "proven talent development system",
+        "From Novice to Maintainer",
+        "investing in potential talent",
+        "Importance of Documentation and Community Culture",
+        "comprehensive documentation and a welcoming community atmosphere"
+      ],
+      "marketTake": [
+        "bottleneck",
+        "fuel",
+        "secure and cultivate potential cloud-native talent",
+        "vital and sustainable",
+        "open source collaboration spirit and leadership",
+        "strategic high ground"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/0006447e25ab2295",
+    "title": "NVIDIA Run:ai Falls Short; Huawei's Open-Source Solution Delivers",
+    "fields": {
+      "highlights": [
+        "Directly challenging NVIDIA Run:ai",
+        "open-source strategy",
+        "hardware compatibility",
+        "Deep breakthrough in AI containers",
+        "thorough",
+        "enhance heterogeneous compute utilization",
+        "Industry-focused deployment",
+        "efficient and user-friendly"
+      ],
+      "critiques": [
+        "Ecosystem development",
+        "developer habits",
+        "ecosystem stickiness",
+        "Performance stability",
+        "large-scale complex AI tasks",
+        "reliability"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/00064726c007236b",
+    "title": "Running Modern ES2023 JavaScript in Go with QJS and WebAssembly",
+    "fields": {
+      "critiques": [
+        "Performance Overhead Remains",
+        "context switching and data conversion",
+        "QJS is Not a Universal Alternative",
+        "sandboxing and CGO-free execution",
+        "Type Conversion and Error Handling Require Careful Design",
+        "may introduce hidden bugs"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000644db2f0a66ed",
+    "title": "Architect (Second Season 2025)",
+    "fields": {
+      "marketTake": [
+        "'code line generation speed'",
+        "'full-stack platforms'",
+        "'parallel agent'",
+        "'old-generation IDE'",
+        "'human-led development processes'",
+        "'hand over control to agent teams'",
+        "database vendors are now betting on the 'no-main developer' paradigm"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000644b7f8b9132d",
+    "title": "Received a Message from ByteDance: Trae SOLO is Live? Try It Out, Build a Simple Music Player",
+    "fields": {
+      "critiques": [
+        "very simple UI",
+        "real efficiency and code quality of AI",
+        "programmers are already inseparable from AI",
+        "productivity assistance",
+        "replacement",
+        "internal standards"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/0006455f9df9fb9b",
+    "title": "How Reddit Migrated Its Comment Functionality from Python to Go",
+    "fields": {
+      "marketTake": [
+        "unshakable status",
+        "Microservices",
+        "heterogeneous language stacks",
+        "implicit costs and complexity",
+        "Sister Datastores",
+        "budget and hair"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000643457de17a64",
+    "title": "Using AWS Backup's New Support for Amazon EKS to Protect EKS Clusters",
+    "fields": {
+      "highlights": [
+        "Officially managed, one-stop solution",
+        "'each to their own'",
+        "a blessing for EKS operations",
+        "Full backup and recovery",
+        "'one-click disaster recovery'",
+        "Policy-driven management",
+        "essential for enterprise data protection"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/0006486543a9f76a",
+    "title": "Enabling Any Model to Access Perplexity Web Search via Vercel AI Gateway",
+    "fields": {
+      "marketTake": [
+        "more stable service, lower cost, and stronger ecosystem",
+        "leading cloud provider LLM APIs",
+        "network stability and payment convenience",
+        "mass adoption in China",
+        "customized services and local support",
+        "backup option for overseas teams"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000642e8f8c1582e",
+    "title": "5 Million Downloads: Can 'Serialized Novel' Bring Classic Emojis Back to Life?",
+    "fields": {
+      "highlights": ["", "", "", "", "", ""]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/00064843bfbfba08",
+    "title": "Product Push: Optimize Vue Official Website SEO in One Day? I Fixed It in Half a Day (Without Rebuilding Nuxt)",
+    "fields": {
+      "critiques": [
+        "Data Real-time Limitation",
+        "highly real-time",
+        "frequently changing",
+        "Build Time and Resource Consumption",
+        "build time",
+        "resource consumption",
+        "Absolutely Not Suitable",
+        "highly personalized, real-time updated",
+        "SSR (Server-Side Rendering) or ISR capabilities"
+      ],
+      "marketTake": [
+        "lightweight SSG solution",
+        "high practical value",
+        "low learning and migration costs",
+        "broad implementation potential",
+        "rapidly enhance marketing efficiency",
+        "SEO solution for specific sub-sites"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000647c4541b8238",
+    "title": "LogicFlow Interaction Upgrade: Goodbye Straight Lines, Hello Smooth Bézier Curve Preview!🍫",
+    "fields": {
+      "highlights": [
+        "discontinuity",
+        "smoothness of editing",
+        "render SVG elements on demand",
+        "unification of control point calculations",
+        "logic",
+        "avoiding jitter"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/0006435f7a75fa46",
+    "title": "Snowflake Launches Hosted MCP Server, Fully Supporting Secure and Governed Data Agents",
+    "fields": {
+      "highlights": [
+        "MCP (Model Context Protocol)",
+        "standardizing AI agents' data access",
+        "Hosted Services and Unified Governance",
+        "data security compliance",
+        "Cortex Ecosystem Integration",
+        "enriching the AI agent's context"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000646b23d4ef581",
+    "title": "Bringing Sustainability Back into the Conversation: CNCF Cloud Native Sustainability Month Event in Tokyo",
+    "fields": {
+      "highlights": [
+        "Standardization of SCI for AI",
+        "cost optimization and green transformation",
+        "Transitioning FinOps to GreenOps",
+        "potentially reducing long-term operational costs",
+        "Real-time Energy Insights",
+        "precise resource management"
+      ],
+      "critiques": [
+        "High Short-term Investment Costs",
+        "high short-term costs",
+        "leading to weak implementation drive",
+        "Challenges in Standard Implementation",
+        "global unified standards and implementation details",
+        "Risk of Vendor 'Green' Marketing",
+        "marketing promotion"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/0006447a3f76997c",
+    "title": "Pain Points in Terminal Usage",
+    "fields": {
+      "highlights": [
+        "deep dependence",
+        "common pain points",
+        "Switching terminal systems is difficult",
+        "inconsistent history command records",
+        "real-life scenario",
+        "poor discoverability",
+        "steep learning curve"
+      ],
+      "critiques": [
+        "unscientific",
+        "survivorship bias",
+        "specific solutions",
+        "silver bullet",
+        "color configuration",
+        "cognitive lag"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000648d3101a3abb",
+    "title": "Still Using .map().filter() Blindly? Real-World Test Shows Memory Usage Drops by 99% by Switching to Iterator Helpers",
+    "fields": {
+      "highlights": [
+        "Iterator Helpers",
+        "90%+ performance improvements",
+        "lazily evaluated",
+        "lazily evaluated",
+        "use cases",
+        "non-applicable cases"
+      ],
+      "marketTake": [
+        "lazy evaluation and streaming processing",
+        "Iterator Helpers",
+        "native-level support",
+        "Iterator Helpers",
+        "better low-level implementation support",
+        "applications dealing with large frontend data and seeking extreme performance optimization",
+        "complexity may outweigh the benefits"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000647ee3fbf571b",
+    "title": "Critique of Iceberg REST Catalog: A Classic Case of Why Semantic Specifications Fail",
+    "fields": {
+      "highlights": [
+        "semantic interoperability",
+        "operational interoperability",
+        "operational SLA",
+        "inability of query engines to plan effectively",
+        "high concurrency contention",
+        "standardized freshness model"
+      ],
+      "critiques": [
+        "Critical Flaw",
+        "unusable",
+        "high requirements for real-time and consistency",
+        "unacceptable",
+        "\"non-standard\" aspects are precisely the biggest problem",
+        "unethical",
+        "lack of practical experience",
+        "stability and predictability"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000647f0c24cc302",
+    "title": "How to Develop an MCP Server for Frontend - A Security Audit Practical Project Introduction",
+    "fields": {
+      "critiques": [
+        "'standardization' and 'generality'",
+        "'limited experimental'",
+        "'TCP/IP'",
+        "serious performance and stability issues",
+        "large-scale and high-concurrency scenarios",
+        "security vulnerabilities being missed or falsely reported"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000647e42e1d211c",
+    "title": "We Built a Lane Detection Tool Using the New Ring Appstore API",
+    "fields": {
+      "critiques": [
+        "marketing and demonstration",
+        "real value",
+        "mass commercialization",
+        "privacy and security issues",
+        "critical concerns",
+        "difficult to assess the true development experience and scalability"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000647e1a9f76ec8",
+    "title": "My Favorite 2025 Music Discoveries",
+    "fields": {
+      "critiques": [
+        "irrelevant",
+        "waste of everyone's time",
+        "nothing to do with the tech community",
+        "watered-down content",
+        "self-promotion",
+        "out of sync"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000647e1a9f76ec7",
+    "title": "Fragment: January 8th",
+    "fields": {
+      "highlights": [
+        "debugging, understanding existing code",
+        "implementing new features",
+        "TDD (Test-Driven Development)",
+        "critical enforcement mechanism",
+        "human-in-the-loop",
+        "feedback loop"
+      ],
+      "critiques": [
+        "code quality, maintenance costs, and intellectual property",
+        "specific methodologies",
+        "higher productivity gains",
+        "general talk",
+        "trustworthiness",
+        "critical flaw"
+      ],
+      "marketTake": [
+        "productivity advantages",
+        "mature architect",
+        "rational thinking",
+        "audibility, security",
+        "integration into complex legacy systems",
+        "core challenges",
+        "no perfect solution"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000647e280a4f872",
+    "title": "A 25-Year-Old Frontend Developer's Year-End Review: From 'Hanging Around' to 'Technical Expert'",
+    "fields": {
+      "critiques": [
+        "'upward mobility'",
+        "package success as glossy and avoid mentioning the hidden trial-and-error costs",
+        "demo-level",
+        "large gap from production-grade applications",
+        "a way to romanticize the difficulty",
+        "ordinary developers",
+        "spread channels"
+      ],
+      "marketTake": [
+        "career advancement",
+        "personal brand building",
+        "massive commercial scenarios",
+        "business-driven",
+        "demo and exploration stage",
+        "core productivity tools"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/0006461077c81219",
+    "title": "Taichu Yuanqi + PaddleScience: Minute-Level High-Resolution Weather Forecasting Solution Goes Live",
+    "fields": {
+      "highlights": [
+        "AI for Science Deployment",
+        "100x efficiency boost",
+        "traditional scientific computing",
+        "Domestic Hardware-Software Integration",
+        "AI computing domestication",
+        "model adaptation",
+        "Enhanced Forecasting Capabilities",
+        "strong potential"
+      ],
+      "marketTake": [
+        "key battleground",
+        "domestic hardware-software ecosystem integration",
+        "penetrate more niche scenarios",
+        "long-tail application",
+        "policy support and development potential",
+        "clear signal"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000646008af1bd1a",
+    "title": "Top AI Agentic Workflow Patterns",
+    "fields": {
+      "highlights": [
+        "Reflection Pattern (Reflective Pattern)",
+        "core method",
+        "Tool Use Pattern (Tool Utilization Pattern)",
+        "qualitative leap",
+        "ReAct Pattern (Reason and Act)",
+        "foundation for complex tasks",
+        "Planning Pattern (Planning Pattern)",
+        "Multi-Agent Pattern (Multi-Agent Collaboration)",
+        "ultimate form",
+        "large-scale, complex AI systems",
+        "a combination of multiple patterns",
+        "programmable, tunable intelligent unit"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000648f3c14cb841",
+    "title": "2025 Year Vue Ecosystem Star Projects",
+    "fields": {
+      "critiques": [
+        "Vue2 projects",
+        "ecosystem compatibility",
+        "Rolldown",
+        "Oxc",
+        "toolchain stability",
+        "debugging experience"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000648cee43ec5e0",
+    "title": "Menguan LongCat-Flash-Thinking-2601 Released, Tool Calling Capabilities Lead Open Source SOTA!",
+    "fields": {
+      "marketTake": [
+        "Zhipu AI",
+        "Wenxin Yiyan",
+        "Agent capabilities",
+        "OpenAI GPTs",
+        "LlamaIndex",
+        "LangChain",
+        "extreme performance",
+        "customization",
+        "tool calling capabilities"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000647d871c82408",
+    "title": "Docker Kanvas Challenges Helm and Kustomize for Kubernetes Leadership",
+    "fields": {
+      "critiques": [
+        "Critical Flaw",
+        "extremely mature and competitive market",
+        "Migration costs",
+        "ecosystem integration challenges",
+        "advanced customization scenarios",
+        "community appeal"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000647ebb8a174f4",
+    "title": "The Weekly Tech Review (Issue 380): Why People Embrace \"Asymmetric Returns\"",
+    "fields": {
+      "critiques": [
+        "Risk of asymmetric returns",
+        "insufficient warnings",
+        "Vendor lock-in",
+        "Algorithmic black box of the food delivery platform",
+        "authenticity and universality",
+        "lacking authoritative validation"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/0006466522d7b5f9",
+    "title": "EP194: The Evolution of HTTP",
+    "fields": {
+      "highlights": [
+        "HTTP/3 (QUIC)",
+        "out of step",
+        "Core Performance Metrics",
+        "core formula",
+        "Nginx's Versatile Capabilities",
+        "cost-effective and efficient"
+      ],
+      "critiques": [
+        "Lack of Depth",
+        "Intrusive Advertisements",
+        "too forced",
+        "Link up",
+        "'Over to you' is Superfluous",
+        "trivial"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000648fdd289d87e",
+    "title": "Essential Knowledge for Distributed Systems",
+    "fields": {
+      "critiques": [
+        "common knowledge",
+        "quantify the impact of such failures",
+        "consensus protocols (like Raft, Paxos)",
+        "limited to theoretical concepts, detached from real-world implementation",
+        "complexity of two-phase and three-phase commit protocols",
+        "CAP theorem",
+        "critical and unavoidable points"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/0006490e930ef28b",
+    "title": "CNCF: Four Pillars of Autonomous Enterprise and Platform Control in 2026",
+    "fields": {
+      "highlights": [
+        "AI Agent's role upgrade",
+        "provisioning, security, and incident response",
+        "Four pillars of platform control",
+        "Golden Path",
+        "Guardrails",
+        "Safety Net",
+        "Human Review Workflows",
+        "AI will automate FinOps"
+      ],
+      "critiques": [
+        "too idealistic",
+        "AI decision transparency, explainability, and potential biases",
+        "Balancing autonomy and control",
+        "over-automation could lead to catastrophic consequences",
+        "vendor hype",
+        "edge cases and complex dependencies"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000648fdd289d87a",
+    "title": "Beyond Generative AI: The Rise of Agentic AI and User-Centered Design",
+    "fields": {
+      "critiques": [
+        "'autonomous decision-making' boundary",
+        "issue of responsibility attribution",
+        "time-consuming research methods",
+        "a stack of algorithms and data",
+        "complex rules and probabilities",
+        "ethical and security vulnerabilities",
+        "AI hallucination problem"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000648f8c83478a1",
+    "title": "How to Implement Trail Effects? Cocos: Ready-to-Use!",
+    "fields": {
+      "critiques": [
+        "limited flexibility and performance optimization potential",
+        "black box",
+        "underlying implementation principles, performance costs, and memory usage",
+        "unpredictable issues",
+        "basic tutorial-level",
+        "deep technical brief",
+        "'water article'",
+        "something it should inherently support"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/00064847ec4b0b78",
+    "title": "Stop Choosing Sides: Managing the Tension Between Adaptation and Optimization",
+    "fields": {
+      "critiques": [
+        "Gap between theory and practice",
+        "complex organizational cultures",
+        "rigid hierarchical systems",
+        "'Handoff Tax' is inevitable",
+        "Not suitable for use",
+        "politically charged",
+        "departmentally siloed"
+      ],
+      "marketTake": [
+        "'Build-Run-Measure'",
+        "break away from rigid thinking",
+        "enhance organizational resilience",
+        "rapid iterative innovation",
+        "stable reliable operations",
+        "deep organizational transformation",
+        "sustained leadership investment"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/00064843bfbfba0a",
+    "title": "Modi Factory 028 Week AI Application Ranking: AI 'Body' Awakening, from Industrial Frontlines to Emotional Companionship",
+    "fields": {
+      "critiques": [
+        "Technical maturity vs. commercialization gap",
+        "early commercialization",
+        "mass market adoption",
+        "overmarketing risks",
+        "Absolutely not suitable",
+        "mass deployment",
+        "complete replacement of human labor",
+        "cost-effectiveness"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/00064848c57d18a8",
+    "title": "Best Practices for Creating and Reorganizing Data with Attached Storage Volumes in Amazon RDS for Oracle",
+    "fields": {
+      "critiques": [
+        "Increased management complexity",
+        "operational burden",
+        "Oracle EE limitations",
+        "Core file restrictions",
+        "core database components",
+        "Risk of degradation"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/0006484715a9b0dc",
+    "title": "The Internet Shutdown Event in Iran: What We Know",
+    "fields": {
+      "critiques": [
+        "Incapable of resisting national-level internet control",
+        "virtually powerless",
+        "limited value for real-time warnings or interventions",
+        "technical evidence",
+        "Never rely on",
+        "counter internet shutdowns under political decisions",
+        "no reliable backup plan",
+        "extreme scenarios"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000648661aeef259",
+    "title": "Skill is Amazing! 5 Minutes to Create a Tarot Card App for My Girlfriend",
+    "fields": {
+      "critiques": [
+        "'5-minute demo'",
+        "extensive manual refactoring and optimization",
+        "'black box' problem",
+        "highly creative and complex interaction",
+        "creativity boundaries",
+        "risk of deviation"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/00064726c0072356",
+    "title": "Achieving 20x Compression and Cost Reduction, How Does Tencent Cloud TDSQL Boundless Do It? | Q Recommendation",
+    "fields": {
+      "critiques": [
+        "vendor marketing jargon",
+        "increased middleware complexity",
+        "specific read/write mode limitations",
+        "cross-region data synchronization latency",
+        "consistency guarantees",
+        "'Transparent distributed architecture'",
+        "SQL compatibility",
+        "performance degradation for complex queries",
+        "not all MySQL features can be seamlessly migrated",
+        "external customer migration and implementation costs"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/00064637094c4a4d",
+    "title": "The Return on Investment of Generative AI Exceeds Expectations",
+    "fields": {
+      "marketTake": [
+        "scalable application",
+        "value monetization",
+        "underlying technical analysis",
+        "data management strategies",
+        "controllable agents",
+        "concept hype"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/00064628c69ec80b",
+    "title": "Meta's New AI Advertising Model GEM Boosts Conversion Rates by 5%",
+    "fields": {
+      "highlights": [
+        "Core Challenges and Solutions in Large Model Deployment",
+        "challenge of real-time inference with large models",
+        "Advanced Application of Knowledge Distillation",
+        "how effectively knowledge is transferred",
+        "Unified User Understanding",
+        "comprehensive, long-term, multi-modal understanding",
+        "advanced approach"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/0006496412741054",
+    "title": "Implementing File Integrity Monitoring Using AWS Systems Manager and Amazon Security Lake",
+    "fields": {
+      "marketTake": [
+        "core requirement",
+        "Aliyun and Tencent Cloud",
+        "Aliyun's Host Security (HSS)",
+        "T-Sec Host Security",
+        "OCSF standard",
+        "extreme real-time performance and lower operational costs"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000647038b785896",
+    "title": "AI Generates WeChat Official Account Comics, Making Over 400 USD Daily!",
+    "fields": {
+      "highlights": [
+        "Structured Prompt Engineering",
+        "content consistency",
+        "batch generation",
+        "AI Tool Selection and Iteration",
+        "Low-Cost Content Monetization",
+        "efficient traffic conversion and commercial returns"
+      ],
+      "critiques": [
+        "Platform Recommendation Dependency",
+        "recommendation mechanism",
+        "unstable traffic sources",
+        "Risk of Content Homogenization",
+        "increasing competition",
+        "AI Tool Stability",
+        "copyright risks",
+        "pricing models"
+      ],
+      "marketTake": [
+        "huge potential",
+        "UGC (User-Generated Content)",
+        "MCN (Multi-Channel Network)",
+        "structured prompt",
+        "reducing human costs",
+        "traffic booms",
+        "core competitiveness"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/0006451935765367",
+    "title": "Doubao Mobile Assistant's Underlying System Exposed as SmartisanOS! Official Late Night Response to WeChat Login Anomalies and Privacy Concerns",
+    "fields": {
+      "highlights": [
+        "out-of-the-box",
+        "strong demand",
+        "nostalgic hit",
+        "technical route selection",
+        "operate the phone",
+        "compliant design"
+      ],
+      "critiques": [
+        "pass the buck",
+        "ethical concerns",
+        "compatibility risk",
+        "WeChat's position",
+        "significant challenges",
+        "simulating human operation",
+        "reading the screen",
+        "intrusion",
+        "technical clarification",
+        "emotional reassurance"
+      ],
+      "summary": [
+        "classic",
+        "continuous controversies",
+        "shell company",
+        "AI product compliance and risk management",
+        "technical preview, not for general consumers",
+        "patch",
+        "immaturity",
+        "poor user experience"
+      ],
+      "marketTake": [
+        "AI phones and AI assistants",
+        "traffic drivers",
+        "intelligent agents",
+        "compatibility with existing ecosystems",
+        "non-negotiable barriers",
+        "win user trust",
+        "balance innovation with risk",
+        "wildly grow",
+        "peaceful coexistence",
+        "short-lived gimmick",
+        "high-risk test",
+        "costly lesson"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/00064434601c3b14",
+    "title": "Frontend is Dead, AI is Rising: Gemini 3 Writes a Stick Figure Shooting Game",
+    "fields": {
+      "critiques": [
+        "art style of stick figures",
+        "originality bottleneck",
+        "iteration efficiency",
+        "code quality",
+        "maintainability",
+        "maintenance cost"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/0006447e25ab2297",
+    "title": "Opening the Black Box of Financial Markets with AI: How Microsoft Asia Research Institute Builds Order-Level Simulation Engine MarS",
+    "fields": {
+      "critiques": [
+        "LLM Uncertainty",
+        "major obstacle",
+        "Real-Time Bottleneck",
+        "unacceptable",
+        "performance",
+        "Complexity of Integration"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000642e295dd1b23",
+    "title": "Introduction to the AWS European Sovereign Cloud White Paper Overview",
+    "fields": {
+      "highlights": [
+        "strategic highlights",
+        "Sovereign Control Hard-core Guarantees",
+        "essential capabilities",
+        "future global cloud services",
+        "Full Service Without Discounts",
+        "Strategic Heavy Investment"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000644f4557a242d",
+    "title": "Cost Savings of 30% and Efficiency Gains of 200%: Decoding Starbucks' Log Platform Optimization",
+    "fields": {
+      "critiques": [
+        "resolution strategies",
+        "decision trade-offs",
+        "deepest pit",
+        "engineering basics",
+        "canary releases",
+        "seamless switching",
+        "automated operations"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/0006464e812b15eb",
+    "title": "Another NVIDIA Blackwell GPU Launch, Enabling Complex AI Workflows Locally",
+    "fields": {
+      "highlights": [
+        "core highlight",
+        "exponential growth",
+        "50% increase",
+        "qualitative leap",
+        "data security and iteration efficiency",
+        "blessing"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/00064529f74fe332",
+    "title": "My First KubeCon + CloudNativeCon Experience: Community, Inclusiveness, and Neurodiversity",
+    "fields": {
+      "marketTake": [
+        "inclusiveness and diversity",
+        "maturity level",
+        "deep psychological support",
+        "respect for individual differences",
+        "international competitiveness",
+        "brand image"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000644ed9f22dafc",
+    "title": "I Built an Infinite Rogue Game Using Trae SOLO: A Full Experience from Idea to Prototype",
+    "fields": {
+      "highlights": [
+        "core value shift",
+        "From 'writing code' to 'describing mechanics'",
+        "Structured and scalable development",
+        "spaghetti code",
+        "Non-linear development process",
+        "polish"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000645a88a9b0970",
+    "title": "2025 Tencent Cloud TencentOS Success Case Selection: Enabling Seamless Replacement and Intelligent Upgrades of Domestic OS",
+    "fields": {
+      "critiques": [
+        "promotion article",
+        "Seamless replacement",
+        "seamless replacement",
+        "impossible",
+        "reducing perception",
+        "pain points and solutions"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/0006473d61c9a4cf",
+    "title": "Solving the AI \"Not Coordinating\" Challenge! Ant Financial Science Publishes 20+ Papers at Top Conferences, Conquering Key Technologies for Large-Scale Intelligent Collaboration",
+    "fields": {
+      "marketTake": [
+        "some research foundation",
+        "mature products are scarce",
+        "paper level",
+        "technical validation",
+        "system trust costs",
+        "higher risk than potential returns"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/0006461077c8121c",
+    "title": "Codex Team Discredits Cursor CEO's 'Specification-Driven Development' Theory! 18-Day Sora Hit, Powered by AI Agents Running 24/7, Reveals OpenAI's Secret",
+    "fields": {
+      "highlights": [
+        "Codex Core Architecture",
+        "model, API, and framework",
+        "Breakthrough in Long-Running Tasks",
+        "key reference",
+        "User Experience Iteration",
+        "product adoption"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000643564169fd35",
+    "title": "Amazon Keyspaces Now Supports Logged Batches, Enabling Atomic Multi-Statement Operations",
+    "fields": {
+      "marketTake": [
+        "capture the existing market",
+        "more convenient and cost-effective",
+        "align features and optimize performance",
+        "compatibility traps",
+        "core capability",
+        "'atomicity' and 'high performance' are often mutually exclusive"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000648fa74e43222",
+    "title": "AI Native Workspace Might Be the Next Stage for Agents",
+    "fields": {
+      "critiques": [
+        "security",
+        "significant risks to personal data and system security",
+        "never be used without limits",
+        "advanced prompt engineering",
+        "unexpected 'stupid' behaviors",
+        "blurs the transparency and controllability",
+        "auditing, tracing, or precise control",
+        "critical flaw",
+        "'technical showmanship'",
+        "AI's stability and predictability have not yet reached the required level"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000642acf1f1012e",
+    "title": "HarmonyOS Official Template Excellent Case (Issue 12: Smart Devices · Smart Home)",
+    "fields": {
+      "marketTake": [
+        "deep waters",
+        "lower development barriers",
+        "user experience",
+        "ecosystem openness",
+        "break through",
+        "highly fragmented"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/00064627197fa175",
+    "title": "Implicit Type Conversion: Is Hachimi == Cat? True or False",
+    "fields": {
+      "highlights": ["ToPrimitive", "valueOf()", "toString()", "'+' operator", "'=='", "true"]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000646601912f494",
+    "title": "Implicit Type Coercion: Hachimi == Cat? True or False",
+    "fields": {
+      "highlights": ["ToPrimitive", "valueOf()", "toString()", "'+' operator", "'=='", "true"]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/00064726c0072359",
+    "title": "Building the Foundation for AI Strategy: From Data Collection to AI-Ready Data Engineering Transformation",
+    "fields": {
+      "highlights": [
+        "Unified Data Foundation",
+        "reducing data silos and enhancing data interoperability",
+        "Modern Data Pipelines",
+        "simplifying pipeline maintenance and improving data processing efficiency and security",
+        "AI-Ready Capabilities",
+        "accelerating the development of RAG and AI applications"
+      ],
+      "critiques": [
+        "Platform Lock-in",
+        "highly dependent on the Snowflake ecosystem",
+        "High Cost",
+        "high computing and storage costs",
+        "Data Security and Compliance",
+        "Snowflake's international background may pose compliance challenges"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/0006447ba0d0d8ad",
+    "title": "Is Win11 Nearly 'Disabled'? Microsoft Admits Multiple Core Functions Have Failed, Blaming AI Programming?",
+    "fields": {
+      "critiques": [
+        "pursue trends",
+        "concentration of technical debts",
+        "simplistic and harsh",
+        "human quality control",
+        "investment in testing processes",
+        "developer-friendly",
+        "changing for the sake of change"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000644903bae0cd5",
+    "title": "Data Engineering Weekly #238",
+    "fields": {
+      "highlights": [
+        "Dagster Components GA",
+        "lowering the data engineering barrier",
+        "The Six Pillars of AI-Ready Data",
+        "data is the foundation of AI, but is often underestimated",
+        "LLM Evaluation Guide",
+        "the maturity of the evaluation system",
+        "Skepticism Toward the MCP Protocol",
+        "controversies over the future of AI Agent protocols"
+      ],
+      "critiques": [
+        "Too Much Sponsored Content",
+        "information density and objectivity",
+        "Insufficient Detail from CERN",
+        "actual information value limited",
+        "Potential Complexity of Dagster Components",
+        "debugging complexity"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/0006473d61c9a4d6",
+    "title": "After Manus 'Selling Out': Enterprise-level Agents Will Be More Like Software, Not Magic",
+    "fields": {
+      "critiques": [
+        "Agentic RAG",
+        "Multi-Agent",
+        "costly",
+        "heavy burden",
+        "inflated",
+        "limited reference value",
+        "soft article concerns"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000647ee3fbf571a",
+    "title": "Just Now, AI Company IPO Record Broken! MiniMax's Technical Ambition, Valuation Exceeds 80 Billion",
+    "fields": {
+      "marketTake": [
+        "in the first tier domestically",
+        "direct competition from OpenAI and Anthropic",
+        "uniqueness in its technical approach and business model",
+        "'qualification race'",
+        "'elimination race'",
+        "technical depth, commercialization capability, and cost control"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000647ee3fbf5716",
+    "title": "DeepSeek-V3.2 Outperforms GPT-5 in Reasoning Tasks",
+    "fields": {
+      "critiques": [
+        "stability and generalization capability",
+        "world knowledge breadth",
+        "complex task-solving ability",
+        "enterprise-level applications",
+        "applications requiring extreme performance and high concurrency",
+        "open-source model"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000647e280a4f873",
+    "title": "Zhixuan Releases 2026 Top 10 AI Technology Trends: World Models Become Consensus Direction for AGI",
+    "fields": {
+      "critiques": [
+        "'AI scientists'",
+        "'industrial applications sliding into a period of disillusionment'",
+        "'V-shaped reversal'",
+        "too optimistic",
+        "'realism gap'",
+        "constraints in computing power, data, and talent"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000647b03651b4a1",
+    "title": "Want Your Web Page to Load Instantly? These CSS Optimization Techniques Will Help",
+    "fields": {
+      "marketTake": [
+        "CSS isolation and optimization",
+        "micro frontend architecture",
+        "critical CSS extraction",
+        "SSR/SSG",
+        "performance best practices",
+        "frontend frameworks (such as Vue/React)",
+        "engineering toolchains"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/0006484642282196",
+    "title": "How Uber Conquered Database Overload: An Evolutionary Journey from Static Rate Limiting to Smart Load Management",
+    "fields": {
+      "highlights": [
+        "close to the storage node",
+        "controlling latency",
+        "adaptive LIFO",
+        "Cinnamon smart load unloader",
+        "priority-aware",
+        "\"Bring Your Own Signal\" (BYOS)"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/00064843bfbfba09",
+    "title": "Increased Build Cache Storage for Large Build Types",
+    "fields": {
+      "marketTake": [
+        "continuous integration/deployment",
+        "npm/yarn/pnpm",
+        "Vite/Webpack",
+        "optimizing project-level dependency management",
+        "build configuration",
+        "self-controlled engineering capabilities"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/0006438531fd0d94",
+    "title": "Forced Creativity? OpenAI's Newly Released GPT-5.1 Sparks Online Criticism: I Don't Want to Chat with It, I Want to Use It for Work",
+    "fields": {
+      "marketTake": [
+        "'important warning'",
+        "'tool'",
+        "'cost reduction and efficiency enhancement'",
+        "'productivity multiplier'",
+        "'diverting from their primary purpose'",
+        "'pragmatism'",
+        "'emotionalism'",
+        "'efficient, seamless, and reliable'",
+        "'deep thinking capabilities'"
+      ]
+    }
+  },
+  {
+    "id": "tag:google.com,2005:reader/item/000644733db58ec3",
+    "title": "Everything You Need to Know About Amazon Aurora DSQL That You Don't",
+    "fields": {
+      "marketTake": [
+        "\"why distributed SQL is needed\"",
+        "\"what problems distributed SQL can solve\"",
+        "patience and commitment in technical evangelism",
+        "\"can I use it\"",
+        "\"how is it implemented\"",
+        "technical decision-making"
+      ]
+    }
+  }
+]

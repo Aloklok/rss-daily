@@ -14,7 +14,7 @@ interface UIStoreState {
   modalInitialMode: 'briefing' | 'reader';
 
   // Actions
-  setActiveFilter: (filter: Filter | null) => void;
+  setActiveFilter: (filter: Filter | null, preserveState?: boolean) => void;
   setTimeSlot: (slot: TimeSlot | null) => void;
   setVerdictFilter: (filter: string | null) => void;
   setSelectedArticleId: (id: string | number | null) => void;
@@ -53,18 +53,22 @@ export const useUIStore = create<UIStoreState>((set) => ({
   modalArticleId: null,
   modalInitialMode: 'briefing',
 
-  setActiveFilter: (filter) => {
+  setActiveFilter: (filter, preserveState = false) => {
     set((state) => {
       // Only reset timeSlot and verdictFilter if the filter has actually changed.
       // This prevents redundant syncs (like the one in useFilters.ts) from wiping the active timeSlot.
       const isFilterSame =
         state.activeFilter?.type === filter?.type && state.activeFilter?.value === filter?.value;
 
+      // If preserveState is true, we keep the existing slot/verdict.
+      // Otherwise, we fallback to the "same filter check" logic.
+      const shouldPreserve = preserveState || isFilterSame;
+
       return {
         activeFilter: filter,
         selectedArticleId: null,
-        timeSlot: isFilterSame ? state.timeSlot : null,
-        verdictFilter: isFilterSame ? state.verdictFilter : null,
+        timeSlot: shouldPreserve ? state.timeSlot : null,
+        verdictFilter: shouldPreserve ? state.verdictFilter : null,
       };
     });
   },

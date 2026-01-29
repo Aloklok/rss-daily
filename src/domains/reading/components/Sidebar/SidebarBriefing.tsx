@@ -96,7 +96,14 @@ const SidebarBriefing: React.FC<SidebarBriefingProps> = ({
     }
     // Pathname based matching for Date
     // Current Format: /date/2025-01-26 or /en/date/2025-01-26
-    return pathname?.includes(`/date/${value}`);
+    if (pathname?.includes(`/date/${value}`)) {
+      return true;
+    }
+
+    // 首页逻辑：如果在首页且没有其他激活的过滤器，则高亮“今天”
+    const isHomepage = pathname === '/' || pathname === '/en' || pathname === '/en/';
+    const today = getTodayInShanghai();
+    return isHomepage && !activeFilter && value === today;
   };
 
   const currentMonth = getTodayInShanghai().substring(0, 7);
@@ -154,12 +161,13 @@ const SidebarBriefing: React.FC<SidebarBriefingProps> = ({
                 key={date}
                 href={dict.lang === 'zh' ? `/date/${date}` : `/en/date/${date}`}
                 onClick={() => onDateSelect(date)}
-                className={`group flex w-full items-center justify-between rounded-lg border border-transparent px-4 py-2 text-left transition-all duration-200 ${isActive
-                  ? 'bg-indigo-600 text-white shadow-md'
-                  : isCompleted && isAdmin
-                    ? 'dark:hover:bg-midnight-card text-gray-400 hover:bg-gray-100 dark:text-gray-500'
-                    : 'dark:hover:bg-midnight-card text-gray-700 hover:bg-gray-100 dark:text-gray-200'
-                  } cursor-pointer`}
+                className={`group flex w-full items-center justify-between rounded-lg border border-transparent px-4 py-2 text-left transition-all duration-200 ${
+                  isActive
+                    ? 'bg-indigo-600 text-white shadow-md'
+                    : isCompleted && isAdmin
+                      ? 'dark:hover:bg-midnight-card text-gray-400 hover:bg-gray-100 dark:text-gray-500'
+                      : 'dark:hover:bg-midnight-card text-gray-700 hover:bg-gray-100 dark:text-gray-200'
+                } cursor-pointer`}
               >
                 <div className="flex items-center gap-3">
                   <StatusIcon
@@ -174,10 +182,11 @@ const SidebarBriefing: React.FC<SidebarBriefingProps> = ({
                   </span>
                 </div>
                 <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${isActive
-                    ? 'bg-white/20 text-white'
-                    : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200 dark:bg-black/20 dark:text-gray-500 dark:group-hover:bg-black/40'
-                    }`}
+                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                    isActive
+                      ? 'bg-white/20 text-white'
+                      : 'bg-gray-100 text-gray-500 group-hover:bg-gray-200 dark:bg-black/20 dark:text-gray-500 dark:group-hover:bg-black/40'
+                  }`}
                 >
                   {displayDayOfWeekPart}
                 </span>
@@ -206,7 +215,9 @@ const SidebarBriefing: React.FC<SidebarBriefingProps> = ({
           <div className="dark:bg-midnight-card dark:border-midnight-border pointer-events-none flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-gray-700 shadow-xs transition-all duration-200 group-hover:border-indigo-300 dark:text-gray-200 dark:group-hover:border-indigo-700">
             <div className="flex items-center gap-2">
               <span className="text-gray-400 dark:text-gray-500">📅</span>
-              <span className="text-sm font-semibold">{formatMonthForDisplay(selectedMonth, dict)}</span>
+              <span className="text-sm font-semibold">
+                {formatMonthForDisplay(selectedMonth, dict)}
+              </span>
             </div>
             <svg
               className="h-4 w-4 text-gray-400 transition-colors group-hover:text-indigo-500 dark:text-gray-500"

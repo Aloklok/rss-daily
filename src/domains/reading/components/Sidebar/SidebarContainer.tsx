@@ -34,14 +34,12 @@ export default function SidebarClient({
   // Sync URL state to Store (handle language switch / refresh)
   React.useEffect(() => {
     const filter = resolveFilterFromPathname(pathname);
-    // If URL implies a filter, force it.
-    // If URL is root or unknow, filter is null, which is also correct for "All" view usually.
-    // But we might want to respect "Initial Load" logic if it's complex.
-    // For now, if resolved filter is non-null, use it.
-    // If activeFilter is already set matching this, setActiveFilter handles dedup internally.
-    if (filter) {
-      setActiveFilter(filter);
-    }
+    // Always sync store with URL state.
+    // If filter is null (e.g. Homepage), we MUST clear the active filter
+    // so that the "Today" highlighting logic in SidebarBriefing (which expects !activeFilter) works.
+    // However, on Homepage we want to PRESERVE the TimeSlot (morning/evening) if it was set by hydration.
+    // So we pass preserveState: true only when filter is null.
+    setActiveFilter(filter, !filter);
   }, [pathname, setActiveFilter]);
 
   const {

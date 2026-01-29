@@ -20,7 +20,10 @@ dotenv.config({ path: '.env.local' });
 
 import { createClient } from '@supabase/supabase-js';
 import { translateBatchAndSave } from '../src/domains/intelligence/services/translate';
-import { DEFAULT_TRANSLATION_MODEL } from '../src/domains/intelligence/constants';
+import {
+  DEFAULT_TRANSLATION_MODEL,
+  HUNYUAN_TRANSLATION_MODEL,
+} from '../src/domains/intelligence/constants';
 
 const supabaseUrl = process.env.SUPABASE_URL!;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -29,11 +32,13 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 // 解析命令行参数
 const limitArg = process.argv.find((arg) => arg.startsWith('--limit='));
 const limit = limitArg ? parseInt(limitArg.split('=')[1], 10) : undefined;
+const isSingle = process.argv.includes('--single');
 
 // 配置
-const BATCH_SIZE = 5; // 每批次翻译 5 篇
-const CONCURRENCY = 3; // 并发请求数，加速整体进度
-const DELAY_BETWEEN_BATCHES_MS = 1000; // 批次间隔稍微缩小
+const BATCH_SIZE = isSingle ? 1 : 5; // 如果开启 --single，则逐篇处理
+const CONCURRENCY = isSingle ? 1 : 3; // 逐篇处理时降低并发，确保稳定性
+const CURRENT_MODEL = isSingle ? HUNYUAN_TRANSLATION_MODEL : DEFAULT_TRANSLATION_MODEL;
+const DELAY_BETWEEN_BATCHES_MS = isSingle ? 500 : 1000;
 
 /**
  * 递归获取所有 ID，突破 Supabase 1000 条限制
@@ -72,7 +77,7 @@ async function fetchAllIds(tableName: string, hasSummary: boolean = false) {
 
 async function backfillTranslations() {
   console.log('🌐 Starting backfill translations (Concurrent Mode)...');
-  console.log(`🤖 Model: ${DEFAULT_TRANSLATION_MODEL}`);
+  console.log(`🤖 Model: ${CURRENT_MODEL}${isSingle ? ' (Single Mode 🎯)' : ''}`);
   console.log(`📦 Batch Size: ${BATCH_SIZE} | ⚡ Concurrency: ${CONCURRENCY}`);
 
   if (limit) {
@@ -158,7 +163,7 @@ async function backfillTranslations() {
     }));
 
     try {
-      let result = await translateBatchAndSave(chunk, DEFAULT_TRANSLATION_MODEL);
+      let result = await translateBatchAndSave(chunk, CURRENT_MODEL);
 
       // FALLBACK: If batch fails, try each article individually to isolate "bad" articles
       if (!result.success && chunk.length > 1) {
@@ -167,7 +172,10 @@ async function backfillTranslations() {
         );
         let subSuccess = 0;
         for (const item of chunk) {
-          const subResult = await translateBatchAndSave([item], DEFAULT_TRANSLATION_MODEL);
+          const subResult = await translateBatchAndSave(
+            [item],
+            isSingle ? HUNYUAN_TRANSLATION_MODEL : DEFAULT_TRANSLATION_MODEL,
+          );
           if (subResult.success) {
             subSuccess += subResult.count;
           } else {

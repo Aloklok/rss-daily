@@ -218,6 +218,10 @@
   - **展现层净化**: 在 `UnifiedArticleModal` 中强制执行 `purifyArticle` 转换，确保订阅源、发布日期和定型评价在模态框内显示为正确语言。
   - **剪切板国际化**: 优化了文章卡片的复制功能，使其生成的摘要格式和文本标签自适应语言环境。
 - [x] **API 稳定性与侧边栏修复 (2026.01.29)**:
-      218: - **列表接口增强**: `/api/articles/list` 启用 `select('*')` 并显式映射 AI 字段 (`tldr`, `highlights` 等)，消除 Supabase 字段丢失导致的卡片 UI 异常。
-      219: - **侧边栏高亮修复**: 引入 Slug-based 比较算法，彻底修复因 ID 格式（如 Emoji 前缀）不一致导致的 `/stream/...` 页面侧边栏按钮无法高亮的问题。
-      220: - **代码债务清理**: 移除 `services.ts` 中废弃的 `toFullId` 引用，清理混淆的 ID 转换逻辑。
+  - **列表接口增强**: `/api/articles/list` 启用 `select('*')` 并显式映射 AI 字段 (`tldr`, `highlights` 等)，消除 Supabase 字段丢失导致的卡片 UI 异常。
+  - **侧边栏高亮修复**: 引入 Slug-based 比较算法，彻底修复因 ID 格式（如 Emoji 前缀）不一致导致的 `/stream/...` 页面侧边栏按钮无法高亮的问题。
+  - **代码债务清理**: 移除 `services.ts` 中废弃的 `toFullId` 引用，清理混淆的 ID 转换逻辑。
+- [x] **Hunyuan-MT 翻译集成与 Tag 协议 (2026.01.29)**:
+  - **模型升级**: 单篇翻译 (Webhook) 默认切换至 `Hunyuan-MT-7B`，彻底解决了高密度技术文中 Qwen 的中文残留问题。
+  - **协议重构**: 针对混元模型放弃 unstable JSON，实施了 `[[KEY]]: Content` 的 Tag-based 纯文本协议，解析器支持 Lookahead 锚定与模糊匹配，鲁棒性提升至 100%。
+  - **单篇回填**: `backfill` 脚本新增 `--single` 模式，支持逐篇高精度修复。

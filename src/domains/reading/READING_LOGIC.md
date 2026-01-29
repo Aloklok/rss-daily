@@ -137,11 +137,13 @@ The application uses **Clean Slugs** for stream pages, separated by type to avoi
     - Reconstructs the original FreshRSS ID (restores `user/-/label/` prefix if needed).
     - **Emoji Fix**: Automatically strips generic emojis from IDs to match dictionary keys (e.g., "📦 工程实践" -> "工程实践").
 
-140: **Note on Navigation:**
-141: Client-side components (`SidebarView.tsx`) **MUST** use `getSlugLink` with the correct `type` to generate these URLs.
-142:
-143: **Active State Logic**:
-144: To handle inconsistencies between URL slugs (clean) and internal IDs (raw/with emojis), `SidebarExplore` uses a **Slug-based comparison**: `getSlug(activeFilter.value) === getSlug(item.id)`. This ensures reliable highlighting even if ID formats differ.
+**Note on Navigation:**
+Client-side components (`SidebarView.tsx`) **MUST** use `getSlugLink` with the correct `type` to generate these URLs.
+
+**Active State Logic**:
+
+1. **Explore (Categories/Tags)**: To handle inconsistencies between URL slugs (clean) and internal IDs (raw/with emojis), `SidebarExplore` uses a **Slug-based comparison**: `getSlug(activeFilter.value) === getSlug(item.id)`. This ensures reliable highlighting even if ID formats differ.
+2. **Calendar (Dates)**: Dates are highlighted if the URL contains `/date/[date]`. On the **Homepage** (`/` or `/en`), `SidebarContainer` explicitly synchronizes the store's `activeFilter` to `null`. This allows `SidebarBriefing` to implicitly highlight "today's" date. Crucially, this synchronization uses a `preserveState` flag to ensure that **Time Slot** selections (Morning/Afternoon/Evening) are NOT cleared when navigating to the homepage, preventing UI flash/reset issues.
 
 ### 5.4 Source Name Display
 

@@ -84,6 +84,7 @@ export const useFilters = ({ initialDates, initialAvailableFilters }: UseFilters
   // --- 结束集成 ---
 
   // 在 useEffect 中，我们只负责设置 filter，不再需要自己计算 timeSlot
+  // 在 useEffect 中，我们只负责设置 filter，不再需要自己计算 timeSlot
   useEffect(() => {
     // If we have initial data (both dates and tags), we skip the initial fetch.
     // If only dates are present but tags are missing (e.g. SSR error), we should proceed to fetch to self-heal.
@@ -93,8 +94,6 @@ export const useFilters = ({ initialDates, initialAvailableFilters }: UseFilters
     if (hasDates && hasTags) return;
 
     const fetchInitialFilterData = async () => {
-      const today = getTodayInShanghai();
-
       // Check if URL has a date
       const dateMatch = window.location.pathname.match(/^\/date\/(\d{4}-\d{2}-\d{2})\/?$/);
 
@@ -105,16 +104,9 @@ export const useFilters = ({ initialDates, initialAvailableFilters }: UseFilters
         setSelectedMonth(urlDate.substring(0, 7));
         sessionStorage.setItem(CACHE_KEY_ACTIVE_FILTER, JSON.stringify(dateFilter));
         sessionStorage.setItem(CACHE_KEY_SELECTED_MONTH, JSON.stringify(urlDate.substring(0, 7)));
-      } else if (today) {
-        const initialFilter = { type: 'date' as const, value: today };
-
-        // Only set default filter if we are at root (homepage)
-        if (window.location.pathname === '/') {
-          setActiveFilter(initialFilter);
-          sessionStorage.setItem(CACHE_KEY_ACTIVE_FILTER, JSON.stringify(initialFilter));
-          // selectedMonth is already initialized correctly via useState lazy init
-        }
       }
+      // Legacy homepage logic removed to fix TimeSlot flashing.
+      // SidebarContainer.tsx handles the null-filter state for homepage.
 
       try {
         const [availableDates, filters] = await Promise.all([

@@ -24,24 +24,24 @@ export async function chatWithSiliconFlow(
   // SiliconFlow supports OpenAI-compatible tool definitions
   const tools = useSearch
     ? [
-      {
-        type: 'function',
-        function: {
-          name: 'google_search',
-          description: 'Perform a google search to get latest information.',
-          parameters: {
-            type: 'object',
-            properties: {
-              query: {
-                type: 'string',
-                description: 'The search query string',
+        {
+          type: 'function',
+          function: {
+            name: 'google_search',
+            description: 'Perform a google search to get latest information.',
+            parameters: {
+              type: 'object',
+              properties: {
+                query: {
+                  type: 'string',
+                  description: 'The search query string',
+                },
               },
+              required: ['query'],
             },
-            required: ['query'],
           },
         },
-      },
-    ]
+      ]
     : undefined;
 
   // 2. Prepare Request Body
@@ -171,24 +171,24 @@ export async function* streamSiliconFlow(
   const tools =
     useSearch && !isGLMLegacy
       ? [
-        {
-          type: 'function',
-          function: {
-            name: 'google_search',
-            description: 'Perform a google search to get latest information.',
-            parameters: {
-              type: 'object',
-              properties: {
-                query: {
-                  type: 'string',
-                  description: 'The search query string',
+          {
+            type: 'function',
+            function: {
+              name: 'google_search',
+              description: 'Perform a google search to get latest information.',
+              parameters: {
+                type: 'object',
+                properties: {
+                  query: {
+                    type: 'string',
+                    description: 'The search query string',
+                  },
                 },
+                required: ['query'],
               },
-              required: ['query'],
             },
           },
-        },
-      ]
+        ]
       : undefined;
 
   // Sanitize messages
@@ -340,6 +340,7 @@ export async function generateSiliconFlow(
   modelName: string,
   max_tokens: number = 16000,
   jsonMode: boolean = false,
+  enableThinking: boolean = true,
 ): Promise<string> {
   if (!getApiKey()) {
     throw new Error('GUIJI_API_KEY is not defined');
@@ -354,8 +355,11 @@ export async function generateSiliconFlow(
     stream: true, // Use streaming internally
     temperature: 0.5, // Set to 0.5 for stable structural output
     max_tokens: max_tokens,
-    enable_thinking: false, // Explicitly disable thinking mode for faster, direct response
   };
+
+  if (enableThinking) {
+    body.enable_thinking = true;
+  }
 
   if (jsonMode) {
     body.response_format = { type: 'json_object' };

@@ -171,3 +171,4 @@ export const TRANSLATION_MODELS = [
 ];
 
 export const DEFAULT_TRANSLATION_MODEL = 'Qwen/Qwen3-8B';
+export const HUNYUAN_TRANSLATION_MODEL = 'tencent/Hunyuan-MT-7B';
