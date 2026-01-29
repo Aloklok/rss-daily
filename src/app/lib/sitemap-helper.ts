@@ -19,23 +19,13 @@ export async function getSitemapUrls(lang: 'zh' | 'en' = 'zh'): Promise<SitemapU
       dates = data?.map((d: { date_str: string }) => d.date_str) || [];
     }
   } else {
-    // English needs actual translated content
-    const { data, error } = await supabase
-      .from('articles_view_en')
-      .select('n8n_processing_date')
-      .order('n8n_processing_date', { ascending: false });
+    // English now uses RPC as well to avoid 1000-row limit
+    const { data, error } = await supabase.rpc('get_unique_dates_en');
 
     if (error) {
       console.error('Supabase error fetching EN sitemap dates:', error);
     } else {
-      const uniqueDates = new Set<string>();
-      data?.forEach((row: any) => {
-        if (row.n8n_processing_date) {
-          const dateStr = new Date(row.n8n_processing_date).toISOString().split('T')[0];
-          uniqueDates.add(dateStr);
-        }
-      });
-      dates = Array.from(uniqueDates).sort().reverse();
+      dates = data?.map((d: { date_str: string }) => d.date_str) || [];
     }
   }
 
@@ -53,17 +43,15 @@ export async function getSitemapUrls(lang: 'zh' | 'en' = 'zh'): Promise<SitemapU
     );
 
     if (tagData.tags) {
-      const validItems = tagData.tags.filter(
-        (tag) => {
-          const decodedId = decodeURIComponent(tag.id);
-          return (
-            !tag.id.includes('/state/com.google/') &&
-            !tag.id.includes('/state/org.freshrss/') &&
-            !decodedId.endsWith(UNCATEGORIZED_LABEL) &&
-            !decodedId.endsWith('Uncategorized')
-          );
-        }
-      );
+      const validItems = tagData.tags.filter((tag) => {
+        const decodedId = decodeURIComponent(tag.id);
+        return (
+          !tag.id.includes('/state/com.google/') &&
+          !tag.id.includes('/state/org.freshrss/') &&
+          !decodedId.endsWith(UNCATEGORIZED_LABEL) &&
+          !decodedId.endsWith('Uncategorized')
+        );
+      });
 
       // Categories (Folders)
       categoryUrls = validItems
