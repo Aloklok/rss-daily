@@ -381,12 +381,12 @@ const Briefing: React.FC<BriefingProps> = ({
                     <div className="flex items-center gap-3">
                       {[
                         {
-                          id: '知识洞察型',
+                          id: dict.lang === 'en' ? 'Insight' : '知识洞察型',
                           label: dict.briefing.filters.insight,
                           title: dict.briefing.filters.insight,
                         },
                         {
-                          id: '新闻事件型',
+                          id: dict.lang === 'en' ? 'News' : '新闻事件型',
                           label: dict.briefing.filters.news,
                           title: dict.briefing.filters.news,
                         },
@@ -448,8 +448,14 @@ const Briefing: React.FC<BriefingProps> = ({
               {onVerdictFilterChange && (
                 <div className="flex items-center gap-2">
                   {[
-                    { id: '知识洞察型', label: dict.briefing.filters.insight },
-                    { id: '新闻事件型', label: dict.briefing.filters.news },
+                    {
+                      id: dict.lang === 'en' ? 'Insight' : '知识洞察型',
+                      label: dict.briefing.filters.insight,
+                    },
+                    {
+                      id: dict.lang === 'en' ? 'News' : '新闻事件型',
+                      label: dict.briefing.filters.news,
+                    },
                   ].map((type) => {
                     const isSelected = verdictFilter === type.id;
                     return (

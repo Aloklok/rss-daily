@@ -26,7 +26,7 @@
     - **元数据对齐与瘦身架构**: 系统采用了 **“瘦身表 + 视图” (Lean Table + View)** 模型：
       - **物理层**: `articles_en` 表物理上仅存储翻译后的长文本和 Model 标签。不再冗余存储 `link`, `published`, `n8n_processing_date` 和 `verdict` 评分。
       - **展现层**: 通过 `articles_view_en` 视图实时关联主表。这确保了如果管理员在主表修改了文章评分或日期，英文版视图会 **立即自动更新**，而无需重新运行翻译任务。
-      - **本地化 (Localization)**: `sourceName` 和 `verdict.type` 保留原始中文标识符（Original Keys），由渲染层（UI）动态调用字典进行翻译显示。
+      - **本地化 (Localization)**: `sourceName` 和 `verdict.type` 在数据库层保留原始中文标识符（Original Keys）。在**Server Component 渲染前**，通过 `purifyArticle` 统一调用字典进行翻译，因此 Client 端收到的已是英文值（如 'Insight'），UI 筛选器的 ID 也需据此动态匹配。
     - **简报数据 (`fetchBriefingData`)**: **[架构统一]** 核心数据聚合函数。支持 `lang` 参数 ('zh' | 'en')，自动处理物理视图映射（ZH -> `articles_view`, EN -> `articles_view_en`）。边缘缓存 7 天。
     - **英文简报数据 (`fetchEnglishBriefingData`)**: 已简化为 `fetchBriefingData(date, 'en')` 的封装，确保中英文逻辑 100% 对齐。
       - **封面图片 (`resolveBriefingImage`)**: 边缘缓存 7 天 (`briefing-image`)，强制与页面生命周期同步，防止 `300s` 短板效应。
