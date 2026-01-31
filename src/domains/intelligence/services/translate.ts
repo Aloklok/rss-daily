@@ -37,7 +37,12 @@ async function withRetry<T>(
       lastError = e;
       if (onRetry) onRetry(e, attempt);
       if (attempt < maxRetries) {
-        const delay = RETRY_DELAY_MS * Math.pow(2, attempt - 1);
+        // Base delay with exponential backoff
+        const baseDelay = RETRY_DELAY_MS * Math.pow(2, attempt - 1);
+        // Add Jitter: ±500ms random variation to prevent thundering herd
+        const jitter = Math.random() * 1000 - 500;
+        const delay = Math.max(0, baseDelay + jitter);
+
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }

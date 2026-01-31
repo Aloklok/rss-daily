@@ -7,6 +7,10 @@
     {
       "path": "/api/system/warmup?lang=en",
       "schedule": "5 2 * * 0"
+    },
+    {
+      "path": "/api/translate/backfill",
+      "schedule": "0 17 * * *"
     }
   ]
 }
