@@ -66,6 +66,16 @@
   3. **亚洲预热 (EN)**: 触发 Vercel API `/api/system/warmup?lang=en`
 - **安全白名单**: 内部预热请求通过 `User-Agent: Vercel-Internal-Warmup` 绕过安全拦截。
 
+## 5.1 翻译回填机制 (Translation Backfill)
+
+当 Supabase Webhook 触发的实时翻译失败时，Cron 任务会自动补全：
+
+- **端点**: `GET /api/translate/backfill`
+- **调度**: 每天 UTC 17:00 (北京时间 01:00)
+- **模型**: `HUNYUAN_TRANSLATION_MODEL` (高精度逐篇翻译)
+- **限流**: 每次最多处理 10 篇，避免 5 分钟超时
+- **鉴权**: 使用 `CRON_SECRET` 环境变量验证请求
+
 ## 6. Cloudflare 边缘优化配置 (2026-01-27 审计)
 
 为了配合 Vercel 的渲染能力并最大化爬虫友好度，Cloudflare 侧已实施以下配置：

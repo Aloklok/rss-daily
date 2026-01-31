@@ -82,6 +82,15 @@ API 路由按照业务领域进行组织：
 - **鉴权**: Vercel Cron 自动鉴权或 Header 校验。
 - **特性**: 从请求节点（如 Japan Edge）发起并发 fetch，模拟用户访问以生成缓存。
 
+### D. 翻译回填 (Translation Backfill)
+
+- **端点**: `GET /api/translate/backfill`
+- **用途**: 自动翻译因 Webhook 失败而遗漏的文章。
+- **调度**: 每天 UTC 17:00 (北京时间 01:00) 由 Vercel Cron 触发。
+- **逻辑**: 查询 `articles` 与 `articles_en` 的差集，使用 `HUNYUAN_TRANSLATION_MODEL` 逐篇翻译。
+- **限流**: 每次最多处理 10 篇，避免 5 分钟超时。
+- **鉴权**: 使用 `CRON_SECRET` 环境变量验证请求。
+
 ### C. 缓存标签规范
 
 - `briefing-data-YYYY-MM-DD`: 对应日期的专属数据标签。
