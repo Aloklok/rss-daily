@@ -12,7 +12,7 @@ import { Subscription } from '@/types';
 import dayjs from 'dayjs';
 import { CATEGORY_ORDER, UNCATEGORIZED_LABEL } from '@/domains/reading/constants';
 import { useUIStore } from '@/shared/store/uiStore';
-import { useArticleStore } from '@/domains/interaction/store/articleStore';
+import { useArticleStore } from '@/domains/article/store/articleStore';
 import { ModelSelector } from '@/domains/intelligence/components/ai/ModelSelector';
 import { DEFAULT_MODEL_ID } from '@/domains/intelligence/constants';
 import { useQueryClient } from '@tanstack/react-query';

@@ -1,8 +1,8 @@
 import React, { memo, useMemo } from 'react';
 import { Article } from '@/types';
 import { useUIStore } from '@/shared/store/uiStore';
-import { useArticleStore } from '@/domains/interaction/store/articleStore';
-import { useArticleMetadata } from '@/domains/reading/hooks/useArticleMetadata';
+import { useArticleStore } from '@/domains/article/store/articleStore';
+import { useArticleMetadata } from '@/domains/article/hooks/useArticleMetadata';
 import ArticleTitleStar from '../article/ArticleTitleStar';
 import { getRandomColorClass } from '@/shared/utils/colorUtils';
 import EmptyState from '@/shared/ui/EmptyState';

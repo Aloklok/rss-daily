@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Filter, AvailableFilters } from '@/shared/types';
 import { getAvailableDates, getAvailableFilters } from '@/domains/reading/services/readingClient';
 import { getTodayInShanghai } from '@/domains/reading/utils/date';
-import { useArticleStore } from '@/domains/interaction/store/articleStore';
+import { useArticleStore } from '@/domains/article/store/articleStore';
 import { useUIStore } from '@/shared/store/uiStore';
 import {
   useDailyStatusesForMonth,

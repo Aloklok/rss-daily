@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Article, Filter } from '@/types';
 import { Dictionary } from '@/app/i18n/dictionaries';
-import { toShortId } from '@/shared/utils/idHelpers';
+import { toShortId } from '@/domains/article/utils/idHelpers';
 
 interface SidebarStarredProps {
   isExpanded: boolean;

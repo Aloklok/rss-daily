@@ -4,7 +4,7 @@ import MainContentClient from './MainContentClient';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useUIStore } from '@/shared/store/uiStore';
 
-import { useArticleStore } from '@/domains/interaction/store/articleStore';
+import { useArticleStore } from '@/domains/article/store/articleStore';
 import { zh } from '@/app/i18n/dictionaries';
 
 // Mock Child Components to isolate MainContentClient logic

@@ -5,8 +5,8 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 
 import TagPopover from '@/shared/ui/TagPopover';
-import { useArticleMetadata } from '@/domains/reading/hooks/useArticleMetadata';
-import { useArticleStore } from '@/domains/interaction/store/articleStore';
+import { useArticleMetadata } from '@/domains/article/hooks/useArticleMetadata';
+import { useArticleStore } from '@/domains/article/store/articleStore';
 import { useUIStore } from '@/shared/store/uiStore';
 import { useArticleActions } from '@/domains/interaction/hooks/useArticleActions';
 import {
@@ -16,7 +16,7 @@ import {
 } from '@/domains/reading/hooks/useArticles';
 import { useFilters } from '@/domains/reading/hooks/useFilters';
 import { getCurrentTimeSlotInShanghai } from '@/domains/reading/services/readingClient';
-import { READ_TAG, STAR_TAG } from '@/domains/interaction/constants';
+import { READ_TAG, STAR_TAG } from '@/domains/article/constants';
 
 interface FloatingActionButtonsProps {
   isAdmin: boolean;

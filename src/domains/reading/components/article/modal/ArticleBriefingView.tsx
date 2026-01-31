@@ -6,7 +6,7 @@ import { useUIStore } from '@/shared/store/uiStore';
 import { generateBriefingAction } from '@/app/actions/briefing';
 import { useAppToast } from '@/shared/hooks/useAppToast';
 import { useQueryClient } from '@tanstack/react-query';
-import { useArticleStore } from '@/domains/interaction/store/articleStore';
+import { useArticleStore } from '@/domains/article/store/articleStore';
 import { DEFAULT_MODEL_ID } from '@/domains/intelligence/constants';
 import { ModelSelector } from '@/domains/intelligence/components/ai/ModelSelector';
 

@@ -4,6 +4,11 @@
 
 ## 📂 领域逻辑中心 (`src/domains/`)
 
+### 📄 文章核心领域 (`article/`)
+
+**核心领域**：负责文章聚合根的状态存储、核心常量定义与元数据派生。
+👉 **[ARTICLE.md](../src/domains/article/ARTICLE.md)**
+
 ### 🧠 智能领域 (`intelligence/`)
 
 负责 AI 对话、向量检索 (RAG) 与联网搜索集成。
@@ -30,6 +35,6 @@
 
 - **架构总览**: [ARCHITECTURE.md](./ARCHITECTURE.md)
 - **国际化方案**: [I18N.md](./I18N.md)
-  - *相关字典*: [feed-dictionary.ts](../src/app/i18n/feed-dictionary.ts) (动态映射)
+  - _相关字典_: [feed-dictionary.ts](../src/app/i18n/feed-dictionary.ts) (动态映射)
 - **测试体系**: [TESTING.md](./TESTING.md)
 - **任务清单**: [TODO.md](./TODO.md)

@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Article } from '@/shared/types';
-import { useArticleStore } from '@/domains/interaction/store/articleStore';
+import { useArticleStore } from '@/domains/article/store/articleStore';
 
 interface TagPopoverProps {
   article: Article;

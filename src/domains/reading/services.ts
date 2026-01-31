@@ -4,12 +4,12 @@ import { getSupabaseClient } from '@/shared/infrastructure/supabase';
 import { getFreshRssClient } from '@/shared/infrastructure/fresh-rss';
 import { Article, Tag, CleanArticleContent, TimeSlot } from '@/shared/types';
 import { BRIEFING_SECTIONS } from './constants';
-import { STAR_TAG } from '@/domains/interaction/constants';
+import { STAR_TAG } from '@/domains/article/constants';
 import { removeEmptyParagraphs, stripLeadingTitle, cleanAIContent } from './utils/content';
 import { shanghaiDateSlotToUtcWindow } from './utils/date';
 
 import { logServerBotHit } from '@/domains/security/services/bot-logger';
-import { toFullId } from '@/shared/utils/idHelpers';
+import { toFullId } from '@/domains/article/utils/idHelpers';
 
 // Local interface
 interface FreshRssTag {

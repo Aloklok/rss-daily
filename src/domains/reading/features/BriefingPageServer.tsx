@@ -4,7 +4,7 @@ import { BRIEFING_IMAGE_WIDTH, BRIEFING_IMAGE_HEIGHT } from '@/domains/intellige
 import BriefingClient from '@/domains/reading/components/briefing/BriefingClient';
 import { getTodayInShanghai } from '@/domains/reading/utils/date';
 import { resolveBriefingImage } from '@/shared/utils/imageUtils';
-import { toShortId } from '@/shared/utils/idHelpers';
+import { toShortId } from '@/domains/article/utils/idHelpers';
 import { zh, en } from '@/app/i18n/dictionaries';
 import {
   generateHighDensityDescription,

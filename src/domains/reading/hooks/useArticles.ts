@@ -7,7 +7,7 @@ import {
   fetchSearchResults,
 } from '@/domains/reading/services/articleLoader';
 import { getRawStarredArticles } from '@/domains/reading/services/readingClient';
-import { useArticleStore } from '@/domains/interaction/store/articleStore';
+import { useArticleStore } from '@/domains/article/store/articleStore';
 import { useToastStore } from '@/shared/store/toastStore';
 import { getTodayInShanghai } from '@/domains/reading/utils/date';
 

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo } from 'react';
 import { useUIStore } from '@/shared/store/uiStore';
-import { useArticleStore } from '@/domains/interaction/store/articleStore';
+import { useArticleStore } from '@/domains/article/store/articleStore';
 import ArticleDetailClient from '@/domains/reading/components/article/ArticleDetailClient';
 import Briefing from '@/domains/reading/components/briefing/BriefingView';
 import SearchList from '@/domains/reading/components/search/SearchList';
@@ -259,7 +259,8 @@ export default function MainContentClient({
   // Render Logic
   if (selectedArticleId) {
     const article =
-      articlesById[String(selectedArticleId)] || initialArticles.find((a) => a.id === selectedArticleId);
+      articlesById[String(selectedArticleId)] ||
+      initialArticles.find((a) => a.id === selectedArticleId);
     if (article) {
       return <ArticleDetailClient article={article} dict={dict} />;
     }
@@ -310,7 +311,7 @@ export default function MainContentClient({
         headerImageUrl={dateToUse === initialDate ? initialHeaderImageUrl : undefined}
         timeSlot={timeSlot}
         selectedReportId={1}
-        onReportSelect={() => { }}
+        onReportSelect={() => {}}
         onReaderModeRequest={handleReaderModeRequest}
         onStateChange={async (id, add, remove) => {
           await updateArticleState({ articleId: id, tagsToAdd: add, tagsToRemove: remove });

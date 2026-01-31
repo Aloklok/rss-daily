@@ -11,7 +11,7 @@ import {
   GroupedArticles,
   TimeSlot,
 } from '@/shared/types';
-import { STAR_TAG } from '@/domains/interaction/constants';
+import { STAR_TAG } from '@/domains/article/constants';
 
 const articleCache = new Map<string | number, CleanArticleContent | null>();
 

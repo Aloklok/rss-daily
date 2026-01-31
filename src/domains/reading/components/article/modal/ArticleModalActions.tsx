@@ -1,6 +1,6 @@
 import React from 'react';
 import { Article } from '@/shared/types';
-import { STAR_TAG } from '@/domains/interaction/constants';
+import { STAR_TAG } from '@/domains/article/constants';
 import TagPopover from '@/shared/ui/TagPopover';
 
 interface ArticleModalActionsProps {

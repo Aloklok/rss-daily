@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useUIStore } from '@/shared/store/uiStore';
-import { useArticleStore } from '@/domains/interaction/store/articleStore';
+import { useArticleStore } from '@/domains/article/store/articleStore';
 import { useChatStore, ChatMessage } from '@/domains/intelligence/store/chatStore';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';

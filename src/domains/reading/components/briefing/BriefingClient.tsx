@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import Briefing from './BriefingView';
 import { Article, Tag } from '@/types';
 import { Dictionary } from '@/app/i18n/dictionaries'; // Import Dictionary
-import { useArticleStore } from '@/domains/interaction/store/articleStore';
+import { useArticleStore } from '@/domains/article/store/articleStore';
 import { useUIStore } from '@/shared/store/uiStore';
 import { useBriefingArticles } from '@/domains/reading/hooks/useArticles';
 import { useUpdateArticleState } from '@/domains/interaction/hooks/useArticleMutations';

@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react';
 import { useFilteredArticles } from '@/domains/reading/hooks/useArticles';
 import StreamArticleListItem from './StreamListItem';
-import { useArticleStore } from '@/domains/interaction/store/articleStore';
+import { useArticleStore } from '@/domains/article/store/articleStore';
 import { Article } from '@/types';
 import { Dictionary, zh } from '@/app/i18n/dictionaries';
 
@@ -73,7 +73,12 @@ export default function StreamList({
         // Logic: StreamListItem handles store lookup.
         // If store has update, it uses store. If not (SSR), it uses this initialArticle.
         return (
-          <StreamArticleListItem key={id} articleId={id} initialArticle={initialArticlesMap[id]} dict={dict} />
+          <StreamArticleListItem
+            key={id}
+            articleId={id}
+            initialArticle={initialArticlesMap[id]}
+            dict={dict}
+          />
         );
       })}
 
@@ -84,7 +89,9 @@ export default function StreamList({
             disabled={isFetchingNextPage}
             className="cursor-pointer rounded-full bg-blue-600 px-6 py-2 text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
           >
-            <span className="cursor-pointer">{isFetchingNextPage ? dict.stream.loading : dict.stream.loadMore}</span>
+            <span className="cursor-pointer">
+              {isFetchingNextPage ? dict.stream.loading : dict.stream.loadMore}
+            </span>
           </button>
         </div>
       )}

@@ -4,10 +4,10 @@ import React, { useState, memo } from 'react';
 import Link from 'next/link';
 import { Article } from '@/types';
 import TagPopover from '@/shared/ui/TagPopover';
-import { useArticleMetadata } from '@/domains/reading/hooks/useArticleMetadata';
+import { useArticleMetadata } from '@/domains/article/hooks/useArticleMetadata';
 import { getRandomColorClass } from '@/shared/utils/colorUtils';
-import { toShortId } from '@/shared/utils/idHelpers';
-import { STAR_TAG, READ_TAG } from '@/domains/interaction/constants';
+import { toShortId } from '@/domains/article/utils/idHelpers';
+import { STAR_TAG, READ_TAG } from '@/domains/article/constants';
 
 import { Dictionary, zh } from '@/app/i18n/dictionaries';
 import { getDisplayLabel } from '@/domains/reading/utils/label-display';

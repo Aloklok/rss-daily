@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Article } from '@/types';
-import { useArticleMetadata } from '@/domains/reading/hooks/useArticleMetadata';
+import { useArticleMetadata } from '@/domains/article/hooks/useArticleMetadata';
 import { useArticleContent } from '@/domains/reading/hooks/useArticleContent';
 import { useBriefingDetails } from '@/domains/reading/hooks/useBriefingDetails';
 import { useScrollLock } from '@/shared/hooks/dom/useScrollLock';

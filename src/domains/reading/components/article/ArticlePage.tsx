@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Article, CleanArticleContent } from '@/types'; // 导入 Tag
-import { useArticleMetadata } from '@/domains/reading/hooks/useArticleMetadata';
+import { useArticleMetadata } from '@/domains/article/hooks/useArticleMetadata';
 import { getRandomColorClass } from '@/shared/utils/colorUtils';
 import ArticleTitleStar from './ArticleTitleStar';
 import { useArticleContent } from '@/domains/reading/hooks/useArticleContent';

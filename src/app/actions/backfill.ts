@@ -5,7 +5,7 @@ import { getSupabaseClient } from '@/shared/infrastructure/supabase';
 import { generateBriefingAction, generateBulkBriefingAction } from './briefing';
 import { Article } from '@/types';
 import { FreshRSSItem } from '@/shared/infrastructure/fresh-rss';
-import { toFullId } from '@/shared/utils/idHelpers';
+import { toFullId } from '@/domains/article/utils/idHelpers';
 import { fetchSubscriptions } from '@/domains/reading/services';
 
 // 定义返回给前端的“候选文章”结构

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useArticleStore } from '@/domains/interaction/store/articleStore';
-import { STAR_TAG, READ_TAG } from '@/domains/interaction/constants';
+import { useArticleStore } from '@/domains/article/store/articleStore';
+import { STAR_TAG, READ_TAG } from '@/domains/article/constants';
 import { Article } from '@/shared/types';
 
 // Helper to reset store

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getFreshRssClient } from '@/shared/infrastructure/fresh-rss';
 import { verifyAdmin } from '@/domains/interaction/services/admin-auth';
-import { STAR_TAG, READ_TAG } from '@/domains/interaction/constants';
+import { STAR_TAG, READ_TAG } from '@/domains/article/constants';
 
 interface FreshRssItem {
   id: string;

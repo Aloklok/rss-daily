@@ -1,13 +1,13 @@
 import { useCallback } from 'react';
 import { Article } from '@/shared/types';
-import { useArticleStore } from '@/domains/interaction/store/articleStore';
+import { useArticleStore } from '@/domains/article/store/articleStore';
 import { useUIStore } from '@/shared/store/uiStore';
 import {
   useUpdateArticleState,
   useMarkAllAsRead,
 } from '@/domains/interaction/hooks/useArticleMutations';
 import { useToastStore } from '@/shared/store/toastStore';
-import { READ_TAG } from '@/domains/interaction/constants';
+import { READ_TAG } from '@/domains/article/constants';
 
 export const useArticleActions = () => {
   const showToast = useToastStore((state) => state.showToast);

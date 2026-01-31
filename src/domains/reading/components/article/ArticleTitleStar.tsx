@@ -1,5 +1,5 @@
 import { Article } from '@/types';
-import { STAR_TAG } from '@/domains/interaction/constants';
+import { STAR_TAG } from '@/domains/article/constants';
 
 export default function ArticleTitleStar({
   article,

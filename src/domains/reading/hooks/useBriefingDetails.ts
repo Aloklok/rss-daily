@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Article } from '@/shared/types';
 import { getArticlesDetails } from '@/domains/reading/services/readingClient';
-import { useArticleStore } from '@/domains/interaction/store/articleStore';
+import { useArticleStore } from '@/domains/article/store/articleStore';
 
 export const useBriefingDetails = (
   article: Article,

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useArticleStore } from '@/domains/interaction/store/articleStore';
+import { useArticleStore } from '@/domains/article/store/articleStore';
 import { Article, CleanArticleContent } from '@/shared/types';
 import { getCleanArticleContent } from '@/domains/reading/services/readingClient';
 

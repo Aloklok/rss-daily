@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { toShortId, toFullId } from '../idHelpers';
-import { ARTICLE_ID_PREFIX } from '@/domains/reading/constants';
+import { ARTICLE_ID_PREFIX } from '@/domains/article/constants';
 
 describe('idHelpers (ID 转换工具)', () => {
   const MOCK_SHORT_ID = '000642d52cde0249';

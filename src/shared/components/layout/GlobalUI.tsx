@@ -3,7 +3,7 @@
 import React from 'react';
 import Toast from '@/shared/ui/Toast';
 import { useAppToast } from '@/shared/hooks/useAppToast';
-import { useArticleStore } from '@/domains/interaction/store/articleStore';
+import { useArticleStore } from '@/domains/article/store/articleStore';
 import { useUIStore } from '@/shared/store/uiStore';
 import UnifiedArticleModal from '@/domains/reading/components/article/modal/UnifiedArticleModal';
 import { useUpdateArticleState } from '@/domains/interaction/hooks/useArticleMutations';

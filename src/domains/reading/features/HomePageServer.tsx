@@ -7,7 +7,7 @@ import { resolveBriefingImage } from '@/shared/utils/imageUtils';
 import { Metadata } from 'next';
 import { Filter } from '@/shared/types';
 import { BRIEFING_IMAGE_WIDTH, BRIEFING_IMAGE_HEIGHT } from '@/domains/intelligence/constants';
-import { toShortId } from '@/shared/utils/idHelpers';
+import { toShortId } from '@/domains/article/utils/idHelpers';
 import { getCurrentTimeSlot, getTodayInShanghai } from '@/domains/reading/utils/date';
 import MainContentClient from '@/shared/components/layout/MainContentClient';
 import { zh, en } from '@/app/i18n/dictionaries';

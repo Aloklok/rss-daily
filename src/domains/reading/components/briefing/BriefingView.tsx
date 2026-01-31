@@ -2,7 +2,7 @@
 
 import React, { useMemo, memo } from 'react';
 import { Article, BriefingReport, GroupedArticles, TimeSlot } from '@/shared/types';
-import { useArticleStore } from '@/domains/interaction/store/articleStore';
+import { useArticleStore } from '@/domains/article/store/articleStore';
 import LoadingSpinner from '@/shared/ui/Spinner';
 import Image from 'next/image';
 import Link from 'next/link';

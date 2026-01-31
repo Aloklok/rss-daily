@@ -2,7 +2,7 @@
 
 import { getFreshRssClient } from '@/shared/infrastructure/fresh-rss';
 import { verifyAdmin } from './services/admin-auth';
-import { STAR_TAG, READ_TAG } from './constants';
+import { STAR_TAG, READ_TAG } from '@/domains/article/constants';
 
 type ActionResponse = {
   success: boolean;

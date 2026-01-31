@@ -1,9 +1,10 @@
-// hooks/useArticleMetadata.ts
+// Article Core Domain - useArticleMetadata Hook
+// 文章元数据派生 Hook
 
 import { useMemo } from 'react';
 import { Article } from '@/shared/types';
-import { useArticleStore } from '@/domains/interaction/store/articleStore';
-import { STAR_TAG, READ_TAG } from '@/domains/interaction/constants';
+import { useArticleStore } from '@/domains/article/store/articleStore';
+import { STAR_TAG, READ_TAG } from '@/domains/article/constants';
 
 /**
  * 一个健壮的自定义 Hook，用于从 article 对象中派生出常用的元数据。

@@ -4,7 +4,7 @@ import {
   editArticleState,
   markAllAsRead as apiMarkAllAsRead,
 } from '@/domains/interaction/services/interactionClient';
-import { useArticleStore } from '@/domains/interaction/store/articleStore';
+import { useArticleStore } from '@/domains/article/store/articleStore';
 import { useToastStore } from '@/shared/store/toastStore';
 
 // --- Mutation Hooks ---

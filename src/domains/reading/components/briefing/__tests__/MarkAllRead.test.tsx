@@ -3,8 +3,8 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import FloatingActionButtons from '@/domains/interaction/components/FloatingActionButtons';
 import { useUIStore } from '@/shared/store/uiStore';
-import { useArticleStore } from '@/domains/interaction/store/articleStore';
-import { READ_TAG } from '@/domains/interaction/constants';
+import { useArticleStore } from '@/domains/article/store/articleStore';
+import { READ_TAG } from '@/domains/article/constants';
 
 // Mock Hooks
 // 1. useArticleActions

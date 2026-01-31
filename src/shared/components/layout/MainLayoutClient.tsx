@@ -3,7 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { useUIStore } from '@/shared/store/uiStore';
-import { useArticleStore } from '@/domains/interaction/store/articleStore'; // Import article store
+import { useArticleStore } from '@/domains/article/store/articleStore'; // Import article store
 import SidebarClient from '@/domains/reading/components/Sidebar/SidebarContainer';
 import FloatingActionButtons from '@/domains/interaction/components/FloatingActionButtons';
 import { Dictionary } from '@/app/i18n/dictionaries';

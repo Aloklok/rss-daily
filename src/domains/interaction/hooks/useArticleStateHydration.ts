@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useArticleStore } from '@/domains/interaction/store/articleStore';
+import { useArticleStore } from '@/domains/article/store/articleStore';
 import { getArticleStates } from '@/domains/reading/services/readingClient';
 import { Article } from '@/shared/types';
 

@@ -73,7 +73,9 @@
 
 ## 4. ID 模式与转换规范 (ID Pattern & Conversion)
 
-由于历史演进和多系统集成，本项目采用 **URL 极简与逻辑完整** 的双轨标识符策略：
+由于历史演进和多系统集成，本项目采用 **URL 极简与逻辑完整** 的双轨标识符策略。
+
+> 核心工具函数 `toShortId()` 和 `toFullId()` 位于 [article/utils/idHelpers.ts](../article/utils/idHelpers.ts)。
 
 ### 标识符分工
 

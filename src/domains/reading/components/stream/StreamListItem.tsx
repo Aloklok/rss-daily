@@ -3,12 +3,12 @@ import { getDisplayLabel } from '@/domains/reading/utils/label-display';
 import { getSlugLink } from '@/domains/reading/utils/slug-helper';
 import Link from 'next/link';
 import { Article } from '@/types';
-import { useArticleStore } from '@/domains/interaction/store/articleStore';
-import { useArticleMetadata } from '@/domains/reading/hooks/useArticleMetadata';
+import { useArticleStore } from '@/domains/article/store/articleStore';
+import { useArticleMetadata } from '@/domains/article/hooks/useArticleMetadata';
 import { getRandomColorClass } from '@/shared/utils/colorUtils';
 import ArticleTitleStar from '../article/ArticleTitleStar';
 import { useUIStore } from '@/shared/store/uiStore';
-import { toShortId } from '@/shared/utils/idHelpers';
+import { toShortId } from '@/domains/article/utils/idHelpers';
 import { Dictionary, zh } from '@/app/i18n/dictionaries';
 
 interface StreamArticleListItemProps {

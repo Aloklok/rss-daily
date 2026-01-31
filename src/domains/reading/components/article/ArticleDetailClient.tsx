@@ -4,7 +4,7 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import ArticleDetail from './ArticlePage';
 import { Article, CleanArticleContent } from '@/types';
-import { useArticleStore } from '@/domains/interaction/store/articleStore';
+import { useArticleStore } from '@/domains/article/store/articleStore';
 import { Dictionary } from '@/app/i18n/dictionaries';
 
 interface ArticleDetailClientProps {
@@ -35,5 +35,12 @@ export default function ArticleDetailClient({
     router.push('/');
   };
 
-  return <ArticleDetail article={article} onClose={handleClose} initialContent={initialContent} dict={dict} />;
+  return (
+    <ArticleDetail
+      article={article}
+      onClose={handleClose}
+      initialContent={initialContent}
+      dict={dict}
+    />
+  );
 }

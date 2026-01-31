@@ -6,11 +6,8 @@ import {
   categoryEmojis,
   DictionaryValue,
 } from '@/app/i18n/feed-dictionary';
-import {
-  CATEGORY_ORDER,
-  UNCATEGORIZED_LABEL,
-  FRESHRSS_LABEL_PREFIX,
-} from '@/domains/reading/constants';
+import { CATEGORY_ORDER, UNCATEGORIZED_LABEL } from '@/domains/reading/constants';
+import { FRESHRSS_LABEL_PREFIX } from '@/domains/article/constants';
 import { Article } from '@/shared/types';
 
 /**
@@ -41,7 +38,7 @@ export const getOrderIndex = (name: string): number => {
     .trim()
     .toLowerCase();
   // Also strip emoji for keyword matching
-   
+
   const baseName = cleanName
     .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}]|[\u{FE00}-\u{FE0F}]/gu, '')
     .trim();
@@ -108,7 +105,7 @@ export const getDisplayLabel = (raw: string, type: LabelType, lang: 'zh' | 'en')
       // We need to check if the emoji is already there.
 
       // Try stripping emoji to find the "base key" to lookup the declared emoji
-       
+
       const baseKey = cleanKey
         .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}]|[\u{FE00}-\u{FE0F}]/gu, '')
         .trim();
@@ -129,8 +126,7 @@ export const getDisplayLabel = (raw: string, type: LabelType, lang: 'zh' | 'en')
 
   const lookupKey =
     type === 'category'
-      ?  
-        cleanKey.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}]|[\u{FE00}-\u{FE0F}]/gu, '').trim() // Strip Emojis & VS-16, keep semantic spaces
+      ? cleanKey.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}]|[\u{FE00}-\u{FE0F}]/gu, '').trim() // Strip Emojis & VS-16, keep semantic spaces
       : cleanKey;
 
   let map: Record<string, DictionaryValue>;

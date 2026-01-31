@@ -5,9 +5,9 @@ import { useRouter, usePathname } from 'next/navigation';
 import Sidebar from './SidebarView';
 import { useFilters } from '@/domains/reading/hooks/useFilters';
 import { useUIStore } from '@/shared/store/uiStore';
-import { useArticleStore } from '@/domains/interaction/store/articleStore';
+import { useArticleStore } from '@/domains/article/store/articleStore';
 import { Article } from '@/types';
-import { toShortId } from '@/shared/utils/idHelpers';
+import { toShortId } from '@/domains/article/utils/idHelpers';
 import { resolveFilterFromPathname } from '@/shared/utils/url-resolver';
 
 import { Dictionary } from '@/app/i18n/dictionaries';

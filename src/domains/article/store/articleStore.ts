@@ -1,8 +1,9 @@
-// src/store/articleStore.ts
+// Article Core Domain - Store
+// 文章聚合根状态存储 (Article Aggregate Root State Store)
 
 import { create } from 'zustand';
 import { Article, AvailableFilters } from '@/shared/types';
-import { STAR_TAG, READ_TAG } from '@/domains/interaction/constants';
+import { STAR_TAG, READ_TAG } from '@/domains/article/constants';
 import { calculateNewAvailableTags } from '@/shared/utils/tagUtils';
 
 interface ArticleStoreState {
