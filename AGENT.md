@@ -39,18 +39,11 @@
 
 ## 🧩 领域驱动设计 (DDD) 结构
 
-本项目采用 **领域驱动设计**，代码按业务职责划分到 `src/domains/` 下的独立领域。**理解这一结构是高效导航代码库的关键。**
-
-| 领域目录                | 职责                      | 核心内容                                               |
-| ----------------------- | ------------------------- | ------------------------------------------------------ |
-| `domains/intelligence/` | 🧠 AI 对话、RAG、向量检索 | Gemini 集成、Prompt 模板                               |
-| `domains/reading/`      | 📖 文章渲染、筛选、搜索   | Query Hooks (`useArticles`...)、`readingClient.ts`     |
-| `domains/interaction/`  | ❤️ 收藏、已读、标签同步   | Mutation Hooks (`useArticleMutations`)、`articleStore` |
-| `shared/`               | 🏗️ 跨领域公共层           | 布局组件、Supabase/FreshRSS 客户端、公共工具           |
+本项目采用 **领域驱动设计**，代码按业务职责划分到 `src/domains/` 下的独立领域。
 
 > **定位代码技巧**: 如果是"读数据"相关的逻辑，去 `reading/`；如果是"改状态"相关的逻辑，去 `interaction/`；如果是"AI 功能"，去 `intelligence/`。
 
-**详细架构**: 见 [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md#11-领域驱动设计-domain-driven-design)
+👉 **详细架构与领域职责表**: 见 [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md#11-领域驱动设计-domain-driven-design)
 
 ---
 
@@ -128,22 +121,11 @@
 
 ---
 
-## 📚 docs/ 文档导航
+## 📚 文档导航
 
-这是你的**主要文档库**。根据任务类型选择：
+> **完整文档地图** 见 [GEMINI.md](~/.gemini/GEMINI.md)，包含 `docs/` 和 `src/domains/` 下所有领域文档的位置索引。
 
-| 文档                     | 内容                                 | 何时查阅          |
-| ------------------------ | ------------------------------------ | ----------------- |
-| **ARCHITECTURE.md**      | 整体架构、数据流、服务集成           | 理解系统设计      |
-| **API.md**               | 所有 API 路由、参数、返回值详解      | 编写 API 相关代码 |
-| **UTILS.md**             | 工具函数详细说明（时区、内容清洗等） | 使用 helper 函数  |
-| **TESTING.md**           | 测试策略、如何写测试                 | 编写测试          |
-| **COMPONENT_CATALOG.md** | 前端组件库说明                       | 前端开发          |
-| **STORE.md**             | 状态管理深度解析                     | 修改状态逻辑      |
-| **TODO.md**              | 待优化项、技术债                     | 性能优化          |
-| **SEO.md**               | SEO 策略和优化                       | 改进 SEO          |
-
-**💡 建议**: 修改任何文件前，先在 docs/ 中查阅相关文档！
+本节仅提供按任务类型的快速定向（详见顶部导航表），修改代码前请确保查阅对应文档。
 
 ---
 

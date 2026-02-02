@@ -45,8 +45,7 @@ API 路由按照业务领域进行组织：
     - **ID 保护**: 采用“标签名称转换、ID 字符串保护”策略，确保 client-side 颜色匹配逻辑不受翻译影响。
     - **全链路集成**: 已深度集成至 `HomePageServer`, `StreamPageServer`, `BriefingPageServer`, `ArchivePageServer` 等核心 Server 组件，以及客户端的 `UnifiedArticleModal`。
   - `intelligence/services/chat-orchestrator.ts`: AI 聊天编排调度。
-  - `intelligence/services/english-briefing-sync.ts`: **[新]** 负责将中文简报数据翻译并同步至 `articles_en` 表。
-    - **元数据对齐**: 系统采用了 **“瘦身表 + 视图”** 架构。`articles_en` 表仅存储翻译后的长文本字段，而 `link`, `published`, `verdict` (评分/重要性) 则通过视图 `articles_view_en` 实时从主表拉取。这消除了数据冗余，确保了多语言元数据的绝对一致性。
+  - `intelligence/services/english-briefing-sync.ts`: **[新]** 负责翻译并同步至 `articles_en` 表。详细架构见 [INTELLIGENCE.md](../src/domains/intelligence/INTELLIGENCE.md#05-自动翻译同步-auto-translation)。
 
 ## 3. 关键重构变更
 
@@ -58,42 +57,19 @@ API 路由按照业务领域进行组织：
 
 ### 4. 智能缓存碎冰 (Smart Cache Revalidation)
 
-为了保证简报数据的实时性，系统实现了 **"统一 Revalidation 架构"**，通过共享服务处理中英双语的缓存刷新。
+系统实现了 **统一 Revalidation 架构**，通过共享服务处理中英双语的缓存刷新。
 
-#### A. 全自动化 Webhook 刷新 (Unified)
+> 👉 **完整机制详见 [SYSTEM.md](../src/domains/system/SYSTEM.md)**
 
-- **ZH Endpoint**: `POST /api/system/revalidate` (监听 `articles` 表)
-- **EN Endpoint**: `POST /api/system/revalidate-en` (监听 `articles_en` 表)
-- **Shared Logic**: 两者均调用 `RevalidateService`，自动处理：
-  - **智能日期检测**: 提取 `n8n_processing_date`，仅刷新对应日期的 ISR 页面。
-  - **双语路径**: 自动判定刷新 `/date/...` 还是 `/en/date/...`。
-  - **自动防抖**: 共享内存防抖池，10 秒内重复推送仅触发一次处理。
-  - **CDN 预热**: 刷新后自动发起预热请求。
+**端点速查**：
 
-### B. 按需手动刷新 (Targeted Date)
+- `POST /api/system/revalidate` - 中文自动刷新
+- `POST /api/system/revalidate-en` - 英文自动刷新
+- `POST /api/system/revalidate-date` - 手动指定日期刷新
+- `GET /api/system/warmup` - 缓存预热
+- 翻译回填见 [INFRASTRUCTURE.md](./INFRASTRUCTURE.md#51-翻译回填机制-translation-backfill)
 
-- **端点**: `POST /api/system/revalidate-date`
-- **用途**: 当用户点击“重新生成简报”或通过 Hook 修改文章状态（已读/收藏）时调用。
-
-### C. 缓存预热 (System Warmup)
-
-- **端点**: `GET /api/system/warmup`
-- **用途**: 触发全量 ISR 缓存预热。
-- **鉴权**: Vercel Cron 自动鉴权或 Header 校验。
-- **特性**: 从请求节点（如 Japan Edge）发起并发 fetch，模拟用户访问以生成缓存。
-
-### D. 翻译回填 (Translation Backfill)
-
-- **端点**: `GET /api/translate/backfill`
-- **用途**: 自动翻译因 Webhook 失败而遗漏的文章。
-- **调度**: 每天 UTC 17:00 (北京时间 01:00) 由 Vercel Cron 触发。
-- **逻辑**: 查询 `articles` 与 `articles_en` 的差集，使用 `HUNYUAN_TRANSLATION_MODEL` 逐篇翻译。
-- **限流**: 每次最多处理 10 篇，避免 5 分钟超时。
-- **鉴权**: 使用 `CRON_SECRET` 环境变量验证请求。
-
-### C. 缓存标签规范
-
-- `briefing-data-YYYY-MM-DD`: 对应日期的专属数据标签。
+**缓存标签**: `briefing-data-YYYY-MM-DD`
 
 ---
 

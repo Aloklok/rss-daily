@@ -74,26 +74,9 @@ src/
 
 ## 1.2 国际化架构 (Internationalization)
 
-项目采用 **路径路由 (Path-based Routing)** 与 **数据隔离** 相结合的国际化策略：
+项目采用 **路径路由 + 数据隔离（双表模型）** 的国际化策略。
 
-- **路由策略**:
-  - `/(zh)`: 默认中文环境（根路径）。
-  - `/en`: 英文环境。
-  - **实现模式**: 采用“壳页面”模式。`/en/page.tsx` 仅负责注入 `lang="en"` 和 `dict={en}`，核心逻辑完全复用。
-- **数据隔离与双表模型**:
-  - **数据隔离与双表模型**:
-  - **分层存储 (Lean Translation Architecture)**:
-    - **主表 (`articles`)**: 存储所有原始中文数据 + 物理元数据（链接、发布时间、上海处理时间、AI 评分与重要性）。这是元数据的 **单一事实来源 (Single Source of Truth)**。
-    - **翻译表 (`articles_en`)**: 物理上仅存储翻译后的文本内容（Title, Summary, MarketTake 等）和任务元数据（Model ID）。不再冗余存储原始链接和时间列。
-  - **展现层视图 (`articles_view_en`)**: 通过数据库视图实时 `JOIN` 主表与翻译表。英文版前端请求始终指向该视图，确保元数据（如评分修订、日期调整）在双语环境下能够自动、绝对地同步。
-- **元数据动态本地化**:
-  - 系统在物理层保留原始中文标识符（如 `sourceName` 和 `verdict.type`），通过 `label-display.ts` 在 UI 渲染层实时调用字典进行多语言转换。这避免了因字典微调而导致的数据库刷表需求。
-- **统一简报服务**:
-  - `fetchBriefingData` 已被重构为全站统一的简报聚合服务。它通过 `lang` 参数驱动底层物理表/视图映射（ZH -> `articles_view`, EN -> `articles_view_en`）。
-- **统一缓存验证**:
-  - 即使数据表物理分配，但验证逻辑已统一。`RevalidateService` 会自动处理英文版缺失物理日期字段的情况，通过回溯主表补齐，确保 ISR 刷新正常。
-- **全链路自动化工作流 (Full-link Automation)**:
-  - 详情请查阅系统领域文档：[SYSTEM.md](../src/domains/system/SYSTEM.md)。
+> 👉 **完整架构详见 [I18N.md](./I18N.md)**，包含：双表模型、瘦身表+视图、元数据本地化、统一简报服务等。
 
 ---
 
@@ -221,11 +204,9 @@ Admin 后台采用 **Server Actions** 处理长耗时任务（如批量 AI 简�
 
 ### 4.8 缓存预热系统 (Cache Warmup System)
 
-为解决 ISR 首次访问冷启动导致的 404/超时问题，系统部署了全自动预热机制：
+系统部署了全自动预热机制，解决 ISR 首次访问冷启动导致的 404/超时问题。
 
-- **触发源**: Vercel Cron (周日) + GitHub Actions (部署后)。
-- **操作**: 调用 `/api/system/warmup` 并发生成最近 7 天的简报页。
-- **安全**: 利用 `Vercel-Internal-Warmup` 白名单机制绕过 403 拦截。
+> 👉 **详见 [INFRASTRUCTURE.md](./INFRASTRUCTURE.md#5-缓存预热机制-cache-warmup)**
 
 ## 5. 性能与 UX 优化
 

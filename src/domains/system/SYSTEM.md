@@ -15,9 +15,7 @@
 3.  **系统级编排 (`RevalidateService`)**：
     - **缓存清理**：精准清理中文首页及日期简报页缓存。
     - **Embedding**：自动生成中文向量。
-    - **异步翻译**：检测到 AI 摘要后，自动触发 `translateArticle` 任务。
-      - **模型路由**: Webhook 触发的单篇任务现在默认使用 **Hunyuan-MT-7B** 模型。
-      - **协议**: 采用 `[[KEY]]: Content` 的 Tag-Based 协议，确保高鲁棒性与零中文泄漏。
+    - **异步翻译**：检测到 AI 摘要后，自动触发翻译任务（👉 详见 [INTELLIGENCE.md](../intelligence/INTELLIGENCE.md#05-自动翻译同步-auto-translation)）。
 4.  **影子 Webhook (EN)**：`articles_en` 表写入后触发 `on_article_en_change` 触发器，POST 至 `/api/system/revalidate-en`。
 5.  **英文补完**：清理对应的英文页面缓存，完成闭环。
 
