@@ -129,10 +129,13 @@ export const useFilters = ({ initialDates, initialAvailableFilters }: UseFilters
     sessionStorage.removeItem(CACHE_KEY_ACTIVE_FILTER);
     sessionStorage.removeItem(CACHE_KEY_SELECTED_MONTH);
     try {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['availableDates'] }),
-        queryClient.invalidateQueries({ queryKey: ['dailyStatuses'] }),
-      ]);
+      // 1. 显式重新获取可用日期（修复日历不更新的问题）
+      const freshDates = await getAvailableDates();
+      if (freshDates.length > 0) {
+        setDates(freshDates.sort((a, b) => new Date(b).getTime() - new Date(a).getTime()));
+      }
+
+      await Promise.all([queryClient.invalidateQueries({ queryKey: ['dailyStatuses'] })]);
       // Force refetch
       // The actual data fetching and state updates (setDates, setAvailableFilters)
       // will now be handled by the react-query hooks that consume these invalidated queries.

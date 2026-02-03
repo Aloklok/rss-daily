@@ -8,6 +8,9 @@
   - `SidebarNavServer.tsx`: SSR 直出核心导航链接（No‑JS 可见）。
   - `SidebarLazyClient.tsx` / `SidebarClientMount.tsx`: JS 环境下懒加载交互侧边栏并替换 SSR 导航。
   - `SidebarContainer.tsx` + `SidebarView.tsx`: 交互侧边栏（筛选、刷新、收藏等 UI 行为）。
+    - **同步逻辑**: 刷新按钮触发 `refreshFilters`。
+    - **日期刷新**: 显式调用 `getAvailableDates` 更新本地 `dates` 状态，确保日历能即时反应后端新增数据。
+    - **收藏智能刷新**: 刷新时判断 `hasLoadedStarred` 信号。若收藏模块从未展开加载，则跳过刷新请求以优化带宽。
 - **`briefing/`**:
   - `BriefingView.tsx`: 负责简报的视觉分段。
     - **早中晚按钮**: 响应式布局 (`shrink-0`)，解决了 Windows 系统下的挤压问题；桌面端尺寸放宽至 `52px` 以适配大屏。
@@ -23,10 +26,8 @@
     - **缓存策略**:
       - **日期列表 (`fetchAvailableDates`)**: 边缘缓存 7 天 (`unstable_cache` + tags)，与页面 ISR 周期对齐。依赖 Webhook (`available-dates`) 实现跨天或新内容的即时刷新。
       - **英文日期列表 (`fetchAvailableDatesEn`)**: **[i18n 专项]** 专门针对 `articles_en` 表进行聚合，并将 UTC 时间戳转换为上海时区的日期字符串，防止时区差导致的侧边栏日期冗余或 404。
-    - **元数据对齐与瘦身架构**: 系统采用了 **“瘦身表 + 视图” (Lean Table + View)** 模型：
-      - **物理层**: `articles_en` 表物理上仅存储翻译后的长文本和 Model 标签。不再冗余存储 `link`, `published`, `n8n_processing_date` 和 `verdict` 评分。
-      - **展现层**: 通过 `articles_view_en` 视图实时关联主表。这确保了如果管理员在主表修改了文章评分或日期，英文版视图会 **立即自动更新**，而无需重新运行翻译任务。
-      - **本地化 (Localization)**: `sourceName` 和 `verdict.type` 在数据库层保留原始中文标识符（Original Keys）。在**Server Component 渲染前**，通过 `purifyArticle` 统一调用字典进行翻译，因此 Client 端收到的已是英文值（如 'Insight'），UI 筛选器的 ID 也需据此动态匹配。
+    - **元数据对齐与瘦身架构**: 系统采用"瘦身表 + 视图"模型，详见 [ARCHITECTURE.md#国际化架构](../../docs/ARCHITECTURE.md#12-国际化架构-internationalization)。
+      - **本地化 (Localization)**: `sourceName` 和 `verdict.type` 在数据库层保留原始中文标识符，通过 `purifyArticle` 进行翻译。
     - **简报数据 (`fetchBriefingData`)**: **[架构统一]** 核心数据聚合函数。支持 `lang` 参数 ('zh' | 'en')，自动处理物理视图映射（ZH -> `articles_view`, EN -> `articles_view_en`）。边缘缓存 7 天。
     - **英文简报数据 (`fetchEnglishBriefingData`)**: 已简化为 `fetchBriefingData(date, 'en')` 的封装，确保中英文逻辑 100% 对齐。
       - **封面图片 (`resolveBriefingImage`)**: 边缘缓存 7 天 (`briefing-image`)，强制与页面生命周期同步，防止 `300s` 短板效应。

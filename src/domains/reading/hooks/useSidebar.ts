@@ -48,7 +48,11 @@ export const useSidebar = ({
     isLoading,
     isFetching,
     refetch: refreshStarred,
+    dataUpdatedAt,
   } = useStarredArticles(initialStarredHeaders, tableName, starredExpanded);
+
+  // 判断是否已经从 API 加载过数据（dataUpdatedAt > 0 说明已成功加载过一次）
+  const hasLoadedStarred = dataUpdatedAt > 0;
 
   // 2. 【核心修改】isLoadingStarred 现在应该同时考虑 isLoading 和 isFetching
   // isLoading 用于初始加载的骨架屏，isFetching 用于刷新按钮的旋转动画
@@ -74,6 +78,7 @@ export const useSidebar = ({
     starredArticles,
     isLoadingStarred, // 这个状态现在能正确反映刷新动作了
     refreshStarred,
+    hasLoadedStarred,
     starredCount, // 返回收藏文章数量
   };
 };

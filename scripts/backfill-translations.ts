@@ -10,10 +10,11 @@
  * - 保守设置：逐篇翻译，避免上下文溢出和 API 限频
  *
  * 使用方法：
- *   npx tsx scripts/backfill-translations.ts [--limit N]
+ *   npx tsx scripts/backfill-translations.ts [--limit N] [--batch]
  *
  * 参数：
  *   --limit N    限制翻译数量（用于测试）
+ *   --batch      启用批量模式（默认为逐篇翻译模式）
  */
 import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
@@ -32,13 +33,13 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 // 解析命令行参数
 const limitArg = process.argv.find((arg) => arg.startsWith('--limit='));
 const limit = limitArg ? parseInt(limitArg.split('=')[1], 10) : undefined;
-const isSingle = process.argv.includes('--single');
+const isBatch = process.argv.includes('--batch'); // 默认为 single 模式，需显式传 --batch 开启批量
 
-// 配置
-const BATCH_SIZE = isSingle ? 1 : 5; // 如果开启 --single，则逐篇处理
-const CONCURRENCY = isSingle ? 1 : 3; // 逐篇处理时降低并发，确保稳定性
-const CURRENT_MODEL = isSingle ? HUNYUAN_TRANSLATION_MODEL : DEFAULT_TRANSLATION_MODEL;
-const DELAY_BETWEEN_BATCHES_MS = isSingle ? 500 : 1000;
+// 配置 (默认为 single 模式：逐篇翻译，使用混元模型)
+const BATCH_SIZE = isBatch ? 5 : 1;
+const CONCURRENCY = isBatch ? 3 : 1;
+const CURRENT_MODEL = isBatch ? DEFAULT_TRANSLATION_MODEL : HUNYUAN_TRANSLATION_MODEL;
+const DELAY_BETWEEN_BATCHES_MS = isBatch ? 1000 : 500;
 
 /**
  * 递归获取所有 ID，突破 Supabase 1000 条限制
@@ -77,7 +78,7 @@ async function fetchAllIds(tableName: string, hasSummary: boolean = false) {
 
 async function backfillTranslations() {
   console.log('🌐 Starting backfill translations (Concurrent Mode)...');
-  console.log(`🤖 Model: ${CURRENT_MODEL}${isSingle ? ' (Single Mode 🎯)' : ''}`);
+  console.log(`🤖 Model: ${CURRENT_MODEL}${!isBatch ? ' (Single Mode 🎯)' : ' (Batch Mode 📦)'}`);
   console.log(`📦 Batch Size: ${BATCH_SIZE} | ⚡ Concurrency: ${CONCURRENCY}`);
 
   if (limit) {
@@ -174,7 +175,7 @@ async function backfillTranslations() {
         for (const item of chunk) {
           const subResult = await translateBatchAndSave(
             [item],
-            isSingle ? HUNYUAN_TRANSLATION_MODEL : DEFAULT_TRANSLATION_MODEL,
+            !isBatch ? HUNYUAN_TRANSLATION_MODEL : DEFAULT_TRANSLATION_MODEL,
           );
           if (subResult.success) {
             subSuccess += subResult.count;

@@ -107,6 +107,7 @@ const Sidebar = React.memo<SidebarProps>(
       starredArticles,
       isLoadingStarred,
       refreshStarred,
+      hasLoadedStarred,
       starredCount,
     } = useSidebar({ initialStarredHeaders, tableName }); // Pass tableName to hook
 
@@ -127,7 +128,8 @@ const Sidebar = React.memo<SidebarProps>(
 
     const handleRefreshClick = async () => {
       const refreshFiltersPromise = onRefresh ? onRefresh() : Promise.resolve();
-      const refreshStarredPromise = refreshStarred();
+      // 只有在收藏模块已经从 API 加载过数据的情况下才进行刷新
+      const refreshStarredPromise = hasLoadedStarred ? refreshStarred() : Promise.resolve();
       await Promise.all([refreshFiltersPromise, refreshStarredPromise]);
     };
 
