@@ -90,7 +90,7 @@
 - **Early Hints (103)**: `已启用`。辅助浏览器提前拉取静态资源。
 - **IPv6 兼容性**: `已启用`。
 - **WebSockets**: `已启用`。支持潜在的实时数据推送。
-- **IP 地理位置**: `已启用` (关键)。为日志审计系统提供 `cf-ipcountry` Header。
+- **IP 地理位置**: `已启用` (关键)。为日志审计系统提供 `cf-ipcountry` Header；同时配合 **Cloudflare Single Redirect** 实现区域自动分流。
 
 ### 6.2 速度优化 (Speed)
 

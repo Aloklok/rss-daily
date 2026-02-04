@@ -40,6 +40,9 @@ export default function LanguageSwitcher() {
         <Link
           href={zhPath}
           prefetch={true}
+          onClick={() => {
+            document.cookie = `NEXT_LOCALE=zh; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
+          }}
           className={`${itemBaseClasses} ${!isEn ? activeClasses : inactiveClasses}`}
           aria-current={!isEn ? 'page' : undefined}
           aria-label="Switch to Chinese"
@@ -49,6 +52,9 @@ export default function LanguageSwitcher() {
         <Link
           href={enPath}
           prefetch={true}
+          onClick={() => {
+            document.cookie = `NEXT_LOCALE=en; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
+          }}
           className={`${itemBaseClasses} ${isEn ? activeClasses : inactiveClasses}`}
           aria-current={isEn ? 'page' : undefined}
           aria-label="Switch to English"
