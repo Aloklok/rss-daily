@@ -65,7 +65,7 @@
     "@types/react": "^19.2.10",
     "@types/react-dom": "^19.0.0",
     "@types/sanitize-html": "^2.16.0",
-    "@vercel/node": "^5.5.28",
+    "@vercel/node": "^5.5.33",
     "@vitest/browser": "^4.0.16",
     "@vitest/browser-playwright": "^4.0.16",
     "@vitest/coverage-v8": "^4.0.16",
