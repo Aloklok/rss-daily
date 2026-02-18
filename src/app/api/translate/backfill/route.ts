@@ -10,6 +10,7 @@ import { createClient } from '@supabase/supabase-js';
 import { translateBatchAndSave } from '@/domains/intelligence/services/translate';
 import { HUNYUAN_TRANSLATION_MODEL } from '@/domains/intelligence/constants';
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag, revalidatePath } from 'next/cache';
 
 // 每次最多处理的文章数量（避免 Vercel 5 分钟超时）
 const MAX_ARTICLES_PER_RUN = 10;
@@ -54,6 +55,38 @@ async function fetchAllIds(
   }
 
   return allIds;
+}
+
+/**
+ * 从文章的日期字段中提取 YYYY-MM-DD 格式的日期
+ */
+function extractDate(article: any): string | null {
+  const dateStr = article.n8n_processing_date || article.published;
+  if (!dateStr) return null;
+  return dateStr.split('T')[0];
+}
+
+/**
+ * 批量触发英文页面缓存失效（对齐 revalidate-service.ts 的逻辑）
+ */
+function revalidateEnglishPages(affectedDates: Set<string>) {
+  if (affectedDates.size === 0) return;
+
+  // 1. 清除英文日期列表缓存（侧边栏用）
+  revalidateTag('available-dates-en', 'max');
+
+  // 2. 清除全局英文简报数据缓存
+  revalidateTag('briefing-data-en', 'max');
+
+  // 3. 逐日期清除对应的页面和数据缓存
+  for (const date of affectedDates) {
+    revalidateTag(`briefing-data-${date}-en`, 'max');
+    revalidatePath(`/en/date/${date}`);
+  }
+
+  console.log(
+    `[Backfill] ♻️ Revalidated ${affectedDates.size} EN date pages: ${[...affectedDates].join(', ')}`,
+  );
 }
 
 export async function GET(req: NextRequest) {
@@ -128,6 +161,7 @@ export async function GET(req: NextRequest) {
     // 5. 逐篇翻译（使用 HUNYUAN_TRANSLATION_MODEL，即 --single 模式）
     let successCount = 0;
     let failedCount = 0;
+    const affectedDates = new Set<string>();
 
     for (const article of articles) {
       const chunk = [
@@ -153,6 +187,9 @@ export async function GET(req: NextRequest) {
         const result = await translateBatchAndSave(chunk, HUNYUAN_TRANSLATION_MODEL);
         if (result.success) {
           successCount += result.count;
+          // 收集受影响的日期，用于后续缓存失效
+          const date = extractDate(article);
+          if (date) affectedDates.add(date);
           console.log(`[Backfill] ✅ Translated article ${article.id}`);
         } else {
           failedCount++;
@@ -163,6 +200,9 @@ export async function GET(req: NextRequest) {
         console.error(`[Backfill] 💥 Error article ${article.id}: ${e.message}`);
       }
     }
+
+    // 6. 触发英文页面缓存失效
+    revalidateEnglishPages(affectedDates);
 
     const remainingCount = untranslatedIds.length - successCount;
 
@@ -179,6 +219,7 @@ export async function GET(req: NextRequest) {
         processed: articles.length,
         success: successCount,
         failed: failedCount,
+        revalidatedDates: [...affectedDates],
       },
     });
   } catch (e: any) {
