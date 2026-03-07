@@ -402,7 +402,7 @@ export async function generateSiliconFlow(
       SILICONFLOW_API_URL,
       {
         method: 'POST',
-        timeout: 120000, // 120s 超时
+        timeout: 240000, // 240s 超时
         headers: {
           Authorization: `Bearer ${getApiKey()}`,
           'Content-Type': 'application/json',

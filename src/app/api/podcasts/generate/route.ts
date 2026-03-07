@@ -6,7 +6,7 @@ import { fetchBriefingData } from '@/domains/reading/services';
 
 // Force dynamic execution
 export const dynamic = 'force-dynamic';
-export const maxDuration = 120; // 2 mins
+export const maxDuration = 300; // 5 mins
 
 export async function POST(req: NextRequest) {
   try {
