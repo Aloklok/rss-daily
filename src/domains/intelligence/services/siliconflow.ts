@@ -24,24 +24,24 @@ export async function chatWithSiliconFlow(
   // SiliconFlow supports OpenAI-compatible tool definitions
   const tools = useSearch
     ? [
-        {
-          type: 'function',
-          function: {
-            name: 'google_search',
-            description: 'Perform a google search to get latest information.',
-            parameters: {
-              type: 'object',
-              properties: {
-                query: {
-                  type: 'string',
-                  description: 'The search query string',
-                },
+      {
+        type: 'function',
+        function: {
+          name: 'google_search',
+          description: 'Perform a google search to get latest information.',
+          parameters: {
+            type: 'object',
+            properties: {
+              query: {
+                type: 'string',
+                description: 'The search query string',
               },
-              required: ['query'],
             },
+            required: ['query'],
           },
         },
-      ]
+      },
+    ]
     : undefined;
 
   // 2. Prepare Request Body
@@ -171,24 +171,24 @@ export async function* streamSiliconFlow(
   const tools =
     useSearch && !isGLMLegacy
       ? [
-          {
-            type: 'function',
-            function: {
-              name: 'google_search',
-              description: 'Perform a google search to get latest information.',
-              parameters: {
-                type: 'object',
-                properties: {
-                  query: {
-                    type: 'string',
-                    description: 'The search query string',
-                  },
+        {
+          type: 'function',
+          function: {
+            name: 'google_search',
+            description: 'Perform a google search to get latest information.',
+            parameters: {
+              type: 'object',
+              properties: {
+                query: {
+                  type: 'string',
+                  description: 'The search query string',
                 },
-                required: ['query'],
               },
+              required: ['query'],
             },
           },
-        ]
+        },
+      ]
       : undefined;
 
   // Sanitize messages
@@ -268,13 +268,12 @@ export async function* streamSiliconFlow(
   // If no </think> is found by end of stream, we flush the buffer (fallback).
   let thinkingBuffer = '';
   let hasFinishedThinking = false;
+  let hasCheckedForThinking = false;
 
   while (true) {
     const { done, value } = await reader.read();
     if (done) {
-      // Stream finished. If we never saw </think>, flush everything.
       if (!hasFinishedThinking && thinkingBuffer) {
-        console.log('[SF YIELD FLUSH]', JSON.stringify(thinkingBuffer));
         yield { text: () => thinkingBuffer };
       }
       break;
@@ -295,7 +294,23 @@ export async function* streamSiliconFlow(
           if (!hasFinishedThinking) {
             thinkingBuffer += content;
 
-            // Check for closing tag
+            // Decision point: If we haven't seen <think> within first 100 chars,
+            // assume this model is NOT a thinking model and start passthrough.
+            if (!hasCheckedForThinking && thinkingBuffer.length > 0) {
+              if (thinkingBuffer.startsWith('<think>')) {
+                console.log('[SiliconFlow] Thinking detected, buffering CoT...');
+                hasCheckedForThinking = true;
+              } else if (thinkingBuffer.length > 50) {
+                // Not starting with <think>, switch to passthrough
+                console.log('[SiliconFlow] No thinking detected, using passthrough.');
+                hasCheckedForThinking = true;
+                hasFinishedThinking = true;
+                yield { text: () => thinkingBuffer };
+                thinkingBuffer = '';
+              }
+            }
+
+            // Standard DeepSeek R1 </think> detection
             if (thinkingBuffer.includes('</think>')) {
               hasFinishedThinking = true;
               const closeTagIndex = thinkingBuffer.indexOf('</think>');
@@ -304,10 +319,9 @@ export async function* streamSiliconFlow(
               if (realContent) {
                 yield { text: () => realContent };
               }
-              thinkingBuffer = ''; // Free memory
+              thinkingBuffer = '';
             }
           } else {
-            // Passthrough mode
             if (content) {
               yield { text: () => content };
             }
@@ -352,7 +366,7 @@ export async function generateSiliconFlow(
       role: m.role,
       content: m.content,
     })),
-    stream: true, // Use streaming internally
+    stream: false, // Safely await JSON to bypass Turbopack stream reading panics
     temperature: 0.5, // Set to 0.5 for stable structural output
     max_tokens: max_tokens,
   };
@@ -365,7 +379,67 @@ export async function generateSiliconFlow(
     body.response_format = { type: 'json_object' };
   }
 
-  const response = await fetch(SILICONFLOW_API_URL, {
+  // Bypass Next.js fetch polyfill to stop Turbopack Panics by using native https
+  const https = require('https');
+  const responseText = await new Promise<string>((resolve, reject) => {
+    const postData = JSON.stringify(body);
+    const req = https.request(
+      SILICONFLOW_API_URL,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${getApiKey()}`,
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(postData),
+        },
+      },
+      (res: any) => {
+        let rawData = '';
+        res.on('data', (chunk: any) => { rawData += chunk; });
+        res.on('end', () => {
+          if (res.statusCode < 200 || res.statusCode >= 300) {
+            reject(new Error(`SiliconFlow API Error: ${res.statusCode} - ${rawData}`));
+          } else {
+            resolve(rawData);
+          }
+        });
+      }
+    );
+    req.on('error', (e: any) => reject(e));
+    req.write(postData);
+    req.end();
+  });
+
+  const data = JSON.parse(responseText);
+  const fullContent = data.choices?.[0]?.message?.content || '';
+
+  // Filter out thinking block for DeepSeek R1 models
+  return cleanDeepSeekContent(fullContent);
+}
+
+/**
+ * Text-to-Speech Generation using SiliconFlow Audio Models (e.g., TeleAI/TeleSpeechASR)
+ * Returns a Buffer of the generated audio (usually MP3/WAV format based on API)
+ */
+export async function generateSiliconFlowAudio(
+  text: string,
+  modelName: string = 'TeleAI/TeleSpeechASR',
+): Promise<Buffer> {
+  if (!getApiKey()) {
+    throw new Error('GUIJI_API_KEY is not defined');
+  }
+
+  // SiliconFlow audio API endpoint for TTS (based on standard OpenAI compatible /v1/audio/speech)
+  const SILICONFLOW_TTS_URL = 'https://api.siliconflow.cn/v1/audio/speech';
+
+  const body = {
+    model: modelName,
+    input: text,
+    voice: 'alex', // voice parameter might be required by API, although TeleSpeechASR might ignore it or use dialect tags in text
+    response_format: 'mp3',
+  };
+
+  const response = await fetch(SILICONFLOW_TTS_URL, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${getApiKey()}`,
@@ -376,53 +450,10 @@ export async function generateSiliconFlow(
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('[SiliconFlow] API Error:', errorText);
-    throw new Error(`SiliconFlow API Error: ${response.status} - ${errorText}`);
+    console.error('[SiliconFlow TTS] API Error:', errorText);
+    throw new Error(`SiliconFlow TTS API Error: ${response.status} - ${errorText}`);
   }
 
-  if (!response.body) throw new Error('No response body');
-
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let fullContent = '';
-  let buffer = '';
-
-  // Heartbeat printer
-  let lastDotTime = Date.now();
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split('\n');
-    buffer = lines.pop() || '';
-
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed === 'data: [DONE]') continue;
-      if (trimmed.startsWith('data: ')) {
-        try {
-          const data = JSON.parse(trimmed.slice(6));
-          const content = data.choices?.[0]?.delta?.content || '';
-          fullContent += content;
-
-          // Process heartbeat (print a dot every 500ms while generating)
-          const now = Date.now();
-          if (now - lastDotTime > 500) {
-            process.stdout.write('.');
-            lastDotTime = now;
-          }
-        } catch (_e) {
-          // ignore parse errors
-        }
-      }
-    }
-  }
-
-  // Clear the dot line
-  if (fullContent) process.stdout.write('\n');
-
-  // Filter out thinking block for DeepSeek R1 models
-  return cleanDeepSeekContent(fullContent);
+  const arrayBuffer = await response.arrayBuffer();
+  return Buffer.from(arrayBuffer);
 }
