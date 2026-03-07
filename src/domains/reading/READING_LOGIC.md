@@ -17,12 +17,16 @@
     - **布局宽度**: 引入 `2xl:max-w-7xl` (1280px) 策略，优化 2K 屏下的横向排布。
   - `BriefCard.tsx`: 高度压缩的信息密度展现。
     - **字体优化**: 内容字体调整至 `text-sm` (14px) 以确保高信息密度。
-  - `PodcastPlayer.tsx`: **[播客特性]** 纯前端组件。
-    - **路由隔离**: 仅在 Date 页渲染，接收 `BriefingView` 传递的 `showPodcastPlayer=true` 控制展示。
-    - **交互逻辑**: 完全废弃了不稳定的 `group-hover`，现采用标准的点击触发下拉菜单（附带外部点击关闭事件 `handleClickOutside`）。
-    - **权限控制**: 通过 `useUIStore` 严格拦截，仅管管理员（`isAdmin === true`）可见下拉菜单中的“重新生成”选项。
-    - **模态框与预加载**: 新增“播客内容”模态框。当用户点击打开时，系统会静默调用 `/api/podcasts/fetch` 接口直接从云端提取记录，无需强迫用户先听音频，彻底实现“所见即所得”。
-    - **原生 API**: 利用 `window.speechSynthesis` 提供零成本、低延迟的本地语音合成，彻底移除了后端的音频文件依赖。
+  - `PodcastPlayer.tsx`: **[播客特性]** 核心音频播放组件。
+    - **双模播放机制 (Dual-Mode)**：
+      - **MP3 优先 (Edge TTS)**：优先检测云端生成的 `audioUrl`。若存在，使用 `<audio>` 元素播放高质量神经语音 MP3，支持原生暂停/恢复及精确进度控制。
+      - **Web Speech 降级**：若音频生成失败或尚未生成，启用本地 `window.speechSynthesis`。
+    - **断点续播 (Web Speech Fallback)**：由于原生 `speechSynthesis.pause()` 在某些环境下不稳定（不释放音频占用），降级模式下采用“cancel + 分段保存索引”逻辑。将讲稿切分为句子块 (Chunks)，暂停时记录当前索引并 `cancel()`；继续播放时从该索引对应的 Chunk 重新起步。
+    - **交互逻辑**：
+      - 下拉菜单：支持点击触发及外部点击关闭。
+      - 讲稿弹窗：新增刷新 🔄 和播放 ▶️ 按钮，支持手动更新讲稿记录并主动触发播放。
+      - 取消自动播放：打开模态框不再强制播报，尊重用户选择。
+    - **权限控制**：通过 `useUIStore` 拦截，仅管理员（`isAdmin`）可见“重新生成”选项。
 - **`article/`**:
   - `ArticlePage.tsx`: 独立页阅读器。
   - `ArticleReaderView.tsx`: 弹窗式阅读器。

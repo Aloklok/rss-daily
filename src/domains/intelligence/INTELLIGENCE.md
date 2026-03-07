@@ -239,14 +239,16 @@ pnpm chat-prompt:push --new
 
 ### 7.3 日报播客生成 (Daily Podcast)
 
-作为简报阅读体验的延伸，通过点击按需生成的动态“播客讲稿”。
+作为简报阅读体验的延伸，通过点击按需生成的动态“播客讲稿”与音频。
 
-### 7.3 日报播客生成 (Daily Podcast)
-
-作为简报阅读体验的延伸，通过点击按需生成的动态“播客讲稿”。
-
-- **文稿构成 (Script)**: 专门使用 `gemini_podcast_prompt`。这是一个为 TTS 特调的纯净 Prompt，并在 v8 版本中通过强制要求（“第一、第二、第三、”）规范了多项新闻时的排版结构。
-- **动态思考 (Thinking Mode)**: 生成播客时可从 `app_config` 中读取 `gemini_podcast_enable_thinking` 开关，结合 SiliconFlow API 动态开启 `Qwen3.5` 的推理思考模型（如 R1/QwQ 系列），从而获得更有逻辑深度的文章串联脚本。
-- **前端语音合成 (Web Speech API)**: 彻底去除了后端的 TTS 生成和存储桶占用，改由客户端 `PodcastPlayer.tsx` 组件使用浏览器原生的 `window.speechSynthesis` API 进行播放。大大降低了接口耗时和云端开销。
-- **智能预加载**: `PodcastPlayer` 组件在打开内容模态框时，会自动静默查询 `/api/podcasts/fetch` 接口。若云端已有现成讲稿，则直接加载，避免不必要的 AI Token 重新生成。
-- **权限与持久化**: 后端提供强制生成的权限校验机制，仅允许拥有 `isAdmin` 权限的用户在前端下拉菜单触发“重新生成”。生成文稿落盘至 `daily_podcasts` 表。
+- **文稿生成 (Script)**：使用 `gemini_podcast_prompt`。这是一个为 TTS 特调的纯净 Prompt，通过强制结构化（新闻要素）规范了排版。
+- **音频引擎 (Edge TTS)**：集成 `edge-tts-universal`。
+  - **语音角色**：`zh-CN-XiaoxiaoNeural` (中英混读最佳)。
+  - **语速调优**：设定为 `-25%`，模拟播音员从容、稳重的播报节奏。
+- **存储架构**：
+  - **流式处理**：服务端通过 WebSocket 接收 TTS 音频流并聚合为 Buffer。
+  - **持久化**：生成的 MP3 音频上传至 Supabase Storage 的 `podcasts` bucket。
+  - **缓存**：音频 URL 随文稿记录在 `daily_podcasts` 表中，实现“一次生成，全端缓存”。
+- **动态思考 (Thinking Mode)**：可从 `app_config` 中读取配置，结合 SiliconFlow API 启用 Qwen3.5 推理模型获得更有逻辑深度的串联脚本。
+- **智能预加载**：组件挂载时静默查询 `/api/podcasts/fetch`。若云端已有音频和讲稿，优先使用云端记录。
+- **权限与持久化**：后端提供强制生成的权限校验机制，仅允许拥有 `isAdmin` 权限的用户在前端下拉菜单触发“重新生成”。生成文稿落盘至 `daily_podcasts` 表。

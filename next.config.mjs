@@ -94,6 +94,10 @@ const nextConfig = {
         source: '/sitemap.xml',
         destination: '/api/sitemap',
       },
+      {
+        source: '/feed.xml',
+        destination: '/api/feed',
+      },
     ];
   },
 };

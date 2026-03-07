@@ -24,7 +24,12 @@ API 路由按照业务领域进行组织：
   - `GET /api/articles/list`: 获取文章列表 (基于 FreshRSS 筛选，融合 Supabase 英文/AI 元数据)。采用 `select('*')` 与显式字段映射确保数据完整性。
   - `GET /api/articles/search`: **[混合搜索]** 同时调用 Gemini 生成向量并执行 Supabase RPC `hybrid_search_articles`。
   - `POST /api/articles/state`: 统一的文章状态读写 (已读/收藏/标签)。
-- **`briefings/`**: 简报数据服务。- **简报数据 (`fetchBriefingData`)**: **[架构统一]** 核心数据聚合函数。支持 `lang` 参数 ('zh' | 'en')，自动处理物理表映射、分值排序与三级分组逻辑。边缘缓存 7 天。- **英文简报数据 (`fetchEnglishBriefingData`)**: 已简化为 `fetchBriefingData(date, 'en')` 的封装，确保中英文逻辑 100% 对齐。
+- **`briefings/`**: 简报数据服务。
+  - **简报数据 (`fetchBriefingData`)**: **[架构统一]** 核心数据聚合函数。支持 `lang` 参数 ('zh' | 'en')，自动处理物理表映射、分值排序与三级分组逻辑。边缘缓存 7 天。
+  - **英文简报数据 (`fetchEnglishBriefingData`)**: 已简化为 `fetchBriefingData(date, 'en')` 的封装，确保中英文逻辑 100% 对齐。
+- **`podcasts/`**: 播客音频与文稿服务。
+  - `POST /api/podcasts/generate`: **[混合集成]** 生成播客文稿 (AI) 并同步生成 TTS 音频 (Edge TTS)。音频上传至持久化存储，返回 `{ script, audioUrl }`。
+  - `GET /api/podcasts/fetch`: 获取已存在的播客文稿与音频 URL 记录。支持前端静默预加载。
 - **`meta/`**: 元数据服务。
   - `GET /api/meta/available-dates`: **[优化]** 调用 RPC 获取实时日期。英文版通过 `fetchAvailableDatesEn` 过滤无效日期。
   - `GET /api/meta/tags`: **[缓存]** 获取缓存的分类标签列表。

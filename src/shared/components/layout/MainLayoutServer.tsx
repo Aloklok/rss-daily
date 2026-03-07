@@ -7,6 +7,7 @@ import FloatingActionButtonsIsland from '@/domains/interaction/components/Floati
 import LanguageSwitcher from '@/shared/components/i18n/LanguageSwitcher';
 
 import { Dictionary } from '@/app/i18n/dictionaries';
+import Footer from '@/shared/components/layout/Footer';
 
 interface MainLayoutServerProps {
   children: React.ReactNode;
@@ -84,6 +85,7 @@ export default function MainLayoutServer({
         <div className="mx-auto w-full max-w-3xl px-2 pt-2 md:px-6 md:pt-4 2xl:max-w-5xl">
           {children}
         </div>
+        <Footer />
         <FloatingActionButtonsIsland />
       </div>
     </div>
