@@ -11,6 +11,7 @@ import { BRIEFING_IMAGE_WIDTH, BRIEFING_IMAGE_HEIGHT, BRIEFING_SECTIONS } from '
 import ArticleGroup from './BriefGroup';
 import { getShanghaiHour } from '@/domains/reading/utils/date';
 import { Dictionary } from '@/app/i18n/dictionaries';
+import { PodcastPlayer } from './PodcastPlayer';
 
 interface ReportContentProps {
   report: BriefingReport;
@@ -185,6 +186,7 @@ interface BriefingProps {
   verdictFilter?: string | null;
   onVerdictFilterChange?: (type: string | null) => void;
   dict: Dictionary;
+  showPodcastPlayer?: boolean; // 【新增】是否展示播客播放器 (仅 Date 页传 true)
 }
 
 const Briefing: React.FC<BriefingProps> = ({
@@ -206,6 +208,7 @@ const Briefing: React.FC<BriefingProps> = ({
   verdictFilter,
   onVerdictFilterChange,
   dict,
+  showPodcastPlayer = false,
 }) => {
   // 1. 【新增】内部订阅文章数据
   const articlesById = useArticleStore((state) => state.articlesById);
@@ -289,9 +292,9 @@ const Briefing: React.FC<BriefingProps> = ({
       const weekdayPart = dateObj.toLocaleDateString(locale, { weekday: 'long' });
 
       return (
-        <header className="group relative mb-5 overflow-hidden rounded-2xl shadow-md transition-all duration-500 hover:shadow-xl md:mb-8">
-          {/* Background Image with Overlay */}
-          <div className="absolute inset-0 z-0">
+        <header className="group relative mb-5 rounded-2xl shadow-md transition-all duration-500 hover:shadow-xl md:mb-8">
+          {/* Background Image with Overlay - Moved overflow-hidden here to avoid clipping dropdowns */}
+          <div className="absolute inset-0 z-0 overflow-hidden rounded-2xl">
             <Image
               src={imgSrc}
               alt={dict.briefing.header.coverAlt}
@@ -363,11 +366,10 @@ const Briefing: React.FC<BriefingProps> = ({
                           key={slotOption}
                           onClick={() => onTimeSlotChange(isSelected ? null : slotOption)}
                           style={{ WebkitBackdropFilter: isSelected ? 'none' : 'blur(16px)' }}
-                          className={`flex size-[44px] shrink-0 items-center justify-center rounded-full border border-white/20 font-serif text-base transition-all duration-300 md:size-[52px] md:text-lg 2xl:size-[64px] ${
-                            isSelected
-                              ? 'scale-110 border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)] dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900 dark:shadow-[0_0_15px_rgba(251,191,36,0.6)]'
-                              : 'bg-transparent text-white/90 backdrop-blur-md hover:border-white/40 hover:bg-white/20'
-                          } cursor-pointer`}
+                          className={`flex size-[44px] shrink-0 items-center justify-center rounded-full border border-white/20 font-serif text-base transition-all duration-300 md:size-[52px] md:text-lg 2xl:size-[64px] ${isSelected
+                            ? 'scale-110 border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)] dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900 dark:shadow-[0_0_15px_rgba(251,191,36,0.6)]'
+                            : 'bg-transparent text-white/90 backdrop-blur-md hover:border-white/40 hover:bg-white/20'
+                            } cursor-pointer`}
                           title={titleMap[slotOption]}
                         >
                           {labelMap[slotOption]}
@@ -397,11 +399,10 @@ const Briefing: React.FC<BriefingProps> = ({
                             key={type.id || 'all'}
                             onClick={() => onVerdictFilterChange(isSelected ? null : type.id)}
                             style={{ WebkitBackdropFilter: isSelected ? 'none' : 'blur(8px)' }}
-                            className={`flex h-10 min-w-[44px] items-center justify-center rounded-full border border-white/20 px-3.5 font-serif text-sm transition-all duration-300 ${
-                              isSelected
-                                ? 'border-white bg-white text-black shadow-[0_0_10px_rgba(255,255,255,0.4)] dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900'
-                                : 'bg-transparent text-white/80 backdrop-blur-sm hover:bg-white/10'
-                            } cursor-pointer`}
+                            className={`flex h-10 min-w-[44px] items-center justify-center rounded-full border border-white/20 px-3.5 font-serif text-sm transition-all duration-300 ${isSelected
+                              ? 'border-white bg-white text-black shadow-[0_0_10px_rgba(255,255,255,0.4)] dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900'
+                              : 'bg-transparent text-white/80 backdrop-blur-sm hover:bg-white/10'
+                              } cursor-pointer`}
                             title={type.title}
                           >
                             {type.label}
@@ -430,11 +431,10 @@ const Briefing: React.FC<BriefingProps> = ({
                       key={slotOption}
                       onClick={() => onTimeSlotChange(isSelected ? null : slotOption)}
                       style={{ WebkitBackdropFilter: isSelected ? 'none' : 'blur(12px)' }}
-                      className={`flex size-8 items-center justify-center rounded-full border border-white/20 font-serif text-xs transition-all duration-300 ${
-                        isSelected
-                          ? 'scale-110 border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)] dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900 dark:shadow-[0_0_15px_rgba(251,191,36,0.6)]'
-                          : 'bg-transparent text-white/90 backdrop-blur-md'
-                      } cursor-pointer`}
+                      className={`flex size-8 items-center justify-center rounded-full border border-white/20 font-serif text-xs transition-all duration-300 ${isSelected
+                        ? 'scale-110 border-white bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.5)] dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900 dark:shadow-[0_0_15px_rgba(251,191,36,0.6)]'
+                        : 'bg-transparent text-white/90 backdrop-blur-md'
+                        } cursor-pointer`}
                     >
                       {labelMap[slotOption]}
                     </button>
@@ -463,11 +463,10 @@ const Briefing: React.FC<BriefingProps> = ({
                         key={type.id || 'all'}
                         onClick={() => onVerdictFilterChange(isSelected ? null : type.id)}
                         style={{ WebkitBackdropFilter: isSelected ? 'none' : 'blur(8px)' }}
-                        className={`flex h-7 min-w-[32px] items-center justify-center rounded-full border border-white/20 px-2 font-serif text-[10px] transition-all duration-300 ${
-                          isSelected
-                            ? 'border-white bg-white text-black dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900'
-                            : 'bg-transparent text-white/80 backdrop-blur-sm'
-                        } cursor-pointer`}
+                        className={`flex h-7 min-w-[32px] items-center justify-center rounded-full border border-white/20 px-2 font-serif text-[10px] transition-all duration-300 ${isSelected
+                          ? 'border-white bg-white text-black dark:border-amber-100 dark:bg-amber-100 dark:text-amber-900'
+                          : 'bg-transparent text-white/80 backdrop-blur-sm'
+                          } cursor-pointer`}
                       >
                         {type.label}
                       </button>
@@ -478,8 +477,8 @@ const Briefing: React.FC<BriefingProps> = ({
             </div>
 
             {/* Middle Row: Greeting & Count - NOW BELOW BUTTONS */}
-            <div className="border-t border-white/20 pt-2.5 md:pt-4">
-              <p className="font-serif text-sm leading-relaxed text-white/95 drop-shadow-xs md:text-lg">
+            <div className="border-t border-white/20 pt-2.5 md:pt-4 flex items-center justify-between gap-4 flex-wrap">
+              <p className="font-serif text-sm leading-relaxed text-white/95 drop-shadow-xs md:text-lg flex-1">
                 {isToday ? (
                   <span>
                     {getGreeting()}
@@ -513,6 +512,13 @@ const Briefing: React.FC<BriefingProps> = ({
                   </span>
                 )}
               </p>
+
+              {/* 【新增】 播客播放按钮，仅在 showPodcastPlayer 且有日期时显示 */}
+              {showPodcastPlayer && date && (
+                <div className="shrink-0">
+                  <PodcastPlayer date={date} />
+                </div>
+              )}
             </div>
           </div>
         </header>

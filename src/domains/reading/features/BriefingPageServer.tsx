@@ -18,6 +18,7 @@ type Lang = 'zh' | 'en';
 interface PageProps {
   params: Promise<{ date: string }>;
   lang: Lang;
+  showPodcastPlayer?: boolean;
 }
 
 export async function generateBriefingMetadata({ params, lang }: PageProps): Promise<Metadata> {
@@ -87,7 +88,7 @@ export async function generateBriefingMetadata({ params, lang }: PageProps): Pro
   };
 }
 
-export async function BriefingPage({ params, lang }: PageProps) {
+export async function BriefingPage({ params, lang, showPodcastPlayer }: PageProps) {
   const { date } = await params;
   const today = getTodayInShanghai();
 
@@ -172,6 +173,7 @@ export async function BriefingPage({ params, lang }: PageProps) {
         initialTags={initialTags}
         dict={dict}
         lang={lang}
+        showPodcastPlayer={showPodcastPlayer}
       />
     </>
   );
