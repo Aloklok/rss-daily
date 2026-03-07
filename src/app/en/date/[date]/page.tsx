@@ -22,5 +22,5 @@ export async function generateMetadata({ params }: { params: Promise<{ date: str
 }
 
 export default async function Page({ params }: { params: Promise<{ date: string }> }) {
-    return <BriefingPage params={params} lang="en" />;
+    return <BriefingPage params={params} lang="en" showPodcastPlayer={true} />;
 }
