@@ -63,7 +63,7 @@ export const useChatStore = create<ChatStoreState>()(
       sessionMetadata: [],
       searchGroundingEnabled: true, // 默认开启 Google Search Grounding
       isSmallTalkMode: false, // 默认关闭闲聊模式
-      enableThinking: false, // 默认关闭深度思考
+      enableThinking: true, // 默认开启深度思考
 
       setIsOpen: (open) => set({ isOpen: open }),
 

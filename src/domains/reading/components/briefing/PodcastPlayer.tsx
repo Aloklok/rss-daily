@@ -43,9 +43,10 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
   });
   const [enableThinking, setEnableThinking] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('alok-podcast-thinking') === 'true';
+      const saved = localStorage.getItem('alok-podcast-thinking');
+      return saved === null ? true : saved === 'true';
     }
-    return false;
+    return true;
   });
 
   // 衍生状态：模型元数据
