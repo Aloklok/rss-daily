@@ -237,4 +237,16 @@ pnpm chat-prompt:push --new
 2.  **页面层 (ISR)**: 必须清除 `/date/${date}`。
 3.  **首页联动**: 若生成的文章归属于“今天（上海时间）”，**必须**额外清除首页 `/` 缓存。这是因为首页采用了“强制今日”的 SSR 策略，若不清除，用户访问首页时将看不到最新的 AI 分析结果。
 
-> **注意**: 批量生成动作 (`generateBulkBriefingAction`) 已内置了上述所有清除逻辑，确保了“一键生成，全站更新”。
+### 7.3 日报播客生成 (Daily Podcast)
+
+作为简报阅读体验的延伸，通过点击按需生成的动态“播客讲稿”。
+
+### 7.3 日报播客生成 (Daily Podcast)
+
+作为简报阅读体验的延伸，通过点击按需生成的动态“播客讲稿”。
+
+- **文稿构成 (Script)**: 专门使用 `gemini_podcast_prompt`。这是一个为 TTS 特调的纯净 Prompt，并在 v8 版本中通过强制要求（“第一、第二、第三、”）规范了多项新闻时的排版结构。
+- **动态思考 (Thinking Mode)**: 生成播客时可从 `app_config` 中读取 `gemini_podcast_enable_thinking` 开关，结合 SiliconFlow API 动态开启 `Qwen3.5` 的推理思考模型（如 R1/QwQ 系列），从而获得更有逻辑深度的文章串联脚本。
+- **前端语音合成 (Web Speech API)**: 彻底去除了后端的 TTS 生成和存储桶占用，改由客户端 `PodcastPlayer.tsx` 组件使用浏览器原生的 `window.speechSynthesis` API 进行播放。大大降低了接口耗时和云端开销。
+- **智能预加载**: `PodcastPlayer` 组件在打开内容模态框时，会自动静默查询 `/api/podcasts/fetch` 接口。若云端已有现成讲稿，则直接加载，避免不必要的 AI Token 重新生成。
+- **权限与持久化**: 后端提供强制生成的权限校验机制，仅允许拥有 `isAdmin` 权限的用户在前端下拉菜单触发“重新生成”。生成文稿落盘至 `daily_podcasts` 表。
