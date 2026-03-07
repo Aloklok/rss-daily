@@ -12,7 +12,12 @@ export async function POST(req: NextRequest) {
   try {
     const supabase = getSupabaseClient();
     const body = await req.json();
-    const { date, forceRegenerate } = body;
+    const {
+      date,
+      forceRegenerate,
+      modelId: requestedModelId,
+      enableThinking: requestedEnableThinking,
+    } = body;
 
     if (!date) {
       return Response.json({ error: 'Date is required' }, { status: 400 });
@@ -42,7 +47,6 @@ export async function POST(req: NextRequest) {
       .flat()
       .map((a) => ({
         title: a.title,
-        category: a.category, // DB 字段：category（原始技术分类，作为 AI 聚类线索）
         summary: a.summary, // DB 字段：summary（深度摘要，描述文章性质和结论）
         tldr: a.tldr, // DB 字段：tldr（≤20 字客观事实摘要）
         highlights: a.highlights, // DB 字段：highlights（技术洞察 → 阶段一解释机制）
@@ -68,8 +72,11 @@ export async function POST(req: NextRequest) {
     const defaultPrompt = '请为您生成一份播客脚本：\n\n{{articleList}}';
 
     const promptTemplate = configMap['gemini_podcast_prompt'] || defaultPrompt;
-    const modelId = configMap['gemini_podcast_model'] || 'Qwen/Qwen3-8B';
-    const enableThinking = configMap['gemini_podcast_enable_thinking'] === 'true';
+    const modelId = requestedModelId || configMap['gemini_podcast_model'] || 'Qwen/Qwen3-8B';
+    const enableThinking =
+      requestedEnableThinking !== undefined
+        ? requestedEnableThinking
+        : configMap['gemini_podcast_enable_thinking'] === 'true';
     const totalCount = articleList.length;
 
     const promptText = promptTemplate
@@ -102,7 +109,7 @@ export async function POST(req: NextRequest) {
       console.log(`[Podcast] Edge TTS audio generated (${audioBuffer.length} bytes)`);
 
       // 上传到 Supabase Storage
-      const fileName = `podcast-${date}-zh.mp3`;
+      const fileName = `podcast-${date}-zh-${Date.now()}.mp3`;
       const { error: uploadError } = await supabase.storage
         .from('podcasts')
         .upload(fileName, audioBuffer, {
@@ -124,13 +131,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check for existing ID to bypass Postgres 'upsert' constraint crash
+    // Check for existing ID and old audio URL to clean up storage
     const { data: existingCheck } = await supabase
       .from('daily_podcasts')
-      .select('id')
+      .select('id, audio_url')
       .eq('date', date)
       .eq('language', 'zh')
       .maybeSingle();
+
+    // Clean up old audio file if it exists and we're regenerating
+    if (existingCheck?.audio_url && audioUrl && existingCheck.audio_url !== audioUrl) {
+      try {
+        const oldFileName = existingCheck.audio_url.split('/').pop();
+        if (oldFileName) {
+          await supabase.storage.from('podcasts').remove([oldFileName]);
+          console.log(`[Podcast] Old audio deleted: ${oldFileName}`);
+        }
+      } catch (err) {
+        console.warn('[Podcast] Failed to delete old audio file:', err);
+      }
+    }
 
     let dbError;
     if (existingCheck?.id) {
@@ -139,6 +159,7 @@ export async function POST(req: NextRequest) {
         .update({
           script_content: script,
           audio_url: audioUrl,
+          model_id: modelId,
           updated_at: new Date().toISOString(),
         })
         .eq('id', existingCheck.id);
@@ -149,6 +170,7 @@ export async function POST(req: NextRequest) {
         language: 'zh',
         script_content: script,
         audio_url: audioUrl,
+        model_id: modelId,
         updated_at: new Date().toISOString(),
       });
       dbError = result.error;

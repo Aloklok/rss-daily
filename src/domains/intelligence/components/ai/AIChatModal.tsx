@@ -50,6 +50,7 @@ const getOriginalIndex = (raw: string): string => {
 };
 
 import { ModelSelector } from './ModelSelector';
+import { ReasoningToggle } from './ReasoningToggle';
 import { MODELS } from '@/domains/intelligence/constants';
 
 /**
@@ -708,6 +709,9 @@ const ChatInputArea = React.memo(
     setSelectedModel,
     isSmallTalkMode,
     toggleSmallTalkMode,
+    enableThinking,
+    setEnableThinking,
+    activeModel,
   }: {
     isStreaming: boolean;
     handleSend: (val: string) => void;
@@ -715,6 +719,9 @@ const ChatInputArea = React.memo(
     setSelectedModel: (val: string) => void;
     isSmallTalkMode: boolean;
     toggleSmallTalkMode: () => void;
+    enableThinking: boolean;
+    setEnableThinking: (val: boolean) => void;
+    activeModel: any;
   }) => {
     const [inputValue, setInputValue] = useState('');
     const inputRef = useRef<HTMLInputElement>(null);
@@ -794,16 +801,25 @@ const ChatInputArea = React.memo(
               {searchGroundingEnabled && activeModel?.hasSearch ? 'ON' : 'OFF'}
             </button> */}
 
-            {/* Small Talk Toggle */}
+            {/* Reasoning Toggle */}
+            <ReasoningToggle
+              enabled={enableThinking}
+              onToggle={setEnableThinking}
+              disabled={isStreaming || !activeModel?.hasReasoning}
+              modelName={activeModel?.name}
+              size="md"
+            />
+
+            {/* Search Articles Toggle (Renamed from Small Talk) */}
             <button
               onClick={toggleSmallTalkMode}
               disabled={isStreaming}
               className={`flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-bold tracking-widest transition-all ${
-                isSmallTalkMode
-                  ? 'bg-purple-600/10 text-purple-600 shadow-[0_0_15px_-5px_rgba(147,51,234,0.4)] ring-1 ring-purple-600/20'
+                !isSmallTalkMode
+                  ? 'bg-indigo-600/10 text-indigo-600 shadow-[0_0_15px_-5px_rgba(79,70,229,0.4)] ring-1 ring-indigo-600/20'
                   : 'bg-stone-100 text-stone-400 dark:bg-white/5'
-              } disabled:opacity-30`}
-              title="闲聊模式：跳过本地知识库检索，直接对话"
+              } hover:scale-105 active:scale-95 disabled:opacity-30`}
+              title="搜索文章：开启则引用本地简报库，关闭则直接对话"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -816,10 +832,10 @@ const ChatInputArea = React.memo(
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2.5}
-                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                 />
               </svg>
-              <span className="hidden sm:inline">闲聊</span> {isSmallTalkMode ? 'ON' : 'OFF'}
+              <span className="hidden sm:inline">搜索文章</span> {!isSmallTalkMode ? 'ON' : 'OFF'}
             </button>
           </div>
           <span className="hidden text-[10px] text-stone-400 sm:inline">Esc 关闭 | Enter 发送</span>
@@ -850,6 +866,8 @@ const AIChatModal: React.FC = () => {
   const setIsExpanded = useChatStore((state) => state.setIsExpanded);
   const isSmallTalkMode = useChatStore((state) => state.isSmallTalkMode);
   const toggleSmallTalkMode = useChatStore((state) => state.toggleSmallTalkMode);
+  const enableThinking = useChatStore((state) => state.enableThinking);
+  const setEnableThinking = useChatStore((state) => state.setEnableThinking);
 
   const openArticleModalStore = useUIStore((state) => state.openModal);
   const addArticlesToStore = useArticleStore((state) => state.addArticles);
@@ -923,6 +941,7 @@ const AIChatModal: React.FC = () => {
           useSearch: searchGroundingEnabled,
           isSmallTalkMode: isSmallTalkMode,
           model: selectedModel,
+          enableThinking: enableThinking,
         }),
       });
 
@@ -1068,6 +1087,9 @@ const AIChatModal: React.FC = () => {
           setSelectedModel={setSelectedModel}
           isSmallTalkMode={isSmallTalkMode}
           toggleSmallTalkMode={toggleSmallTalkMode}
+          enableThinking={enableThinking}
+          setEnableThinking={setEnableThinking}
+          activeModel={activeModel}
         />
       </div>
     </div>

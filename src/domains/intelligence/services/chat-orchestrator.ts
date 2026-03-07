@@ -10,6 +10,7 @@ export interface ChatRequest {
   useSearch?: boolean;
   model: string;
   isSmallTalkMode?: boolean;
+  enableThinking?: boolean;
 }
 
 export interface ChatOrchestrationResult {
@@ -25,7 +26,13 @@ export interface ChatOrchestrationResult {
  * Moves complex decision logic and retrieval outside of the API route.
  */
 export async function orchestrateChat(request: ChatRequest): Promise<ChatOrchestrationResult> {
-  const { messages, useSearch = true, model: requestedModel, isSmallTalkMode = false } = request;
+  const {
+    messages,
+    useSearch = true,
+    model: requestedModel,
+    isSmallTalkMode = false,
+    enableThinking = false,
+  } = request;
 
   // 1. Model & Provider Normalization
   const [requestedId, keyAlias] = (requestedModel || 'gemini-2.0-flash').split('@');
@@ -132,7 +139,7 @@ export async function orchestrateChat(request: ChatRequest): Promise<ChatOrchest
         { role: 'user', content: contextPrompt },
       ];
     }
-    stream = streamSiliconFlow(enrichedMessages, model, effectiveUseSearch);
+    stream = streamSiliconFlow(enrichedMessages, model, effectiveUseSearch, enableThinking);
   } else {
     stream = await chatWithGemini(
       messages,

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { MODELS } from '@/domains/intelligence/constants';
 import { DEFAULT_MODEL_ID } from '@/domains/intelligence/constants';
 
 export interface ChatMessage {
@@ -27,6 +28,7 @@ interface ChatStoreState {
   sessionMetadata: any[];
   searchGroundingEnabled: boolean;
   isSmallTalkMode: boolean;
+  enableThinking: boolean;
 
   // Actions
   addMessage: (msg: Omit<ChatMessage, 'id' | 'timestamp'>) => void;
@@ -42,6 +44,8 @@ interface ChatStoreState {
   toggleSearchGrounding: () => void;
   setIsSmallTalkMode: (enabled: boolean) => void;
   toggleSmallTalkMode: () => void;
+  setEnableThinking: (enabled: boolean) => void;
+  toggleEnableThinking: () => void;
 
   // 辅助函数：消息压缩 (Tapering)
   archiveOldMessages: () => void;
@@ -59,6 +63,7 @@ export const useChatStore = create<ChatStoreState>()(
       sessionMetadata: [],
       searchGroundingEnabled: true, // 默认开启 Google Search Grounding
       isSmallTalkMode: false, // 默认关闭闲聊模式
+      enableThinking: false, // 默认关闭深度思考
 
       setIsOpen: (open) => set({ isOpen: open }),
 
@@ -98,7 +103,22 @@ export const useChatStore = create<ChatStoreState>()(
           searchGroundingEnabled: !state.isSmallTalkMode ? false : state.searchGroundingEnabled,
         })),
 
-      setSelectedModel: (model) => set({ selectedModel: model }),
+      setSelectedModel: (model) => {
+        const { enableThinking } = get();
+        // 自动降级：如果切换到的模型不支持推理，强制关闭
+        const modelId = model.split('@')[0];
+        const modelMeta = MODELS.find((m) => m.id === modelId);
+
+        if (modelMeta && !modelMeta.hasReasoning && enableThinking) {
+          set({ selectedModel: model, enableThinking: false });
+        } else {
+          set({ selectedModel: model });
+        }
+      },
+
+      setEnableThinking: (enabled) => set({ enableThinking: enabled }),
+
+      toggleEnableThinking: () => set((state) => ({ enableThinking: !state.enableThinking })),
 
       setIsExpanded: (expanded) => set({ isExpanded: expanded }),
 
@@ -119,6 +139,7 @@ export const useChatStore = create<ChatStoreState>()(
         searchGroundingEnabled: state.searchGroundingEnabled,
         isSmallTalkMode: state.isSmallTalkMode,
         selectedModel: state.selectedModel,
+        enableThinking: state.enableThinking,
       }),
     },
   ),

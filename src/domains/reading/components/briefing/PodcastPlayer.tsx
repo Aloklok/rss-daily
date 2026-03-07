@@ -12,6 +12,9 @@ import {
   X,
 } from 'lucide-react';
 import { useUIStore } from '@/shared/store/uiStore';
+import { ModelSelector } from '@/domains/intelligence/components/ai/ModelSelector';
+import { ReasoningToggle } from '@/domains/intelligence/components/ai/ReasoningToggle';
+import { DEFAULT_MODEL_ID, MODELS } from '@/domains/intelligence/constants';
 
 interface PodcastPlayerProps {
   date: string;
@@ -32,6 +35,42 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
   const currentChunkIndexRef = useRef(0); // 当前播放到第几块
   const audioRef = useRef<HTMLAudioElement | null>(null); // Edge TTS MP3 播放器
   const [audioUrl, setAudioUrl] = useState<string | null>(null); // Edge TTS 音频 URL
+  const [selectedModel, setSelectedModel] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('alok-podcast-model') || DEFAULT_MODEL_ID;
+    }
+    return DEFAULT_MODEL_ID;
+  });
+  const [enableThinking, setEnableThinking] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('alok-podcast-thinking') === 'true';
+    }
+    return false;
+  });
+
+  // 衍生状态：模型元数据
+  const selectedModelMeta = MODELS.find((m) => m.id === selectedModel.split('@')[0]);
+
+  // 持久化选中的模型
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('alok-podcast-model', selectedModel);
+    }
+  }, [selectedModel]);
+
+  // 持久化思考模式
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('alok-podcast-thinking', enableThinking.toString());
+    }
+  }, [enableThinking]);
+
+  // 自动降级逻辑：如果模型不支持推理，则关闭开关
+  useEffect(() => {
+    if (selectedModelMeta && !selectedModelMeta.hasReasoning && enableThinking) {
+      setEnableThinking(false);
+    }
+  }, [selectedModel, selectedModelMeta, enableThinking]);
 
   // Eagerly trigger voice loading in browser
   useEffect(() => {
@@ -132,7 +171,7 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
       if (preferredVoice) {
         utterance.voice = preferredVoice;
       }
-      utterance.rate = 0.88;
+      utterance.rate = 0.95;
       utterance.pitch = 1.0;
 
       // 每个 chunk 开始播放时更新位置标记
@@ -221,7 +260,12 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
       const response = await fetch('/api/podcasts/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date, forceRegenerate }),
+        body: JSON.stringify({
+          date,
+          forceRegenerate,
+          modelId: selectedModel,
+          enableThinking: enableThinking,
+        }),
       });
 
       if (!response.ok) {
@@ -406,16 +450,48 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
                 重新生成
               </button>
             )}
-            <button
-              onClick={() => {
-                setShowScript(!showScript);
-                setShowDropdown(false);
-              }}
-              className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 hover:text-sky-600 dark:text-gray-300 dark:hover:bg-gray-800"
-            >
-              <FileText className="h-4 w-4" />
-              播客内容
-            </button>
+
+            {/* 模型选择器 */}
+            {isAdmin && (
+              <div className="border-t border-gray-100 px-4 py-2 dark:border-gray-800">
+                <div className="mb-1.5 text-[10px] font-bold tracking-wider text-gray-400 uppercase">
+                  生成模型
+                </div>
+                <ModelSelector
+                  selectedModel={selectedModel}
+                  onSelectModel={setSelectedModel}
+                  disabled={audioState === 'loading'}
+                  align="right"
+                  className="w-full"
+                />
+              </div>
+            )}
+
+            {/* 深度思考开关 */}
+            {isAdmin && (
+              <div className="flex items-center justify-center border-t border-gray-100 px-4 py-2 dark:border-gray-800">
+                <ReasoningToggle
+                  enabled={enableThinking}
+                  onToggle={setEnableThinking}
+                  disabled={audioState === 'loading' || !selectedModelMeta?.hasReasoning}
+                  modelName={selectedModelMeta?.name}
+                  size="sm"
+                />
+              </div>
+            )}
+
+            <div className="border-t border-gray-100 dark:border-gray-800">
+              <button
+                onClick={() => {
+                  setShowScript(!showScript);
+                  setShowDropdown(false);
+                }}
+                className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 hover:text-sky-600 dark:text-gray-300 dark:hover:bg-gray-800"
+              >
+                <FileText className="h-4 w-4" />
+                播客内容
+              </button>
+            </div>
           </div>
         )}
       </div>

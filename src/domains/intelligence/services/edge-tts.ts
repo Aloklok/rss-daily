@@ -1,7 +1,7 @@
 import { Communicate } from 'edge-tts-universal';
 
 const VOICE = 'zh-CN-XiaoxiaoNeural';
-const RATE = '-25%'; // 新闻播报最佳语速，从容不迫
+const RATE = '-20%'; // 调优语速，根据反馈设为 -20%
 const PITCH = '+0Hz';
 
 /**
