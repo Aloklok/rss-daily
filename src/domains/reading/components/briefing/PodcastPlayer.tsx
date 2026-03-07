@@ -463,6 +463,7 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
                   onSelectModel={setSelectedModel}
                   disabled={audioState === 'loading'}
                   align="right"
+                  popDirection="down"
                   className="w-full"
                 />
               </div>

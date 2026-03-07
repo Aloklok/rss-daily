@@ -10,6 +10,7 @@ interface ModelSelectorProps {
   disabled?: boolean;
   className?: string;
   align?: 'left' | 'right';
+  popDirection?: 'up' | 'down';
 }
 
 type ModelSource = 'siliconflow' | 'cheng30' | 'alok';
@@ -20,6 +21,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
   disabled,
   className = '',
   align = 'left',
+  popDirection = 'up',
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -89,9 +91,9 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
         <>
           <div className="fixed inset-0 z-[40]" onClick={() => setIsMenuOpen(false)} />
           <div
-            className={`scrollbar-thin scrollbar-thumb-stone-300 dark:scrollbar-thumb-white/10 absolute bottom-full z-[50] mb-3 max-h-[400px] w-64 overflow-y-auto rounded-2xl border border-white/20 bg-white/90 shadow-2xl backdrop-blur-2xl dark:bg-stone-900/90 ${
-              align === 'right' ? 'right-0' : 'left-0'
-            }`}
+            className={`scrollbar-thin scrollbar-thumb-stone-300 dark:scrollbar-thumb-white/10 absolute z-[50] max-h-[400px] w-64 overflow-y-auto rounded-2xl border border-white/20 bg-white/90 shadow-2xl backdrop-blur-2xl dark:bg-stone-900/90 ${
+              popDirection === 'down' ? 'top-full mt-2' : 'bottom-full mb-3'
+            } ${align === 'right' ? 'right-0' : 'left-0'}`}
           >
             {/* Source Tabs */}
             <div className="sticky top-0 z-10 grid grid-cols-3 border-b border-black/5 bg-white/50 p-1 backdrop-blur-md dark:border-white/5 dark:bg-black/50">
