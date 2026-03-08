@@ -37,7 +37,7 @@
   "dependencies": {
     "@ai-sdk/openai-compatible": "^2.0.35",
     "@google/genai": "^1.44.0",
-    "@sentry/nextjs": "^10.38.0",
+    "@sentry/nextjs": "^10.42.0",
     "@supabase/supabase-js": "^2.93.3",
     "@tanstack/react-query": "^5.90.20",
     "@vercel/analytics": "^1.6.1",
@@ -53,7 +53,7 @@
     "remark-gfm": "^4.0.1",
     "sanitize-html": "^2.17.0",
     "server-only": "^0.0.1",
-    "zustand": "^5.0.8"
+    "zustand": "^5.0.11"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
@@ -66,17 +66,17 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "^25.0.9",
     "@types/node-fetch": "^2.6.13",
-    "@types/react": "^19.2.10",
+    "@types/react": "^19.2.14",
     "@types/react-dom": "^19.0.0",
     "@types/sanitize-html": "^2.16.0",
-    "@vercel/node": "^5.5.28",
+    "@vercel/node": "^5.6.11",
     "@vitest/browser": "^4.0.16",
     "@vitest/browser-playwright": "^4.0.16",
     "@vitest/coverage-v8": "^4.0.16",
     "@vitest/ui": "^4.0.16",
     "babel-plugin-react-compiler": "^1.0.0",
     "cross-env": "^10.1.0",
-    "dotenv": "^17.2.3",
+    "dotenv": "^17.3.1",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react": "^7.37.5",
@@ -84,7 +84,7 @@
     "globals": "^17.3.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
-    "msw": "^2.12.7",
+    "msw": "^2.12.10",
     "node-fetch": "^3.3.2",
     "openapi-typescript": "^7.10.1",
     "playwright": "^1.57.0",
@@ -94,7 +94,7 @@
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.54.0",
-    "vite-tsconfig-paths": "^6.0.4",
+    "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.0.16"
   }
 }
