@@ -256,11 +256,10 @@ const ChatMessageItem = React.memo(
     return (
       <div className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'} `}>
         <div
-          className={`rounded-2xl px-6 py-4 shadow-lg ${isExpanded ? (msg.role === 'user' ? 'max-w-2xl' : msg.citations?.length ? 'w-full max-w-5xl' : 'w-full max-w-xl') : 'max-w-[92%]'} ${
-            msg.role === 'user'
+          className={`rounded-2xl px-6 py-4 shadow-lg ${isExpanded ? (msg.role === 'user' ? 'max-w-2xl' : msg.citations?.length ? 'w-full max-w-5xl' : 'w-full max-w-xl') : 'max-w-[92%]'} ${msg.role === 'user'
               ? 'bg-indigo-600 text-white shadow-indigo-500/20'
               : 'border border-stone-200 bg-white text-stone-800 dark:border-white/10 dark:bg-stone-800 dark:shadow-xl'
-          } `}
+            } `}
         >
           <div
             className={`flex ${isExpanded && msg.role === 'model' && msg.citations?.length ? 'flex-col items-stretch justify-center gap-4 lg:flex-row lg:gap-8' : 'flex-col items-start'} `}
@@ -282,11 +281,10 @@ const ChatMessageItem = React.memo(
             {msg.role === 'model' &&
               ((msg.citations?.length || 0) > 0 || (msg.contextCount || 0) > 0) && (
                 <div
-                  className={`flex flex-col gap-2 ${
-                    isExpanded && msg.citations?.length
+                  className={`flex flex-col gap-2 ${isExpanded && msg.citations?.length
                       ? 'w-full flex-shrink-0 border-t border-stone-100 pt-4 lg:w-64 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8 dark:border-white/5'
                       : 'mt-4 w-full max-w-xl border-t border-stone-100 pt-3 dark:border-white/5'
-                  } `}
+                    } `}
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold tracking-widest whitespace-nowrap text-stone-400 uppercase">
@@ -814,11 +812,10 @@ const ChatInputArea = React.memo(
             <button
               onClick={toggleSmallTalkMode}
               disabled={isStreaming}
-              className={`flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-bold tracking-widest transition-all ${
-                !isSmallTalkMode
+              className={`flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-bold tracking-widest transition-all ${!isSmallTalkMode
                   ? 'bg-indigo-600/10 text-indigo-600 shadow-[0_0_15px_-5px_rgba(79,70,229,0.4)] ring-1 ring-indigo-600/20'
                   : 'bg-stone-100 text-stone-400 dark:bg-white/5'
-              } hover:scale-105 active:scale-95 disabled:opacity-30`}
+                } hover:scale-105 active:scale-95 disabled:opacity-30`}
               title="搜索文章：开启则引用本地简报库，关闭则直接对话"
             >
               <svg
@@ -885,7 +882,7 @@ const AIChatModal: React.FC = () => {
   const isScrollingAtBottom = useRef(true);
 
   const activeModel = React.useMemo(
-    () => MODELS.find((m) => m.id === selectedModel),
+    () => MODELS.find((m) => m.id === selectedModel.split('@')[0]),
     [selectedModel],
   );
 

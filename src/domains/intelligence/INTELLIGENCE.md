@@ -104,7 +104,7 @@ AI 聊天的核心入口现由 **ChatOrchestrator** (位于 `intelligence/servic
 - **模型路由 (Model Routing)**：由 `src/domains/intelligence/services/chat-orchestrator.ts`（对话场景）以及 API 层的智能分发逻辑（后台场景）共同管理。系统通过读取 `constants.ts` 中的 `provider` 属性实现基于数据的精准路由（Google vs SiliconFlow）。
 - **“羊毛”配额池 (Quota Buffering)**：对话框型号选择器集成了多个具备独立配额权重的模型。当主模型触发 429 报错时，管理员可通过切换“独立池子”型号实现每日可用次数的最大化。
 - **深度思考模式 (Thinking Mode)**：
-    - **逻辑特性**：针对 SiliconFlow (DeepSeek-R1, Qwen-Max) 和 Google (Gemini 2.5 系列) 模型提供深度逻辑推理支持。
+    - **逻辑特性**：针对 SiliconFlow (DeepSeek-R1, Qwen-Max) 和 Google (Gemini 2.x/3.x 全系列) 模型提供深度逻辑推理支持。
     - **实现差异**:
         - **SiliconFlow**: 通过 `enable_thinking` 开关开启，解析 `<think>` 标签过滤内容。
         - **Google**: 通过 SDK `thinkingConfig` 开启，利用新版 SDK 的候选文稿过滤机制自动分离思考过程。
