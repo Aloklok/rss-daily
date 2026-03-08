@@ -109,7 +109,7 @@ export const MODELS = [
 
   // --- Google Gemini Models (2026 Newest Flagships) ---
   {
-    id: 'gemini-3.1-pro',
+    id: 'gemini-3.1-pro-preview',
     name: 'Gemini 3.1 Pro',
     desc: '2026.02 旗舰，最强智力与 Agent 能力',
     hasSearch: true,
@@ -127,7 +127,7 @@ export const MODELS = [
     provider: 'google',
   },
   {
-    id: 'gemini-3.1-flash-lite',
+    id: 'gemini-3.1-flash-lite-preview',
     name: 'Gemini 3.1 Flash-Lite',
     desc: '2026.03 最新极速版，极低延迟',
     hasSearch: true,

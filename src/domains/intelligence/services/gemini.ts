@@ -189,7 +189,6 @@ export async function chatWithGemini(
   if (!dynamicKey) throw new Error(`API Key (${keyAlias}) is not defined`);
 
   let effectiveModel = modelName;
-  if (effectiveModel.includes('3-flash')) effectiveModel = 'gemini-2.0-flash';
 
   const chatSystemPromptRaw = await getChatSystemPrompt();
   const chatSystemPrompt = chatSystemPromptRaw.replace(/{{COUNT}}/g, articles.length.toString());
