@@ -107,13 +107,40 @@ export const MODELS = [
     provider: 'siliconflow',
   },
 
-  // --- Google Gemini Models ---
+  // --- Google Gemini Models (2026 Newest Flagships) ---
+  {
+    id: 'gemini-3.1-pro',
+    name: 'Gemini 3.1 Pro',
+    desc: '2026.02 旗舰，最强智力与 Agent 能力',
+    hasSearch: true,
+    quota: '2 RPM / 50 RPD',
+    provider: 'google',
+  },
+  {
+    id: 'gemini-3-flash',
+    name: 'Gemini 3 Flash',
+    desc: '全能平衡，极速响应',
+    hasSearch: true,
+    quota: '15 RPM / 100 RPD',
+    provider: 'google',
+  },
+  {
+    id: 'gemini-3.1-flash-lite',
+    name: 'Gemini 3.1 Flash-Lite',
+    desc: '2026.03 最新极速版，极低延迟',
+    hasSearch: true,
+    quota: '15 RPM / 独立 RPD',
+    provider: 'google',
+  },
+
+  // --- Previous Gemini Models ---
   {
     id: 'gemini-2.5-flash-lite-preview-09-2025',
     name: 'Gemini 2.5 Flash-Lite (Sep)',
-    desc: '2025.09 版，100 RPD 强力羊毛',
+    desc: '2025.09 版，用户确认可用稳定羊毛',
     hasSearch: true,
     quota: '15 RPM / 100 RPD',
+    provider: 'google',
   },
   {
     id: 'gemini-flash-lite-latest',
@@ -121,6 +148,7 @@ export const MODELS = [
     desc: '经典低负载，100 RPD 稳定羊毛',
     hasSearch: true,
     quota: '15 RPM / 100 RPD',
+    provider: 'google',
   },
   {
     id: 'gemini-3-flash-preview',
@@ -128,6 +156,7 @@ export const MODELS = [
     desc: '最强下一代，目前独立池子',
     hasSearch: true,
     quota: '15 RPM / 独立 RPD',
+    provider: 'google',
   },
   {
     id: 'gemini-robotics-er-1.5-preview',
@@ -135,6 +164,7 @@ export const MODELS = [
     desc: '罕见 1.5 具身智能推理，独立池子',
     hasSearch: true,
     quota: '15 RPM / 独立 RPD',
+    provider: 'google',
   },
   {
     id: 'gemini-2.5-flash-lite',
@@ -142,6 +172,7 @@ export const MODELS = [
     desc: '响应最快，额外独立池子',
     hasSearch: true,
     quota: '15 RPM / 独立 RPD',
+    provider: 'google',
   },
   {
     id: 'gemini-2.0-flash-lite-preview-02-05',
@@ -149,6 +180,7 @@ export const MODELS = [
     desc: '2.0 早期预览版，辅助独立池子',
     hasSearch: true,
     quota: '15 RPM / 独立 RPD',
+    provider: 'google',
   },
   {
     id: 'gemini-2.0-flash',
@@ -156,11 +188,12 @@ export const MODELS = [
     desc: '全能旗舰，共用每日 20 次',
     hasSearch: true,
     quota: '1500 RPM / 20 RPD',
+    provider: 'google',
   },
   {
     id: 'gemini-2.5-pro',
     name: 'Gemini 2.5 Pro',
-    desc: '最强智力，极低 RPD 池',
+    desc: '2.5 旗舰版，智力强劲',
     hasSearch: true,
     quota: '2 RPM / 50 RPD',
     provider: 'google',

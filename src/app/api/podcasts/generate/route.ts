@@ -2,7 +2,9 @@ import { NextRequest } from 'next/server';
 import { getSupabaseClient } from '@/shared/infrastructure/supabase';
 import { generateSiliconFlow } from '@/domains/intelligence/services/siliconflow';
 import { generateEdgeTTSAudio } from '@/domains/intelligence/services/edge-tts';
+import { generateGemini } from '@/domains/intelligence/services/gemini';
 import { fetchBriefingData } from '@/domains/reading/services';
+import { MODELS } from '@/domains/intelligence/constants';
 
 // Force dynamic execution
 export const dynamic = 'force-dynamic';
@@ -87,13 +89,27 @@ export async function POST(req: NextRequest) {
     console.log(
       `[Podcast] Generating script for ${date} using ${modelId} (Thinking: ${enableThinking})`,
     );
-    const script = await generateSiliconFlow(
-      [{ role: 'user', content: promptText }],
-      modelId,
-      2000,
-      false,
-      enableThinking,
-    );
+
+    // 智能分发：根据 MODELS 配置的 provider 决定调用路径
+    const modelConfig = MODELS.find((m) => m.id === modelId.split('@')[0]);
+    const isGoogle = modelConfig?.provider === 'google' || modelId.startsWith('gemini-');
+
+    let script = '';
+    const aiMessages = [{ role: 'user', content: promptText }];
+
+    if (isGoogle) {
+      console.log(`[Podcast] Routing to Google Gemini API for ${modelId}`);
+      script = await generateGemini(aiMessages, modelId, 4000);
+    } else {
+      console.log(`[Podcast] Routing to SiliconFlow API for ${modelId}`);
+      script = await generateSiliconFlow(
+        aiMessages,
+        modelId,
+        2000,
+        false,
+        enableThinking,
+      );
+    }
 
     if (!script || script.trim() === '') {
       return Response.json({ error: '生成的播客文稿为空' }, { status: 500 });

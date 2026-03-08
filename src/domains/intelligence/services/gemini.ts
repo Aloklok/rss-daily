@@ -194,7 +194,7 @@ export async function chatWithGemini(
   const chatSystemPrompt = chatSystemPromptRaw.replace(/{{COUNT}}/g, articles.length.toString());
   console.log(
     `[Chat Prompt] Loaded (Gemini path) | length: ${chatSystemPrompt.length} | preview: ${chatSystemPrompt
-     }`,
+    }`,
   );
 
   const genAI = new GoogleGenerativeAI(dynamicKey);
@@ -215,14 +215,14 @@ export async function chatWithGemini(
   const articleList =
     articles.length > 0
       ? articles
-          .map((a, i) => {
-            const dateStr = a.published ? new Date(a.published).toLocaleDateString() : 'N/A';
-            const keywordsStr = Array.isArray(a.keywords) ? a.keywords.join(', ') : '';
-            const verdictStr = a.verdict
-              ? `Score:${a.verdict.score || '?'}/10 (${a.verdict.importance || 'Normal'})`
-              : '';
+        .map((a, i) => {
+          const dateStr = a.published ? new Date(a.published).toLocaleDateString() : 'N/A';
+          const keywordsStr = Array.isArray(a.keywords) ? a.keywords.join(', ') : '';
+          const verdictStr = a.verdict
+            ? `Score:${a.verdict.score || '?'}/10 (${a.verdict.importance || 'Normal'})`
+            : '';
 
-            return `【文章索引：[${i + 1}]】
+          return `【文章索引：[${i + 1}]】
 标题: ${a.title}
 来源: ${a.sourceName || 'Unknown'} | ${verdictStr}
 日期: ${dateStr}
@@ -232,8 +232,8 @@ TLDR: ${a.tldr || '无'}
 技术亮点: ${a.highlights || '无'}
 犀利点评: ${a.critiques || '无'}
 市场观点: ${a.marketTake || '无'}`;
-          })
-          .join('\n\n---\n\n')
+        })
+        .join('\n\n---\n\n')
       : '（未匹配到相关本地文章）';
 
   const contextPrompt = CHAT_CONTEXT_PROMPT_TEMPLATE.replace(
@@ -269,6 +269,50 @@ TLDR: ${a.tldr || '无'}
     console.error('Full Error:', error.message);
     throw new Error(`AI 对话请求失败 (Key: ${keyName}): ${error.message}`);
   }
+}
+
+/**
+ * 通用非流式文本生成 (Google Gemini 专属)
+ * 适配背景任务 (如播报生成、翻译等)
+ */
+export async function generateGemini(
+  messages: any[],
+  modelId: string = DEFAULT_MODEL_ID,
+  max_tokens: number = 8192,
+  keyAlias?: string,
+): Promise<string> {
+  const [cleanModelId, alias] = (modelId || '').split('@');
+  const targetAlias = alias || keyAlias;
+
+  const { key: dynamicKey } = getApiKey(targetAlias);
+  if (!dynamicKey) {
+    throw new Error(`API Key for ${targetAlias || 'Default'} is not defined`);
+  }
+
+  const genAI = new GoogleGenerativeAI(dynamicKey);
+  const model = genAI.getGenerativeModel({
+    model: cleanModelId || DEFAULT_MODEL_ID,
+  });
+
+  // 转换消息格式为 Gemini SDK 要求格式
+  // 最后一篇是 User Prompt，前面的可以作为历史 (或者简单合并)
+  const lastMessage = messages[messages.length - 1];
+  const history = messages.slice(0, -1).map((m) => ({
+    role: m.role === 'user' ? 'user' : 'model',
+    parts: [{ text: m.content }],
+  }));
+
+  const chat = model.startChat({
+    history,
+    generationConfig: {
+      maxOutputTokens: max_tokens,
+      temperature: 0.7,
+    },
+  });
+
+  const result = await chat.sendMessage(lastMessage.content);
+  const response = await result.response;
+  return response.text();
 }
 
 export async function reRankArticles(

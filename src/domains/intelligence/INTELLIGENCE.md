@@ -57,6 +57,8 @@ AI 聊天的核心入口现由 **ChatOrchestrator** (位于 `intelligence/servic
   - 系统采用 **5 层优先级分权排序 (Multi-level Priority)**，综合词面匹配 (`ILIKE`)、索引检索 (`&@~`) 与向量空间算法：
     - **P1 (最高: 原文匹配)**: 标题字符串字面包含 (`ILIKE`)。专门为“复制标题搜索”设计，确保精准命中。
     - **P2 (高: 标题核心)**: 标题关键词命中 (`&@~`) 或 向量强相关 (`Similarity > 0.88`)。
+      - **MP3 优先 (Edge TTS)**：优先检测云端生成的 `audioUrl`。若存在，使用 `<audio>` 元素播放高质量神经语音 MP3，支持原生暂停/恢复及精确进度控制。系统引入了 `ttsSource` 互斥锁逻辑，确保 XiaoXiao 播放时 Google 语音强制静音，并增加了 300ms 的验证窗口以防止因浏览器自动播放限制导致的意外降级。
+      - **Web Speech 降级**：若音频生成确定失败（经过重试或超时），启用本地 `window.speechSynthesis`。
     - **P3 (中: 标签特征)**: 关键词字段 (`keywords`) 或 分类 (`category`) 命中。
     - **P4 (低: 摘要噪音)**: 文章摘要 (`summary`) 命中。将其降级是为了防止摘要中的冗余词汇遮挡标题精准匹配的结果。
     - **P5 (兜底: 语义)**: 满足基础语义门槛 (`Similarity > 0.60`) 的其它关联文章。
@@ -99,16 +101,15 @@ AI 聊天的核心入口现由 **ChatOrchestrator** (位于 `intelligence/servic
 
 ## ⚙️ 模型与配额管理
 
-- **模型锁定策略 (Version Locking)**：2026 年起，Google 调整了 `latest` 别名的指向（通常指向配额极紧的 2.5 系列）。为保证稳定性，系统已**禁用自动升级/纠偏逻辑**，强制锁定使用 `gemini-1.5-flash`、`gemini-2.0-flash` 等具体的稳定版本 ID。
-- **多账号独立管理 (Account Independence)**：
-  - **Key 隔离**: 系统集成 `ALOK` 和 `CHENG30` 两个独立配额的账号。
-  - **无回退原则 (No-Fallback)**: 为确保使用透明，系统**禁用了账号自动切换逻辑**。如果所选账号配额超限，将直接报错并提示，避免管理员在不知情的情况下跨账号消耗。
-  - **识别后缀**: 模型选择器中通过 `@alok` 或 `@cheng30` 后缀明确指定调用账号。
+- **模型路由 (Model Routing)**：由 `src/domains/intelligence/services/chat-orchestrator.ts`（对话场景）以及 API 层的智能分发逻辑（后台场景）共同管理。系统通过读取 `constants.ts` 中的 `provider` 属性实现基于数据的精准路由（Google vs SiliconFlow）。
 - **“羊毛”配额池 (Quota Buffering)**：对话框型号选择器集成了多个具备独立配额权重的模型。当主模型触发 429 报错时，管理员可通过切换“独立池子”型号实现每日可用次数的最大化。
 - **深度思考模式 (Thinking Mode)**：
-  - **逻辑特性**：针对 SiliconFlow 提供的 DeepSeek-R1、Qwen-MAX 等模型支持 `enable_thinking` 参数，开启后将返回 AI 的逻辑推理链（Chain of Thought）。
-  - **UI 感知**：引入 `ReasoningToggle` 组件，基于 `constants.ts` 中的 `hasReasoning` 标记自动控制开关的可见性与可点击状态。
-  - **稳定性控制**：为所有 AI 生成接口内置 **60 秒超时控制**，解决模型层挂起导致的前端长时间假死问题。
+    - **逻辑特性**：针对 SiliconFlow 提供的 DeepSeek-R1、Qwen-MAX 等模型支持 `enable_thinking` 参数，开启后将返回 AI 的逻辑推理链（Chain of Thought）。
+    - **UI 感知**：引入 `ReasoningToggle` 组件，基于 `constants.ts` 中的 `hasReasoning` 标记自动控制开关的可见性与可点击状态。
+    - **稳定性控制**：为所有 AI 生成接口内置 **60 秒超时控制**，解决模型层挂起导致的前端长时间假死问题。
+- **Google 原生集成 (Native Gemini)**: 
+    - **接口**: 除了聊天专用的流式接口外，新增了通用非流式接口 `generateGemini` (位于 `services/gemini.ts`)，适配播报生成等后台任务。
+    - **多 Key 管理**: 支持 `ALOK` 和 `CHENG30` 别名切换，确保主副账号配额互补。
 - **使用看板**：对话框型号选择器中实时显示模型配额（RPM/RPD）及“独立池子”标识，辅助决策。
 
 ---

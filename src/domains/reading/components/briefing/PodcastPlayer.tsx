@@ -35,6 +35,7 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
   const currentChunkIndexRef = useRef(0); // 当前播放到第几块
   const audioRef = useRef<HTMLAudioElement | null>(null); // Edge TTS MP3 播放器
   const [audioUrl, setAudioUrl] = useState<string | null>(null); // Edge TTS 音频 URL
+  const [ttsSource, setTtsSource] = useState<'edge' | 'web' | null>(null); // 当前激活的音频源
   const [selectedModel, setSelectedModel] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('alok-podcast-model') || DEFAULT_MODEL_ID;
@@ -126,6 +127,7 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
 
     window.speechSynthesis.cancel(); // 彻底清空队列
     scriptRef.current = text;
+    setTtsSource('web'); // 明确标记当前使用 Web Speech
 
     // 如果是从头开始，重新切分文本块
     if (startFrom === 0) {
@@ -150,17 +152,17 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
 
     const preferredVoice = isEdge
       ? // Edge 优先：Xiaoxiao 神经语音 > 其他中文语音
-        validVoices.find((v) => v.name.includes('Xiaoxiao')) ||
-        validVoices.find((v) => v.name.includes('Microsoft') && v.lang === 'zh-CN') ||
-        validVoices.find((v) => v.lang === 'zh-CN') ||
-        validVoices[0]
+      validVoices.find((v) => v.name.includes('Xiaoxiao')) ||
+      validVoices.find((v) => v.name.includes('Microsoft') && v.lang === 'zh-CN') ||
+      validVoices.find((v) => v.lang === 'zh-CN') ||
+      validVoices[0]
       : // 其他浏览器：Google 普通话 > Premium > Xiaoxiao > Ting-Ting
-        validVoices.find((v) => v.name.includes('Google') && v.name.includes('普通话')) ||
-        validVoices.find((v) => v.name.includes('Premium')) ||
-        validVoices.find((v) => v.name.includes('Xiaoxiao')) ||
-        validVoices.find((v) => v.name.includes('Ting-Ting')) ||
-        validVoices.find((v) => v.lang === 'zh-CN') ||
-        validVoices[0];
+      validVoices.find((v) => v.name.includes('Google') && v.name.includes('普通话')) ||
+      validVoices.find((v) => v.name.includes('Premium')) ||
+      validVoices.find((v) => v.name.includes('Xiaoxiao')) ||
+      validVoices.find((v) => v.name.includes('Ting-Ting')) ||
+      validVoices.find((v) => v.lang === 'zh-CN') ||
+      validVoices[0];
 
     // 从 startFrom 位置开始播放剩余的 chunks
     const remainingChunks = chunks.slice(startFrom);
@@ -210,7 +212,7 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
 
     if (audioState === 'paused' && !forceRegenerate) {
       // 恢复：优先处理 <audio> 元素，否则处理 Web Speech
-      if (audioRef.current && audioUrl) {
+      if (audioRef.current && audioUrl && ttsSource === 'edge') {
         audioRef.current.play();
         setAudioState('playing');
       } else if (scriptRef.current) {
@@ -222,6 +224,7 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
     // 如果已有音频 URL 且未强制重生成，直接播放 MP3
     if (audioUrl && !forceRegenerate) {
       if (audioRef.current) {
+        setTtsSource('edge');
         audioRef.current.currentTime = 0;
         audioRef.current.play();
         setAudioState('playing');
@@ -243,11 +246,14 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
       setLoadingText('重新构思文稿...');
       scriptRef.current = null;
       setAudioUrl(null);
+      setTtsSource(null);
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.src = '';
       }
-      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
     }
 
     try {
@@ -287,10 +293,12 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
         if (data.audioUrl) {
           // 优先用 Edge TTS 生成的 MP3
           setAudioUrl(data.audioUrl);
+          setTtsSource('edge'); // 锁定为 Edge 模式
           setAudioState('playing');
           // useEffect 会监听 audioUrl 变化并触发播放
         } else {
           // 降级到 Web Speech API
+          setTtsSource('web');
           playScript(data.script);
         }
       }
@@ -354,14 +362,28 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
 
   // 当 audioUrl 变化且 audioState 为 playing 时，主动触发播放
   useEffect(() => {
-    if (audioUrl && audioState === 'playing' && audioRef.current) {
-      audioRef.current.play().catch(() => {
-        // 浏览器可能阻止自动播放，降级到 Web Speech
-        console.warn('[Podcast] Autoplay blocked, falling back to Web Speech');
-        if (scriptRef.current) playScript(scriptRef.current);
+    if (audioUrl && audioState === 'playing' && audioRef.current && ttsSource === 'edge') {
+      // 确保在尝试播放 MP3 之前，Web Speech 是完全取消的
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+
+      audioRef.current.play().catch((err) => {
+        // 浏览器可能阻止自动播放，或者网络加载极慢
+        console.warn('[Podcast] Audio play blocked or failed:', err);
+
+        // 只有当 TtsSource 依然是 edge 且真的失败了，才考虑降级
+        // 增加一个微小的延迟判断，避免状态切换瞬间的误判
+        setTimeout(() => {
+          if (audioState === 'playing' && audioRef.current?.paused && ttsSource === 'edge') {
+            console.warn('[Podcast] Falling back to Web Speech after verification');
+            setTtsSource('web');
+            if (scriptRef.current) playScript(scriptRef.current);
+          }
+        }, 300);
       });
     }
-  }, [audioUrl, audioState]);
+  }, [audioUrl, audioState, ttsSource]);
 
   // 拉取最新讲稿（弹窗打开时自动调用 + 手动刷新）
   const fetchLatestScript = useCallback(() => {
@@ -554,8 +576,8 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
                 <div className="prose prose-sm md:prose-base dark:prose-invert max-w-none leading-relaxed text-gray-700 dark:text-gray-300">
                   {scriptRef.current
                     .split('\n')
-                    .filter((line) => line.trim() !== '')
-                    .map((line, i) => (
+                    .filter((line: string) => line.trim() !== '') // Added type annotation for 'line'
+                    .map((line: string, i: number) => ( // Added type annotations for 'line' and 'i'
                       <p key={i} className="mb-4 indent-8">
                         {line}
                       </p>
