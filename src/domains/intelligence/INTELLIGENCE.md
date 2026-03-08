@@ -10,7 +10,7 @@
 
 在进入 RAG 流程前，所有文章均通过 `src/domains/intelligence/services/` 下的 Embedding 逻辑进行向量化预处理。我们采用**混合语义指纹**策略，而非单纯的正文切片。
 
-- **Embedding 模型**: `gemini-embedding-001`
+- **Embedding 模型**: `gemini-embedding-001` (使用官方 `@google/genai` SDK)
 - **向量化字段**: `title` + `category` + `keywords` + `summary` + `tldr`
 - **逻辑**: 通过将分类和关键词硬编码进向量内容，确保了语义搜索时不仅能匹配到内容相似，还能匹配到“分类正确”的文章。
 - **现状**:
@@ -104,11 +104,16 @@ AI 聊天的核心入口现由 **ChatOrchestrator** (位于 `intelligence/servic
 - **模型路由 (Model Routing)**：由 `src/domains/intelligence/services/chat-orchestrator.ts`（对话场景）以及 API 层的智能分发逻辑（后台场景）共同管理。系统通过读取 `constants.ts` 中的 `provider` 属性实现基于数据的精准路由（Google vs SiliconFlow）。
 - **“羊毛”配额池 (Quota Buffering)**：对话框型号选择器集成了多个具备独立配额权重的模型。当主模型触发 429 报错时，管理员可通过切换“独立池子”型号实现每日可用次数的最大化。
 - **深度思考模式 (Thinking Mode)**：
-    - **逻辑特性**：针对 SiliconFlow 提供的 DeepSeek-R1、Qwen-MAX 等模型支持 `enable_thinking` 参数，开启后将返回 AI 的逻辑推理链（Chain of Thought）。
+    - **逻辑特性**：针对 SiliconFlow (DeepSeek-R1, Qwen-Max) 和 Google (Gemini 2.5 系列) 模型提供深度逻辑推理支持。
+    - **实现差异**:
+        - **SiliconFlow**: 通过 `enable_thinking` 开关开启，解析 `<think>` 标签过滤内容。
+        - **Google**: 通过 SDK `thinkingConfig` 开启，利用新版 SDK 的候选文稿过滤机制自动分离思考过程。
     - **UI 感知**：引入 `ReasoningToggle` 组件，基于 `constants.ts` 中的 `hasReasoning` 标记自动控制开关的可见性与可点击状态。
     - **稳定性控制**：为所有 AI 生成接口内置 **60 秒超时控制**，解决模型层挂起导致的前端长时间假死问题。
+- **使用看板**：对话框型号选择器中实时显示模型配额（RPM/RPD）及“独立池子”标识，辅助决策。
 - **Google 原生集成 (Native Gemini)**: 
-    - **接口**: 除了聊天专用的流式接口外，新增了通用非流式接口 `generateGemini` (位于 `services/gemini.ts`)，适配播报生成等后台任务。
+    - **接口**: 迁移至官方最新 `@google/genai` SDK，采用统一的 `Client` 架构。
+    - **Thinking (Gemini 2.5)**: 原生支持 `thinkingConfig`，通过 `thinkingBudget` 实现动态逻辑推理。
     - **多 Key 管理**: 支持 `ALOK` 和 `CHENG30` 别名切换，确保主副账号配额互补。
 - **使用看板**：对话框型号选择器中实时显示模型配额（RPM/RPD）及“独立池子”标识，辅助决策。
 

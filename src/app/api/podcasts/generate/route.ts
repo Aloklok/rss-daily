@@ -5,6 +5,7 @@ import { generateEdgeTTSAudio } from '@/domains/intelligence/services/edge-tts';
 import { generateGemini } from '@/domains/intelligence/services/gemini';
 import { fetchBriefingData } from '@/domains/reading/services';
 import { MODELS } from '@/domains/intelligence/constants';
+import * as crypto from 'crypto';
 
 // Force dynamic execution
 export const dynamic = 'force-dynamic';
@@ -117,37 +118,7 @@ export async function POST(req: NextRequest) {
 
     console.log(`[Podcast] Script generated (${script.length} characters)`);
 
-    // Edge TTS: 生成 MP3 音频（失败不阻塞，前端会降级到 Web Speech API）
-    let audioUrl = '';
-    try {
-      console.log('[Podcast] Generating Edge TTS audio...');
-      const audioBuffer = await generateEdgeTTSAudio(script);
-      console.log(`[Podcast] Edge TTS audio generated (${audioBuffer.length} bytes)`);
-
-      // 上传到 Supabase Storage
-      const fileName = `podcast-${date}-zh-${Date.now()}.mp3`;
-      const { error: uploadError } = await supabase.storage
-        .from('podcasts')
-        .upload(fileName, audioBuffer, {
-          contentType: 'audio/mpeg',
-          upsert: true,
-        });
-
-      if (!uploadError) {
-        const { data: urlData } = supabase.storage.from('podcasts').getPublicUrl(fileName);
-        audioUrl = urlData.publicUrl;
-        console.log(`[Podcast] Audio uploaded: ${audioUrl}`);
-      } else {
-        console.error('[Podcast] Storage upload error:', uploadError);
-      }
-    } catch (ttsError: any) {
-      console.error(
-        '[Podcast] Edge TTS failed, frontend will fallback to Web Speech:',
-        ttsError.message,
-      );
-    }
-
-    // Check for existing ID and old audio URL to clean up storage
+    // Check for existing ID and old audio URL early to clean up storage later
     const { data: existingCheck } = await supabase
       .from('daily_podcasts')
       .select('id, audio_url')
@@ -155,13 +126,67 @@ export async function POST(req: NextRequest) {
       .eq('language', 'zh')
       .maybeSingle();
 
-    // Clean up old audio file if it exists and we're regenerating
-    if (existingCheck?.audio_url && audioUrl && existingCheck.audio_url !== audioUrl) {
+    // 0. Pre-load checking for Hash-based duplicates in Storage
+    let useExistingAudio = false;
+    let expectedAudioUrl = '';
+    const textHash = crypto.createHash('md5').update(script).digest('hex').substring(0, 16);
+    const fileName = `podcast-${date}-zh-${textHash}.mp3`;
+    const fallbackBaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+
+    try {
+      const { data: existingFiles } = await supabase.storage.from('podcasts').list();
+      if (existingFiles?.some(f => f.name === fileName)) {
+        console.log(`[Podcast] 🎉 Hash match found in Storage. Bypassing Edge TTS API: ${fileName}`);
+        useExistingAudio = true;
+        // Retrieve public URL quickly without uploading
+        const { data: qData } = supabase.storage.from('podcasts').getPublicUrl(fileName);
+        expectedAudioUrl = qData.publicUrl;
+      }
+    } catch (err) {
+      console.warn('[Podcast] ⚠️ Pre-load check failed, continuing normal process:', err);
+    }
+
+    let audioUrl = expectedAudioUrl;
+
+    // Edge TTS: 如果没有命中防重缓存，那就乖乖生成 MP3 音频
+    if (!useExistingAudio) {
+      try {
+        console.log('[Podcast] Generating Edge TTS audio...');
+        const audioBuffer = await generateEdgeTTSAudio(script);
+        console.log(`[Podcast] Edge TTS audio generated (${audioBuffer.length} bytes)`);
+
+        // 上传到 Supabase Storage
+        const { error: uploadError } = await supabase.storage
+          .from('podcasts')
+          .upload(fileName, audioBuffer, {
+            contentType: 'audio/mpeg',
+            upsert: true,
+          });
+
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage.from('podcasts').getPublicUrl(fileName);
+          audioUrl = urlData.publicUrl;
+          console.log(`[Podcast] Audio uploaded: ${audioUrl}`);
+        } else {
+          console.error('[Podcast] Storage upload error:', uploadError);
+        }
+      } catch (ttsError: any) {
+        console.error(
+          '[Podcast] Edge TTS failed, frontend will fallback to Web Speech:',
+          ttsError.message,
+        );
+      }
+    }
+
+    const finalAudioUrl = audioUrl || '';
+
+    // Clean up old audio file if it exists and we're replacing it with a NEW different file
+    if (existingCheck?.audio_url && finalAudioUrl && existingCheck.audio_url !== finalAudioUrl) {
       try {
         const oldFileName = existingCheck.audio_url.split('/').pop();
         if (oldFileName) {
           await supabase.storage.from('podcasts').remove([oldFileName]);
-          console.log(`[Podcast] Old audio deleted: ${oldFileName}`);
+          console.log(`[Podcast] 🗑️ Old audio garbage collected: ${oldFileName}`);
         }
       } catch (err) {
         console.warn('[Podcast] Failed to delete old audio file:', err);
@@ -174,7 +199,7 @@ export async function POST(req: NextRequest) {
         .from('daily_podcasts')
         .update({
           script_content: script,
-          audio_url: audioUrl,
+          audio_url: finalAudioUrl,
           model_id: modelId,
           updated_at: new Date().toISOString(),
         })
@@ -185,7 +210,7 @@ export async function POST(req: NextRequest) {
         date: date,
         language: 'zh',
         script_content: script,
-        audio_url: audioUrl,
+        audio_url: finalAudioUrl,
         model_id: modelId,
         updated_at: new Date().toISOString(),
       });
@@ -196,7 +221,7 @@ export async function POST(req: NextRequest) {
       console.error('DB Insert/Update Error:', dbError);
     }
 
-    return Response.json({ script, audioUrl });
+    return Response.json({ script, audioUrl: finalAudioUrl });
   } catch (error: any) {
     console.error('[Podcast] API Generation Error:', error, 'CAUSE:', error.cause);
     return Response.json(

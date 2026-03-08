@@ -1,4 +1,6 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { GoogleGenAI } from '@google/genai';
 
 export async function generateEmbedding(
   text: string,
@@ -28,17 +30,18 @@ export async function generateEmbedding(
 
   const sanitizedText = text.replace(/\n/g, ' ').trim();
 
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: 'gemini-embedding-001' });
+  const ai = new GoogleGenAI({ apiKey });
 
   try {
-    const result = await model.embedContent({
-      content: { parts: [{ text: sanitizedText }], role: 'user' },
-      taskType: taskType as any,
-      outputDimensionality: 768,
-    } as any);
-    const embedding = result.embedding;
-    return embedding.values;
+    const result = await ai.models.embedContent({
+      model: 'gemini-embedding-001',
+      contents: sanitizedText,
+      config: {
+        taskType: taskType as any,
+        outputDimensionality: 768,
+      },
+    });
+    return result.embeddings![0].values!;
   } catch (error: any) {
     // 移除自动降级策略：不再在运行时自动切换 KEY，确保配额错误能准确反馈到对应的账号上
     console.error(

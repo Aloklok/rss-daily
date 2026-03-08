@@ -90,7 +90,7 @@ src/
 
 系统采用 **混合搜索 (Hybrid Search)** 策略，结合了传统关键词匹配与语义理解：
 
-- **技术栈**: Supabase `pgvector` + Gemini `gemini-embedding-001` (2026 新一代模型)。
+- **技术栈**: Supabase `pgvector` + Gemini `gemini-embedding-001` (使用官方 `@google/genai` SDK)。
 - **多语言现状**:
   - **中文**: 启用全量向量生成与检索。
   - **英文**: 目前采用 **关键词 (ILIKE)** 模式，暂时禁用了自动 Embedding 生成（但表结构中保留 `embedding` 字段以便未来扩展）。

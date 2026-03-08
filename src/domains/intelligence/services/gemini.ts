@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 import { createClient } from '@supabase/supabase-js';
 import { cleanGeminiJson } from '@/domains/reading/utils/content';
 import { generateEmbedding } from './embeddings';
 import { DEFAULT_MODEL_ID, CHAT_CONTEXT_PROMPT_TEMPLATE } from '../constants';
+
 export { CHAT_CONTEXT_PROMPT_TEMPLATE };
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -55,7 +56,7 @@ export async function getChatSystemPrompt(): Promise<string> {
 export async function generateBriefingWithGemini(
   articleData: any | any[],
   modelId: string = DEFAULT_MODEL_ID,
-) {
+): Promise<any> {
   const [cleanModelId, keyAlias] = (modelId || '').split('@');
   const isSiliconFlow = cleanModelId.includes('/');
 
@@ -79,17 +80,16 @@ export async function generateBriefingWithGemini(
       throw new Error(`API Key (${keyAlias || 'Default'}) is not defined`);
     }
 
-    const genAI = new GoogleGenerativeAI(dynamicKey);
-    const model = genAI.getGenerativeModel({
+    const ai = new GoogleGenAI({ apiKey: dynamicKey });
+    const response = await ai.models.generateContent({
       model: cleanModelId || DEFAULT_MODEL_ID,
-      generationConfig: {
+      contents: fullPrompt,
+      config: {
         responseMimeType: 'application/json',
       },
     });
 
-    const result = await model.generateContent(fullPrompt);
-    const response = await result.response;
-    text = response.text();
+    text = response.text || '';
     responseMetadata = {
       usageMetadata: response.usageMetadata,
       safetyRatings: response.candidates?.[0]?.safetyRatings,
@@ -183,6 +183,7 @@ export async function chatWithGemini(
   useSearch: boolean = true,
   modelName: string = 'gemini-2.0-flash',
   keyAlias?: string,
+  enableThinking: boolean = false,
 ): Promise<any> {
   const { key: dynamicKey, name: keyName } = getApiKey(keyAlias);
   if (!dynamicKey) throw new Error(`API Key (${keyAlias}) is not defined`);
@@ -193,24 +194,13 @@ export async function chatWithGemini(
   const chatSystemPromptRaw = await getChatSystemPrompt();
   const chatSystemPrompt = chatSystemPromptRaw.replace(/{{COUNT}}/g, articles.length.toString());
   console.log(
-    `[Chat Prompt] Loaded (Gemini path) | length: ${chatSystemPrompt.length} | preview: ${chatSystemPrompt
-    }`,
+    `[Chat Prompt] Loaded (Gemini path) | length: ${chatSystemPrompt.length} | preview: ${chatSystemPrompt.slice(
+      0,
+      100,
+    )}`,
   );
 
-  const genAI = new GoogleGenerativeAI(dynamicKey);
-  const model = genAI.getGenerativeModel({
-    model: effectiveModel,
-
-    tools: useSearch ? [{ googleSearch: {} } as any] : [],
-    systemInstruction: chatSystemPrompt,
-
-    safetySettings: [
-      { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
-      { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
-      { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
-      { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
-    ] as any,
-  });
+  const ai = new GoogleGenAI({ apiKey: dynamicKey });
 
   const articleList =
     articles.length > 0
@@ -243,25 +233,37 @@ TLDR: ${a.tldr || '无'}
     .replace('{{ARTICLE_LIST}}', articleList)
     .replace('{{QUERY}}', query);
 
-  const chat = model.startChat({
-    history: messages.slice(0, -1).map((m) => ({
-      role: m.role === 'user' ? 'user' : 'model',
-      parts: [{ text: m.content }],
-    })),
-    generationConfig: {
-      maxOutputTokens: 8192,
-      temperature: 0.7,
-    },
-  });
+  const formattedHistory = messages.slice(0, -1).map((m) => ({
+    role: m.role === 'user' ? 'user' : 'model',
+    parts: [{ text: m.content }],
+  }));
 
   const requestId = Math.random().toString(36).substring(7);
   console.log(
-    `[Gemini Request] Start | ID: ${requestId} | Key: ${apiKeyName} | UseSearch: ${useSearch}`,
+    `[Gemini Request] Start | ID: ${requestId} | Key: ${apiKeyName} | UseSearch: ${useSearch} | Thinking: ${enableThinking}`,
   );
 
   try {
-    const result = await chat.sendMessageStream(contextPrompt);
-    return result.stream;
+    const responseStream = await ai.models.generateContentStream({
+      model: effectiveModel,
+      contents: [...formattedHistory, { role: 'user', parts: [{ text: contextPrompt }] }],
+      config: {
+        maxOutputTokens: 8192,
+        temperature: 0.7,
+        systemInstruction: chatSystemPrompt,
+        tools: useSearch ? [{ googleSearch: {} } as any] : [],
+        thinkingConfig: enableThinking ? { thinkingBudget: -1 } : undefined,
+      },
+    });
+
+    // 适配现有消费者接口: yield { text: () => string }
+    async function* streamWrapper() {
+      for await (const chunk of responseStream) {
+        yield { text: () => chunk.text || '' };
+      }
+    }
+
+    return streamWrapper();
   } catch (error: any) {
     console.error(
       `[chatWithGemini Error] ID: ${requestId} | Key: ${keyName} | Query: "${query.slice(0, 30)}..."`,
@@ -280,6 +282,7 @@ export async function generateGemini(
   modelId: string = DEFAULT_MODEL_ID,
   max_tokens: number = 8192,
   keyAlias?: string,
+  enableThinking: boolean = false,
 ): Promise<string> {
   const [cleanModelId, alias] = (modelId || '').split('@');
   const targetAlias = alias || keyAlias;
@@ -289,30 +292,24 @@ export async function generateGemini(
     throw new Error(`API Key for ${targetAlias || 'Default'} is not defined`);
   }
 
-  const genAI = new GoogleGenerativeAI(dynamicKey);
-  const model = genAI.getGenerativeModel({
-    model: cleanModelId || DEFAULT_MODEL_ID,
-  });
+  const ai = new GoogleGenAI({ apiKey: dynamicKey });
 
-  // 转换消息格式为 Gemini SDK 要求格式
-  // 最后一篇是 User Prompt，前面的可以作为历史 (或者简单合并)
-  const lastMessage = messages[messages.length - 1];
-  const history = messages.slice(0, -1).map((m) => ({
+  const formattedMessages = messages.map((m) => ({
     role: m.role === 'user' ? 'user' : 'model',
     parts: [{ text: m.content }],
   }));
 
-  const chat = model.startChat({
-    history,
-    generationConfig: {
+  const response = await ai.models.generateContent({
+    model: cleanModelId || DEFAULT_MODEL_ID,
+    contents: formattedMessages,
+    config: {
       maxOutputTokens: max_tokens,
       temperature: 0.7,
+      thinkingConfig: enableThinking ? { thinkingBudget: -1 } : undefined,
     },
   });
 
-  const result = await chat.sendMessage(lastMessage.content);
-  const response = await result.response;
-  return response.text();
+  return response.text || '';
 }
 
 export async function reRankArticles(
@@ -325,13 +322,7 @@ export async function reRankArticles(
   const { key: dynamicKey } = getApiKey(keyAlias);
   if (!dynamicKey || articles.length === 0) return [];
 
-  const genAI = new GoogleGenerativeAI(dynamicKey);
-  const model = genAI.getGenerativeModel({
-    model: modelId,
-    generationConfig: {
-      responseMimeType: 'application/json',
-    },
-  });
+  const ai = new GoogleGenAI({ apiKey: dynamicKey });
 
   const articleList = articles
     .map((a) => {
@@ -353,8 +344,14 @@ Summary: ${a.summary || 'N/A'}`;
 ${articleList}`;
 
   try {
-    const result = await model.generateContent(reRankPrompt);
-    const text = result.response.text();
+    const response = await ai.models.generateContent({
+      model: modelId,
+      contents: reRankPrompt,
+      config: {
+        responseMimeType: 'application/json',
+      },
+    });
+    const text = response.text || '';
     const parsed = JSON.parse(text);
     return parsed.selected_ids || [];
   } catch (e: any) {
@@ -363,7 +360,10 @@ ${articleList}`;
 
     if (modelId !== sheepModel && isQuotaError) {
       console.warn(
-        `[reRankArticles Model Fallback] ${modelId} Quota exceeded, retrying with ${sheepModel} for query: "${query.slice(0, 20)}..."`,
+        `[reRankArticles Model Fallback] ${modelId} Quota exceeded, retrying with ${sheepModel} for query: "${query.slice(
+          0,
+          20,
+        )}..."`,
       );
       return reRankArticles(articles, query, sheepModel, keyAlias, topK);
     }

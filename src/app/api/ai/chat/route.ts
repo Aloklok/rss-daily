@@ -42,7 +42,8 @@ export async function POST(req: NextRequest) {
 
           let fullText = '';
           for await (const chunk of stream) {
-            const text = chunk.text();
+            // 支持两种格式：新 SDK 的 .text 属性 和 旧 SDK/封装好的 .text() 方法
+            const text = typeof chunk.text === 'function' ? chunk.text() : (chunk.text || '');
             if (text) {
               fullText += text;
               controller.enqueue(

@@ -119,11 +119,11 @@ export async function orchestrateChat(request: ChatRequest): Promise<ChatOrchest
       const articleList =
         finalArticles.length > 0
           ? finalArticles
-              .map((a: any, i: number) => {
-                const dateStr = new Date(a.published).toLocaleDateString();
-                return `【文章索引：[${i + 1}]】\n标题: ${a.title}\n来源: ${a.sourceName || 'Unknown'}\n日期: ${dateStr}\nTLDR: ${a.tldr || '无'}\n摘要: ${a.summary || '无'}\n技术亮点: ${a.highlights || '无'}\n犀利点评: ${a.critiques || '无'}\n市场观点: ${a.marketTake || '无'}`;
-              })
-              .join('\n\n---\n\n')
+            .map((a: any, i: number) => {
+              const dateStr = new Date(a.published).toLocaleDateString();
+              return `【文章索引：[${i + 1}]】\n标题: ${a.title}\n来源: ${a.sourceName || 'Unknown'}\n日期: ${dateStr}\nTLDR: ${a.tldr || '无'}\n摘要: ${a.summary || '无'}\n技术亮点: ${a.highlights || '无'}\n犀利点评: ${a.critiques || '无'}\n市场观点: ${a.marketTake || '无'}`;
+            })
+            .join('\n\n---\n\n')
           : '（未匹配到相关本地文章）';
 
       const contextPrompt = CHAT_CONTEXT_PROMPT_TEMPLATE.replace(
@@ -148,6 +148,7 @@ export async function orchestrateChat(request: ChatRequest): Promise<ChatOrchest
       effectiveUseSearch,
       model,
       keyAlias,
+      enableThinking,
     );
   }
 
