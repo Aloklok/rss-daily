@@ -142,6 +142,7 @@ export const MODELS = [
     name: 'Gemini 2.5 Flash-Lite (Sep)',
     desc: '2025.09 版，用户确认可用稳定羊毛',
     hasSearch: true,
+    hasReasoning: true,
     quota: '15 RPM / 100 RPD',
     provider: 'google',
   },
