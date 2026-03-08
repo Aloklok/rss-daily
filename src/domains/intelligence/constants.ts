@@ -118,7 +118,7 @@ export const MODELS = [
     provider: 'google',
   },
   {
-    id: 'gemini-3-flash',
+    id: 'gemini-3-flash-preview',
     name: 'Gemini 3 Flash',
     desc: '全能平衡，极速响应',
     hasSearch: true,
@@ -152,15 +152,6 @@ export const MODELS = [
     desc: '经典低负载，100 RPD 稳定羊毛',
     hasSearch: true,
     quota: '15 RPM / 100 RPD',
-    provider: 'google',
-  },
-  {
-    id: 'gemini-3-flash-preview',
-    name: 'Gemini 3.0 Flash (Preview)',
-    desc: '最强下一代，目前独立池子',
-    hasSearch: true,
-    hasReasoning: true,
-    quota: '15 RPM / 独立 RPD',
     provider: 'google',
   },
   {

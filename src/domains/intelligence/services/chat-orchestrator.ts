@@ -36,7 +36,7 @@ export async function orchestrateChat(request: ChatRequest): Promise<ChatOrchest
 
   // 1. Model & Provider Normalization
   const [requestedId, keyAlias] = (requestedModel || 'gemini-2.0-flash').split('@');
-  let model = requestedId === 'gemini-3-flash' ? 'gemini-2.0-flash' : requestedId;
+  let model = requestedId;
 
   const looksLikeSiliconFlow = model.includes('/');
   if (!model.startsWith('gemini-') && !model.startsWith('gemma-') && !looksLikeSiliconFlow) {
