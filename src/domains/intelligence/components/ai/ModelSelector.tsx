@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 
 import { MODELS, DEFAULT_MODEL_ID } from '@/domains/intelligence/constants';
+import { Dictionary } from '@/app/i18n/dictionaries';
 
 interface ModelSelectorProps {
   selectedModel: string;
@@ -11,6 +12,7 @@ interface ModelSelectorProps {
   className?: string;
   align?: 'left' | 'right';
   popDirection?: 'up' | 'down';
+  dict?: Dictionary;
 }
 
 type ModelSource = 'siliconflow' | 'cheng30' | 'alok';
@@ -22,6 +24,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
   className = '',
   align = 'left',
   popDirection = 'up',
+  dict,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -107,7 +110,11 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
                       : 'text-stone-500 hover:bg-black/5 dark:hover:bg-white/10'
                   }`}
                 >
-                  {s === 'siliconflow' ? '硅基流动' : s.toUpperCase()}
+                  {s === 'siliconflow'
+                    ? dict
+                      ? dict.ai.siliconflow
+                      : '硅基流动'
+                    : s.toUpperCase()}
                 </button>
               ))}
             </div>

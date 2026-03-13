@@ -11,20 +11,22 @@ import {
   FileText,
   X,
 } from 'lucide-react';
-import { useUIStore } from '@/shared/store/uiStore';
+import { Dictionary } from '@/app/i18n/dictionaries';
 import { ModelSelector } from '@/domains/intelligence/components/ai/ModelSelector';
 import { ReasoningToggle } from '@/domains/intelligence/components/ai/ReasoningToggle';
 import { DEFAULT_MODEL_ID, MODELS } from '@/domains/intelligence/constants';
+import { useUIStore } from '@/shared/store/uiStore';
 
 interface PodcastPlayerProps {
   date: string;
+  dict: Dictionary;
 }
 
 type AudioState = 'idle' | 'loading' | 'playing' | 'paused' | 'error';
 
-export function PodcastPlayer({ date }: PodcastPlayerProps) {
+export function PodcastPlayer({ date, dict }: PodcastPlayerProps) {
   const [audioState, setAudioState] = useState<AudioState>('idle');
-  const [loadingText, setLoadingText] = useState('准备为您生成播客...');
+  const [loadingText, setLoadingText] = useState(dict.podcast.status.preparing);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showScript, setShowScript] = useState(false);
   const [isFetchingScript, setIsFetchingScript] = useState(false);
@@ -120,7 +122,7 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
 
   const playScript = (text: string, startFrom: number = 0) => {
     if (!window.speechSynthesis) {
-      setLoadingText('您的浏览器不支持语音合成');
+      setLoadingText(dict.podcast.status.unsupported);
       setAudioState('error');
       return;
     }
@@ -152,17 +154,17 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
 
     const preferredVoice = isEdge
       ? // Edge 优先：Xiaoxiao 神经语音 > 其他中文语音
-      validVoices.find((v) => v.name.includes('Xiaoxiao')) ||
-      validVoices.find((v) => v.name.includes('Microsoft') && v.lang === 'zh-CN') ||
-      validVoices.find((v) => v.lang === 'zh-CN') ||
-      validVoices[0]
+        validVoices.find((v) => v.name.includes('Xiaoxiao')) ||
+        validVoices.find((v) => v.name.includes('Microsoft') && v.lang === 'zh-CN') ||
+        validVoices.find((v) => v.lang === 'zh-CN') ||
+        validVoices[0]
       : // 其他浏览器：Google 普通话 > Premium > Xiaoxiao > Ting-Ting
-      validVoices.find((v) => v.name.includes('Google') && v.name.includes('普通话')) ||
-      validVoices.find((v) => v.name.includes('Premium')) ||
-      validVoices.find((v) => v.name.includes('Xiaoxiao')) ||
-      validVoices.find((v) => v.name.includes('Ting-Ting')) ||
-      validVoices.find((v) => v.lang === 'zh-CN') ||
-      validVoices[0];
+        validVoices.find((v) => v.name.includes('Google') && v.name.includes('普通话')) ||
+        validVoices.find((v) => v.name.includes('Premium')) ||
+        validVoices.find((v) => v.name.includes('Xiaoxiao')) ||
+        validVoices.find((v) => v.name.includes('Ting-Ting')) ||
+        validVoices.find((v) => v.lang === 'zh-CN') ||
+        validVoices[0];
 
     // 从 startFrom 位置开始播放剩余的 chunks
     const remainingChunks = chunks.slice(startFrom);
@@ -240,10 +242,10 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
 
     setAudioState('loading');
     isGeneratingRef.current = true;
-    setLoadingText('检查预构思文稿...');
+    setLoadingText(dict.podcast.status.checking);
 
     if (forceRegenerate) {
-      setLoadingText('重新构思文稿...');
+      setLoadingText(dict.podcast.status.redrafting);
       scriptRef.current = null;
       setAudioUrl(null);
       setTtsSource(null);
@@ -272,12 +274,13 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
           forceRegenerate,
           modelId: selectedModel,
           enableThinking: enableThinking,
+          language: dict.lang,
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || '服务器响应异常');
+        throw new Error(errorData.error || dict.podcast.status.serverError);
       }
 
       const data = await response.json();
@@ -306,7 +309,7 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
       console.error('Podcast Generation Failed:', err);
       isGeneratingRef.current = false;
       setAudioState('error');
-      setLoadingText(err.message || '构思讲稿失败');
+      setLoadingText(err.message || dict.podcast.status.draftingFailed);
       setTimeout(() => setAudioState('idle'), 4000);
     }
   };
@@ -324,21 +327,21 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
         return (
           <span className="text-primary-600 hover:text-primary-700 flex items-center gap-2 font-medium transition">
             <Pause className="h-4 w-4" />
-            暂停播报
+            {dict.podcast.status.paused}
           </span>
         );
       case 'paused':
         return (
           <span className="text-primary-600 hover:text-primary-700 flex items-center gap-2 font-medium transition">
             <Play className="h-4 w-4" />
-            继续播报
+            {dict.podcast.status.playing}
           </span>
         );
       case 'error':
         return (
           <span className="flex items-center gap-2 font-medium text-red-500">
             <Headphones className="h-4 w-4" />
-            播报失败
+            {dict.podcast.status.failed}
           </span>
         );
       case 'idle':
@@ -346,7 +349,7 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
         return (
           <span className="hover:text-primary-600 dark:hover:text-primary-400 flex items-center gap-2 font-medium text-gray-600 transition dark:text-gray-300">
             <Play className="text-primary-500 fill-primary-500/10 h-4 w-4" />
-            新闻播报
+            {dict.podcast.status.idle}
           </span>
         );
     }
@@ -388,7 +391,7 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
   // 拉取最新讲稿（弹窗打开时自动调用 + 手动刷新）
   const fetchLatestScript = useCallback(() => {
     setIsFetchingScript(true);
-    fetch(`/api/podcasts/fetch?date=${date}`)
+    fetch(`/api/podcasts/fetch?date=${date}&lang=${dict.lang}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.script) {
@@ -470,7 +473,7 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
                 <RefreshCw
                   className={`h-4 w-4 ${audioState === 'loading' ? 'animate-spin' : ''}`}
                 />
-                重新生成
+                {dict.podcast.actions.regenerate}
               </button>
             )}
 
@@ -478,7 +481,7 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
             {isAdmin && (
               <div className="border-t border-gray-100 px-4 py-2 dark:border-gray-800">
                 <div className="mb-1.5 text-[10px] font-bold tracking-wider text-gray-400 uppercase">
-                  生成模型
+                  {dict.podcast.actions.model}
                 </div>
                 <ModelSelector
                   selectedModel={selectedModel}
@@ -487,6 +490,7 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
                   align="right"
                   popDirection="down"
                   className="w-full"
+                  dict={dict}
                 />
               </div>
             )}
@@ -500,6 +504,7 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
                   disabled={audioState === 'loading' || !selectedModelMeta?.hasReasoning}
                   modelName={selectedModelMeta?.name}
                   size="sm"
+                  dict={dict}
                 />
               </div>
             )}
@@ -513,7 +518,7 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
                 className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-100 hover:text-sky-600 dark:text-gray-300 dark:hover:bg-gray-800"
               >
                 <FileText className="h-4 w-4" />
-                播客内容
+                {dict.podcast.actions.content}
               </button>
             </div>
           </div>
@@ -529,14 +534,16 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
                 <div className="rounded-lg bg-sky-50 p-2 dark:bg-sky-900/30">
                   <FileText className="h-5 w-5 text-sky-600 dark:text-sky-400" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white">播客内容</h3>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                  {dict.podcast.actions.content}
+                </h3>
               </div>
               <div className="flex items-center gap-1">
                 {/* 刷新讲稿按钮 */}
                 <button
                   onClick={() => fetchLatestScript()}
                   disabled={isFetchingScript}
-                  title="重新拉取最新讲稿"
+                  title={dict.podcast.actions.refresh}
                   className="rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-sky-500 disabled:opacity-50 dark:hover:bg-gray-800"
                 >
                   <RefreshCw className={`h-4 w-4 ${isFetchingScript ? 'animate-spin' : ''}`} />
@@ -547,7 +554,11 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
                     onClick={() => {
                       handleGenerateAndPlay(false);
                     }}
-                    title={audioState === 'playing' ? '暂停播报' : '播放讲稿'}
+                    title={
+                      audioState === 'playing'
+                        ? dict.podcast.status.paused
+                        : dict.podcast.actions.play
+                    }
                     className="rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-sky-500 dark:hover:bg-gray-800"
                   >
                     {audioState === 'playing' ? (
@@ -570,23 +581,30 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
               {isFetchingScript ? (
                 <div className="flex flex-col items-center justify-center gap-5 py-16 text-center">
                   <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
-                  <p className="text-sm text-gray-500 md:text-base">正在查询云端讲稿记录...</p>
+                  <p className="text-sm text-gray-500 md:text-base">
+                    {dict.podcast.status.querying}
+                  </p>
                 </div>
               ) : scriptRef.current ? (
                 <div className="prose prose-sm md:prose-base dark:prose-invert max-w-none leading-relaxed text-gray-700 dark:text-gray-300">
                   {scriptRef.current
                     .split('\n')
                     .filter((line: string) => line.trim() !== '') // Added type annotation for 'line'
-                    .map((line: string, i: number) => ( // Added type annotations for 'line' and 'i'
-                      <p key={i} className="mb-4 indent-8">
-                        {line}
-                      </p>
-                    ))}
+                    .map(
+                      (
+                        line: string,
+                        i: number, // Added type annotations for 'line' and 'i'
+                      ) => (
+                        <p key={i} className="mb-4 indent-8">
+                          {line}
+                        </p>
+                      ),
+                    )}
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center gap-5 py-16 text-center">
                   <p className="text-sm text-gray-500 md:text-base">
-                    云端尚未生成今日讲稿，请点击按钮开始生成。
+                    {dict.podcast.empty.noScript}
                   </p>
                   <button
                     onClick={() => {
@@ -595,7 +613,7 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
                     }}
                     className="rounded-full bg-sky-600 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-sky-700"
                   >
-                    立即生成并播放
+                    {dict.podcast.actions.generateNow}
                   </button>
                 </div>
               )}
@@ -605,7 +623,7 @@ export function PodcastPlayer({ date }: PodcastPlayerProps) {
                 onClick={() => setShowScript(false)}
                 className="rounded-full bg-stone-800 px-6 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-stone-900 dark:bg-stone-200 dark:text-stone-900 dark:hover:bg-white"
               >
-                我了解了
+                {dict.podcast.actions.gotIt}
               </button>
             </div>
           </div>

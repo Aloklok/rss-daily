@@ -51,7 +51,7 @@ export default function GlobalUI({ dict }: { dict?: Dictionary }) {
           dict={dict}
         />
       )}
-      <AIChatModal />
+      <AIChatModal dict={dict} />
     </div>
   );
 }

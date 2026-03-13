@@ -104,17 +104,17 @@ AI 聊天的核心入口现由 **ChatOrchestrator** (位于 `intelligence/servic
 - **模型路由 (Model Routing)**：由 `src/domains/intelligence/services/chat-orchestrator.ts`（对话场景）以及 API 层的智能分发逻辑（后台场景）共同管理。系统通过读取 `constants.ts` 中的 `provider` 属性实现基于数据的精准路由（Google vs SiliconFlow）。
 - **“羊毛”配额池 (Quota Buffering)**：对话框型号选择器集成了多个具备独立配额权重的模型。当主模型触发 429 报错时，管理员可通过切换“独立池子”型号实现每日可用次数的最大化。
 - **深度思考模式 (Thinking Mode)**：
-    - **逻辑特性**：针对 SiliconFlow (DeepSeek-R1, Qwen-Max) 和 Google (Gemini 2.x/3.x 全系列) 模型提供深度逻辑推理支持。
-    - **实现差异**:
-        - **SiliconFlow**: 通过 `enable_thinking` 开关开启，解析 `<think>` 标签过滤内容。
-        - **Google**: 通过 SDK `thinkingConfig` 开启，利用新版 SDK 的候选文稿过滤机制自动分离思考过程。
-    - **UI 感知**：引入 `ReasoningToggle` 组件，基于 `constants.ts` 中的 `hasReasoning` 标记自动控制开关的可见性与可点击状态。
-    - **稳定性控制**：为所有 AI 生成接口内置 **60 秒超时控制**，解决模型层挂起导致的前端长时间假死问题。
+  - **逻辑特性**：针对 SiliconFlow (DeepSeek-R1, Qwen-Max) 和 Google (Gemini 2.x/3.x 全系列) 模型提供深度逻辑推理支持。
+  - **实现差异**:
+    - **SiliconFlow**: 通过 `enable_thinking` 开关开启，解析 `<think>` 标签过滤内容。
+    - **Google**: 通过 SDK `thinkingConfig` 开启，利用新版 SDK 的候选文稿过滤机制自动分离思考过程。
+  - **UI 感知**：引入 `ReasoningToggle` 组件，基于 `constants.ts` 中的 `hasReasoning` 标记自动控制开关的可见性与可点击状态。
+  - **稳定性控制**：为所有 AI 生成接口内置 **60 秒超时控制**，解决模型层挂起导致的前端长时间假死问题。
 - **使用看板**：对话框型号选择器中实时显示模型配额（RPM/RPD）及“独立池子”标识，辅助决策。
-- **Google 原生集成 (Native Gemini)**: 
-    - **接口**: 迁移至官方最新 `@google/genai` SDK，采用统一的 `Client` 架构。
-    - **Thinking (Gemini 2.5)**: 原生支持 `thinkingConfig`，通过 `thinkingBudget` 实现动态逻辑推理。
-    - **多 Key 管理**: 支持 `ALOK` 和 `CHENG30` 别名切换，确保主副账号配额互补。
+- **Google 原生集成 (Native Gemini)**:
+  - **接口**: 迁移至官方最新 `@google/genai` SDK，采用统一的 `Client` 架构。
+  - **Thinking (Gemini 2.5)**: 原生支持 `thinkingConfig`，通过 `thinkingBudget` 实现动态逻辑推理。
+  - **多 Key 管理**: 支持 `ALOK` 和 `CHENG30` 别名切换，确保主副账号配额互补。
 - **使用看板**：对话框型号选择器中实时显示模型配额（RPM/RPD）及“独立池子”标识，辅助决策。
 
 ---
@@ -125,7 +125,7 @@ AI 聊天的核心入口现由 **ChatOrchestrator** (位于 `intelligence/servic
 
 - **递归解析**: 系统的引用按钮采用深度递归解析方案。虽然功能强大（支持嵌套在加粗/斜体内），但计算效率受对话长度影响。
 - **对话锁定**: `ChatStore` 会根据记忆窗口（默认 8 轮）自动管理。如需更长历史，需在 `src/domains/intelligence/store/chatStore.ts` 中调整以平衡内存与性能。
-- **国际化外壳**: AI 助手的 UI 组件（Search Placeholder, Buttons）已集成到国际化字典中。虽然 AI 输出的内容（TLDR, Summary）目前仍主要由生成时的 Prompt 决定，但外围交互已实现中英适配。
+- **国际化与多语言隔离**: AI 组件（`AIChatModal`, `ModelSelector`, `ReasoningToggle`）已全面集成 `dict` 字典。对话框的占位符、按钮及欢迎语均随页面语言动态切换。
 - **组件持久化 (Critical)**:
   - **组件隔离**: `MessageList` 已被抽离为独立的 `React.memo` 组件，确保在流式输出（Partial Streaming）触发高频重绘时，只有最后一条消息在更新，上百条历史消息保持静态。这是防止多轮对话 CPU 飙升的关键。
   - **顶层声明**: `ChatMessageItem` 和 `MessageList` 必须声明在 **顶层作用域**（即模态框主组件外部）。严禁在 `src/domains/intelligence/components/AIChatModal.tsx` 内部动态声明组件，否则 React 每次 Render 都会认为其是新组件，强制卸载旧 DOM 并重新挂载，这将使 `React.memo` 完全失效并导致剧烈卡顿。
@@ -258,7 +258,10 @@ pnpm chat-prompt:push --new
 - **存储架构**：
   - **流式处理**：服务端通过 WebSocket 接收 TTS 音频流并聚合为 Buffer。
   - **持久化**：生成的 MP3 音频上传至 Supabase Storage 的 `podcasts` bucket。
-  - **缓存**：音频 URL 随文稿记录在 `daily_podcasts` 表中，实现“一次生成，全端缓存”。
+- **中英文隔离与命名规范**：
+  - **逻辑隔离**：通过 `language` 字段（`zh`/`en`）在 `daily_podcasts` 表中物理隔离文稿。
+  - **命名后缀**：为了防止文件名冲突，英文版播客音频文件名强制附带 `_en` 后缀（例如 `podcast-YYYY-MM-DD-en-hash_en.mp3`）。
+- **缓存**：音频 URL 随文稿记录在 `daily_podcasts` 表中，实现“一次生成，全端缓存”。
 - **动态思考 (Thinking Mode)**：可从 `app_config` 中读取配置，结合 SiliconFlow API 启用 Qwen3.5 推理模型获得更有逻辑深度的串联脚本。
 - **智能预加载**：组件挂载时静默查询 `/api/podcasts/fetch`。若云端已有音频和讲稿，优先使用云端记录。
 - **权限与持久化**：后端提供强制生成的权限校验机制，仅允许拥有 `isAdmin` 权限的用户在前端下拉菜单触发“重新生成”。生成文稿落盘至 `daily_podcasts` 表。

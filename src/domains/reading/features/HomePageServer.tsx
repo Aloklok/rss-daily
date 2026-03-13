@@ -12,6 +12,7 @@ import { getCurrentTimeSlot, getTodayInShanghai } from '@/domains/reading/utils/
 import MainContentClient from '@/shared/components/layout/MainContentClient';
 import { zh, en } from '@/app/i18n/dictionaries';
 import { getDisplayLabel } from '@/domains/reading/utils/label-display';
+import { generateHighDensityDescription, getTopKeywords } from '@/domains/reading/utils/seo';
 
 type Lang = 'zh' | 'en';
 
@@ -55,15 +56,17 @@ export async function generateHomePageMetadata({ lang }: { lang: Lang }): Promis
   const url = lang === 'en' ? `${baseUrl}/en` : baseUrl;
 
   try {
-    const { initialDate, headerImageUrl } = await getHomePageData(lang);
+    const { initialDate, headerImageUrl, articles } = await getHomePageData(lang);
 
     const title =
       lang === 'en'
-        ? 'RSS Briefing Hub - Full Stack Tech Radar'
+        ? generateHighDensityDescription(initialDate, articles, 'en')
         : 'RSS Briefing Hub - 全栈技术资讯雷达 | 聚焦架构设计、AI趋势与云原生';
 
     return {
       title: title,
+      description: lang === 'en' ? title : undefined, // Fallback to title for English if description not explicitly set
+      keywords: getTopKeywords(articles, 10),
       alternates: {
         canonical: url,
         languages: {

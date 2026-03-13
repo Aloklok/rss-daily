@@ -20,7 +20,10 @@ export async function POST(req: NextRequest) {
       forceRegenerate,
       modelId: requestedModelId,
       enableThinking: requestedEnableThinking,
+      language: requestedLanguage,
     } = body;
+
+    const lang = requestedLanguage || 'zh';
 
     if (!date) {
       return Response.json({ error: 'Date is required' }, { status: 400 });
@@ -31,7 +34,7 @@ export async function POST(req: NextRequest) {
         .from('daily_podcasts')
         .select('*')
         .eq('date', date)
-        .eq('language', 'zh')
+        .eq('language', lang)
         .maybeSingle();
 
       if (existingPodcast?.script_content) {
@@ -43,7 +46,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const briefingData = await fetchBriefingData(date, 'zh');
+    const briefingData = await fetchBriefingData(date, lang as 'zh' | 'en');
 
     // 纵向集成：每篇文章携带全部维度信息，由 AI 自主聚类和筛选
     const articleList = Object.values(briefingData)
@@ -103,13 +106,7 @@ export async function POST(req: NextRequest) {
       script = await generateGemini(aiMessages, modelId, 4000);
     } else {
       console.log(`[Podcast] Routing to SiliconFlow API for ${modelId}`);
-      script = await generateSiliconFlow(
-        aiMessages,
-        modelId,
-        2000,
-        false,
-        enableThinking,
-      );
+      script = await generateSiliconFlow(aiMessages, modelId, 2000, false, enableThinking);
     }
 
     if (!script || script.trim() === '') {
@@ -123,20 +120,25 @@ export async function POST(req: NextRequest) {
       .from('daily_podcasts')
       .select('id, audio_url')
       .eq('date', date)
-      .eq('language', 'zh')
+      .eq('language', lang)
       .maybeSingle();
 
     // 0. Pre-load checking for Hash-based duplicates in Storage
     let useExistingAudio = false;
     let expectedAudioUrl = '';
     const textHash = crypto.createHash('md5').update(script).digest('hex').substring(0, 16);
-    const fileName = `podcast-${date}-zh-${textHash}.mp3`;
-    const fallbackBaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+    // English files get an _en suffix
+    const fileName =
+      lang === 'en'
+        ? `podcast-${date}-en-${textHash}_en.mp3`
+        : `podcast-${date}-zh-${textHash}.mp3`;
 
     try {
       const { data: existingFiles } = await supabase.storage.from('podcasts').list();
-      if (existingFiles?.some(f => f.name === fileName)) {
-        console.log(`[Podcast] 🎉 Hash match found in Storage. Bypassing Edge TTS API: ${fileName}`);
+      if (existingFiles?.some((f) => f.name === fileName)) {
+        console.log(
+          `[Podcast] 🎉 Hash match found in Storage. Bypassing Edge TTS API: ${fileName}`,
+        );
         useExistingAudio = true;
         // Retrieve public URL quickly without uploading
         const { data: qData } = supabase.storage.from('podcasts').getPublicUrl(fileName);
@@ -208,7 +210,7 @@ export async function POST(req: NextRequest) {
     } else {
       const result = await supabase.from('daily_podcasts').insert({
         date: date,
-        language: 'zh',
+        language: lang,
         script_content: script,
         audio_url: finalAudioUrl,
         model_id: modelId,

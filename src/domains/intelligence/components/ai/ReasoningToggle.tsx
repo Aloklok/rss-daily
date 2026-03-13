@@ -1,7 +1,6 @@
-'use client';
-
 import React from 'react';
 import { BrainCircuit } from 'lucide-react';
+import { Dictionary } from '@/app/i18n/dictionaries';
 
 interface ReasoningToggleProps {
   enabled: boolean;
@@ -10,6 +9,7 @@ interface ReasoningToggleProps {
   modelName?: string;
   className?: string;
   size?: 'sm' | 'md';
+  dict?: Dictionary;
 }
 
 export const ReasoningToggle: React.FC<ReasoningToggleProps> = ({
@@ -19,14 +19,23 @@ export const ReasoningToggle: React.FC<ReasoningToggleProps> = ({
   modelName,
   className = '',
   size = 'md',
+  dict,
 }) => {
+  const getTitle = () => {
+    if (disabled) {
+      if (dict) {
+        return dict.ai.unsupportedReasoning.replace('{modelName}', modelName || '');
+      }
+      return `${modelName || '该模型'} 不支持深度思考`;
+    }
+    return dict ? dict.ai.reasoningDesc : '开启深度思考获得更高质量的逻辑推理';
+  };
+
   return (
     <button
       onClick={() => !disabled && onToggle(!enabled)}
       disabled={disabled}
-      title={
-        disabled ? `${modelName || '该模型'} 不支持深度思考` : '开启深度思考获得更高质量的逻辑推理'
-      }
+      title={getTitle()}
       className={`group flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-bold tracking-widest transition-all ${
         enabled && !disabled
           ? 'bg-purple-600/10 text-purple-600 shadow-[0_0_15px_-5px_rgba(147,51,234,0.4)] ring-1 ring-purple-600/20'
@@ -36,7 +45,7 @@ export const ReasoningToggle: React.FC<ReasoningToggleProps> = ({
       <BrainCircuit
         className={`${size === 'sm' ? 'h-3 w-3' : 'h-3.5 w-3.5'} ${enabled && !disabled ? 'animate-pulse' : ''}`}
       />
-      <span className="uppercase">深度思考</span>
+      <span className="uppercase">{dict ? dict.ai.reasoning : '深度思考'}</span>
       <span className="ml-1 font-mono text-[9px]">{enabled && !disabled ? 'ON' : 'OFF'}</span>
     </button>
   );

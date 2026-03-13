@@ -27,6 +27,7 @@
       - 下拉菜单：支持点击触发及外部点击关闭。
       - 讲稿弹窗：新增刷新 🔄 和播放 ▶️ 按钮，支持手动更新讲稿记录并主动触发播放。
       - **模型与推理选择**：集成 `ModelSelector` 与 `ReasoningToggle`，允许管理员在生成前切换 AI 模型并开启“深度思考”。此状态实现了 `localStorage` 持久化。
+      - **国际化与多语言隔离**：组件全面接入 `dict` 字典。根据 `dict.lang` 动态请求对应的播报数据，并在生成时透传语言参数实现中英文 MP3 独立生成与存储。
       - 取消自动播放：打开模态框不再强制播报，尊重用户选择。
     - **权限控制**：通过 `useUIStore` 拦截，仅管理员（`isAdmin`）可见“重新生成”选项。
 - **`article/`**:
@@ -118,10 +119,11 @@
 - **页面入口 (Briefing)**: `BriefingPageServer.tsx` 根据路由参数 `lang` 选择 `zh` 或 `en` 字典。
 - **页面入口 (Stream)**: `StreamPageServer.tsx` 统一了聚合页的中英文逻辑，自动处理 Hreflang 注入与元数据生成。
 - **SEO 适配**: Title 和 Meta Description 的生成逻辑已本地化。例如，英文模式下日期显示为 `January 25, 2026`。
+- **动态关键词**: 简报页与首页实现了基于内容的动态关键词提取。英文版会从当日翻译后的文章中自动生成 keywords，显著提升了英文站点的搜索语义关联度。
 
 ### 5.2 组件透传与标签翻译
 
-- **Dict Prop**: 所有核心组件（`BriefingView`, `SidebarView`, `BriefCard`）均接收一个 `dict` Prop。
+- **Dict Prop**: 所有核心组件（`BriefingView`, `SidebarView`, `BriefCard`, `AIChatModal`）均接收一个 `dict` Prop，确保 UI 标签（如按钮、占位符、提示语）随页面语言切换。
 - **日期本地化**: 统一使用 `dateObj.toLocaleDateString(locale, ...)`。
 - **标签/分类翻译**: 侧边栏及首页标签云统一集成 `getDisplayLabel` 工具函数。
   - **逻辑**: 优先查找 `feed-dictionary.ts` 中的映射，若无则显示原名。
@@ -184,6 +186,7 @@ Client-side components (`SidebarView.tsx`) **MUST** use `getSlugLink` with the c
 ### 6.2 国际化实现
 
 趋势页的文本通过 `dictionaries.ts` 中的 `trends` 对象实现：
+
 - **分类标题**: 直接映射 `dict.trends[category]`。
 - **卡片描述**: 通过 `dict.trends.descriptions[id]` 动态注入。这种设计允许在不修改业务代码的情况下，通过翻译字典更新各榜单的背景介绍。
 

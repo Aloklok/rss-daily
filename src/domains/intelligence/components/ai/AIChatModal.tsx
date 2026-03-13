@@ -52,6 +52,7 @@ const getOriginalIndex = (raw: string): string => {
 import { ModelSelector } from './ModelSelector';
 import { ReasoningToggle } from './ReasoningToggle';
 import { MODELS } from '@/domains/intelligence/constants';
+import { Dictionary } from '@/app/i18n/dictionaries';
 
 /**
  * 递归处理文本节点中的引用标签，将其转换为交互按钮
@@ -176,19 +177,20 @@ const cleanMessageContent = (content: string): string => {
   return cleaned;
 };
 
-// --- 性能优化：消息项 Memo 化 ---
 const ChatMessageItem = React.memo(
   ({
     msg,
     sessionMetadata,
     handleOpenArticle,
     isExpanded,
+    dict,
   }: {
     msg: ChatMessage;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     sessionMetadata: any[];
     handleOpenArticle: (article: any) => void;
     isExpanded: boolean;
+    dict?: Dictionary;
   }) => {
     // 预处理内容：清洗冗余符号
     const cleanContent = React.useMemo(() => cleanMessageContent(msg.content), [msg.content]);
@@ -256,10 +258,11 @@ const ChatMessageItem = React.memo(
     return (
       <div className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'} `}>
         <div
-          className={`rounded-2xl px-6 py-4 shadow-lg ${isExpanded ? (msg.role === 'user' ? 'max-w-2xl' : msg.citations?.length ? 'w-full max-w-5xl' : 'w-full max-w-xl') : 'max-w-[92%]'} ${msg.role === 'user'
+          className={`rounded-2xl px-6 py-4 shadow-lg ${isExpanded ? (msg.role === 'user' ? 'max-w-2xl' : msg.citations?.length ? 'w-full max-w-5xl' : 'w-full max-w-xl') : 'max-w-[92%]'} ${
+            msg.role === 'user'
               ? 'bg-indigo-600 text-white shadow-indigo-500/20'
               : 'border border-stone-200 bg-white text-stone-800 dark:border-white/10 dark:bg-stone-800 dark:shadow-xl'
-            } `}
+          } `}
         >
           <div
             className={`flex ${isExpanded && msg.role === 'model' && msg.citations?.length ? 'flex-col items-stretch justify-center gap-4 lg:flex-row lg:gap-8' : 'flex-col items-start'} `}
@@ -281,16 +284,21 @@ const ChatMessageItem = React.memo(
             {msg.role === 'model' &&
               ((msg.citations?.length || 0) > 0 || (msg.contextCount || 0) > 0) && (
                 <div
-                  className={`flex flex-col gap-2 ${isExpanded && msg.citations?.length
+                  className={`flex flex-col gap-2 ${
+                    isExpanded && msg.citations?.length
                       ? 'w-full flex-shrink-0 border-t border-stone-100 pt-4 lg:w-64 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8 dark:border-white/5'
                       : 'mt-4 w-full max-w-xl border-t border-stone-100 pt-3 dark:border-white/5'
-                    } `}
+                  } `}
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-bold tracking-widest whitespace-nowrap text-stone-400 uppercase">
                       {msg.citations && msg.citations.length > 0
-                        ? '直接引用文献:'
-                        : '结合参考资料:'}
+                        ? dict
+                          ? dict.ai.chat.directQuotes
+                          : '直接引用文献:'
+                        : dict
+                          ? dict.ai.chat.combinedRefs
+                          : '结合参考资料:'}
                     </span>
                   </div>
                   <div className="flex flex-col gap-2.5">
@@ -343,7 +351,12 @@ const ChatMessageItem = React.memo(
                     ) : (
                       <div className="flex flex-col gap-1 pr-4">
                         <p className="text-[10px] leading-relaxed text-stone-300 italic">
-                          AI 已综合分析了检索到的 {msg.contextCount} 篇文章。
+                          {dict
+                            ? dict.ai.chat.summary.replace(
+                                '{count}',
+                                msg.contextCount?.toString() || '0',
+                              )
+                            : `AI 已综合分析了检索到的 ${msg.contextCount} 篇文章。`}
                         </p>
                       </div>
                     )}
@@ -365,11 +378,13 @@ const StreamingResponse = React.memo(
     handleOpenArticle,
     scrollRef,
     sessionMetadata,
+    dict,
   }: {
     isExpanded: boolean;
     handleOpenArticle: (article: any) => void;
     scrollRef: React.RefObject<HTMLDivElement | null>;
     sessionMetadata: any[];
+    dict?: Dictionary;
   }) => {
     const streamingContent = useChatStore((state) => state.streamingContent);
     const isStreaming = useChatStore((state) => state.isStreaming);
@@ -489,7 +504,7 @@ const StreamingResponse = React.memo(
             {isExpanded && (
               <div className="flex w-full flex-shrink-0 flex-col gap-2 border-t border-stone-100 pt-4 lg:w-64 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8 dark:border-white/5">
                 <span className="text-[10px] font-bold tracking-widest text-stone-400 uppercase">
-                  正在分析文献...
+                  {dict ? dict.ai.chat.searching : '正在分析文献...'}
                 </span>
                 <div className="h-1 animate-pulse rounded-full bg-stone-100 dark:bg-white/5" />
               </div>
@@ -502,19 +517,20 @@ const StreamingResponse = React.memo(
 );
 StreamingResponse.displayName = 'StreamingResponse';
 
-// --- 性能优化：消息列表组件 (隔离渲染) ---
 const MessageList = React.memo(
   ({
     messages,
     sessionMetadata,
     handleOpenArticle,
     isExpanded,
+    dict,
   }: {
     messages: ChatMessage[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     sessionMetadata: any[];
     handleOpenArticle: (article: any) => void;
     isExpanded: boolean;
+    dict?: Dictionary;
   }) => {
     return (
       <>
@@ -525,6 +541,7 @@ const MessageList = React.memo(
             sessionMetadata={sessionMetadata}
             handleOpenArticle={handleOpenArticle}
             isExpanded={isExpanded}
+            dict={dict}
           />
         ))}
       </>
@@ -543,6 +560,7 @@ const MessageContainer = React.memo(
     isStreaming,
     scrollRef,
     handleScroll,
+    dict,
   }: {
     messages: ChatMessage[];
     sessionMetadata: any[];
@@ -551,6 +569,7 @@ const MessageContainer = React.memo(
     isStreaming: boolean;
     scrollRef: React.RefObject<HTMLDivElement | null>;
     handleScroll: () => void;
+    dict?: Dictionary;
   }) => {
     return (
       <div
@@ -565,10 +584,12 @@ const MessageContainer = React.memo(
             <div className="flex h-full flex-col items-center justify-center text-center">
               <div className="mb-4 text-4xl opacity-30 grayscale">🤖</div>
               <h4 className="mb-2 text-lg font-medium text-stone-900 dark:text-white">
-                欢迎，架构师
+                {dict ? dict.ai.chat.welcomeTitle : '欢迎，架构师'}
               </h4>
               <p className="max-w-xs text-sm text-stone-500">
-                我可以基于你的 1000+ 篇本地简报回答问题，也可以开启 Google 搜索获取最新时事。
+                {dict
+                  ? dict.ai.chat.welcomeDesc
+                  : '我可以基于你的 1000+ 篇本地简报回答问题，也可以开启 Google 搜索获取最新时事。'}
               </p>
             </div>
           )}
@@ -578,6 +599,7 @@ const MessageContainer = React.memo(
             sessionMetadata={sessionMetadata}
             handleOpenArticle={handleOpenArticle}
             isExpanded={isExpanded}
+            dict={dict}
           />
 
           {isStreaming && (
@@ -586,6 +608,7 @@ const MessageContainer = React.memo(
               handleOpenArticle={handleOpenArticle}
               scrollRef={scrollRef}
               sessionMetadata={sessionMetadata}
+              dict={dict}
             />
           )}
         </div>
@@ -602,11 +625,13 @@ const ChatHeader = React.memo(
     setIsExpanded,
     clearHistory,
     setIsOpen,
+    dict,
   }: {
     isExpanded: boolean;
     setIsExpanded: (val: boolean) => void;
     clearHistory: () => void;
     setIsOpen: (val: boolean) => void;
+    dict?: Dictionary;
   }) => {
     return (
       <div className="flex items-center justify-between border-b border-stone-100 px-6 py-2.5 dark:border-white/10">
@@ -628,13 +653,21 @@ const ChatHeader = React.memo(
             </svg>
           </div>
           <h3 className="font-serif text-base font-bold text-stone-900 dark:text-white">
-            架构师助手
+            {dict ? dict.ai.chat.title : '架构师助手'}
           </h3>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            title={isExpanded ? '收缩窗口' : '放大窗口'}
+            title={
+              dict
+                ? isExpanded
+                  ? dict.ai.chat.shrink
+                  : dict.ai.chat.expand
+                : isExpanded
+                  ? '收缩窗口'
+                  : '放大窗口'
+            }
             className="rounded-full p-2 text-stone-400 transition-colors hover:bg-stone-100 dark:hover:bg-white/5"
           >
             <svg
@@ -654,7 +687,7 @@ const ChatHeader = React.memo(
           </button>
           <button
             onClick={clearHistory}
-            title="清除聊天记录"
+            title={dict ? dict.ai.chat.clearHistory : '清除聊天记录'}
             className="rounded-full p-2 text-stone-400 transition-colors hover:bg-stone-100 hover:text-red-500 dark:hover:bg-white/5"
           >
             <svg
@@ -710,6 +743,7 @@ const ChatInputArea = React.memo(
     enableThinking,
     setEnableThinking,
     activeModel,
+    dict,
   }: {
     isStreaming: boolean;
     handleSend: (val: string) => void;
@@ -720,6 +754,7 @@ const ChatInputArea = React.memo(
     enableThinking: boolean;
     setEnableThinking: (val: boolean) => void;
     activeModel: any;
+    dict?: Dictionary;
   }) => {
     const [inputValue, setInputValue] = useState('');
     const inputRef = useRef<HTMLInputElement>(null);
@@ -736,7 +771,7 @@ const ChatInputArea = React.memo(
           <input
             ref={inputRef}
             type="text"
-            placeholder="向 AI 咨询任何简报内容..."
+            placeholder={dict ? dict.ai.chat.placeholder : '向 AI 咨询任何简报内容...'}
             className="w-full max-w-[calc(100%-60px)] flex-1 rounded-xl border border-stone-200 bg-white/50 px-3 py-2.5 text-base transition-all focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none md:max-w-none md:px-4 md:text-sm dark:border-white/10 dark:bg-stone-900/50 dark:text-white"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
@@ -770,6 +805,7 @@ const ChatInputArea = React.memo(
               selectedModel={selectedModel}
               onSelectModel={setSelectedModel}
               disabled={isStreaming}
+              dict={dict}
             />
 
             {/* Search Toggle */}
@@ -806,16 +842,18 @@ const ChatInputArea = React.memo(
               disabled={isStreaming || !activeModel?.hasReasoning}
               modelName={activeModel?.name}
               size="md"
+              dict={dict}
             />
 
             {/* Search Articles Toggle (Renamed from Small Talk) */}
             <button
               onClick={toggleSmallTalkMode}
               disabled={isStreaming}
-              className={`flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-bold tracking-widest transition-all ${!isSmallTalkMode
+              className={`flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-bold tracking-widest transition-all ${
+                !isSmallTalkMode
                   ? 'bg-indigo-600/10 text-indigo-600 shadow-[0_0_15px_-5px_rgba(79,70,229,0.4)] ring-1 ring-indigo-600/20'
                   : 'bg-stone-100 text-stone-400 dark:bg-white/5'
-                } hover:scale-105 active:scale-95 disabled:opacity-30`}
+              } hover:scale-105 active:scale-95 disabled:opacity-30`}
               title="搜索文章：开启则引用本地简报库，关闭则直接对话"
             >
               <svg
@@ -832,10 +870,15 @@ const ChatInputArea = React.memo(
                   d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                 />
               </svg>
-              <span className="hidden sm:inline">搜索文章</span> {!isSmallTalkMode ? 'ON' : 'OFF'}
+              <span className="hidden sm:inline">
+                {dict ? dict.ai.chat.searchArticles : '搜索文章'}
+              </span>{' '}
+              {!isSmallTalkMode ? 'ON' : 'OFF'}
             </button>
           </div>
-          <span className="hidden text-[10px] text-stone-400 sm:inline">Esc 关闭 | Enter 发送</span>
+          <span className="hidden text-[10px] text-stone-400 sm:inline">
+            {dict ? dict.ai.chat.controls : 'Esc 关闭 | Enter 发送'}
+          </span>
         </div>
       </div>
     );
@@ -843,7 +886,7 @@ const ChatInputArea = React.memo(
 );
 ChatInputArea.displayName = 'ChatInputArea';
 
-const AIChatModal: React.FC = () => {
+const AIChatModal: React.FC<{ dict?: Dictionary }> = ({ dict }) => {
   // 1. 低频改变的状态 (主容器只订阅影响其自身显隐和布局的状态)
   const isOpen = useChatStore((state) => state.isOpen);
   const setIsOpen = useChatStore((state) => state.setIsOpen);
@@ -1065,6 +1108,7 @@ const AIChatModal: React.FC = () => {
           setIsExpanded={setIsExpanded}
           clearHistory={clearHistory}
           setIsOpen={setIsOpen}
+          dict={dict}
         />
 
         <MessageContainer
@@ -1075,6 +1119,7 @@ const AIChatModal: React.FC = () => {
           isStreaming={isStreaming}
           scrollRef={scrollRef}
           handleScroll={handleScroll}
+          dict={dict}
         />
 
         <ChatInputArea
@@ -1087,6 +1132,7 @@ const AIChatModal: React.FC = () => {
           enableThinking={enableThinking}
           setEnableThinking={setEnableThinking}
           activeModel={activeModel}
+          dict={dict}
         />
       </div>
     </div>

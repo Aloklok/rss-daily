@@ -155,6 +155,7 @@ const ArticleBriefingView: React.FC<ArticleBriefingViewProps> = ({
                   selectedModel={selectedModel}
                   onSelectModel={setSelectedModel}
                   align="left"
+                  dict={dict}
                 />
               </div>
               <button
@@ -196,6 +197,7 @@ const ArticleBriefingView: React.FC<ArticleBriefingViewProps> = ({
               selectedModel={selectedModel}
               onSelectModel={setSelectedModel}
               align="left"
+              dict={dict}
             />
           </div>
           <button

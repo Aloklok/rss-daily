@@ -7,6 +7,7 @@ export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
     const date = url.searchParams.get('date');
+    const lang = url.searchParams.get('lang') || 'zh';
 
     if (!date) {
       return Response.json({ error: 'Date is required' }, { status: 400 });
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest) {
       .from('daily_podcasts')
       .select('script_content, audio_url')
       .eq('date', date)
-      .eq('language', 'zh')
+      .eq('language', lang)
       .maybeSingle();
 
     if (existingPodcast?.script_content) {

@@ -65,7 +65,7 @@ export async function generateBriefingMetadata({ params, lang }: PageProps): Pro
   return {
     title: dynamicTitle,
     description: description,
-    keywords: lang === 'zh' ? getTopKeywords(allArticles, 10) : ['Tech News', 'Daily Briefing'], // Enhancements possible
+    keywords: getTopKeywords(allArticles, 10),
     robots: {
       index: allArticles.length > 0,
       follow: true,
