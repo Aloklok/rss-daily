@@ -48,6 +48,7 @@
 - **`components/briefing/`**: 简报页面的逻辑容器与 UI。处理数据 Hydration、状态同步。
 - **`components/stream/`**: 流视图的逻辑容器。处理分页加载、无限滚动逻辑。
 - **`components/article/`**: 文章详情页的 UI 展示与模态框。封装了简报摘要视图与原文阅读器。
+- **`components/trends/`**: 趋势页面组件。包含 `TrendsPage.tsx` 核心视图及 `LinkCard` 列表项，整合了全球权威技术指标。
 - **核心服务**: `services/services.ts` 负责全量简报聚合逻辑。
 
 #### `intelligence/` (智能领域)

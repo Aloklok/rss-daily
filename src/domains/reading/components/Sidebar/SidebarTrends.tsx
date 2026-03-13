@@ -18,7 +18,7 @@ const SidebarTrends: React.FC<SidebarTrendsProps> = ({ isActive, onClick, dict }
           } cursor-pointer`}
       >
         <span>📈</span>
-        <span className="flex-1">{dict.trends.trends}</span>
+        <span className="flex-1">{dict.trends.title}</span>
       </button>
     </div>
   );

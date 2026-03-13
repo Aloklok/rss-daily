@@ -167,6 +167,8 @@
 
 ## ✅ 已完成优化 (Milestones)
 
+- [x] **趋势页面重构与权威源整合 (2026.03.13)**: 整合了 17+ 全球权威趋势源，建立了专业分类体系，并优化了卡片布局与国际化描述展示。以及编程语言专项榜单 GitHut/PYPL 的加入。
+
 - [x] **标签/分类请求去重 (阻塞外呼，SEO 0 影响)**: 已完成：`fetchTagsServer()` 复用 `getAvailableFilters()`。
 - [x] **SSR 静态化增强 (X-Vercel-Cache: HIT)**: 移除了 `searchParams` 依赖，强制首页 `/` 进入纯静态 ISR 模式，消除了动态渲染导致的 `MISS`。伴随 `resolveBriefingImage` 启用 7 天强缓存，彻底修复 `stale-time` 短板。
 - [x] **Prefetch 控制 (减少无意 `_rsc` 阻塞)**: 已对侧边栏与归档页的大列表链接禁用预取，并补充禁用 Stream 列表文章卡片 Link 预取，减少无意 `_rsc` 请求占用带宽/连接。验收：首次进入首页的 `_rsc` 请求数下降（目标 -30%），移动端 FCP/INP 改善且不影响爬虫可发现路径。

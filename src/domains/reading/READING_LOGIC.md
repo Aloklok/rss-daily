@@ -170,3 +170,25 @@ Client-side components (`SidebarView.tsx`) **MUST** use `getSlugLink` with the c
   - **处理字段**: `sourceName` (订阅源), `tags` (标签列表), `category` (分类), `verdict.type` (智核评级名称)。
   - **批量处理**: `purifyArticles` / `purifySubscriptions` 基于核心函数实现大规模数据脱敏。
   - **应用场景**: 各大 Server 组件（`HomePageServer`, `StreamPageServer`, `BriefingPageServer`, `ArchivePageServer`）在下发数据给客户端前统一调用，确保 HTML 源码（Hydration Payload）中内容的纯净度。
+
+## 6. 趋势工具模块 (Trends & Tools)
+
+趋势页 (/trends) 负责聚合全球权威的技术趋势、榜单与工具指标，采用 SSG (静态生成) 模式确保极致的加载速度。
+
+### 6.1 数据结构与配置
+
+- **`TrendsPage.tsx`**: 负责定义核心数据源 `LINKS` 及分类配置 `CATEGORY_CONFIG`。
+- **分类系统**: 采用四级专业分类：`frontier` (AI & 前沿), `reality` (工程), `community` (技术社区), `infrastructure` (基础架构)。
+- **配置项**: 每个榜单包含 `id`, `title`, `url`, `theme`, `category` 及 `iconPath`。
+
+### 6.2 国际化实现
+
+趋势页的文本通过 `dictionaries.ts` 中的 `trends` 对象实现：
+- **分类标题**: 直接映射 `dict.trends[category]`。
+- **卡片描述**: 通过 `dict.trends.descriptions[id]` 动态注入。这种设计允许在不修改业务代码的情况下，通过翻译字典更新各榜单的背景介绍。
+
+### 6.3 布局与交互
+
+- **LinkCard 组件**: 支持多行描述展示，采用 `items-start` 置顶对齐以适配长文本换行。
+- **容器对齐**: 针对高信息密度场景，容器限制为 `max-w-[1100px]`，平衡了视线扫描效率与卡片展示空间。
+- **主题色**: 根据 `theme` 属性（如 `cyan`, `indigo`, `orange`）自动应用 Tailwind 边框与阴影色，增强视觉分类感。
