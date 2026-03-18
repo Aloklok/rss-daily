@@ -1060,10 +1060,21 @@ const AIChatModal: React.FC<{ dict?: Dictionary }> = ({ dict }) => {
         })
         .filter((c): c is NonNullable<typeof c> => c !== null);
 
-      const finalContent = assistantContent.replace(
-        /\[统计：检索 \d+ 篇，引用了 \d+ 篇\]/,
-        `[统计：检索 ${currentMetadata.length} 篇，引用了 ${extractedCitations.length} 篇]`,
+      // ——— 解析层增强：容错处理统计行 ———
+      const finalStats = `[统计：检索 ${currentMetadata.length} 篇，引用了 ${extractedCitations.length} 篇]`;
+      let finalContent = assistantContent.replace(
+        /\[统计：检索 \d+ 篇，引用了 (?:{{UNIQUE_CITED_COUNT}}|\d+) 篇\]/g,
+        finalStats,
       );
+
+      // 兜底：如果正则因 AI 格式微调没匹配到，直接暴力替换占位符
+      finalContent = finalContent.replace(
+        /{{UNIQUE_CITED_COUNT}}/g,
+        extractedCitations.length.toString(),
+      );
+
+      // 清理可能存在的 AI 误生成的冗余注脚（如：引用了 ,,,, 等）
+      finalContent = finalContent.replace(/\n*（注：根据本地文章内容.*?）/g, '');
 
       // --- DEBUG: 输出 AI 原始响应供排查 ---
       console.log('====================================================');

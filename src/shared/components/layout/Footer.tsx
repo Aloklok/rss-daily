@@ -11,7 +11,7 @@ export default function Footer() {
 
         <div className="flex flex-col items-center justify-center space-y-2 sm:flex-row sm:space-y-0">
           <span className="text-sm font-bold tracking-wide text-stone-950 dark:text-stone-900">
-            © {currentYear} Alok
+            © 2025 - {currentYear} Alok
           </span>
           <span className="mx-4 hidden text-stone-400 sm:inline-block dark:text-stone-600">|</span>
           <a
