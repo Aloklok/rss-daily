@@ -84,7 +84,7 @@
     "globals": "^17.4.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.3.2",
-    "msw": "^2.12.10",
+    "msw": "^2.12.13",
     "node-fetch": "^3.3.2",
     "openapi-typescript": "^7.10.1",
     "playwright": "^1.57.0",
