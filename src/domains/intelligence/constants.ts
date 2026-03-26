@@ -22,8 +22,9 @@ export const MODELS = [
   {
     id: 'Qwen/Qwen3.5-4B',
     name: 'Qwen3.5-4B',
-    desc: '最新轻量模型，极速回复',
+    desc: '最新轻量模型，支持深度思考',
     hasSearch: false,
+    hasReasoning: true,
     quota: 'Free',
     provider: 'siliconflow',
   },
