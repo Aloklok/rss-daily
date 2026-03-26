@@ -20,6 +20,7 @@ export default tseslint.config(
       '**/reports/**',
       '**/.husky/**',
       'lint-results.json',
+      'update_prompt*',
       '*.txt',
       '*.log',
     ],

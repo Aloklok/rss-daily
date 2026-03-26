@@ -188,7 +188,7 @@ export async function chatWithGemini(
   const { key: dynamicKey, name: keyName } = getApiKey(keyAlias);
   if (!dynamicKey) throw new Error(`API Key (${keyAlias}) is not defined`);
 
-  let effectiveModel = modelName;
+  const effectiveModel = modelName;
 
   const chatSystemPromptRaw = await getChatSystemPrompt();
   const chatSystemPrompt = chatSystemPromptRaw.replace(/{{COUNT}}/g, articles.length.toString());
@@ -204,14 +204,14 @@ export async function chatWithGemini(
   const articleList =
     articles.length > 0
       ? articles
-        .map((a, i) => {
-          const dateStr = a.published ? new Date(a.published).toLocaleDateString() : 'N/A';
-          const keywordsStr = Array.isArray(a.keywords) ? a.keywords.join(', ') : '';
-          const verdictStr = a.verdict
-            ? `Score:${a.verdict.score || '?'}/10 (${a.verdict.importance || 'Normal'})`
-            : '';
+          .map((a, i) => {
+            const dateStr = a.published ? new Date(a.published).toLocaleDateString() : 'N/A';
+            const keywordsStr = Array.isArray(a.keywords) ? a.keywords.join(', ') : '';
+            const verdictStr = a.verdict
+              ? `Score:${a.verdict.score || '?'}/10 (${a.verdict.importance || 'Normal'})`
+              : '';
 
-          return `【文章索引：[${i + 1}]】
+            return `【文章索引：[${i + 1}]】
 标题: ${a.title}
 来源: ${a.sourceName || 'Unknown'} | ${verdictStr}
 日期: ${dateStr}
@@ -221,8 +221,8 @@ TLDR: ${a.tldr || '无'}
 技术亮点: ${a.highlights || '无'}
 犀利点评: ${a.critiques || '无'}
 市场观点: ${a.marketTake || '无'}`;
-        })
-        .join('\n\n---\n\n')
+          })
+          .join('\n\n---\n\n')
       : '（未匹配到相关本地文章）';
 
   const contextPrompt = CHAT_CONTEXT_PROMPT_TEMPLATE.replace(

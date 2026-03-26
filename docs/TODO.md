@@ -15,6 +15,7 @@
 ### 🚀 性能提升与技术优化
 
 - [x] **Sentry 配置迁移**: 收到 Deprecation Warning，需将 `sentry.client.config.ts` 迁移至 `instrumentation-client.ts` 以适配 Turbopack。改动难度：低，性能提升：无（侧重兼容性）。
+- [x] **ESLint 10 冲突修复 (2026.03.27)**: 解决了 ESLint 10 与现有插件（如 `eslint-plugin-react`）的依赖冲突。按照最佳实践降级至稳定的 v9 版本，并修复了 `gemini.ts` 等文件的 lint 错误。
 - [ ] **图片自动清理 (Supabase Image GC)**: 目前存储额度充足，暂禁用了 `cleanUpOldImages`。未来当图片数量激增时，需恢复此逻辑（已优化为 Server-Side Sorting）。改动难度：低，性能提升：无（侧重成本控制）。
 
 - [ ] **页面性能 KPI（SEO 保护前提）**: 所有优化必须保持“正文/目录/核心链接 SSR 可见（No-JS 可抓取）”，禁止把核心内容挪到 CSR。验收：
