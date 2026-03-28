@@ -1077,11 +1077,28 @@ const AIChatModal: React.FC<{ dict?: Dictionary }> = ({ dict }) => {
       finalContent = finalContent.replace(/\n*（注：根据本地文章内容.*?）/g, '');
 
       // --- DEBUG: 输出 AI 原始响应供排查 ---
-      console.log('====================================================');
-      console.log('🤖 [DEBUG] AI Raw Response:', assistantContent);
-      console.log('📚 [DEBUG] Extracted Indices:', extractedIndices);
-      console.log('🔗 [DEBUG] Extracted Citations:', extractedCitations);
-      console.log('====================================================');
+      // --- ARCHITECT-DEBUG: 详细输出 AI 原始响应供排查 ---
+      console.log(
+        '%c[ARCHITECT-DEBUG] 开始引用提取审计',
+        'color: #6366f1; font-weight: bold; font-size: 12px;',
+      );
+      console.log('📄 AI 原始响应内容 (Raw Assistant Content):', assistantContent);
+      console.log('📦 检索到的元数据条数 (Metadata Count):', currentMetadata.length);
+      console.log(
+        '📌 检索到的文章 ID 列表:',
+        currentMetadata.map((m) => m.id),
+      );
+      console.log(
+        '🔍 正则匹配结果 (Matches):',
+        citationMatches.map((m) => m[0]),
+      );
+      console.log('🔢 提取到的原始索引 (Extracted Indices):', extractedIndices);
+      console.log('✅ 最终有效引用数 (Final Citation Count):', extractedCitations.length);
+      console.log('🔗 最终引用对象集 (Citations):', extractedCitations);
+      console.log(
+        '%c[ARCHITECT-DEBUG] 审计结束',
+        'color: #6366f1; font-weight: bold; font-size: 12px;',
+      );
 
       addMessage({
         role: 'model',
