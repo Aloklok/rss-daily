@@ -35,7 +35,7 @@
     "not op_mini all"
   ],
   "dependencies": {
-    "@ai-sdk/openai-compatible": "^2.0.35",
+    "@ai-sdk/openai-compatible": "^2.0.37",
     "@google/genai": "^1.45.0",
     "@sentry/nextjs": "^10.42.0",
     "@supabase/supabase-js": "^2.98.0",
