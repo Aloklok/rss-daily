@@ -21,15 +21,23 @@ const UNICODE_MAP: Record<string, string> = {
   '⁰': '0',
 };
 
-const CITATION_REGEX = /(\[\s*\d+(?:\.\d+)?\s*\]|[¹²³⁴⁵⁶⁷⁸⁹⁰]+)/g;
+// 同时匹配旧格式 [N] 和新格式 [hex-id]（向后兼容历史消息）
+const CITATION_REGEX = /(\[\s*\d+(?:\.\d+)?\s*\]|\[\s*[a-f0-9]{8}\s*\]|[¹²³⁴⁵⁶⁷⁸⁹⁰]+)/gi;
 
 /**
- * 辅助：从原始内容片段中提取数字索引字符串
+ * 辅助：从原始引用片段中提取唯一 key（数字索引或 hex refId）
  */
-const getOriginalIndex = (raw: string): string => {
-  const match = raw.match(/^\[\s*(\d+(?:\.\d+)?)\s*\]$/);
+const getOriginalKey = (raw: string): string => {
+  // 匹配 [N] 格式 (旧版位置索引)
+  const numMatch = raw.match(/^\[\s*(\d+(?:\.\d+)?)\s*\]$/);
+  if (numMatch) return numMatch[1];
+
+  // 匹配 [hex-id] 格式 (新版 refId)
+  const hexMatch = raw.match(/^\[\s*([a-f0-9]{8})\s*\]$/i);
+  if (hexMatch) return hexMatch[1].toLowerCase();
+
+  // Unicode 上标
   const unicodeMatch = raw.match(/^[¹²³⁴⁵⁶⁷⁸⁹⁰]+$/);
-  if (match) return match[1];
   if (unicodeMatch)
     return raw
       .split('')
@@ -48,6 +56,9 @@ const getOriginalIndex = (raw: string): string => {
 
   return '';
 };
+
+/** 判断 key 是否为 hex refId (非数字) */
+const isHexKey = (key: string): boolean => /^[a-f0-9]{8}$/i.test(key);
 
 import { ModelSelector } from './ModelSelector';
 import { ReasoningToggle } from './ReasoningToggle';
@@ -70,13 +81,21 @@ const renderCitations = (
     if (!node.trim()) return node;
     const parts = node.split(CITATION_REGEX);
     return parts.map((part, i) => {
-      const originalIndex = getOriginalIndex(part);
+      const originalKey = getOriginalKey(part);
 
-      if (originalIndex && /^\d+(\.\d+)?$/.test(originalIndex)) {
-        // 如果开启了唯一性检查且该索引在本消息中已出现过，则不再重复渲染为交互角标（仅保留占位以维持文本完整性）
-        const displayIndex = displayMapping?.get(originalIndex) || originalIndex;
-        const citation = citations?.find((c) => c.index.toString() === originalIndex);
-        const meta = citation || (sessionMetadata && sessionMetadata[parseInt(originalIndex) - 1]);
+      if (originalKey) {
+        // 如果开启了唯一性检查且该 key 在本消息中已出现过，则不再重复渲染为交互角标
+        const displayIndex = displayMapping?.get(originalKey) || originalKey;
+        // 优先通过 refId 查找，回退到旧版位置索引
+        const citation = citations?.find(
+          (c) => c.refId === originalKey || c.index?.toString() === originalKey,
+        );
+        const meta =
+          citation ||
+          sessionMetadata?.find((m: any) => m.refId === originalKey) ||
+          (!isHexKey(originalKey) && sessionMetadata
+            ? sessionMetadata[parseInt(originalKey) - 1]
+            : null);
 
         // Hallucination Filter: If we have metadata context but the index is invalid, hide it.
         if (!meta && sessionMetadata && sessionMetadata.length > 0) {
@@ -148,29 +167,48 @@ const cleanMessageContent = (content: string): string => {
     },
   );
 
+  // 1b. 拆分合并的 hex 引用：将 [ea0763c7, 3db58ec9] 拆分为 [ea0763c7][3db58ec9]
+  cleaned = cleaned.replace(
+    /\[((?:[a-f0-9]{8}\s*(?:,|，|\s)\s*)+[a-f0-9]{8}\s*)\]/gi,
+    (match, inner) => {
+      return inner
+        .split(/[,，\s]/)
+        .filter((n: string) => n.trim())
+        .map((n: string) => `[${n.trim()}]`)
+        .join('');
+    },
+  );
+
   // 2. 核心逻辑：移除加粗内容内部的特殊符号 (支持中英文双引号、括号)
   // 之前的逻辑只去除首尾，无法处理 "数据中心（对标..." 这种符号在中间的情况
   // 现在改为：匹配所有 **...** 块，并将内部的所有指定符号移除
   cleaned = cleaned.replace(/\*\*(.*?)\*\*/g, (match, innerContent) => {
     // 移除字符并用空格代替，防止语义粘连 (如 "A(B)" -> "A B")
     // 最后 trim() 去除首尾多余空格
-    const cleanInner = innerContent.replace(/["“(\uFF08"”)\uFF09]/g, ' ').trim();
+    const cleanInner = innerContent.replace(/["\u201C(\uFF08\u201D")\uFF09]/g, ' ').trim();
     return `**${cleanInner}**`;
   });
 
   // 3. 引用去重逻辑 (全文去重)：
-  //    确保整条消息中，每个引用序号仅出现一次（保留第一次出现的位置）
-  const seenIndices = new Set<string>();
+  //    确保整条消息中，每个引用 key 仅出现一次（保留第一次出现的位置）
+  const seenKeys = new Set<string>();
 
-  // a. 连续重复去重：[1][1] -> [1] (作为预处理)
+  // a. 连续重复去重：[ea0763c7][ea0763c7] -> [ea0763c7] 或 [1][1] -> [1]
+  cleaned = cleaned.replace(/(\[[a-f0-9]{8}\])\s*\1+/gi, '$1');
   cleaned = cleaned.replace(/(\[\d+(?:\.\d+)?\])\s*\1+/g, '$1');
 
-  // b. 全文去重
+  // b. 全文去重 (hex refId)
+  cleaned = cleaned.replace(/\[([a-f0-9]{8})\]/gi, (match, id) => {
+    const key = id.toLowerCase();
+    if (seenKeys.has(key)) return '';
+    seenKeys.add(key);
+    return match;
+  });
+
+  // c. 全文去重 (旧版数字索引)
   cleaned = cleaned.replace(/\[(\d+(?:\.\d+)?)\]/g, (match, id) => {
-    if (seenIndices.has(id)) {
-      return ''; // 全文中已出现过，移除后续重复
-    }
-    seenIndices.add(id);
+    if (seenKeys.has(id)) return '';
+    seenKeys.add(id);
     return match;
   });
 
@@ -202,9 +240,9 @@ const ChatMessageItem = React.memo(
       let nextIndex = 1;
       const matches = [...cleanContent.matchAll(CITATION_REGEX)];
       for (const match of matches) {
-        const originalIndex = getOriginalIndex(match[0]);
-        if (originalIndex && !map.has(originalIndex)) {
-          map.set(originalIndex, (nextIndex++).toString());
+        const key = getOriginalKey(match[0]);
+        if (key && !map.has(key)) {
+          map.set(key, (nextIndex++).toString());
         }
       }
       return map;
@@ -307,7 +345,8 @@ const ChatMessageItem = React.memo(
                         .sort((a, b) => parseInt(a[1]) - parseInt(b[1]))
                         .map(([originalIdx, displayIdx]) => {
                           const citation = msg.citations?.find(
-                            (c) => c.index.toString() === originalIdx,
+                            (c) =>
+                              c.refId === originalIdx || c.index?.toString() === originalIdx,
                           );
                           // 优先从 sessionMetadata 找完整对象，找不到则从消息自带的引用信息中恢复（持久化支持）
                           const metaFromSession = sessionMetadata.find(
@@ -1038,21 +1077,25 @@ const AIChatModal: React.FC<{ dict?: Dictionary }> = ({ dict }) => {
       }
 
       const citationMatches = [...assistantContent.matchAll(CITATION_REGEX)];
-      const extractedIndices = citationMatches
-        .map((m) => getOriginalIndex(m[0]))
-        .filter((idx) => idx !== '' && /^\d+(\.\d+)?$/.test(idx));
+      const extractedKeys = citationMatches
+        .map((m) => getOriginalKey(m[0]))
+        .filter((key) => key !== '');
 
-      const uniqueIndices = Array.from(new Set(extractedIndices.map((idx) => parseInt(idx)))).sort(
-        (a, b) => a - b,
-      );
+      const uniqueKeys = Array.from(new Set(extractedKeys));
 
-      const extractedCitations = uniqueIndices
-        .map((index) => {
-          const meta = currentMetadata[index - 1];
+      const extractedCitations = uniqueKeys
+        .map((key, idx) => {
+          // 新版：通过 refId 查找
+          let meta = currentMetadata.find((m: any) => m.refId === key);
+          // 旧版回退：通过位置索引查找
+          if (!meta && /^\d+$/.test(key)) {
+            meta = currentMetadata[parseInt(key) - 1];
+          }
           if (!meta) return null;
           return {
             id: meta.id,
-            index,
+            index: idx + 1, // 向后兼容：生成连续索引
+            refId: key,
             title: meta.title,
             link: meta.link,
             published: meta.published,
@@ -1092,7 +1135,7 @@ const AIChatModal: React.FC<{ dict?: Dictionary }> = ({ dict }) => {
         '🔍 正则匹配结果 (Matches):',
         citationMatches.map((m) => m[0]),
       );
-      console.log('🔢 提取到的原始索引 (Extracted Indices):', extractedIndices);
+      console.log('🔢 提取到的原始 Keys (Extracted Keys):', extractedKeys);
       console.log('✅ 最终有效引用数 (Final Citation Count):', extractedCitations.length);
       console.log('🔗 最终引用对象集 (Citations):', extractedCitations);
       console.log(

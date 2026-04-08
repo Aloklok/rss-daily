@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
           // 3.1 Send metadata for client-side citation rendering
           const articleMetadata = finalArticles.map((a: any) => ({
             id: a.id,
+            refId: a._refId, // hex 引用 ID (文章 ID 末尾 8 位)
             title: a.title,
             link: a.link,
             published: a.published,

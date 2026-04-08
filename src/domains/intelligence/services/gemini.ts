@@ -204,14 +204,14 @@ export async function chatWithGemini(
   const articleList =
     articles.length > 0
       ? articles
-          .map((a, i) => {
+          .map((a) => {
             const dateStr = a.published ? new Date(a.published).toLocaleDateString() : 'N/A';
             const keywordsStr = Array.isArray(a.keywords) ? a.keywords.join(', ') : '';
             const verdictStr = a.verdict
               ? `Score:${a.verdict.score || '?'}/10 (${a.verdict.importance || 'Normal'})`
               : '';
 
-            return `【文章索引：[${i + 1}]】
+            return `【文章 REF-ID: ${a._refId}】
 标题: ${a.title}
 来源: ${a.sourceName || 'Unknown'} | ${verdictStr}
 日期: ${dateStr}
@@ -314,7 +314,7 @@ export async function generateGemini(
 export async function reRankArticles(
   articles: any[],
   query: string,
-  modelId: string = 'gemini-2.5-flash-lite-preview-09-2025',
+  modelId: string = 'gemini-3.1-flash-lite-preview',
   keyAlias?: string,
   topK: number = 10,
 ): Promise<string[]> {

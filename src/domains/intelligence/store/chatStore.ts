@@ -10,7 +10,8 @@ export interface ChatMessage {
   timestamp: number;
   citations?: Array<{
     id: string;
-    index: number;
+    index: number; // 向后兼容旧消息的位置索引
+    refId?: string; // 新语义引用 ID (hex 尾缀)
     title?: string;
     published?: string;
   }>;

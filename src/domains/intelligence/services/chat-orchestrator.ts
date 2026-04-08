@@ -95,6 +95,12 @@ export async function orchestrateChat(request: ChatRequest): Promise<ChatOrchest
     }
   }
 
+  // 3.5 为每篇文章生成 hex refId (取 ID 末尾 8 位)
+  finalArticles.forEach((a: any) => {
+    const hexMatch = (a.id || '').match(/([a-f0-9]{8,})$/i);
+    a._refId = hexMatch ? hexMatch[1].slice(-8).toLowerCase() : a.id?.slice(-8) || '';
+  });
+
   // 4. Effective Feature Flags
   let effectiveUseSearch = useSearch;
   if (intent === RouterIntent.DIRECT) effectiveUseSearch = false;
@@ -119,9 +125,9 @@ export async function orchestrateChat(request: ChatRequest): Promise<ChatOrchest
       const articleList =
         finalArticles.length > 0
           ? finalArticles
-            .map((a: any, i: number) => {
+            .map((a: any) => {
               const dateStr = new Date(a.published).toLocaleDateString();
-              return `【文章索引：[${i + 1}]】\n标题: ${a.title}\n来源: ${a.sourceName || 'Unknown'}\n日期: ${dateStr}\nTLDR: ${a.tldr || '无'}\n摘要: ${a.summary || '无'}\n技术亮点: ${a.highlights || '无'}\n犀利点评: ${a.critiques || '无'}\n市场观点: ${a.marketTake || '无'}`;
+              return `【文章 REF-ID: ${a._refId}】\n标题: ${a.title}\n来源: ${a.sourceName || 'Unknown'}\n日期: ${dateStr}\nTLDR: ${a.tldr || '无'}\n摘要: ${a.summary || '无'}\n技术亮点: ${a.highlights || '无'}\n犀利点评: ${a.critiques || '无'}\n市场观点: ${a.marketTake || '无'}`;
             })
             .join('\n\n---\n\n')
           : '（未匹配到相关本地文章）';
