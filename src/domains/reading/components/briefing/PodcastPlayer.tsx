@@ -588,18 +588,27 @@ export function PodcastPlayer({ date, dict }: PodcastPlayerProps) {
               ) : scriptRef.current ? (
                 <div className="prose prose-sm md:prose-base dark:prose-invert max-w-none leading-relaxed text-gray-700 dark:text-gray-300">
                   {scriptRef.current
+                    .replace(/([一二三四五六七八九十]、)/g, '\n$1')
                     .split('\n')
-                    .filter((line: string) => line.trim() !== '') // Added type annotation for 'line'
-                    .map(
-                      (
-                        line: string,
-                        i: number, // Added type annotations for 'line' and 'i'
-                      ) => (
+                    .filter((line: string) => line.trim() !== '')
+                    .map((line: string, i: number) => {
+                      // 识别出“关于XXX，”并利用 split 保留分隔符，提取出来进行加粗处理
+                      const fragments = line.split(/(关于[^，。；]+[，。；])/g);
+                      return (
                         <p key={i} className="mb-4 indent-8">
-                          {line}
+                          {fragments.map((frag, fragIdx) => {
+                            if (frag.startsWith('关于') && frag.length > 2) {
+                              return (
+                                <strong key={fragIdx} className="font-bold text-gray-900 dark:text-gray-100">
+                                  {frag.replace(/\*\*/g, '')}
+                                </strong>
+                              );
+                            }
+                            return <React.Fragment key={fragIdx}>{frag.replace(/\*\*/g, '')}</React.Fragment>;
+                          })}
                         </p>
-                      ),
-                    )}
+                      );
+                    })}
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center gap-5 py-16 text-center">
