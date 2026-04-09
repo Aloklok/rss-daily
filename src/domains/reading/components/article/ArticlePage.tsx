@@ -60,7 +60,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
 
   return (
     <div className="mx-auto max-w-3xl overflow-x-hidden p-2 md:p-8">
-      <article>
+      <article className="reading-area-scale">
         <header className="mb-3 border-b border-gray-200 pb-3 md:mb-6 md:pb-6 dark:border-stone-700">
           <h1 className="dark:text-midnight-text-reader mb-2 font-serif text-3xl font-bold text-gray-900 md:text-4xl">
             <ArticleTitleStar
@@ -86,7 +86,7 @@ const ArticleDetail: React.FC<ArticleDetailProps> = ({
               ))}
             </div>
           )}
-          <div className="mt-4 flex justify-end gap-3">
+          <div className="no-reading-scale mt-4 flex justify-end gap-3">
             <button
               onClick={handleCopy}
               className="flex cursor-pointer items-center gap-1.5 rounded-full bg-stone-200 px-3 py-1.5 text-sm font-medium text-stone-800 transition-colors hover:bg-stone-300 dark:bg-stone-700 dark:text-stone-200 dark:hover:bg-stone-600"

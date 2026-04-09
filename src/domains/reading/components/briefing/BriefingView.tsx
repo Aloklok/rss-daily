@@ -292,7 +292,10 @@ const Briefing: React.FC<BriefingProps> = ({
       const weekdayPart = dateObj.toLocaleDateString(locale, { weekday: 'long' });
 
       return (
-        <header className="group relative mb-5 rounded-2xl shadow-md transition-all duration-500 hover:shadow-xl md:mb-8">
+        <header 
+          className="group relative mb-5 rounded-2xl shadow-md transition-all duration-500 hover:shadow-xl md:mb-8"
+          style={{ '--reading-font-scale': 1 } as React.CSSProperties}
+        >
           {/* Background Image with Overlay - Moved overflow-hidden here to avoid clipping dropdowns */}
           <div className="absolute inset-0 z-0 overflow-hidden rounded-2xl">
             <Image
@@ -536,6 +539,7 @@ const Briefing: React.FC<BriefingProps> = ({
       <div className="mx-auto max-w-6xl 2xl:max-w-5xl">
         {renderHeader()}
 
+        <div className="reading-area-scale">
         {isLoading ? (
           <div className="h-64 py-20">
             <LoadingSpinner />
@@ -559,6 +563,7 @@ const Briefing: React.FC<BriefingProps> = ({
             </p>
           </div>
         )}
+        </div>
 
         {/* Internal Linking Navigation (SEO & UX) */}
         <div className="mt-16 flex items-center justify-between border-t border-stone-200 pt-8 font-serif dark:border-white/10">

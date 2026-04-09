@@ -588,13 +588,13 @@ export function PodcastPlayer({ date, dict }: PodcastPlayerProps) {
               ) : scriptRef.current ? (
                 <div className="prose prose-sm md:prose-base dark:prose-invert max-w-none leading-relaxed text-gray-700 dark:text-gray-300">
                   {scriptRef.current
-                    .replace(/([一二三四五六七八九十]、|(?:[1-9][0-9]?)、|(?:[1-9][0-9]?)\.(?=\s|[\u4e00-\u9fa5]))/g, '\n$1')
+                    .replace(/([一二三四五六七八九十]、|(?:[1-9][0-9]?)、|(?:[1-9][0-9]?)\.(?!\d))/g, '\n$1')
                     .split('\n')
                     .filter((line: string) => line.trim() !== '')
                     .map((line: string, i: number) => {
-                      const isListItem = /^([一二三四五六七八九十]、|(?:[1-9][0-9]?)、|(?:[1-9][0-9]?)\.(?=\s|[\u4e00-\u9fa5]))/.test(line.trim());
+                      const isListItem = /^([一二三四五六七八九十]、|(?:[1-9][0-9]?)、|(?:[1-9][0-9]?)\.(?!\d))/.test(line.trim());
                       const pClass = isListItem 
-                        ? 'mb-6 pl-8 leading-loose tracking-wide' // 列表采用整体左内边距，取消首行悬挂
+                        ? 'mb-6 pl-8 md:pl-10 -indent-5 leading-loose tracking-wide' // 列表采用真实悬挂缩进
                         : 'mb-6 indent-8 leading-loose tracking-wide'; // 普通段落采用首行缩进
                       
                       // 识别出“关于XXX，”并利用 split 保留分隔符，提取出来进行加粗处理

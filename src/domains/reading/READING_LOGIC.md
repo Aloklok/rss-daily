@@ -16,8 +16,9 @@
     - **早中晚按钮**: 响应式布局 (`shrink-0`)，解决了 Windows 系统下的挤压问题；桌面端尺寸放宽至 `52px` 以适配大屏。
     - **布局宽度**: 引入 `2xl:max-w-7xl` (1280px) 策略，优化 2K 屏下的横向排布。
   - `BriefCard.tsx`: 高度压缩的信息密度展现。
-    - **字体优化**: 内容字体调整至 `text-sm` (14px) 以确保高信息密度。
-  - `POST /api/podcasts/generate`: **[智能路由]** 生成播客文稿并同步生成 TTS 音频。系统会根据 `modelId` 的 `provider` 属性自动在 Google (Native SDK) 与 SiliconFlow (OpenAI-compatible) 之间进行智能分发。支持 `modelId` 与 `enableThinking` 参数。音频上传至持久化存储，并在 `daily_podcasts` 表记录 `model_id`。返回 `{ script, audioUrl }`。
+    - **字体与排版优化**: 默认基准字号提升至 `14.5px`，并将行高优化为 `1.85`，增加 `0.015em` 字间距。
+    - **隔离机制**: 关键操作按钮通过 `.no-reading-scale` 物理隔离，确保全局缩放时不影响交互元素尺寸。
+  - `POST /api/podcasts/generate`: **[智能路由]** 生成播客文稿并同步生成 TTS 音频。系统会根据 `modelId` 的 `provider` 属性自动在 Google (Native SDK) 与 SiliconFlow (OpenAI-compatible)之间进行智能分发。支持 `modelId` 与 `enableThinking` 参数。音频上传至持久化存储，并在 `daily_podcasts` 表记录 `model_id`。返回 `{ script, audioUrl }`。
   - `PodcastPlayer.tsx`: **[播客特性]** 核心音频播放组件。
     - **双模播放机制 (Dual-Mode)**：
       - **MP3 优先 (Edge TTS)**：优先检测云端生成的 `audioUrl`。若存在，使用 `<audio>` 元素播放高质量神经语音 MP3，支持原生暂停/恢复及精确进度控制。系统引入了 `ttsSource` 互斥锁逻辑，确保 XiaoXiao 播放时 Google 语音强制静音，并增加了 300ms 的验证窗口以防止因浏览器自动播放限制导致的意外降级。
@@ -63,7 +64,18 @@
 - **`shanghaiDayToUtcWindow(date: string)`**
   - 将上海本地日期 `YYYY-MM-DD` 映射为对应的 UTC 时间窗口供 Supabase 查询。
 
-## 3. 日期归属原则 (Date Attribution)
+## 3. 阅读体验增强：动态字体缩放 (Dynamic Font Scaling)
+
+系统提供了一套基于 CSS `zoom` 机制的阅读区缩放方案，确保不同设备和环境下都能获得最佳的阅读体感。
+
+- **控制器**: `FontSizeAdjuster.tsx` (位于 `shared` 布局层)，控制 `uiStore.fontSize`。
+- **技术原理**:
+  - **缩放引擎**: 采用 CSS `zoom` 属性 (Firefox 下回退至 `scale`)，通过 `FontSizeAdjuster` 注入全局样式。
+  - **作用域控制 (`.reading-area-scale`)**: 仅作用于简报正文区和文章详情区。
+  - **局部隔离 (`.no-reading-scale`)**: 针对问候语卡片、导航按钮、收藏/已读等交互按钮进行反向缩放补偿，强制锁定原始尺寸，防止交互元素因缩放而导致溢出或点击困难。
+- **范围限制**: 支持 12px - 24px 之间的无缝缩放。
+
+## 4. 日期归属原则 (Date Attribution)
 
 为了保证简报内容的连贯性与历史可追溯性，系统遵循以下**严格的日期归属规则**：
 

@@ -12,6 +12,7 @@
 
 - **`activeFilter`**: 当前视图筛选条件。
 - **`verdictFilter`**: 同步全站的文章类型筛选（新闻/洞察）。
+- **`fontSize`**: 控制阅读区域的字体缩放比例（12px - 24px）。
 - **响应式控制**: `isMobileOpen`, `isDesktopCollapsed`。
 
 ### Toast Store
@@ -41,6 +42,7 @@
 
 - **图片代理**: 负责简报头图的持久化缓存。
 - **颜色哈希**: 为标签提供唯一且确定的确定性颜色。
+- **字体缩放 (`FontSizeAdjuster.tsx`)**: 提供基于 CSS `zoom` 机制的阅读流字体放大功能，支持响应式补偿。
 
 ### SEO 与收录 (`indexnow.ts`)
 

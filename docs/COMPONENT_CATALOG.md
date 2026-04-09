@@ -63,6 +63,10 @@
 ### `src/shared/` (共享层)
 
 - **`components/layout/`**: 负责应用的整体骨架（侧边栏、全局 Layout、浮动按钮）。
+  - `MainLayoutServer.tsx`: SSR 核心外层容器。
+  - `LayoutChromeClient.tsx`: 负责移动端侧边栏交互与滚动锁定。
+  - `LanguageSwitcher.tsx`: 浮动玻璃态的中英文切换按钮。
+  - `FontSizeAdjuster.tsx`: **[New]** 提供 12px-24px 的阅读流字体大小动态调整能力。
 - **`components/ui/`**: 跨业务复用的基础 UI 组件库。
 - **`infrastructure/`**: 基础设施 SDK 封装（Supabase 客户端、FreshRSS 客户端）。
 
@@ -78,10 +82,7 @@
     - `app/` 路由仅作为“接线员”，负责解析请求参数并调用对应的领域服务。
 
 3.  **容器/视图模式 (Container/View Pattern)**:
-    - 复杂组件严格区分 `Client` (逻辑) 和 `View` (渲染) 组件。
-
-4.  **容器/视图模式 (Container/View Pattern)**:
-    - 对于复杂页面（如 Briefing, Stream），严格区分 `Client` (数据/逻辑) 和 `View` (UI 渲染) 组件。
+    - 对于复杂页面（如 Briefing, Stream），严格区分 `Client` (数据/逻辑) 和 `View` (渲染) 组件。
     - 例子: `BriefingClient.tsx` vs `BriefingView.tsx`.
 
 5.  **组合优先 (Composition over Inheritance)**:

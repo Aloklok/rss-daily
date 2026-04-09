@@ -5,6 +5,7 @@ import SidebarNavServer from '@/domains/reading/components/Sidebar/SidebarNavSer
 import SidebarLazyClient from '@/domains/reading/components/Sidebar/SidebarLazyClient';
 import FloatingActionButtonsIsland from '@/domains/interaction/components/FloatingActionButtonsIsland';
 import LanguageSwitcher from '@/shared/components/i18n/LanguageSwitcher';
+import FontSizeAdjuster from '@/shared/components/layout/FontSizeAdjuster';
 
 import { Dictionary } from '@/app/i18n/dictionaries';
 import Footer from '@/shared/components/layout/Footer';
@@ -82,6 +83,7 @@ export default function MainLayoutServer({
 
       <div className="dark:bg-midnight-bg bg-paper-texture relative flex min-w-0 flex-1 flex-col bg-neutral-50 dark:bg-none">
         <LanguageSwitcher />
+        <FontSizeAdjuster />
         <div className="mx-auto w-full max-w-3xl px-2 pt-2 md:px-6 md:pt-4 2xl:max-w-5xl">
           {children}
         </div>

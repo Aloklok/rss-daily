@@ -215,7 +215,7 @@ const Callout: React.FC<CalloutProps> = memo(({ themeKey, title, content }) => {
         <span className="text-2xl">{theme.icon}</span>
         <h4 className={`text-lg font-bold ${colors.title}`}>{title}</h4>
       </div>
-      <div className={`${colors.body} text-sm leading-relaxed font-medium whitespace-pre-line`}>
+      <div className={`${colors.body} text-[14px] md:text-[14.5px] leading-[1.85] tracking-[0.015em] font-medium whitespace-pre-line`}>
         {parseFormattedText(content, colors.emphasis)}
       </div>
     </aside>
@@ -264,7 +264,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = memo(
       'flex flex-col items-center justify-center h-16 w-16 text-xs font-medium rounded-full p-1 gap-1 transition-transform active:scale-95';
 
     return (
-      <div className={`relative mt-6 md:mt-8 ${className || ''}`}>
+      <div className={`no-reading-scale relative mt-6 md:mt-8 ${className || ''}`}>
         {/* Desktop Buttons */}
         <div className="hidden flex-col md:flex">
           <div className="flex items-center justify-between">
