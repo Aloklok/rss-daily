@@ -219,6 +219,7 @@ export const zh = {
       serverError: '服务器响应异常',
       draftingFailed: '构思讲稿失败',
       querying: '正在查询云端讲稿记录...',
+      recording: '正在录制语音播报...',
     },
     actions: {
       regenerate: '重新生成',
@@ -477,6 +478,7 @@ export const en: Dictionary = {
       serverError: 'Server response error',
       draftingFailed: 'Drafting script failed',
       querying: 'Querying cloud script...',
+      recording: 'Synthesizing voice...',
     },
     actions: {
       regenerate: 'Regenerate',

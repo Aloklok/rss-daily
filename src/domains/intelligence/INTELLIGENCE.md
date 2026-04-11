@@ -264,4 +264,8 @@ pnpm chat-prompt:push --new
 - **缓存**：音频 URL 随文稿记录在 `daily_podcasts` 表中，实现“一次生成，全端缓存”。
 - **动态思考 (Thinking Mode)**：可从 `app_config` 中读取配置，结合 SiliconFlow API 启用 Qwen3.5 推理模型获得更有逻辑深度的串联脚本。
 - **智能预加载**：组件挂载时静默查询 `/api/podcasts/fetch`。若云端已有音频和讲稿，优先使用云端记录。
+- **异步处理架构 (Reliability Worker)**：
+  - **解耦设计**：采用“构思即返回”策略。AI 生成文稿由后端主线程根据 `date` 和 `language` 执行原子化的 `upsert` 操作。该操作自动平衡了 `audio_url` 的 `NOT NULL` 数据库约束，确保文稿先行返回给前端。
+  - **背景 Worker**：真实的语音合成在独立的异步 Worker (`runBackgroundTask`) 中进行。为了确保在 Serverless 或开发环境下的生命周期隔离，Worker 内部会重新初始化数据库客户端，并在完成后回写 `audio_url`。
+  - **指数退避重试 (Exponential Backoff)**：TTS 服务层集成了 `withRetry` 机制（默认 3 次尝试）。这大大提升了对 Microsoft Edge TTS 接口网络抖动的抗性。
 - **权限与持久化**：后端提供强制生成的权限校验机制，仅允许拥有 `isAdmin` 权限的用户在前端下拉菜单触发“重新生成”。生成文稿落盘至 `daily_podcasts` 表。

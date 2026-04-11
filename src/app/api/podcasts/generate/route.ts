@@ -148,82 +148,107 @@ export async function POST(req: NextRequest) {
       console.warn('[Podcast] ⚠️ Pre-load check failed, continuing normal process:', err);
     }
 
-    let audioUrl = expectedAudioUrl;
-
-    // Edge TTS: 如果没有命中防重缓存，那就乖乖生成 MP3 音频
-    if (!useExistingAudio) {
-      try {
-        console.log('[Podcast] Generating Edge TTS audio...');
-        const audioBuffer = await generateEdgeTTSAudio(script);
-        console.log(`[Podcast] Edge TTS audio generated (${audioBuffer.length} bytes)`);
-
-        // 上传到 Supabase Storage
-        const { error: uploadError } = await supabase.storage
-          .from('podcasts')
-          .upload(fileName, audioBuffer, {
-            contentType: 'audio/mpeg',
-            upsert: true,
-          });
-
-        if (!uploadError) {
-          const { data: urlData } = supabase.storage.from('podcasts').getPublicUrl(fileName);
-          audioUrl = urlData.publicUrl;
-          console.log(`[Podcast] Audio uploaded: ${audioUrl}`);
-        } else {
-          console.error('[Podcast] Storage upload error:', uploadError);
-        }
-      } catch (ttsError: any) {
-        console.error(
-          '[Podcast] Edge TTS failed, frontend will fallback to Web Speech:',
-          ttsError.message,
-        );
-      }
-    }
-
-    const finalAudioUrl = audioUrl || '';
-
-    // Clean up old audio file if it exists and we're replacing it with a NEW different file
-    if (existingCheck?.audio_url && finalAudioUrl && existingCheck.audio_url !== finalAudioUrl) {
-      try {
-        const oldFileName = existingCheck.audio_url.split('/').pop();
-        if (oldFileName) {
-          await supabase.storage.from('podcasts').remove([oldFileName]);
-          console.log(`[Podcast] 🗑️ Old audio garbage collected: ${oldFileName}`);
-        }
-      } catch (err) {
-        console.warn('[Podcast] Failed to delete old audio file:', err);
-      }
-    }
-
-    let dbError;
-    if (existingCheck?.id) {
-      const result = await supabase
-        .from('daily_podcasts')
-        .update({
+    // 1. 立即更新数据库文稿（使用 upsert 原子操作，确保稳定写入）
+    console.log(`[Podcast] 📦 Persisting script to DB... [${date} (${lang})]`);
+    const { data: upsertData, error: dbError } = await supabase
+      .from('daily_podcasts')
+      .upsert(
+        {
+          date: date,
+          language: lang,
           script_content: script,
-          audio_url: finalAudioUrl,
+          audio_url: existingCheck?.audio_url || '', // 确保满足 NOT NULL
           model_id: modelId,
           updated_at: new Date().toISOString(),
-        })
-        .eq('id', existingCheck.id);
-      dbError = result.error;
-    } else {
-      const result = await supabase.from('daily_podcasts').insert({
-        date: date,
-        language: lang,
-        script_content: script,
-        audio_url: finalAudioUrl,
-        model_id: modelId,
-        updated_at: new Date().toISOString(),
-      });
-      dbError = result.error;
-    }
+        },
+        { onConflict: 'date,language' } // 基于日期和语言防重
+      )
+      .select('id')
+      .single();
+
+    let activeId = upsertData?.id;
 
     if (dbError) {
-      console.error('DB Insert/Update Error:', dbError);
+      console.error('[Podcast] ❌ DB Upsert Error:', dbError.message, dbError.details);
+      // 如果文稿存不进去，我们就没法进行下一步语音关联，直接抛出，让前端感知到
+      throw new Error(`数据库写入失败: ${dbError.message}`);
     }
 
-    return Response.json({ script, audioUrl: finalAudioUrl });
+    console.log(`[Podcast] ✅ Script persisted. (Record ID: ${activeId})`);
+
+    // 2. 定义高可靠后台任务
+    const runBackgroundTask = async (targetId: string | number | undefined, targetDate: string, targetLang: string, targetScript: string) => {
+      console.log(`[Podcast-BG] >>> 🚀 Background Worker Started for ${targetDate}`);
+      
+      // 在任务内部建立独立的数据库连接，防止主连接随请求关闭
+      const internalSupabase = getSupabaseClient();
+      let finalAudioUrl = '';
+
+      try {
+        if (!useExistingAudio) {
+          console.log(`[Podcast-BG] [Step 1/4] Generating Edge TTS...`);
+          const audioBuffer = await generateEdgeTTSAudio(targetScript);
+          console.log(`[Podcast-BG] [Step 2/4] TTS Done (${audioBuffer.length} bytes), uploading...`);
+
+          const { error: uploadError } = await internalSupabase.storage
+            .from('podcasts')
+            .upload(fileName, audioBuffer, {
+              contentType: 'audio/mpeg',
+              upsert: true,
+            });
+
+          if (!uploadError) {
+            const { data: urlData } = internalSupabase.storage.from('podcasts').getPublicUrl(fileName);
+            finalAudioUrl = urlData.publicUrl;
+            console.log(`[Podcast-BG] [Step 3/4] Uploaded. URL: ${finalAudioUrl}`);
+          } else {
+            console.error('[Podcast-BG] ❌ Upload Error:', uploadError.message);
+          }
+        } else {
+          console.log(`[Podcast-BG] Using existing audio cache.`);
+          finalAudioUrl = expectedAudioUrl;
+        }
+
+        if (finalAudioUrl) {
+          console.log(`[Podcast-BG] [Step 4/4] Finalizing DB... ID: ${targetId}`);
+          
+          let updateQuery = internalSupabase
+            .from('daily_podcasts')
+            .update({
+              audio_url: finalAudioUrl,
+              updated_at: new Date().toISOString(),
+            });
+
+          if (targetId) {
+            updateQuery = updateQuery.eq('id', targetId);
+          } else {
+            updateQuery = updateQuery.eq('date', targetDate).eq('language', targetLang);
+          }
+
+          const { error: urlUpdateError } = await updateQuery;
+
+          if (urlUpdateError) {
+            console.error('[Podcast-BG] ❌ DB Final Update Error:', urlUpdateError.message);
+          } else {
+            console.log(`[Podcast-BG] ✅ MISSION ACCOMPLISHED. Polling should see it now.`);
+          }
+        }
+      } catch (fatalErr: any) {
+        console.error('[Podcast-BG] ❌ Fatal Background Error:', fatalErr.message);
+      }
+    };
+
+    // 立即触发任务（不阻塞主响应）
+    runBackgroundTask(activeId, date, lang, script).catch(err => {
+      console.error('[Podcast-BG] Unexpected Error:', err);
+    });
+
+    // 4. 这里直接返回文稿给前端，此时音频可能还在合成中
+    return Response.json({
+      script,
+      audioUrl: useExistingAudio ? expectedAudioUrl : '',
+      status: useExistingAudio ? 'ready' : 'processing',
+    });
   } catch (error: any) {
     console.error('[Podcast] API Generation Error:', error, 'CAUSE:', error.cause);
     return Response.json(

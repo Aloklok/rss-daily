@@ -27,7 +27,7 @@ API 路由按照业务领域进行组织：
 - **`briefings/`**: 简报数据服务。
   - **简报数据 (`fetchBriefingData`)**: **[架构统一]** 核心数据聚合函数。支持 `lang` 参数 ('zh' | 'en')，自动处理物理表映射、分值排序与三级分组逻辑。边缘缓存 7 天。
   - **英文简报数据 (`fetchEnglishBriefingData`)**: 已简化为 `fetchBriefingData(date, 'en')` 的封装，确保中英文逻辑 100% 对齐。
-  - `POST /api/podcasts/generate`: **[优化]** 按需生成播客音频。集成 **Hash-based 幂等校验**，通过对文稿执行 MD5 摘要，优先从 Storage 召回已存在的音频。支持 `language` (zh/en), `modelId` 与 `enableThinking` 参数。英文音频文件名会自动附带 `_en` 后缀以实现物理隔离。
+  - `POST /api/podcasts/generate`: **[异步化架构]** 按需生成播客音频。集成 **原子化 Upsert** 逻辑，解决 DB 约束冲突并确保文稿先行返回。TTS 合成移至非阻塞背景任务执行。支持 `language` (zh/en), `modelId` 与 `enableThinking` 参数。返回结果包含 `{ script, audioUrl, status: 'processing' }`。
   - `GET /api/podcasts/fetch`: 获取已存在的播客文稿与音频 URL 记录。支持 `lang` 参数。支持前端静默预加载。
 - **`meta/`**: 元数据服务。
   - `GET /api/meta/available-dates`: **[优化]** 调用 RPC 获取实时日期。英文版通过 `fetchAvailableDatesEn` 过滤无效日期。

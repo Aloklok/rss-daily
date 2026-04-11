@@ -76,157 +76,53 @@ export function PodcastPlayer({ date, dict }: PodcastPlayerProps) {
     }
   }, [selectedModel, selectedModelMeta, enableThinking]);
 
-  // Eagerly trigger voice loading in browser
+  // --- 逻辑重构：移除原生语音，实现异步轮询 ---
+  const [isPolling, setIsPolling] = useState(false);
+
+  // 轮询逻辑：当有文稿但没音频时启动
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      // This forces voices to populate in Safari/Chrome
-      window.speechSynthesis.getVoices();
-      window.speechSynthesis.onvoiceschanged = () => {
-        window.speechSynthesis.getVoices();
-      };
+    let timer: NodeJS.Timeout;
+    if (isPolling && !audioUrl && date) {
+      timer = setInterval(() => {
+        // 增加时间戳防止缓存
+        fetch(`/api/podcasts/fetch?date=${date}&lang=${dict.lang}&_t=${Date.now()}`)
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.audioUrl) {
+              setAudioUrl(data.audioUrl);
+              setIsPolling(false);
+              // 自动切换到播放状态
+              setAudioState('playing');
+              setLoadingText(dict.podcast.status.preparing);
+            }
+          })
+          .catch((err) => console.error('[Podcast] Polling failed:', err));
+      }, 3000);
     }
-
-    return () => {
-      if (typeof window !== 'undefined' && window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-      }
-    };
-  }, []);
-
-  // Sync state with native synthesis engine in case system interrupts
-  // 注意：当通过 <audio> 播放 MP3 时，跳过 Web Speech 状态同步
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (
-        audioState === 'idle' ||
-        audioState === 'loading' ||
-        audioState === 'error' ||
-        audioState === 'paused'
-      )
-        return;
-
-      // 如果正在用 <audio> 播放 MP3，不检查 speechSynthesis 的状态
-      if (audioUrl) return;
-
-      if (window.speechSynthesis) {
-        if (window.speechSynthesis.speaking) {
-          if (audioState !== 'playing') setAudioState('playing');
-        } else if (!window.speechSynthesis.speaking && audioState === 'playing') {
-          setAudioState('idle'); // Finished
-          currentChunkIndexRef.current = 0;
-        }
-      }
-    }, 500);
-    return () => clearInterval(interval);
-  }, [audioState, audioUrl]);
-
-  const playScript = (text: string, startFrom: number = 0) => {
-    if (!window.speechSynthesis) {
-      setLoadingText(dict.podcast.status.unsupported);
-      setAudioState('error');
-      return;
-    }
-
-    window.speechSynthesis.cancel(); // 彻底清空队列
-    scriptRef.current = text;
-    setTtsSource('web'); // 明确标记当前使用 Web Speech
-
-    // 如果是从头开始，重新切分文本块
-    if (startFrom === 0) {
-      const cleanText = text.replace(/[*_#`~]/g, '');
-      const chunkRegex = /[^。！？.!?\n]+[。！？.!?\n]+/g;
-      chunksRef.current = cleanText.match(chunkRegex) || [cleanText];
-      currentChunkIndexRef.current = 0;
-    }
-
-    const chunks = chunksRef.current;
-    if (startFrom >= chunks.length) {
-      setAudioState('idle');
-      currentChunkIndexRef.current = 0;
-      return;
-    }
-
-    const voices = window.speechSynthesis.getVoices();
-    const validVoices = voices.filter((v) => v.lang.includes('zh'));
-
-    // Edge 浏览器检测：Edge 的 Xiaoxiao 神经语音中英混读效果最佳
-    const isEdge = /Edg\//i.test(navigator.userAgent);
-
-    const preferredVoice = isEdge
-      ? // Edge 优先：Xiaoxiao 神经语音 > 其他中文语音
-        validVoices.find((v) => v.name.includes('Xiaoxiao')) ||
-        validVoices.find((v) => v.name.includes('Microsoft') && v.lang === 'zh-CN') ||
-        validVoices.find((v) => v.lang === 'zh-CN') ||
-        validVoices[0]
-      : // 其他浏览器：Google 普通话 > Premium > Xiaoxiao > Ting-Ting
-        validVoices.find((v) => v.name.includes('Google') && v.name.includes('普通话')) ||
-        validVoices.find((v) => v.name.includes('Premium')) ||
-        validVoices.find((v) => v.name.includes('Xiaoxiao')) ||
-        validVoices.find((v) => v.name.includes('Ting-Ting')) ||
-        validVoices.find((v) => v.lang === 'zh-CN') ||
-        validVoices[0];
-
-    // 从 startFrom 位置开始播放剩余的 chunks
-    const remainingChunks = chunks.slice(startFrom);
-    remainingChunks.forEach((chunkText, relativeIndex) => {
-      if (!chunkText.trim()) return;
-      const absoluteIndex = startFrom + relativeIndex;
-      const utterance = new SpeechSynthesisUtterance(chunkText.trim());
-
-      if (preferredVoice) {
-        utterance.voice = preferredVoice;
-      }
-      utterance.rate = 0.95;
-      utterance.pitch = 1.0;
-
-      // 每个 chunk 开始播放时更新位置标记
-      utterance.onstart = () => {
-        currentChunkIndexRef.current = absoluteIndex;
-      };
-
-      // 最后一个 chunk 播放结束时重置状态
-      if (absoluteIndex === chunks.length - 1) {
-        utterance.onend = () => {
-          setAudioState('idle');
-          currentChunkIndexRef.current = 0;
-        };
-      }
-
-      window.speechSynthesis.speak(utterance);
-    });
-
-    setAudioState('playing');
-  };
+    return () => clearInterval(timer);
+  }, [isPolling, audioUrl, date, dict.lang]);
 
   const handleGenerateAndPlay = async (forceRegenerate: boolean = false) => {
     if (audioState === 'loading') return;
 
+    // 暂停/恢复逻辑
     if (audioState === 'playing' && !forceRegenerate) {
-      // 暂停：优先处理 <audio> 元素，否则处理 Web Speech
-      if (audioRef.current && audioUrl) {
-        audioRef.current.pause();
-      } else {
-        window.speechSynthesis?.cancel();
-      }
+      if (audioRef.current) audioRef.current.pause();
       setAudioState('paused');
       return;
     }
 
     if (audioState === 'paused' && !forceRegenerate) {
-      // 恢复：优先处理 <audio> 元素，否则处理 Web Speech
-      if (audioRef.current && audioUrl && ttsSource === 'edge') {
+      if (audioRef.current && audioUrl) {
         audioRef.current.play();
         setAudioState('playing');
-      } else if (scriptRef.current) {
-        playScript(scriptRef.current, currentChunkIndexRef.current);
       }
       return;
     }
 
-    // 如果已有音频 URL 且未强制重生成，直接播放 MP3
+    // 如果已有音频 URL 且未强制重生成，直接播放
     if (audioUrl && !forceRegenerate) {
       if (audioRef.current) {
-        setTtsSource('edge');
         audioRef.current.currentTime = 0;
         audioRef.current.play();
         setAudioState('playing');
@@ -234,12 +130,7 @@ export function PodcastPlayer({ date, dict }: PodcastPlayerProps) {
       return;
     }
 
-    // 如果已有脚本但没有音频 URL，降级到 Web Speech
-    if (scriptRef.current && !forceRegenerate) {
-      playScript(scriptRef.current);
-      return;
-    }
-
+    // 重置状态开始生成
     setAudioState('loading');
     isGeneratingRef.current = true;
     setLoadingText(dict.podcast.status.checking);
@@ -248,24 +139,14 @@ export function PodcastPlayer({ date, dict }: PodcastPlayerProps) {
       setLoadingText(dict.podcast.status.redrafting);
       scriptRef.current = null;
       setAudioUrl(null);
-      setTtsSource(null);
+      setIsPolling(false);
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.src = '';
       }
-      if (window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-      }
     }
 
     try {
-      // A tiny silent synthesis to unlock Web Speech context on Safari safely within the interaction event
-      if (window.speechSynthesis) {
-        const unlock = new SpeechSynthesisUtterance('');
-        unlock.volume = 0;
-        window.speechSynthesis.speak(unlock);
-      }
-
       const response = await fetch('/api/podcasts/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -285,29 +166,26 @@ export function PodcastPlayer({ date, dict }: PodcastPlayerProps) {
 
       const data = await response.json();
 
-      if (data.error) {
-        throw new Error(data.error);
-      }
+      if (data.error) throw new Error(data.error);
 
       if (data.script) {
-        isGeneratingRef.current = false;
         scriptRef.current = data.script;
+        isGeneratingRef.current = false;
 
         if (data.audioUrl) {
-          // 优先用 Edge TTS 生成的 MP3
           setAudioUrl(data.audioUrl);
-          setTtsSource('edge'); // 锁定为 Edge 模式
           setAudioState('playing');
-          // useEffect 会监听 audioUrl 变化并触发播放
         } else {
-          // 降级到 Web Speech API
-          setTtsSource('web');
-          playScript(data.script);
+          // 文稿已好，开始轮询音频
+          setLoadingText(dict.podcast.status.recording || '正在录制语音播报...');
+          setIsPolling(true);
+          // 注意：此处保持 loading 状态，直到轮询拿到 URL
         }
       }
     } catch (err: any) {
       console.error('Podcast Generation Failed:', err);
       isGeneratingRef.current = false;
+      setIsPolling(false);
       setAudioState('error');
       setLoadingText(err.message || dict.podcast.status.draftingFailed);
       setTimeout(() => setAudioState('idle'), 4000);
@@ -363,47 +241,27 @@ export function PodcastPlayer({ date, dict }: PodcastPlayerProps) {
     return () => window.removeEventListener('click', handleClickOutside);
   }, [showDropdown]);
 
-  // 当 audioUrl 变化且 audioState 为 playing 时，主动触发播放
+  // 当 audioUrl 变化且已准备好播放时触发
   useEffect(() => {
-    if (audioUrl && audioState === 'playing' && audioRef.current && ttsSource === 'edge') {
-      // 确保在尝试播放 MP3 之前，Web Speech 是完全取消的
-      if (window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-      }
-
+    if (audioUrl && audioState === 'playing' && audioRef.current) {
       audioRef.current.play().catch((err) => {
-        // 浏览器可能阻止自动播放，或者网络加载极慢
-        console.warn('[Podcast] Audio play blocked or failed:', err);
-
-        // 只有当 TtsSource 依然是 edge 且真的失败了，才考虑降级
-        // 增加一个微小的延迟判断，避免状态切换瞬间的误判
-        setTimeout(() => {
-          if (audioState === 'playing' && audioRef.current?.paused && ttsSource === 'edge') {
-            console.warn('[Podcast] Falling back to Web Speech after verification');
-            setTtsSource('web');
-            if (scriptRef.current) playScript(scriptRef.current);
-          }
-        }, 300);
+        console.warn('[Podcast] Audio play blocked:', err);
       });
     }
-  }, [audioUrl, audioState, ttsSource]);
+  }, [audioUrl, audioState]);
 
-  // 拉取最新讲稿（弹窗打开时自动调用 + 手动刷新）
+  // 拉取最新讲稿
   const fetchLatestScript = useCallback(() => {
     setIsFetchingScript(true);
     fetch(`/api/podcasts/fetch?date=${date}&lang=${dict.lang}`)
       .then((res) => res.json())
       .then((data) => {
-        if (data.script) {
-          scriptRef.current = data.script;
-        }
-        if (data.audioUrl) {
-          setAudioUrl(data.audioUrl);
-        }
+        if (data.script) scriptRef.current = data.script;
+        if (data.audioUrl) setAudioUrl(data.audioUrl);
       })
-      .catch((err) => console.error('Failed to fetch existing script:', err))
+      .catch((err) => console.error('Failed to fetch script:', err))
       .finally(() => setIsFetchingScript(false));
-  }, [date]);
+  }, [date, dict.lang]);
 
   useEffect(() => {
     if (showScript && !scriptRef.current) {
@@ -413,26 +271,23 @@ export function PodcastPlayer({ date, dict }: PodcastPlayerProps) {
 
   return (
     <div className="flex flex-col gap-2">
-      {/* 隐藏的 <audio> 元素：Edge TTS MP3 播放器（不自动播放，由用户主动触发） */}
       {audioUrl && (
         <audio
           ref={audioRef}
           src={audioUrl}
           onEnded={() => setAudioState('idle')}
           onError={() => {
-            // MP3 播放失败，降级到 Web Speech
-            console.warn('[Podcast] Audio playback failed, falling back to Web Speech');
-            setAudioUrl(null);
-            if (scriptRef.current) playScript(scriptRef.current);
+            console.error('[Podcast] Audio playback error');
+            setAudioState('error');
+            setLoadingText('语音文件加载失败');
           }}
           className="hidden"
         />
       )}
       <div
         className="group relative flex h-10 items-center rounded-full border border-gray-200 bg-white shadow-sm transition-all hover:shadow-md dark:border-gray-800 dark:bg-gray-900"
-        onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Main Play Button */}
         <button
           type="button"
           onClick={() => {
@@ -444,10 +299,8 @@ export function PodcastPlayer({ date, dict }: PodcastPlayerProps) {
           {getButtonContent()}
         </button>
 
-        {/* Divider */}
         <div className="h-4 w-[1px] bg-gray-200 dark:bg-gray-700" />
 
-        {/* Dropdown Toggle */}
         <button
           type="button"
           onClick={() => setShowDropdown(!showDropdown)}
@@ -458,7 +311,6 @@ export function PodcastPlayer({ date, dict }: PodcastPlayerProps) {
           />
         </button>
 
-        {/* Dropdown Menu */}
         {showDropdown && (
           <div className="animate-in fade-in slide-in-from-top-2 absolute top-full right-0 z-[100] mt-2 w-32 rounded-2xl border border-gray-200 bg-white py-2 shadow-2xl duration-200 dark:border-gray-800 dark:bg-gray-950">
             {isAdmin && (
@@ -477,7 +329,6 @@ export function PodcastPlayer({ date, dict }: PodcastPlayerProps) {
               </button>
             )}
 
-            {/* 模型选择器 */}
             {isAdmin && (
               <div className="border-t border-gray-100 px-4 py-2 dark:border-gray-800">
                 <div className="mb-1.5 text-[10px] font-bold tracking-wider text-gray-400 uppercase">
@@ -495,7 +346,6 @@ export function PodcastPlayer({ date, dict }: PodcastPlayerProps) {
               </div>
             )}
 
-            {/* 深度思考开关 */}
             {isAdmin && (
               <div className="flex items-center justify-center border-t border-gray-100 px-4 py-2 dark:border-gray-800">
                 <ReasoningToggle
@@ -525,7 +375,6 @@ export function PodcastPlayer({ date, dict }: PodcastPlayerProps) {
         )}
       </div>
 
-      {/* Script Content Viewer */}
       {showScript && (
         <div className="animate-in fade-in fixed inset-0 z-[999] flex items-center justify-center bg-black/70 p-4 duration-200 md:p-6">
           <div className="animate-in zoom-in-[0.98] flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl duration-200 dark:border-gray-800 dark:bg-gray-900">
@@ -539,7 +388,6 @@ export function PodcastPlayer({ date, dict }: PodcastPlayerProps) {
                 </h3>
               </div>
               <div className="flex items-center gap-1">
-                {/* 刷新讲稿按钮 */}
                 <button
                   onClick={() => fetchLatestScript()}
                   disabled={isFetchingScript}
@@ -548,7 +396,6 @@ export function PodcastPlayer({ date, dict }: PodcastPlayerProps) {
                 >
                   <RefreshCw className={`h-4 w-4 ${isFetchingScript ? 'animate-spin' : ''}`} />
                 </button>
-                {/* 播放讲稿按钮 */}
                 {scriptRef.current && (
                   <button
                     onClick={() => {
@@ -568,7 +415,6 @@ export function PodcastPlayer({ date, dict }: PodcastPlayerProps) {
                     )}
                   </button>
                 )}
-                {/* 关闭按钮 */}
                 <button
                   onClick={() => setShowScript(false)}
                   className="rounded-full p-2 text-gray-500 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
@@ -594,10 +440,8 @@ export function PodcastPlayer({ date, dict }: PodcastPlayerProps) {
                     .map((line: string, i: number) => {
                       const isListItem = /^([一二三四五六七八九十]、|(?:[1-9][0-9]?)、|(?:[1-9][0-9]?)\.(?!\d))/.test(line.trim());
                       const pClass = isListItem 
-                        ? 'mb-6 pl-8 md:pl-10 -indent-5 leading-loose tracking-wide' // 列表采用真实悬挂缩进
-                        : 'mb-6 indent-8 leading-loose tracking-wide'; // 普通段落采用首行缩进
-                      
-                      // 识别出“关于XXX，”并利用 split 保留分隔符，提取出来进行加粗处理
+                        ? 'mb-6 pl-8 md:pl-10 -indent-5 leading-loose tracking-wide'
+                        : 'mb-6 indent-8 leading-loose tracking-wide';
                       const fragments = line.split(/(关于[^，。；]+[，。；])/g);
                       return (
                         <p key={i} className={pClass}>

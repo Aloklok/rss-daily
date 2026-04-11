@@ -18,12 +18,12 @@
   - `BriefCard.tsx`: 高度压缩的信息密度展现。
     - **字体与排版优化**: 默认基准字号提升至 `14.5px`，并将行高优化为 `1.85`，增加 `0.015em` 字间距。
     - **隔离机制**: 关键操作按钮通过 `.no-reading-scale` 物理隔离，确保全局缩放时不影响交互元素尺寸。
-  - `POST /api/podcasts/generate`: **[智能路由]** 生成播客文稿并同步生成 TTS 音频。系统会根据 `modelId` 的 `provider` 属性自动在 Google (Native SDK) 与 SiliconFlow (OpenAI-compatible)之间进行智能分发。支持 `modelId` 与 `enableThinking` 参数。音频上传至持久化存储，并在 `daily_podcasts` 表记录 `model_id`。返回 `{ script, audioUrl }`。
+  - `POST /api/podcasts/generate`: **[异步化架构]** 生成播客文稿并触发后台 TTS 任务。API 采用“构思即返回”策略，文稿生成后立即入库并响应前端，语音合成及存储在独立后台任务中完成。支持 `upsert` 原子写入，自动处理 `audio_url` 非空约束。返回 `{ script, audioUrl, status: 'processing' }`。
   - `PodcastPlayer.tsx`: **[播客特性]** 核心音频播放组件。
-    - **双模播放机制 (Dual-Mode)**：
-      - **MP3 优先 (Edge TTS)**：优先检测云端生成的 `audioUrl`。若存在，使用 `<audio>` 元素播放高质量神经语音 MP3，支持原生暂停/恢复及精确进度控制。系统引入了 `ttsSource` 互斥锁逻辑，确保 XiaoXiao 播放时 Google 语音强制静音，并增加了 300ms 的验证窗口以防止因浏览器自动播放限制导致的意外降级。
-      - **Web Speech 降级**：若音频生成确定失败（经过重试或超时），启用本地 `window.speechSynthesis`。
-    - **断点续播 (Web Speech Fallback)**：由于原生 `speechSynthesis.pause()` 在某些环境下不稳定（不释放音频占用），降级模式下采用“cancel + 分段保存索引”逻辑。将讲稿切分为句子块 (Chunks)，暂停时记录当前索引并 `cancel()`；继续播放时从该索引对应的 Chunk 重新起步。
+    - **异步轮询机制 (Polling & Auto-play)**：
+      - **主动发现**：当检测到文稿已就绪但语音仍在“processing”时，启动后台轮询（每 3 秒带时间戳请求 `/api/podcasts/fetch`）。
+      - **自动启播**：一旦轮询获取到有效的 `audioUrl`，组件会自动从加载态切换为播放态，实现无缝的自动播报体验。
+    - **MP3 渲染优先**：移除了不稳定的 Web Speech API 降级逻辑。系统 100% 依赖 Edge TTS 生成的高质量 MP3。
     - **交互逻辑**：
       - 下拉菜单：支持点击触发及外部点击关闭。
       - 讲稿弹窗：新增刷新 🔄 和播放 ▶️ 按钮，支持手动更新讲稿记录并主动触发播放。
