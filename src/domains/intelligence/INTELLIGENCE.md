@@ -57,7 +57,7 @@ AI 聊天的核心入口现由 **ChatOrchestrator** (位于 `intelligence/servic
   - 系统采用 **5 层优先级分权排序 (Multi-level Priority)**，综合词面匹配 (`ILIKE`)、索引检索 (`&@~`) 与向量空间算法：
     - **P1 (最高: 原文匹配)**: 标题字符串字面包含 (`ILIKE`)。专门为“复制标题搜索”设计，确保精准命中。
     - **P2 (高: 标题核心)**: 标题关键词命中 (`&@~`) 或 向量强相关 (`Similarity > 0.88`)。
-      - **MP3 优先 (Edge TTS)**：优先检测云端生成的 `audioUrl`。若存在，使用 `<audio>` 元素播放高质量神经语音 MP3，支持原生暂停/恢复及精确进度控制。系统引入了 `ttsSource` 互斥锁逻辑，确保 XiaoXiao 播放时 Google 语音强制静音，并增加了 300ms 的验证窗口以防止因浏览器自动播放限制导致的意外降级。
+      - **MP3 优先 (Edge TTS)**：优先检测云端生成的 `audioUrl`。若存在，使用 `<audio>` 元素播放高质量神经语音 MP3，支持原生暂停/恢复及精确进度控制。
       - **Web Speech 降级**：若音频生成确定失败（经过重试或超时），启用本地 `window.speechSynthesis`。
     - **P3 (中: 标签特征)**: 关键词字段 (`keywords`) 或 分类 (`category`) 命中。
     - **P4 (低: 摘要噪音)**: 文章摘要 (`summary`) 命中。将其降级是为了防止摘要中的冗余词汇遮挡标题精准匹配的结果。
@@ -257,7 +257,9 @@ pnpm chat-prompt:push --new
   - **语速调优**：设定为 `-25%`，模拟播音员从容、稳重的播报节奏。
 - **存储架构**：
   - **流式处理**：服务端通过 WebSocket 接收 TTS 音频流并聚合为 Buffer。
-  - **持久化**：生成的 MP3 音频上传至 Supabase Storage 的 `podcasts` bucket。
+  - **持久化**：生成的 MP3 音频上传至 Supabase Storage。
+  - `POST /api/podcasts/generate`: **[异步化架构]** 按需生成播客音频。集成 **原子化 Upsert** 逻辑，解决 DB 约束冲突。采用 `after()` API 确保后台任务持久性。返回结果包含 `{ script, audioUrl, status: 'processing' }`。
+  - `GET /api/podcasts/fetch`: 获取已存在的播客文稿与音频 URL 记录。支持 **哈希指纹审计**，若文稿与音频不匹配则返回 `status: 'stale'` 并清空 URL，驱动系统自愈。
 - **中英文隔离与命名规范**：
   - **逻辑隔离**：通过 `language` 字段（`zh`/`en`）在 `daily_podcasts` 表中物理隔离文稿。
   - **命名后缀**：为了防止文件名冲突，英文版播客音频文件名强制附带 `_en` 后缀（例如 `podcast-YYYY-MM-DD-en-hash_en.mp3`）。
@@ -265,7 +267,11 @@ pnpm chat-prompt:push --new
 - **动态思考 (Thinking Mode)**：可从 `app_config` 中读取配置，结合 SiliconFlow API 启用 Qwen3.5 推理模型获得更有逻辑深度的串联脚本。
 - **智能预加载**：组件挂载时静默查询 `/api/podcasts/fetch`。若云端已有音频和讲稿，优先使用云端记录。
 - **异步处理架构 (Reliability Worker)**：
-  - **解耦设计**：采用“构思即返回”策略。AI 生成文稿由后端主线程根据 `date` 和 `language` 执行原子化的 `upsert` 操作。该操作自动平衡了 `audio_url` 的 `NOT NULL` 数据库约束，确保文稿先行返回给前端。
-  - **背景 Worker**：真实的语音合成在独立的异步 Worker (`runBackgroundTask`) 中进行。为了确保在 Serverless 或开发环境下的生命周期隔离，Worker 内部会重新初始化数据库客户端，并在完成后回写 `audio_url`。
-  - **指数退避重试 (Exponential Backoff)**：TTS 服务层集成了 `withRetry` 机制（默认 3 次尝试）。这大大提升了对 Microsoft Edge TTS 接口网络抖动的抗性。
-- **权限与持久化**：后端提供强制生成的权限校验机制，仅允许拥有 `isAdmin` 权限的用户在前端下拉菜单触发“重新生成”。生成文稿落盘至 `daily_podcasts` 表。
+  - **解耦设计**：采用“构思即返回”策略。AI 讲稿生成后经 `upsert` 原子入库，主线程立即向前端返回文稿内容。
+  - **背景保活 (after API)**：在 Next.js 16 下，通过 `after()` 钩子启动后台合成。这确保了在 Vercel Serverless 环境中，即使响应已发送，录音进程也能获得算力直至完成。
+  - **指数退避重试**：TTS 服务层集成 `withRetry`（默认 3 次），有效对抗 API 瞬时抖动。
+- **一致性自愈 (Consistency Self-Healing)**：
+  - **指纹比对**：音频文件名携带内容哈希（MD5）。`fetch` 接口会实时校验文稿与音频的匹配度。
+  - **状态同步**：若发现哈希不匹配，接口返回 `status: 'stale'`。
+  - **静默补录**：播放器识别到过期状态后，在用户点击播放时自动重新发起生成，实现“有感知的文字、静默补录的音频”同步体验。
+- **权限与持久化**：后端提供权限校验，仅允许 `isAdmin` 用户触发重新生成。

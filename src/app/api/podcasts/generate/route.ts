@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, after } from 'next/server';
 import { getSupabaseClient } from '@/shared/infrastructure/supabase';
 import { generateSiliconFlow } from '@/domains/intelligence/services/siliconflow';
 import { generateEdgeTTSAudio } from '@/domains/intelligence/services/edge-tts';
@@ -238,9 +238,9 @@ export async function POST(req: NextRequest) {
       }
     };
 
-    // 立即触发任务（不阻塞主响应）
-    runBackgroundTask(activeId, date, lang, script).catch(err => {
-      console.error('[Podcast-BG] Unexpected Error:', err);
+    // 立即触发任务（使用 after 确保 Vercel 在响应返回后继续执行后台进程）
+    after(() => {
+      runBackgroundTask(activeId, date, lang, script);
     });
 
     // 4. 这里直接返回文稿给前端，此时音频可能还在合成中

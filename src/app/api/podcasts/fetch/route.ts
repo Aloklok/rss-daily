@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { getSupabaseClient } from '@/shared/infrastructure/supabase';
+import * as crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,9 +23,24 @@ export async function GET(req: NextRequest) {
       .maybeSingle();
 
     if (existingPodcast?.script_content) {
+      const script = existingPodcast.script_content;
+      const audioUrl = existingPodcast.audio_url || '';
+      
+      // 指纹校验：确保音频文件名中的哈希与当前文稿内容匹配
+      let isConsistent = true;
+      if (audioUrl) {
+        const textHash = crypto.createHash('md5').update(script).digest('hex').substring(0, 16);
+        // 检查 URL 是否包含当前文稿的哈希
+        if (!audioUrl.includes(textHash)) {
+          console.warn(`[Podcast] Internal consistency check failed for ${date}. Stale audio detected.`);
+          isConsistent = false;
+        }
+      }
+
       return Response.json({
-        script: existingPodcast.script_content,
-        audioUrl: existingPodcast.audio_url || '',
+        script,
+        audioUrl: isConsistent ? audioUrl : '',
+        status: isConsistent ? 'ready' : 'stale', // 告知前端这是过期数据
       });
     } else {
       return Response.json({ script: null, audioUrl: '' }); // explicitly indicate not found
