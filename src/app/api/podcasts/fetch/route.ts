@@ -29,7 +29,8 @@ export async function GET(req: NextRequest) {
       // 指纹校验：确保音频文件名中的哈希与当前文稿内容匹配
       const isConsistent = isAudioConsistent(script, audioUrl);
       if (audioUrl && !isConsistent) {
-        console.warn(`[Podcast] Internal consistency check failed for ${date}. Stale audio detected.`);
+        const expectedHash = getPodcastHash(script);
+        console.warn(`[Podcast] 🚩 Consistency mismatch for ${date}: Expected MD5 prefix ${expectedHash}, but audio URL is ${audioUrl}`);
       }
 
       return Response.json({

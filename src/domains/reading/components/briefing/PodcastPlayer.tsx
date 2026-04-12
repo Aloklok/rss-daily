@@ -84,16 +84,21 @@ export function PodcastPlayer({ date, dict }: PodcastPlayerProps) {
     let timer: NodeJS.Timeout;
     if (isPolling && !audioUrl && date) {
       timer = setInterval(() => {
+        const timestamp = new Date().toLocaleTimeString();
+        console.log(`[Podcast] [${timestamp}] Polling for audio...`);
         // 增加时间戳防止缓存
         fetch(`/api/podcasts/fetch?date=${date}&lang=${dict.lang}&_t=${Date.now()}`)
           .then((res) => res.json())
           .then((data) => {
             if (data.audioUrl) {
+              console.log(`[Podcast] [${timestamp}] 🎉 Audio found! URL:`, data.audioUrl);
               setAudioUrl(data.audioUrl);
               setIsPolling(false);
               // 自动切换到播放状态
               setAudioState('playing');
               setLoadingText(dict.podcast.status.preparing);
+            } else {
+              console.log(`[Podcast] [${timestamp}] Audio still processing (status: ${data.status})...`);
             }
           })
           .catch((err) => console.error('[Podcast] Polling failed:', err));

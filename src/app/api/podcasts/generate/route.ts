@@ -29,6 +29,9 @@ export async function POST(req: NextRequest) {
       return Response.json({ error: 'Date is required' }, { status: 400 });
     }
 
+    let script = '';
+    let isReusingScript = false;
+
     if (!forceRegenerate) {
       const { data: existingPodcast } = await supabase
         .from('daily_podcasts')
@@ -38,25 +41,30 @@ export async function POST(req: NextRequest) {
         .maybeSingle();
 
       if (existingPodcast?.script_content) {
-        const script = existingPodcast.script_content;
+        const cachedScript = existingPodcast.script_content;
         const audioUrl = existingPodcast.audio_url;
 
         // 核心修复：只有当文稿存在且音频也一致时，才允许返回缓存
-        // 如果音频缺失或哈希不匹配，则跳过此返回，继续向下执行以重新生成音频
-        if (isAudioConsistent(script, audioUrl)) {
+        if (isAudioConsistent(cachedScript, audioUrl)) {
           console.log(`[Podcast] Cache hit & consistent for ${date} (${lang}).`);
           return Response.json({
-            script: script,
+            script: cachedScript,
             audioUrl: audioUrl || '',
             fromCache: true,
+            status: 'ready',
           });
         }
         
-        console.log(`[Podcast] Script cached but audio missing/stale for ${date} (${lang}). Proceeding to regenerate audio.`);
+        // 关键改进：如果用户没有强制重新生成讲稿，我们复用现有的讲稿，直接进入 TTS 合成环节
+        console.log(`[Podcast] ♻️ Reusing existing script for ${date} (${lang}) due to stale audio. skipping Gemini.`);
+        script = cachedScript;
+        isReusingScript = true;
       }
     }
 
-    const briefingData = await fetchBriefingData(date, lang as 'zh' | 'en');
+    if (!script) {
+      console.log(`[Podcast] 🆕 Generating new script for ${date} (${lang})...`);
+      const briefingData = await fetchBriefingData(date, lang as 'zh' | 'en');
 
     // 纵向集成：每篇文章携带全部维度信息，由 AI 自主聚类和筛选
     const articleList = Object.values(briefingData)
@@ -123,7 +131,8 @@ export async function POST(req: NextRequest) {
       return Response.json({ error: '生成的播客文稿为空' }, { status: 500 });
     }
 
-    console.log(`[Podcast] Script generated (${script.length} characters)`);
+      console.log(`[Podcast] Script generated (${script.length} characters)`);
+    }
 
     // Check for existing ID and old audio URL early to clean up storage later
     const { data: existingCheck } = await supabase
@@ -249,15 +258,24 @@ export async function POST(req: NextRequest) {
     };
 
     // 立即触发任务（使用 after 确保 Vercel 在响应返回后继续执行后台进程）
-    after(() => {
-      runBackgroundTask(activeId, date, lang, script);
+    after(async () => {
+      const startTime = Date.now();
+      console.log(`[Podcast-BG] [${new Date().toISOString()}] >>> 🚀 Background Worker Triggered for ${date}`);
+      try {
+        await runBackgroundTask(activeId, date, lang, script);
+        const duration = ((Date.now() - startTime) / 1000).toFixed(1);
+        console.log(`[Podcast-BG] [${new Date().toISOString()}] <<< 🎉 All Background Tasks Finished in ${duration}s`);
+      } catch (err: any) {
+        console.error(`[Podcast-BG] [${new Date().toISOString()}] ❌ Unhandled Background Exception:`, err.message);
+      }
     });
 
-    // 4. 这里直接返回文稿给前端，此时音频可能还在合成中
+    // 4. 返回状态
     return Response.json({
       script,
       audioUrl: useExistingAudio ? expectedAudioUrl : '',
       status: useExistingAudio ? 'ready' : 'processing',
+      reusedScript: isReusingScript,
     });
   } catch (error: any) {
     console.error('[Podcast] API Generation Error:', error, 'CAUSE:', error.cause);
