@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { getSupabaseClient } from '@/shared/infrastructure/supabase';
-import { isAudioConsistent } from '@/shared/utils/podcastUtils';
+import { isAudioConsistent, getPodcastHash } from '@/shared/utils/podcastUtils';
 
 export const dynamic = 'force-dynamic';
 
