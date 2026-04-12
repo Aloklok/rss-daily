@@ -258,8 +258,8 @@ pnpm chat-prompt:push --new
 - **存储架构**：
   - **流式处理**：服务端通过 WebSocket 接收 TTS 音频流并聚合为 Buffer。
   - **持久化**：生成的 MP3 音频上传至 Supabase Storage。
-  - `POST /api/podcasts/generate`: **[异步化架构]** 按需生成播客音频。集成 **原子化 Upsert** 逻辑，解决 DB 约束冲突。采用 `after()` API 确保后台任务持久性。返回结果包含 `{ script, audioUrl, status: 'processing' }`。
-  - `GET /api/podcasts/fetch`: 获取已存在的播客文稿与音频 URL 记录。支持 **哈希指纹审计**，若文稿与音频不匹配则返回 `status: 'stale'` 并清空 URL，驱动系统自愈。
+- `POST /api/podcasts/generate`: **[异步化架构]** 按需生成播客音频。集成 **原子化 Upsert** 与 **一致性校验** 逻辑，确保文稿与音频哈希 100% 匹配。若检测到音频过期或缺失，会自动通过 `after()` API 触发后台重录。
+- `GET /api/podcasts/fetch`: 获取已存在的播客文稿与音频 URL 记录。支持 **哈希指纹审计**，若文稿与音频不匹配则返回 `status: 'stale'` 并清空 URL，驱动系统自愈。
 - **中英文隔离与命名规范**：
   - **逻辑隔离**：通过 `language` 字段（`zh`/`en`）在 `daily_podcasts` 表中物理隔离文稿。
   - **命名后缀**：为了防止文件名冲突，英文版播客音频文件名强制附带 `_en` 后缀（例如 `podcast-YYYY-MM-DD-en-hash_en.mp3`）。
@@ -272,6 +272,6 @@ pnpm chat-prompt:push --new
   - **指数退避重试**：TTS 服务层集成 `withRetry`（默认 3 次），有效对抗 API 瞬时抖动。
 - **一致性自愈 (Consistency Self-Healing)**：
   - **指纹比对**：音频文件名携带内容哈希（MD5）。`fetch` 接口会实时校验文稿与音频的匹配度。
-  - **状态同步**：若发现哈希不匹配，接口返回 `status: 'stale'`。
-  - **静默补录**：播放器识别到过期状态后，在用户点击播放时自动重新发起生成，实现“有感知的文字、静默补录的音频”同步体验。
+  - **自动触发**：在 `generate` 阶段若发现文稿已存在但音频不一致，系统不再单纯返回缓存，而是**自动 Fall-through** 触发后台重录任务。
+  - **状态同步**：前端轮询识别到 `stale` 状态或空音频后，保持 Loading 直至后台补录完成，实现“有感知的文字、静默补录的音频”同步体验。
 - **权限与持久化**：后端提供权限校验，仅允许 `isAdmin` 用户触发重新生成。

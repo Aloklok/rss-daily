@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { getSupabaseClient } from '@/shared/infrastructure/supabase';
-import * as crypto from 'crypto';
+import { isAudioConsistent } from '@/shared/utils/podcastUtils';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,14 +27,9 @@ export async function GET(req: NextRequest) {
       const audioUrl = existingPodcast.audio_url || '';
       
       // 指纹校验：确保音频文件名中的哈希与当前文稿内容匹配
-      let isConsistent = true;
-      if (audioUrl) {
-        const textHash = crypto.createHash('md5').update(script).digest('hex').substring(0, 16);
-        // 检查 URL 是否包含当前文稿的哈希
-        if (!audioUrl.includes(textHash)) {
-          console.warn(`[Podcast] Internal consistency check failed for ${date}. Stale audio detected.`);
-          isConsistent = false;
-        }
+      const isConsistent = isAudioConsistent(script, audioUrl);
+      if (audioUrl && !isConsistent) {
+        console.warn(`[Podcast] Internal consistency check failed for ${date}. Stale audio detected.`);
       }
 
       return Response.json({

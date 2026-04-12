@@ -219,7 +219,7 @@ export const zh = {
       serverError: '服务器响应异常',
       draftingFailed: '构思讲稿失败',
       querying: '正在查询云端讲稿记录...',
-      recording: '正在录制语音播报...',
+      recording: '正在合成语音播报...',
     },
     actions: {
       regenerate: '重新生成',

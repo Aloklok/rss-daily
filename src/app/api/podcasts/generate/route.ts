@@ -5,7 +5,7 @@ import { generateEdgeTTSAudio } from '@/domains/intelligence/services/edge-tts';
 import { generateGemini } from '@/domains/intelligence/services/gemini';
 import { fetchBriefingData } from '@/domains/reading/services';
 import { MODELS } from '@/domains/intelligence/constants';
-import * as crypto from 'crypto';
+import { getPodcastHash, isAudioConsistent } from '@/shared/utils/podcastUtils';
 
 // Force dynamic execution
 export const dynamic = 'force-dynamic';
@@ -38,11 +38,21 @@ export async function POST(req: NextRequest) {
         .maybeSingle();
 
       if (existingPodcast?.script_content) {
-        return Response.json({
-          script: existingPodcast.script_content,
-          audioUrl: existingPodcast.audio_url || '',
-          fromCache: true,
-        });
+        const script = existingPodcast.script_content;
+        const audioUrl = existingPodcast.audio_url;
+
+        // 核心修复：只有当文稿存在且音频也一致时，才允许返回缓存
+        // 如果音频缺失或哈希不匹配，则跳过此返回，继续向下执行以重新生成音频
+        if (isAudioConsistent(script, audioUrl)) {
+          console.log(`[Podcast] Cache hit & consistent for ${date} (${lang}).`);
+          return Response.json({
+            script: script,
+            audioUrl: audioUrl || '',
+            fromCache: true,
+          });
+        }
+        
+        console.log(`[Podcast] Script cached but audio missing/stale for ${date} (${lang}). Proceeding to regenerate audio.`);
       }
     }
 
@@ -126,7 +136,7 @@ export async function POST(req: NextRequest) {
     // 0. Pre-load checking for Hash-based duplicates in Storage
     let useExistingAudio = false;
     let expectedAudioUrl = '';
-    const textHash = crypto.createHash('md5').update(script).digest('hex').substring(0, 16);
+    const textHash = getPodcastHash(script);
     // English files get an _en suffix
     const fileName =
       lang === 'en'
