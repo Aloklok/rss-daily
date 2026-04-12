@@ -157,7 +157,7 @@ export async function POST(req: NextRequest) {
           date: date,
           language: lang,
           script_content: script,
-          audio_url: existingCheck?.audio_url || '', // 确保满足 NOT NULL
+          audio_url: useExistingAudio ? expectedAudioUrl : '', // 只有命中缓存才保留地址，否则清空
           model_id: modelId,
           updated_at: new Date().toISOString(),
         },
