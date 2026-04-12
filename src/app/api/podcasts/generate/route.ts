@@ -62,22 +62,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    if (!script) {
-      console.log(`[Podcast] 🆕 Generating new script for ${date} (${lang})...`);
-      const briefingData = await fetchBriefingData(date, lang as 'zh' | 'en');
-
-    // 纵向集成：每篇文章携带全部维度信息，由 AI 自主聚类和筛选
-    const articleList = Object.values(briefingData)
-      .flat()
-      .map((a) => ({
-        title: a.title,
-        summary: a.summary, // DB 字段：summary（深度摘要，描述文章性质和结论）
-        tldr: a.tldr, // DB 字段：tldr（≤20 字客观事实摘要）
-        highlights: a.highlights, // DB 字段：highlights（技术洞察 → 阶段一解释机制）
-        critiques: a.critiques, // DB 字段：critiques（犀利点评 → 阶段二深度素材）
-        marketTake: a.marketTake, // DB 字段：marketTake（市场观察 → 阶段二素材）
-      }));
-
     // 从 app_config 读取 Prompt 模板和模型配置
     const { data: configRows } = await supabase
       .from('app_config')
@@ -93,31 +77,46 @@ export async function POST(req: NextRequest) {
       {},
     );
 
-    const defaultPrompt = '请为您生成一份播客脚本：\n\n{{articleList}}';
-
-    const promptTemplate = configMap['gemini_podcast_prompt'] || defaultPrompt;
     const modelId = requestedModelId || configMap['gemini_podcast_model'] || 'Qwen/Qwen3-8B';
     const enableThinking =
       requestedEnableThinking !== undefined
         ? requestedEnableThinking
         : configMap['gemini_podcast_enable_thinking'] === 'true';
-    const totalCount = articleList.length;
 
-    const promptText = promptTemplate
-      .replace('{{articleList}}', JSON.stringify(articleList, null, 2))
-      .replace('{{date}}', date)
-      .replace('{{totalCount}}', totalCount.toString());
+    if (!script) {
+      console.log(`[Podcast] 🆕 Generating new script for ${date} (${lang})...`);
+      const briefingData = await fetchBriefingData(date, lang as 'zh' | 'en');
 
-    console.log(
-      `[Podcast] Generating script for ${date} using ${modelId} (Thinking: ${enableThinking})`,
-    );
+      // 纵向集成：每篇文章携带全部维度信息，由 AI 自主聚类和筛选
+      const articleList = Object.values(briefingData)
+        .flat()
+        .map((a) => ({
+          title: a.title,
+          summary: a.summary,
+          tldr: a.tldr,
+          highlights: a.highlights,
+          critiques: a.critiques,
+          marketTake: a.marketTake,
+        }));
 
-    // 智能分发：根据 MODELS 配置的 provider 决定调用路径
-    const modelConfig = MODELS.find((m) => m.id === modelId.split('@')[0]);
-    const isGoogle = modelConfig?.provider === 'google' || modelId.startsWith('gemini-');
+      const defaultPrompt = '请为您生成一份播客脚本：\n\n{{articleList}}';
+      const promptTemplate = configMap['gemini_podcast_prompt'] || defaultPrompt;
+      const totalCount = articleList.length;
 
-    let script = '';
-    const aiMessages = [{ role: 'user', content: promptText }];
+      const promptText = promptTemplate
+        .replace('{{articleList}}', JSON.stringify(articleList, null, 2))
+        .replace('{{date}}', date)
+        .replace('{{totalCount}}', totalCount.toString());
+
+      console.log(
+        `[Podcast] Generating script for ${date} using ${modelId} (Thinking: ${enableThinking})`,
+      );
+
+      // 智能分发：根据 MODELS 配置的 provider 决定调用路径
+      const modelConfig = MODELS.find((m) => m.id === modelId.split('@')[0]);
+      const isGoogle = modelConfig?.provider === 'google' || modelId.startsWith('gemini-');
+
+      const aiMessages = [{ role: 'user', content: promptText }];
 
     if (isGoogle) {
       console.log(`[Podcast] Routing to Google Gemini API for ${modelId}`);
