@@ -7,7 +7,7 @@ import { useFilters } from '@/domains/reading/hooks/useFilters';
 import { useUIStore } from '@/shared/store/uiStore';
 import { useArticleStore } from '@/domains/article/store/articleStore';
 import { Article } from '@/types';
-import { toShortId } from '@/domains/article/utils/idHelpers';
+import { toShortId, toFullId } from '@/domains/article/utils/idHelpers';
 import {
   resolveFilterFromPathname,
   resolveArticleIdFromPathname,
