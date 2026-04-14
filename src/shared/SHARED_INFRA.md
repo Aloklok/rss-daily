@@ -52,3 +52,8 @@
 ### SEO 与收录 (`indexnow.ts`)
 
 - 集成 IndexNow API，实现新内容发布后的即时推送。
+
+### 路由解析与状态同步 (`url-resolver.ts`)
+
+- `resolveFilterFromPathname`: 从路径中解析当前生效的过滤器（标签/分类/日期）。
+- `resolveArticleIdFromPathname`: 从路径中解析当前选中的文章 ID，用于侧边栏状态同步。

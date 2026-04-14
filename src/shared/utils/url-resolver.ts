@@ -45,3 +45,23 @@ export function resolveFilterFromPathname(pathname: string): Filter | null {
 
   return null;
 }
+
+/**
+ * Resolves an Article ID from the current pathname.
+ * Handles patterns like /article/[id] and /en/article/[id]
+ *
+ * @param pathname - The current pathname
+ * @returns The resolved article ID (full ID format) or null.
+ */
+export function resolveArticleIdFromPathname(pathname: string): string | null {
+  if (!pathname) return null;
+
+  const normalizedPath = pathname.replace(/^\/en/, '') || '/';
+  const articleMatch = normalizedPath.match(/^\/article\/([^?#/]+)/);
+
+  if (articleMatch) {
+    return decodeURIComponent(articleMatch[1]);
+  }
+
+  return null;
+}

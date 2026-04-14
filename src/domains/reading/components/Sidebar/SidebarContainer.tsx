@@ -8,7 +8,10 @@ import { useUIStore } from '@/shared/store/uiStore';
 import { useArticleStore } from '@/domains/article/store/articleStore';
 import { Article } from '@/types';
 import { toShortId } from '@/domains/article/utils/idHelpers';
-import { resolveFilterFromPathname } from '@/shared/utils/url-resolver';
+import {
+  resolveFilterFromPathname,
+  resolveArticleIdFromPathname,
+} from '@/shared/utils/url-resolver';
 
 import { Dictionary } from '@/app/i18n/dictionaries';
 
@@ -40,7 +43,13 @@ export default function SidebarClient({
     // However, on Homepage we want to PRESERVE the TimeSlot (morning/evening) if it was set by hydration.
     // So we pass preserveState: true only when filter is null.
     setActiveFilter(filter, !filter);
-  }, [pathname, setActiveFilter]);
+
+    // Also sync selected article ID if we are on an article page
+    const shortArticleId = resolveArticleIdFromPathname(pathname);
+    if (shortArticleId) {
+      setSelectedArticleId(toFullId(shortArticleId));
+    }
+  }, [pathname, setActiveFilter, setSelectedArticleId]);
 
   const {
     isInitialLoad,

@@ -66,7 +66,7 @@ export const useUIStore = create<UIStoreState>((set) => ({
 
       return {
         activeFilter: filter,
-        selectedArticleId: null,
+        selectedArticleId: isFilterSame ? state.selectedArticleId : null,
         timeSlot: shouldPreserve ? state.timeSlot : null,
         verdictFilter: shouldPreserve ? state.verdictFilter : null,
       };

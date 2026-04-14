@@ -77,20 +77,24 @@ const SidebarStarred: React.FC<SidebarStarredProps> = ({
         ) : articles.length === 0 ? (
           <div className="px-2 py-2 text-xs text-gray-400 italic">No favorites yet</div>
         ) : (
-          articles.map((article) => (
-            <Link
-              prefetch={false}
-              key={article.id}
-              href={`${dict.lang === 'zh' ? '' : '/en'}/article/${toShortId(String(article.id))}?view=page`}
-              onClick={(_e) => {
-                // Optional: update store but let Link handle nav
-                onArticleClick(article);
-              }}
-              className={listItemButtonClass(selectedArticleId === article.id)}
-            >
-              <span className="truncate">{article.title}</span>
-            </Link>
-          ))
+          articles.map((article) => {
+            const handleArticleClick = (e: React.MouseEvent) => {
+              e.preventDefault();
+              onArticleClick(article);
+            };
+
+            return (
+              <Link
+                prefetch={false}
+                key={article.id}
+                href={`${dict.lang === 'zh' ? '' : '/en'}/article/${toShortId(String(article.id))}?view=page`}
+                onClick={handleArticleClick}
+                className={listItemButtonClass(selectedArticleId === article.id)}
+              >
+                <span className="truncate">{article.title}</span>
+              </Link>
+            );
+          })
         )}
       </div>
     </nav>
