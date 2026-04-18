@@ -79,10 +79,8 @@ export async function backfillTranslationsAction(limit: number = 3) {
       fetchAllIds(supabase, 'articles_en')
     ]);
 
-    const translatedIdSet = new Set(translatedIds.map(r => String(r.id)));
-    const untranslatedIds = allIds
-      .filter(r => !translatedIdSet.has(String(r.id)))
-      .map(r => String(r.id));
+    const translatedIdSet = new Set(translatedIds);
+    const untranslatedIds = allIds.filter(id => !translatedIdSet.has(id));
 
     if (untranslatedIds.length === 0) {
       return { success: true, count: 0, message: '已经全部补齐啦！没有发现缺失的翻译。' };
