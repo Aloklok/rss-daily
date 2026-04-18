@@ -3,7 +3,9 @@ import { fetchAvailableDates } from '@/domains/reading/services';
 import { getTodayInShanghai } from '@/domains/reading/utils/date';
 
 // UNIFIED ISR STRATEGY:
-export const revalidate = 604800; // 7 days
+// Highly optimized: Set a long period (1 year) and rely on on-demand revalidation (tags)
+// to save Vercel ISR quota.
+export const revalidate = 31536000; 
 export const dynamic = 'force-static';
 
 export async function generateStaticParams() {

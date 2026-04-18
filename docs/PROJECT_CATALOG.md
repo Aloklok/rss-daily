@@ -24,6 +24,11 @@
 负责文章点赞、收藏、标签管理及服务端同步 Hooks。
 👉 **[INTERACTION_STORE.md](../src/domains/interaction/INTERACTION_STORE.md)**
 
+### ⚙️ 系统领域 (`system/`)
+
+负责基础设施自动化、缓存重验证、Webhook 编排以及 **管理员门户 (/admin)**。
+👉 **[SYSTEM.md](../src/domains/system/SYSTEM.md)**
+
 ## 🏗️ 全局共享层 (`src/shared/`)
 
 包含全局 UI、基础设施客户端 (Supabase/FreshRSS) 与公共工具函数。

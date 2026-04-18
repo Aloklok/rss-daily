@@ -9,9 +9,11 @@ import { SEARCH_ENGINE_KEYWORDS } from '@/domains/security/constants';
 
 export default function DashboardPage(): React.JSX.Element {
   const router = useRouter();
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [_statsError, setStatsError] = useState<string | null>(null);
+  const [childrenAdminStatusChecked, setChildrenAdminStatusChecked] = useState(false);
+
+  // Stats state
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [aiError, setAiError] = useState<boolean>(false);
   const [loadingStats, setLoadingStats] = useState(true);
@@ -89,27 +91,16 @@ export default function DashboardPage(): React.JSX.Element {
   }, [stats?.security?.topBots]);
 
   useEffect(() => {
-    fetch('/api/auth/check')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.isAdmin) {
-          setIsAdmin(true);
-          fetchStats();
-        } else {
-          setIsAdmin(false);
-          router.push('/');
-        }
-      })
-      .catch(() => setIsAdmin(false));
-  }, [router, fetchStats]);
+    fetchStats();
+  }, [fetchStats]);
 
-  if (isAdmin === null || (isAdmin && loadingStats)) {
+  if (loadingStats) {
     return (
-      <div className="dark:bg-midnight-bg flex h-screen w-full items-center justify-center bg-gray-50">
+      <div className="flex h-64 w-full items-center justify-center bg-[#fdfcf8]">
         <div className="flex flex-col items-center gap-4">
           <div className="h-10 w-10 animate-spin rounded-full border-2 border-stone-300 border-t-orange-500"></div>
           <div className="text-sm font-bold tracking-widest text-stone-400 uppercase">
-            系统初始化中...
+            统计数据加载中...
           </div>
         </div>
       </div>
@@ -119,41 +110,38 @@ export default function DashboardPage(): React.JSX.Element {
   if (!stats) return <></>;
 
   const maxTrend = Math.max(...stats.content.dailyTrend.map((t) => Number(t.count)), 1);
-  const lastUpdatedFormatted = stats.lastUpdated
-    ? new Date(stats.lastUpdated).toLocaleTimeString('zh-CN', {
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    : '刚刚';
 
   return (
-    <div className="-mx-2 min-h-screen w-full max-w-none bg-[#fdfcf8] p-4 pb-20 font-sans text-gray-900 sm:p-2 md:-mx-8 lg:-mx-12">
-      {/* Header */}
-      <div className="mb-8 flex items-end justify-between border-b border-stone-200 px-4 pb-6 md:px-12">
+    <div className="w-full bg-[#fdfcf8] p-4 pb-20 font-sans text-gray-900 md:p-8">
+      {/* 头部摘要统计卡片 */}
+      <div className="mb-8 flex items-center justify-between px-4">
         <div>
-          <h1 className="text-2xl font-black tracking-tighter text-stone-900 lg:text-3xl">
-            管理员看板
-          </h1>
-          <p className="mt-1.5 flex items-center gap-3 text-xs font-medium text-stone-400">
-            数据最后同步: {lastUpdatedFormatted}
-          </p>
+           <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black tracking-widest text-orange-600 uppercase">System Status</span>
+              <div className="h-1 w-1 rounded-full bg-stone-300"></div>
+              <span className="text-[10px] font-bold text-stone-400">实时审计已开启</span>
+           </div>
+           <h2 className="mt-1 text-2xl font-black text-stone-900">业务全景看板</h2>
         </div>
         <button
           onClick={() => {
             if (!loadingStats) fetchStats();
           }}
           disabled={loadingStats}
-          className={`rounded-xl bg-white px-6 py-2.5 text-xs font-bold shadow-sm ring-1 ring-stone-200 transition-all active:scale-95 ${
+          className={`flex items-center gap-2 rounded-xl bg-white px-5 py-2 text-xs font-bold shadow-sm ring-1 ring-stone-200 transition-all active:scale-95 ${
             loadingStats
               ? 'cursor-not-allowed text-stone-300'
               : 'text-stone-600 hover:bg-stone-50 hover:ring-stone-300'
           }`}
         >
-          {loadingStats ? '加载中...' : '刷新看板数据'}
+          <svg xmlns="http://www.w3.org/2000/svg" className="size-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582A7.962 7.962 0 0112 4.062a8.002 8.002 0 018 8.002 8.002 8.002 0 01-8 8.002A7.962 7.962 0 014.582 15H4v5" />
+          </svg>
+          {loadingStats ? '刷新中...' : '同步数据'}
         </button>
       </div>
 
-      <div className="px-4 md:px-12">
+      <div className="px-4">
         {/* --- ROW 1: CONTENT ENGINE --- */}
         <section className="mb-10">
           <div className="mb-6 flex items-center gap-2">
@@ -361,14 +349,14 @@ export default function DashboardPage(): React.JSX.Element {
             <div className="rounded-[32px] bg-white p-8 shadow-sm ring-1 ring-stone-100">
               <div className="mb-6 flex items-center justify-between">
                 <h3 className="text-[11px] font-black tracking-widest text-stone-800 uppercase">
-                  核心领域排行
+                  核心热词排行
                 </h3>
                 <span className="rounded border border-orange-100 bg-orange-50 px-2 py-0.5 text-[9px] font-bold text-orange-600">
-                  热门分类
+                  热度标签
                 </span>
               </div>
               <div className="mt-4 space-y-2">
-                {stats.content.categoryHeatmap.slice(0, 6).map((item, idx) => (
+                {stats.content.categoryHeatmap.slice(0, 10).map((item, idx) => (
                   <div
                     key={idx}
                     className="flex items-center justify-between rounded border-b border-stone-50 px-2 py-2 transition-colors last:border-0 hover:bg-stone-50"

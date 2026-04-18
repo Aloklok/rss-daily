@@ -276,3 +276,15 @@ pnpm chat-prompt:push --new
   - **脚本复用优化 (Script Reuse)**：为了极致性能，若 `forceRegenerate` 为 `false` 且文稿已存在，系统将**直接跳过 AI 构思阶段**，复用旧稿进行语音合成。
   - **状态同步**：前端轮询识别到 `stale` 状态或空音频后，保持 Loading 直至后台补录完成，实现“有感知的文字、静默补录的音频”同步体验。
 - **权限与持久化**：后端提供权限校验，仅允许 `isAdmin` 用户触发重新生成。
+
+## 8. 内容洞察与分析 (Content Analytics)
+
+智能领域不仅负责交互式对话，还负责对聚合文章数据的深度分析。其中“业务看板”的核心统计逻辑由该领域底层服务支撑。
+
+### 8.1 核心热词排行 (Keyword Heatmap)
+
+作为对宏观分类（Category）的细粒度补充，系统通过分析 `articles` 表中的 `keywords` (JSONB 数组) 字段提供热度洞察：
+
+- **统计逻辑**：利用 Supabase RPC 函数 `get_articles_keyword_heatmap` 对全量文章的关键词进行 `jsonb_array_elements_text` 解构并聚合计数。
+- **数据维度**：相较于“系统设计”等宏观分类，热词排行能展示如 “AI Agent”、“Vercel”、“性能优化”等更具时效性的技术趋势。
+- **更新机制**：与简报生成逻辑共用重验证标签 `briefing-data-YYYY-MM-DD`，确保 AI 提取的新热词能即时反映在统计结果中。

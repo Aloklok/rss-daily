@@ -4,66 +4,31 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import BackfillPanel from '@/domains/interaction/components/admin/BackfillPanel';
 
-export default function BackfillPage() {
-  const router = useRouter();
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    // 异步校验管理员权限 (基于 Cookie)
-    fetch('/api/auth/check')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.isAdmin) {
-          setIsAdmin(true);
-        } else {
-          setIsAdmin(false);
-          // 可以在这里重定向，或者显示 403 界面
-          // router.push('/');
-        }
-      })
-      .catch(() => setIsAdmin(false));
-  }, [router]);
-
-  if (isAdmin === null) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <div className="animate-pulse text-gray-500">Verifying Access...</div>
-      </div>
-    );
-  }
-
-  if (isAdmin === false) {
-    return (
-      <div className="flex h-screen w-full flex-col items-center justify-center gap-4">
-        <h1 className="text-2xl font-bold text-red-600">403 Unauthorized</h1>
-        <p className="text-gray-600">You do not have permission to access this page.</p>
-        <button
-          onClick={() => router.push('/')}
-          className="rounded bg-gray-200 px-4 py-2 transition hover:bg-gray-300"
-        >
-          Go Home
-        </button>
-      </div>
-    );
-  }
-
+export default function BriefingAdminPage() {
   // Admin Verified
   return (
-    <div className="flex h-screen w-full flex-col bg-gray-50 p-4 dark:bg-gray-900">
-      <div className="mb-4 flex items-center justify-between">
+    <div className="w-full bg-[#fdfcf8] p-4 pb-20 font-sans text-gray-900 md:p-8">
+       {/* 头部标题区 */}
+      <div className="mb-8 flex items-center justify-between px-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            历史文章回溯中心 (Backfill)
-          </h1>
-          <p className="text-sm text-gray-500">为历史文章批量补充生成 AI 简报</p>
+           <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black tracking-widest text-orange-600 uppercase">Tools</span>
+              <div className="h-1 w-1 rounded-full bg-stone-300"></div>
+              <span className="text-[10px] font-bold text-stone-400">批量任务处理</span>
+           </div>
+           <h2 className="mt-1 text-2xl font-black text-stone-900">历史文章回溯中心 (Backfill)</h2>
+           <p className="mt-1 text-xs font-medium text-stone-400">为历史文章批量补充生成 AI 简报</p>
         </div>
-        <div className="rounded bg-green-100 px-2 py-1 font-mono text-xs text-green-800">
-          管理员已验证
+        <div className="flex items-center gap-2 rounded-xl bg-green-50 px-3 py-1.5 ring-1 ring-green-100">
+           <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
+           <span className="text-[10px] font-bold text-green-700 uppercase">就绪</span>
         </div>
       </div>
 
       {/* 渲染主面板 */}
-      <BackfillPanel />
+      <div className="px-4">
+        <BackfillPanel />
+      </div>
     </div>
   );
 }

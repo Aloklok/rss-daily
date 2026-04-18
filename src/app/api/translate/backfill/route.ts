@@ -75,10 +75,7 @@ function revalidateEnglishPages(affectedDates: Set<string>) {
   // 1. 清除英文日期列表缓存（侧边栏用）
   revalidateTag('available-dates-en', 'max');
 
-  // 2. 清除全局英文简报数据缓存
-  revalidateTag('briefing-data-en', 'max');
-
-  // 3. 逐日期清除对应的页面和数据缓存
+  // 2. 逐日期清除对应的页面和数据缓存
   for (const date of affectedDates) {
     revalidateTag(`briefing-data-${date}-en`, 'max');
     revalidatePath(`/en/date/${date}`);

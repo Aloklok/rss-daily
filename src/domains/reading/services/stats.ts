@@ -30,7 +30,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 
   const { data: dailyTrendData } = await supabase.rpc('get_articles_daily_trend');
   const { data: sourceDistData } = await supabase.rpc('get_articles_source_distribution');
-  const { data: catHeatmapData } = await supabase.rpc('get_articles_category_heatmap');
+  const { data: keywordHeatmapData } = await supabase.rpc('get_articles_keyword_heatmap');
   const { data: verdictDistData } = await supabase.rpc('get_articles_verdict_distribution');
 
   // 2. Get Security Stats (Bot Hits)
@@ -177,8 +177,8 @@ export async function getDashboardStats(): Promise<DashboardStats> {
         })) || [],
       sourceDistribution: (sourceDistData as { source: string; count: number }[]) || [],
       categoryHeatmap:
-        (catHeatmapData as any[])?.map((c) => ({
-          category: c.category_name,
+        (keywordHeatmapData as any[])?.map((c) => ({
+          category: c.keyword_name,
           count: Number(c.entry_count),
         })) || [],
       verdictDistribution: (verdictDistData as { verdict: string; count: number }[]) || [],

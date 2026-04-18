@@ -25,7 +25,7 @@ API 路由按照业务领域进行组织：
   - `GET /api/articles/search`: **[混合搜索]** 同时调用 Gemini 生成向量并执行 Supabase RPC `hybrid_search_articles`。
   - `POST /api/articles/state`: 统一的文章状态读写 (已读/收藏/标签)。
 - **`briefings/`**: 简报数据服务。
-  - **简报数据 (`fetchBriefingData`)**: **[架构统一]** 核心数据聚合函数。支持 `lang` 参数 ('zh' | 'en')，自动处理物理表映射、分值排序与三级分组逻辑。边缘缓存 7 天。
+  - **简报数据 (`fetchBriefingData`)**: **[架构统一]** 核心数据聚合函数。支持 `lang` 参数 ('zh' | 'en')，自动处理物理表映射、分值排序与三级分组逻辑。采用 **按需重验证 (On-demand)** 策略，缓存由标签驱动。
   - **英文简报数据 (`fetchEnglishBriefingData`)**: 已简化为 `fetchBriefingData(date, 'en')` 的封装，确保中英文逻辑 100% 对齐。
   - `POST /api/podcasts/generate`: **[异步化架构]** 按需生成播客音频。集成 **原子化 Upsert** 与 **一致性校验** 逻辑，确保文稿与音频哈希 100% 匹配。若检测到音频过期或缺失，会自动通过 `after()` API 触发后台重录。
   - `GET /api/podcasts/fetch`: 获取已存在的播客文稿与音频 URL 记录。支持 **哈希指纹审计**，若文稿与音频不匹配则返回 `status: 'stale'` 并清空 URL，驱动系统自愈。
@@ -59,7 +59,16 @@ API 路由按照业务领域进行组织：
 | 桥接层 `lib/server/`                | 领域服务 `domains/*/services` | **[2026.01 重构]** 物理路径已删除，逻辑全量下沉。 |
 | API 路由硬编码逻辑                  | 编排器 `Orchestrator`         | **[2026.01 重构]** API 瘦身为 Controller。        |
 
-### 4. 智能缓存碎冰 (Smart Cache Revalidation)
+### 5. 核心数据库函数 (Supabase RPC)
+
+系统大量逻辑下沉至数据库层以获取极致性能：
+
+- `get_unique_dates`: 获取所有具备 AI 简报的唯一日期列表 (O(1))。
+- `get_articles_keyword_heatmap`: 对全量文章的 `keywords` 字段进行解构聚合，输出热词排行榜。
+- `hybrid_search_articles`: 结合关键词匹配与向量相似度检索。
+- `match_articles`: 纯向量相似度检索。
+
+### 6. 智能缓存碎冰 (Smart Cache Revalidation)
 
 系统实现了 **统一 Revalidation 架构**，通过共享服务处理中英双语的缓存刷新。
 
