@@ -326,7 +326,7 @@ export default function BackfillPanel({
   };
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] w-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900/50">
+    <div className="flex h-[calc(100vh-8rem)] w-full flex-col overflow-visible rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900/50">
       {/* --- Top Bar: Source Selection --- */}
       <div className="flex items-center gap-4 border-b border-gray-200 bg-gray-50/50 px-4 py-3 dark:border-gray-800 dark:bg-black/20">
         <div className="font-bold whitespace-nowrap text-gray-800 dark:text-gray-100">
@@ -419,7 +419,7 @@ export default function BackfillPanel({
         </div>
 
         {/* --- Right Column: Article List --- */}
-        <div className="flex min-h-0 flex-1 flex-col bg-white dark:bg-transparent">
+        <div className="flex min-h-0 flex-1 flex-col overflow-visible bg-white dark:bg-transparent">
           <div className="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-800">
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5 font-bold whitespace-nowrap text-gray-800 dark:text-gray-100 text-sm">
@@ -527,7 +527,7 @@ export default function BackfillPanel({
                     return (
                       <tr
                         key={c.id}
-                        className={`group transition-colors ${isSelected ? '!bg-indigo-100 dark:!bg-indigo-900/40' : isDone ? 'bg-gray-50/50 dark:bg-gray-900/30' : 'hover:bg-gray-50 dark:hover:bg-white/5'} `}
+                        className={`group transition-colors ${isSelected ? '!bg-indigo-500/10 ring-1 ring-inset ring-indigo-500/30' : isDone ? 'bg-stone-50/50 dark:bg-stone-800/40' : 'hover:bg-stone-50 dark:hover:bg-white/[0.04]'} `}
                       >
                         <td className="w-10 px-4 py-3 align-middle">
                           <input
@@ -539,12 +539,12 @@ export default function BackfillPanel({
                           />
                         </td>
                         <td
-                          className={`px-4 py-3 align-top ${isDone && !isSelected ? 'opacity-60 grayscale-[0.8]' : isDone ? 'grayscale-[0.8]' : ''}`}
+                          className={`px-4 py-3 align-top ${isDone && !isSelected ? 'opacity-90' : ''}`}
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div>
                               <div
-                                className={`line-clamp-2 font-medium transition-colors ${isDone ? 'text-gray-400 dark:text-gray-500' : 'text-gray-900 group-hover:text-indigo-600 dark:text-gray-200 dark:group-hover:text-indigo-400'}`}
+                                className={`line-clamp-2 font-medium transition-colors ${isDone ? 'text-stone-700/80 dark:text-stone-400' : 'text-stone-900 group-hover:text-indigo-600 dark:text-stone-100 dark:group-hover:text-white'}`}
                                 title={c.title}
                               >
                                 <button
@@ -569,7 +569,7 @@ export default function BackfillPanel({
                                   {c.title}
                                 </button>
                               </div>
-                              <div className="mt-1 flex items-center gap-2 text-xs text-gray-400">
+                              <div className={`mt-1 flex items-center gap-2 text-xs ${isDone ? 'text-stone-500 dark:text-stone-500' : 'text-stone-400 dark:text-stone-400'}`}>
                                 <span>{dayjs(c.published).format('YYYY-MM-DD')}</span>
                                 {c.sourceName && (
                                   <>
@@ -581,7 +581,7 @@ export default function BackfillPanel({
                             </div>
                             <div className="flex-shrink-0 pt-0.5">
                               {isDup && (
-                                <span className="inline-flex items-center rounded border border-gray-200 bg-gray-100 px-1.5 py-0.5 text-[10px] text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+                                <span className="inline-flex items-center rounded border border-stone-200 bg-stone-100 px-1.5 py-0.5 text-[10px] text-stone-600 dark:border-stone-700 dark:bg-stone-800 dark:text-stone-300">
                                   已生成
                                 </span>
                               )}
@@ -603,7 +603,7 @@ export default function BackfillPanel({
 
           {/* Bottom Action Footer */}
           {candidates.length > 0 && (
-            <div className="flex flex-col gap-5 border-t border-gray-200 bg-gray-50/50 p-6 dark:border-gray-800 dark:bg-black/20">
+            <div className="relative z-50 flex flex-col gap-5 border-t border-gray-200 bg-gray-50/50 p-6 dark:border-gray-800 dark:bg-black/20">
               {/* Settings Row */}
               <div className="flex flex-wrap items-center gap-6">
                 <div className="flex items-center gap-2 text-xs text-gray-800 dark:text-stone-200">
