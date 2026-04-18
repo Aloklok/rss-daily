@@ -368,7 +368,7 @@ export default function BackfillPanel({
       </div>
 
       {/* --- Main Content Area: 2 Columns --- */}
-      <div className="relative z-10 flex flex-1 flex-row overflow-visible">
+      <div className="relative z-10 flex min-h-0 flex-1 flex-row overflow-visible">
         {/* --- Left Column: Month Picker + Logs --- */}
         <div className="flex w-64 flex-col border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
           {/* Top: Month Picker */}
@@ -419,7 +419,7 @@ export default function BackfillPanel({
         </div>
 
         {/* --- Right Column: Article List --- */}
-        <div className="flex flex-1 flex-col bg-white dark:bg-transparent">
+        <div className="flex min-h-0 flex-1 flex-col bg-white dark:bg-transparent">
           <div className="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-800">
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5 font-bold whitespace-nowrap text-gray-800 dark:text-gray-100 text-sm">
