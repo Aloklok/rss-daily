@@ -16,6 +16,11 @@ export interface DashboardStats {
         categoryHeatmap: { category: string; count: number }[];
         verdictDistribution: { verdict: string; count: number }[];
     };
+    processing: {
+        totalArticles: number;
+        translatedArticles: number;
+        vectorizedArticles: number;
+    };
     security: {
         todayBlocked: number;
         todayNotFound: number;

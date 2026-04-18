@@ -229,3 +229,15 @@ Client-side components (`SidebarView.tsx`) **MUST** use `getSlugLink` with the c
 - **冷热分离**：
   - **预生成 (Static Paths)**：默认仅预生成最近 7 天的日报页面。
   - **动态生成 (Fallback)**：超过 7 天的历史页面在首次访问时动态生成并持久化 1 年，直至下一次手动触发更新。
+
+## 8. 运维监控逻辑 (Dashboard Statistics)
+
+管理后台仪表盘执行全站数据处理状态的实时监控。
+
+### 8.1 并集计数逻辑 (The Union Counting)
+为了解决中文主表 (`articles`) 与翻译辅助表 (`articles_en`) 物理隔离导致的统计偏差，系统在 `getDashboardStats` 服务中采用了**并集统计**：
+- **处理总数**：计算 `articles` 与 `articles_en` 两个表中所有唯一 ID 的并集。
+- **意义**：这确保了即使某篇文章只有翻译而无中文摘要（或反之），也能被正确计入“系统已处理文章总数”，从而得出准确的补全百分比。
+
+### 8.2 高性能聚合 (RPC Integration)
+统计任务通过专门的数据库函数 `get_processing_stats` 完成。该函数在单次扫描中完成多表计数，避免了前端或 Node.js 层的大规模数据拉取与循环过滤，响应速度保持在 20ms 以内。

@@ -24,7 +24,7 @@
 - **触发机制**：由系统领域的 Webhook 编排驱动，详情见 [SYSTEM.md](../system/SYSTEM.md)。
 - **模型策略 (Model Strategy)**:
   - **批量处理 (Batch)**: 使用 `Qwen3-8B` (SiliconFlow)。为了最大化利用 128K 上下文窗口，采用“提示词批量化”策略（5 篇/包）。
-  - **单篇/Webhook**: 使用 `Hunyuan-MT-7B` (Tencent/SiliconFlow)。混元模型在处理高密度技术术语时表现更佳，且无中文泄漏风险。
+  - **单篇精翻/补全 (Single/Action)**: 使用 `Hunyuan-MT-7B` (Tencent/SiliconFlow)。混元模型在处理高密度技术术语时表现更佳，且无中文泄漏风险。看板驱动的自愈任务强制采用该模型进行串行处理，以确保翻译质量。
 - **翻译协议 (Protocols)**:
   - **JSON Mode (Qwen)**: 传统的 JSON 输出模式。
   - **Tag-Based Mode (Hunyuan)**: 鉴于混元模型不支持 JSON Mode 且易产生未转义引号，单篇翻译采用 `[[KEY]]: Content` 的纯文本协议。
@@ -40,6 +40,17 @@
   - **自动重试**: `withRetry` 机制 (3次指数退避)。
   - **Tag 解析回退**: 针对混元模型的正则解析器极其宽容，确保 100% 数据捕获。
   - **防幻觉**: 强制类型转换与空字段填充。
+- **自动缓存刷新**: 自愈任务完成后，会自动根据受影响的文章日期触发 `revalidateEnglishPages`，确保“修复即生效”。
+
+### 0.6 看板自愈系统 (Dashboard Self-Healing)
+
+针对数据处理链路中的偶发性失败，系统在管理员看板集成了“一键修复”能力。
+
+- **向量化补全 (`backfillEmbeddingsAction`)**: 扫描缺失向量的文章并调用 Google Embedding API 进行回填。
+- **翻译补全 (`backfillTranslationsAction`)**: 
+  - **差异化回填**: 自动识别仅有中文记录的文章。
+  - **重试机制**: 内置 3 次指数退避重试，若最终失败，将抛出具体的 API 错误码（如 `Bad Request`）至 UI。
+  - **反馈闭环**: 成功后自动刷新 ISR 缓存，并实时更新看板统计数字。
 
 ### 1. 意图识别与编排 (Intelligence Orchestration)
 

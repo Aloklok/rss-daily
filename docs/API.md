@@ -65,6 +65,7 @@ API 路由按照业务领域进行组织：
 
 - `get_unique_dates`: 获取所有具备 AI 简报的唯一日期列表 (O(1))。
 - `get_articles_keyword_heatmap`: 对全量文章的 `keywords` 字段进行解构聚合，输出热词排行榜。
+- `get_processing_stats`: **[2026.04 新增]** 高性能聚合全站处理状态（总数、中文已入库、英文已翻译、已向量化）。采用 Union 逻辑解决多物理表统计口径偏差。
 - `hybrid_search_articles`: 结合关键词匹配与向量相似度检索。
 - `match_articles`: 纯向量相似度检索。
 
@@ -80,6 +81,9 @@ API 路由按照业务领域进行组织：
 - `POST /api/system/revalidate-en` - 英文自动刷新
 - `POST /api/system/revalidate-date` - 手动指定日期刷新
 - `GET /api/system/warmup` - 缓存预热
+- **自愈系统 Actions**:
+  - `backfillTranslationsAction`: 针对缺失翻译的文章启动 Hunyuan 串行重翻译，并自动刷新相关英文页面缓存。
+  - `backfillEmbeddingsAction`: 针对缺失向量的文章启动 Google Embedding 补全。
 - 翻译回填见 [INFRASTRUCTURE.md](./INFRASTRUCTURE.md#51-翻译回填机制-translation-backfill)
 
 **缓存标签**: `briefing-data-YYYY-MM-DD`

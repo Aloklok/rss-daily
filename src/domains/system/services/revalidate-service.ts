@@ -42,31 +42,41 @@ export async function processRevalidation(
     const article = payload.record || payload;
 
     // 1. Auto-Embedding (ZH Only for now, per user request)
-    // Ensure we write back to the correct table
+    // 确保仅当语言为中文且缺失向量时触发
     if (lang === 'zh' && !article.embedding) {
-      const keywordsStr = Array.isArray(article.keywords) ? article.keywords.join(' ') : '';
-      const contentToEmbed =
-        `${article.title || ''} ${article.category || ''} ${keywordsStr} ${article.summary || ''} ${article.tldr || ''}`.trim();
-
-      if (contentToEmbed.length > 10) {
+      // 异步执行，不阻塞后续的缓存刷新核心流程
+      (async () => {
         try {
-          console.log(`[RevalidateService] Auto-generating embedding for: ${article.title}`);
-          const embedding = await generateEmbedding(contentToEmbed, 'RETRIEVAL_DOCUMENT');
-          if (embedding) {
-            await supabase.from(table).update({ embedding }).eq('id', String(article.id));
-            console.log(
-              `[RevalidateService] Successfully updated embedding for ${article.id} in ${table}`,
-            );
+          const keywordsStr = Array.isArray(article.keywords) ? article.keywords.join(' ') : '';
+          const contentToEmbed =
+            `${article.title || ''} ${article.category || ''} ${keywordsStr} ${article.summary || ''} ${article.tldr || ''}`.trim();
+
+          if (contentToEmbed.length > 10) {
+            console.log(`[RevalidateService] Auto-generating embedding for article: ${article.id}`);
+            const embedding = await generateEmbedding(contentToEmbed, 'RETRIEVAL_DOCUMENT');
+            
+            if (embedding) {
+              const { error: updateError } = await supabase
+                .from('articles')
+                .update({ embedding })
+                .eq('id', String(article.id));
+              
+              if (updateError) {
+                console.error(`[RevalidateService] Failed to save embedding for ${article.id}:`, updateError.message);
+              } else {
+                console.log(`[RevalidateService] Successfully updated embedding for ${article.id}`);
+              }
+            }
           }
-        } catch (embedError) {
-          console.error('[RevalidateService] Failed to auto-generate embedding:', embedError);
+        } catch (embedError: any) {
+          console.error(`[RevalidateService] Embedding generation failed for ${article.id}:`, embedError.message);
         }
-      }
+      })();
     }
 
     // 1.5. Auto-Translation (ZH -> EN)
-    // If it's a ZH article and has AI content, trigger translation to articles_en
-    if (lang === 'zh' && (article.summary || article.tldr)) {
+    // 允许仅有标题的文章也触发同步，确保两边表数据 1:1 对齐
+    if (lang === 'zh' && (article.title || article.summary || article.tldr)) {
       try {
         console.log(`[RevalidateService] Auto-triggering translation for: ${article.title}`);
         const translationResult = await translateAndSave(

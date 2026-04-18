@@ -6,22 +6,16 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   const supabase = getSupabaseClient();
 
   // 1. Get Content Stats (Articles)
-  const { count: totalArticlesCount } = await supabase
-    .from('articles')
-    .select('*', { count: 'exact', head: true });
+  const { data: procStats } = await supabase.rpc('get_processing_stats');
+  const counts = (procStats as any) || { total: 0, zh: 0, en: 0, vec: 0 };
 
-  // Calculate Shanghai timezone's "today 00:00:00" in ISO format
-  // Shanghai is UTC+8
+  // Calculate Shanghai today start
   const now = new Date();
-  const shanghaiOffset = 8 * 60; // minutes
-  const localOffset = now.getTimezoneOffset(); // minutes (negative for east of UTC)
-  const shanghaiNow = new Date(now.getTime() + (shanghaiOffset + localOffset) * 60 * 1000);
-  const shanghaiToday = new Date(shanghaiNow);
+  const shanghaiOffset = 8 * 60;
+  const localOffset = now.getTimezoneOffset();
+  const shanghaiToday = new Date(now.getTime() + (shanghaiOffset + localOffset) * 60 * 1000);
   shanghaiToday.setHours(0, 0, 0, 0);
-  // Convert back to UTC for database query
-  const todayStartUTC = new Date(
-    shanghaiToday.getTime() - (shanghaiOffset + localOffset) * 60 * 1000,
-  );
+  const todayStartUTC = new Date(shanghaiToday.getTime() - (shanghaiOffset + localOffset) * 60 * 1000);
 
   const { count: todayAddedCount } = await supabase
     .from('articles')
@@ -167,7 +161,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 
   return {
     content: {
-      totalArticles: totalArticlesCount || 0,
+      totalArticles: counts.total || 0,
       todayAdded: todayAddedCount || 0,
       // Map RPC result properties to match the interface
       dailyTrend:
@@ -182,6 +176,11 @@ export async function getDashboardStats(): Promise<DashboardStats> {
           count: Number(c.entry_count),
         })) || [],
       verdictDistribution: (verdictDistData as { verdict: string; count: number }[]) || [],
+    },
+    processing: {
+      totalArticles: counts.total || 0,
+      translatedArticles: counts.en || 0,
+      vectorizedArticles: counts.vec || 0,
     },
     security: {
       todayBlocked: todayBlockedCount || 0,

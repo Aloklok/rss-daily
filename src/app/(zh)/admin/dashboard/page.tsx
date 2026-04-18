@@ -6,6 +6,9 @@ import { DashboardStats } from '@/shared/types/dashboard';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { SEARCH_ENGINE_KEYWORDS } from '@/domains/security/constants';
+import { backfillEmbeddingsAction } from '@/domains/intelligence/actions/backfill';
+import { backfillTranslationsAction } from '@/domains/intelligence/actions/translate-backfill';
+import { useAppToast } from '@/shared/hooks/useAppToast';
 
 export default function DashboardPage(): React.JSX.Element {
   const router = useRouter();
@@ -19,7 +22,10 @@ export default function DashboardPage(): React.JSX.Element {
   const [loadingStats, setLoadingStats] = useState(true);
   const [loadingAI, setLoadingAI] = useState(false);
   const [aiGeneratedAt, setAiGeneratedAt] = useState<string | null>(null);
+  const { showToast } = useAppToast();
   const aiAbortControllerRef = useRef<AbortController | null>(null);
+  const [isFixing, setIsFixing] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
 
   const fetchStats = useCallback(async () => {
     try {
@@ -74,6 +80,48 @@ export default function DashboardPage(): React.JSX.Element {
       setLoadingAI(false);
     }
   }, []);
+
+  const handleFixEmbeddings = async () => {
+    if (isFixing) return;
+    try {
+      setIsFixing(true);
+      showToast('正在补全向量数据...', 'info');
+      const result = await backfillEmbeddingsAction(50); // 每批处理 50 篇
+      if (result.success) {
+        showToast(result.message, 'success');
+        // 修复完成后刷新统计数据
+        await fetchStats();
+      } else {
+        // 弹出详细错误
+        showToast(`向量化修复失败: ${result.message}`, 'error');
+      }
+    } catch (error) {
+       console.error('Fix error:', error);
+       showToast('向量化修复发生错误', 'error');
+    } finally {
+      setIsFixing(false);
+    }
+  };
+
+  const handleFixTranslations = async () => {
+    if (isTranslating) return;
+    try {
+      setIsTranslating(true);
+      showToast('正在补全翻译缺口...', 'info');
+      const result = await backfillTranslationsAction(5); // 每批 5 篇
+      if (result.success) {
+        showToast(result.message, 'success');
+        await fetchStats();
+      } else {
+        showToast(`翻译修复失败: ${result.message}`, 'error');
+      }
+    } catch (error) {
+       console.error('Translation fix error:', error);
+       showToast('翻译修复发生错误', 'error');
+    } finally {
+      setIsTranslating(false);
+    }
+  };
 
   // Bot 分类逻辑 - useMemo 必须在条件返回之前（React Hooks 规则）
   const { searchEngineBots, otherBots } = useMemo(() => {
@@ -141,7 +189,78 @@ export default function DashboardPage(): React.JSX.Element {
         </button>
       </div>
 
-      <div className="px-4">
+      <div className="px-4 text-gray-900">
+        {/* --- TOP ROW: PROCESSING STATUS (Compact) --- */}
+        <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2">
+           <div className="flex flex-col justify-center rounded-2xl bg-orange-50/50 p-4 ring-1 ring-orange-100/50">
+              <div className="flex items-center justify-between mb-2">
+                 <span className="text-[10px] font-black tracking-widest text-orange-700 uppercase">翻译补全率 (ZH → EN)</span>
+                 <div className="flex items-center gap-3">
+                   <button 
+                     onClick={handleFixTranslations}
+                     disabled={isTranslating}
+                     className={`text-[9px] font-black px-2 py-1 rounded-md transition-all active:scale-95 ${
+                       isTranslating 
+                       ? 'bg-orange-200 text-orange-400 cursor-not-allowed' 
+                       : 'bg-orange-600 text-white hover:bg-orange-700 shadow-sm'
+                     }`}
+                   >
+                     {isTranslating ? '同步中...' : '同步修复'}
+                   </button>
+                   <span className="text-xs font-black text-orange-900">
+                      {stats.processing.totalArticles > 0 
+                        ? Math.min(100, Math.round((stats.processing.translatedArticles / stats.processing.totalArticles) * 100)) 
+                        : 0}%
+                   </span>
+                 </div>
+              </div>
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-orange-100">
+                 <div 
+                   className="h-full bg-orange-500 transition-all duration-1000" 
+                   style={{ width: `${stats.processing.totalArticles > 0 ? Math.min(100, (stats.processing.translatedArticles / stats.processing.totalArticles) * 100) : 0}%` }}
+                 ></div>
+              </div>
+              <div className="mt-2 flex items-center justify-between text-[10px] font-bold text-orange-600/70">
+                 <span>已翻译 {stats.processing.translatedArticles.toLocaleString()}</span>
+                 <span>总基数 {stats.processing.totalArticles.toLocaleString()}</span>
+              </div>
+           </div>
+
+           <div className="flex flex-col justify-center rounded-2xl bg-stone-50 p-4 ring-1 ring-stone-100">
+              <div className="flex items-center justify-between mb-2">
+                 <span className="text-[10px] font-black tracking-widest text-stone-700 uppercase">向量化覆盖率 (Embedding)</span>
+                 <div className="flex items-center gap-3">
+                   <button 
+                     onClick={handleFixEmbeddings}
+                     disabled={isFixing}
+                     className={`text-[9px] font-black px-2 py-1 rounded-md transition-all active:scale-95 ${
+                       isFixing 
+                       ? 'bg-stone-200 text-stone-400 cursor-not-allowed' 
+                       : 'bg-stone-800 text-white hover:bg-stone-700 shadow-sm'
+                     }`}
+                   >
+                     {isFixing ? '修复中...' : '立即修复'}
+                   </button>
+                   <span className="text-xs font-black text-stone-900">
+                      {stats.processing.totalArticles > 0 
+                        ? Math.min(100, Math.round((stats.processing.vectorizedArticles / stats.processing.totalArticles) * 100)) 
+                        : 0}%
+                   </span>
+                 </div>
+              </div>
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-stone-100/50">
+                 <div 
+                   className="h-full bg-stone-900 transition-all duration-1000" 
+                   style={{ width: `${stats.processing.totalArticles > 0 ? Math.min(100, (stats.processing.vectorizedArticles / stats.processing.totalArticles) * 100) : 0}%` }}
+                 ></div>
+              </div>
+              <div className="mt-2 flex items-center justify-between text-[10px] font-bold text-stone-500">
+                 <span>已向量化 {stats.processing.vectorizedArticles.toLocaleString()}</span>
+                 <span>基数占比 {stats.processing.totalArticles > 0 ? Math.min(100, (stats.processing.vectorizedArticles / stats.processing.totalArticles * 100)).toFixed(1) : 0}%</span>
+              </div>
+           </div>
+        </div>
+
         {/* --- ROW 1: CONTENT ENGINE --- */}
         <section className="mb-10">
           <div className="mb-6 flex items-center gap-2">
@@ -157,7 +276,7 @@ export default function DashboardPage(): React.JSX.Element {
                 </p>
                 <div className="flex items-baseline gap-2">
                   <span className="text-3xl font-black text-stone-900 tabular-nums">
-                    {stats.content.totalArticles.toLocaleString()}
+                    {stats.processing.totalArticles.toLocaleString()}
                   </span>
                   <span className="text-[10px] font-bold text-stone-400">篇</span>
                 </div>
