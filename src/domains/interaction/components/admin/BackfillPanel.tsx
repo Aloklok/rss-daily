@@ -326,7 +326,7 @@ export default function BackfillPanel({
   };
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] w-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900/50">
+    <div className="flex h-[calc(100vh-8rem)] w-full flex-col rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900/50">
       {/* --- Top Bar: Source Selection --- */}
       <div className="flex items-center gap-4 border-b border-gray-200 bg-gray-50/50 px-4 py-3 dark:border-gray-800 dark:bg-black/20">
         <div className="font-bold whitespace-nowrap text-gray-800 dark:text-gray-100">
@@ -368,7 +368,7 @@ export default function BackfillPanel({
       </div>
 
       {/* --- Main Content Area: 2 Columns --- */}
-      <div className="flex flex-1 flex-row overflow-hidden">
+      <div className="flex flex-1 flex-row">
         {/* --- Left Column: Month Picker + Logs --- */}
         <div className="flex w-64 flex-col border-r border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
           {/* Top: Month Picker */}
@@ -421,10 +421,10 @@ export default function BackfillPanel({
         {/* --- Right Column: Article List --- */}
         <div className="flex flex-1 flex-col bg-white dark:bg-transparent">
           <div className="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-800">
-            <div className="flex items-center gap-4">
-              <div className="font-bold whitespace-nowrap text-gray-800 dark:text-gray-100">
-                3. 选择文章{' '}
-                <span className="ml-1 text-sm font-normal text-gray-500">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 font-bold whitespace-nowrap text-gray-800 dark:text-gray-100 text-sm">
+                3. 选择文章
+                <span className="text-[10px] font-normal text-gray-500 opacity-70">
                   ({selectedCandidateIds.size} / {candidates.length})
                 </span>
               </div>
