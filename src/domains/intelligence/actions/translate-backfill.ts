@@ -8,21 +8,28 @@ import { revalidateTag, revalidatePath } from 'next/cache';
 /**
  * 助手函数：突破 Supabase 1000 条限制获取所有 ID
  */
-async function fetchAllIds(supabase: any, tableName: string) {
-  let allData: { id: any }[] = [];
+async function fetchAllIds(supabase: any, tableName: string, isZh: boolean = false) {
+  let allData: string[] = [];
   let from = 0;
   const PAGE_SIZE = 1000;
 
   while (true) {
-    const { data, error } = await supabase
-      .from(tableName)
-      .select('id')
+    let query = supabase.from(tableName).select('id');
+    
+    if (isZh) {
+      // 只有经过 AI 初筛生成过 verdict 的才计入补全基数
+      query = query.not('verdict', 'is', null).neq('verdict', '{}');
+    }
+
+    const { data, error } = await query
       .range(from, from + PAGE_SIZE - 1);
 
     if (error) throw error;
     if (!data || data.length === 0) break;
 
-    allData = allData.concat(data);
+    const ids = data.map((d: any) => String(d.id));
+    allData = allData.concat(ids);
+    
     if (data.length < PAGE_SIZE) break;
     from += PAGE_SIZE;
   }
