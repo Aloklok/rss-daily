@@ -474,7 +474,7 @@ export async function translateBatchAndSave(
         const aiResult = await generateSiliconFlow(
           aiMessages,
           modelId,
-          16000,
+          isHunyuan ? 4000 : 16000, // 混元精修模型单次请求限制更严，改为 4000
           jsonMode,
           enableThinking,
         );

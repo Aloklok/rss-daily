@@ -179,13 +179,16 @@ export async function generateSiliconFlow(
   const result = await generateText({
     model: provider(modelName),
     messages: sanitized as any,
-    temperature: 0.5,
+    temperature: 0.1, // 降低温度以获得更稳定的翻译结果
     maxOutputTokens: max_tokens,
-    providerOptions: {
-      siliconflow: {
-        enable_thinking: enableThinking,
+    // 仅在明确需要时才发送特定的提供商选项，避免干扰非推理模型
+    ...(enableThinking ? {
+      providerOptions: {
+        siliconflow: {
+          enable_thinking: true,
+        },
       },
-    },
+    } : {}),
   });
 
   // Filter out thinking block for DeepSeek R1 models
