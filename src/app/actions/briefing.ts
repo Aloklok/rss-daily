@@ -143,7 +143,11 @@ export async function generateBriefingAction(
  * 2. 构造数组 Payload 调用 Gemini
  * 3. 结果合并后执行单次批量 Upsert
  */
-export async function generateBulkBriefingAction(articles: Article[], modelId?: string) {
+export async function generateBulkBriefingAction(
+  articles: Article[],
+  modelId?: string,
+  enableThinking: boolean = false,
+) {
   try {
     console.log(`[BulkAction] Starting for ${articles.length} articles using model: ${modelId}`);
 
@@ -175,8 +179,8 @@ export async function generateBulkBriefingAction(articles: Article[], modelId?: 
       };
     });
 
-    // 2. 调用重构后的 Gemini 批量接口
-    const result = await generateBriefingWithGemini(payloads, modelId);
+    // 2. 调用重构后的 AI 批量接口
+    const result = await generateBriefingWithGemini(payloads, modelId, enableThinking);
     const { briefings, metadata } = result;
 
     if (!briefings || !Array.isArray(briefings)) {

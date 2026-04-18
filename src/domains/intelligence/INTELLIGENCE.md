@@ -10,7 +10,7 @@
 
 在进入 RAG 流程前，所有文章均通过 `src/domains/intelligence/services/` 下的 Embedding 逻辑进行向量化预处理。我们采用**混合语义指纹**策略，而非单纯的正文切片。
 
-- **Embedding 模型**: `gemini-embedding-001` (使用官方 `@google/genai` SDK)
+- **Embedding 模型**: `gemini-embedding-001` (统一使用 **Vercel AI SDK** `embed` 接口)
 - **向量化字段**: `title` + `category` + `keywords` + `summary` + `tldr`
 - **逻辑**: 通过将分类和关键词硬编码进向量内容，确保了语义搜索时不仅能匹配到内容相似，还能匹配到“分类正确”的文章。
 - **现状**:
@@ -46,7 +46,7 @@
 
 针对数据处理链路中的偶发性失败，系统在管理员看板集成了“一键修复”能力。
 
-- **向量化补全 (`backfillEmbeddingsAction`)**: 扫描缺失向量的文章并调用 Google Embedding API 进行回填。
+- **向量化补全 (`backfillEmbeddingsAction`)**: 扫描缺失向量的文章并调用 Vercel AI SDK 的 `embed` 接口进行向量回填。
 - **翻译补全 (`backfillTranslationsAction`)**: 
   - **差异化回填**: 自动识别仅有中文记录的文章。
   - **重试机制**: 内置 3 次指数退避重试，若最终失败，将抛出具体的 API 错误码（如 `Bad Request`）至 UI。
@@ -122,10 +122,11 @@ AI 聊天的核心入口现由 **ChatOrchestrator** (位于 `intelligence/servic
   - **UI 感知**：引入 `ReasoningToggle` 组件，基于 `constants.ts` 中的 `hasReasoning` 标记自动控制开关的可见性与可点击状态。
   - **稳定性控制**：为所有 AI 生成接口内置 **60 秒超时控制**，解决模型层挂起导致的前端长时间假死问题。
 - **使用看板**：对话框型号选择器中实时显示模型配额（RPM/RPD）及“独立池子”标识，辅助决策。
-- **Google 原生集成 (Native Gemini)**:
-  - **接口**: 迁移至官方最新 `@google/genai` SDK，采用统一的 `Client` 架构。
-  - **Thinking (Gemini 2.5)**: 原生支持 `thinkingConfig`，通过 `thinkingBudget` 实现动态逻辑推理。
-  - **多 Key 管理**: 支持 `ALOK` 和 `CHENG30` 别名切换，确保主副账号配额互补。
+- **Google Gemini 集成 (Vercel AI SDK)**:
+  - **接口**: 完整迁移至 **Vercel AI SDK** (`@ai-sdk/google`)，采用统一的 Provider 架构（见 `google-provider.ts`）。
+  - **Thinking (Gemini 2.x/3.x)**: 通过 SDK 的 `thinkingConfig` 实现，支持 `thinkingBudget` 动态推理，大幅提升播客脚本与简报分析的逻辑质量。
+  - **结构化输出**: 简报生成与重排序全面采用 `generateObject` + Zod Schema (`briefing-schema.ts`)，实现零容错 JSON 解析。
+  - **多 Key 管理**: 统一管理 `ALOK` 和 `CHENG30` 别名切换，确保配额最大化利用。
 - **使用看板**：对话框型号选择器中实时显示模型配额（RPM/RPD）及“独立池子”标识，辅助决策。
 
 ---
@@ -275,7 +276,7 @@ pnpm chat-prompt:push --new
   - **逻辑隔离**：通过 `language` 字段（`zh`/`en`）在 `daily_podcasts` 表中物理隔离文稿。
   - **命名后缀**：为了防止文件名冲突，英文版播客音频文件名强制附带 `_en` 后缀（例如 `podcast-YYYY-MM-DD-en-hash_en.mp3`）。
 - **缓存**：音频 URL 随文稿记录在 `daily_podcasts` 表中，实现“一次生成，全端缓存”。
-- **动态思考 (Thinking Mode)**：可从 `app_config` 中读取配置，结合 SiliconFlow API 启用 Qwen3.5 推理模型获得更有逻辑深度的串联脚本。
+- **动态思考 (Thinking Mode)**：可从 `app_config` 中读取配置，通过 SDK 统一开关为 SiliconFlow (DeepSeek-R1) 和 Google (Gemini 2.x) 启用推理模型，获得更有逻辑深度的串联脚本。
 - **智能预加载**：组件挂载时静默查询 `/api/podcasts/fetch`。若云端已有音频和讲稿，优先使用云端记录。
 - **异步处理架构 (Reliability Worker)**：
   - **解耦设计**：采用“构思即返回”策略。AI 讲稿生成后经 `upsert` 原子入库，主线程立即向前端返回文稿内容。

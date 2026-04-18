@@ -225,6 +225,7 @@ interface BulkActionResult {
 export async function generateBatchBriefing(
   candidates: BackfillCandidate[],
   modelId?: string,
+  enableThinking: boolean = false,
 ): Promise<{
   success: boolean;
   saved: number;
@@ -247,6 +248,7 @@ export async function generateBatchBriefing(
   const result = (await generateBulkBriefingAction(
     mockArticles as unknown as Article[],
     modelId,
+    enableThinking,
   )) as BulkActionResult;
 
   if (result.success) {

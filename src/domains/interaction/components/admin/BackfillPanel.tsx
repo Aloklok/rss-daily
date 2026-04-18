@@ -11,11 +11,12 @@ import {
 import { Subscription } from '@/types';
 import dayjs from 'dayjs';
 import { CATEGORY_ORDER, UNCATEGORIZED_LABEL } from '@/domains/reading/constants';
+import { DEFAULT_MODEL_ID, MODELS } from '@/domains/intelligence/constants';
 import { useUIStore } from '@/shared/store/uiStore';
 import { useArticleStore } from '@/domains/article/store/articleStore';
 import { ModelSelector } from '@/domains/intelligence/components/ai/ModelSelector';
-import { DEFAULT_MODEL_ID } from '@/domains/intelligence/constants';
 import { useQueryClient } from '@tanstack/react-query';
+import { ReasoningToggle } from '@/domains/intelligence/components/ai/ReasoningToggle';
 
 // --- Types ---
 type ProcessingState = 'idle' | 'fetching_candidates' | 'processing' | 'done';
@@ -105,6 +106,20 @@ export default function BackfillPanel({
   const openModal = useUIStore((state) => state.openModal);
   const addArticles = useArticleStore((state) => state.addArticles);
   const [selectedModel, setSelectedModel] = useState<string>(DEFAULT_MODEL_ID);
+  const [enableThinking, setEnableThinking] = useState<boolean>(false);
+
+  // --- Derived: Current Model Info ---
+  const currentModelDetails = useMemo(() => {
+    const [cleanId] = (selectedModel || '').split('@');
+    return MODELS.find((m) => m.id === cleanId);
+  }, [selectedModel]);
+
+  // Reset thinking if model doesn't support it
+  useEffect(() => {
+    if (currentModelDetails && !currentModelDetails.hasReasoning) {
+      setEnableThinking(false);
+    }
+  }, [selectedModel, currentModelDetails]);
 
   // --- State: UI & Processing ---
   const [processingState, setProcessingState] = useState<ProcessingState>('idle');
@@ -263,7 +278,7 @@ export default function BackfillPanel({
       addLog(`处理批次 ${Math.floor(i / CHUNK_SIZE) + 1}... (${chunk.length} 篇)`);
 
       try {
-        const res = await generateBatchBriefing(chunk, selectedModel);
+        const res = await generateBatchBriefing(chunk, selectedModel, enableThinking);
         if (res.success) {
           const batchResults = (res as any).results || [];
           addLog(`批次成功 ${res.saved} 篇:`, 'success');
@@ -588,10 +603,11 @@ export default function BackfillPanel({
 
           {/* Bottom Action Footer */}
           {candidates.length > 0 && (
-            <div className="flex items-center justify-between border-t border-gray-200 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-black/20">
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                  <span className="font-medium">模型:</span>
+            <div className="flex flex-col gap-5 border-t border-gray-200 bg-gray-50/50 p-6 dark:border-gray-800 dark:bg-black/20">
+              {/* Settings Row */}
+              <div className="flex flex-wrap items-center gap-6">
+                <div className="flex items-center gap-2 text-xs text-gray-800 dark:text-stone-200">
+                  <span className="font-bold">模型:</span>
                   <ModelSelector
                     selectedModel={selectedModel}
                     onSelectModel={setSelectedModel}
@@ -599,8 +615,16 @@ export default function BackfillPanel({
                   />
                 </div>
 
-                <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                  <span className="font-medium">批量:</span>
+                {/* Reasoning Toggle */}
+                <ReasoningToggle
+                  enabled={enableThinking}
+                  onToggle={setEnableThinking}
+                  disabled={processingState === 'processing' || !currentModelDetails?.hasReasoning}
+                  modelName={currentModelDetails?.name}
+                />
+
+                <div className="flex items-center gap-2 text-xs text-gray-800 dark:text-stone-200">
+                  <span className="font-bold">批量:</span>
                   <input
                     type="number"
                     value={batchSize}
@@ -609,41 +633,45 @@ export default function BackfillPanel({
                     min={1}
                     max={50}
                   />
+                  <span className="text-[10px] opacity-40">篇 / 次</span>
                 </div>
               </div>
 
-              <button
-                onClick={handleStartProcessing}
-                disabled={selectedCandidateIds.size === 0 || processingState === 'processing'}
-                className="mr-12 flex items-center rounded bg-indigo-600 px-3.5 py-1.5 text-[13px] font-bold text-white shadow transition-all hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {processingState === 'processing' ? (
-                  <>
-                    <svg
-                      className="mr-1.5 h-3.5 w-3.5 animate-spin text-white"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    处理中 {progress.current}/{progress.total}
-                  </>
-                ) : (
-                  '开始批量生成'
-                )}
-              </button>
+              {/* Start Button Box */}
+              <div className="flex items-center justify-center border-t border-gray-200/50 pt-5 dark:border-gray-800/50">
+                <button
+                  onClick={handleStartProcessing}
+                  disabled={selectedCandidateIds.size === 0 || processingState === 'processing'}
+                  className="flex min-w-[200px] items-center justify-center rounded-xl bg-indigo-600 px-8 py-2.5 text-sm font-black tracking-widest text-white shadow-lg transition-all hover:bg-indigo-700 hover:shadow-indigo-500/20 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {processingState === 'processing' ? (
+                    <>
+                      <svg
+                        className="mr-2 h-4 w-4 animate-spin text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      处理中 {progress.current}/{progress.total}
+                    </>
+                  ) : (
+                    '开始批量生成'
+                  )}
+                </button>
+              </div>
             </div>
           )}
         </div>
