@@ -74,7 +74,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
         type="button"
         onClick={() => setIsMenuOpen(!isMenuOpen)}
         disabled={disabled}
-        className="flex items-center gap-2 text-[10px] font-bold tracking-widest text-stone-500 uppercase transition-colors hover:text-indigo-600 disabled:opacity-50"
+        className="flex items-center gap-2 text-[10px] font-bold tracking-widest text-stone-500 transition-colors hover:text-indigo-600 disabled:opacity-50 dark:text-stone-400 dark:hover:text-indigo-400"
       >
         <div className="h-2 w-2 animate-pulse rounded-full bg-green-500"></div>
         {activeModel.name}
@@ -94,7 +94,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
         <>
           <div className="fixed inset-0 z-[40]" onClick={() => setIsMenuOpen(false)} />
           <div
-            className={`scrollbar-thin scrollbar-thumb-stone-300 dark:scrollbar-thumb-white/10 absolute z-[50] max-h-[400px] w-64 overflow-y-auto rounded-2xl border border-white/20 bg-white/90 shadow-2xl backdrop-blur-2xl dark:bg-stone-900/90 ${
+            className={`scrollbar-thin scrollbar-thumb-stone-300 dark:scrollbar-thumb-white/10 absolute z-[100] max-h-[400px] w-64 overflow-y-auto rounded-2xl border border-stone-200 bg-white shadow-2xl backdrop-blur-2xl dark:border-white/10 dark:bg-stone-900/95 ${
               popDirection === 'down' ? 'top-full mt-2' : 'bottom-full mb-3'
             } ${align === 'right' ? 'right-0' : 'left-0'}`}
           >

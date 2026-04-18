@@ -1172,7 +1172,7 @@ const AIChatModal: React.FC<{ dict?: Dictionary }> = ({ dict }) => {
         onClick={() => setIsOpen(false)}
       />
       <div
-        className={`relative flex flex-col overflow-hidden border-white/20 bg-white shadow-2xl transition-all duration-500 ease-out dark:bg-stone-900 ${isExpanded ? 'h-full w-full rounded-none border-0' : 'h-[85vh] w-full max-w-2xl rounded-3xl border shadow-xl'} `}
+        className={`relative flex flex-col border-white/20 bg-white shadow-2xl transition-all duration-500 ease-out dark:bg-stone-900 ${isExpanded ? 'h-full w-full rounded-none border-0' : 'h-[85vh] w-full max-w-2xl rounded-3xl border shadow-xl'} `}
       >
         <ChatHeader
           isExpanded={isExpanded}

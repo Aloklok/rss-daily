@@ -1,2 +1,10 @@
+#!/bin/bash
+# ⚠️ 自动化注入：解决非交互式 Shell 下 Node/pnpm 环境缺失问题
+export NVM_DIR="$HOME/.nvm"
+export PNPM_HOME="$HOME/Library/pnpm"
+# 物理注入当前的 Node 和 pnpm 路径
+export PATH="/Users/Alok/.nvm/versions/node/v24.11.1/bin:$PNPM_HOME:$PATH"
+
+# 现在再运行逻辑就稳了
 pnpm exec tsc --noEmit
 pnpm exec lint-staged
