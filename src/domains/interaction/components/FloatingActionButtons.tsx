@@ -120,7 +120,7 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
     });
   });
 
-  const { isStarred, userTagLabels } = useArticleMetadata(selectedArticle);
+  const { isStarred, isRead, userTagLabels } = useArticleMetadata(selectedArticle);
 
   return (
     <div className="fixed right-6 bottom-6 z-20 flex flex-col-reverse items-center gap-y-2.5 md:right-8 md:bottom-8 md:gap-y-3">
@@ -154,7 +154,6 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
           {/* Mark as Read Button */}
           <button
             onClick={() => {
-              const { isRead } = useArticleMetadata(selectedArticle);
               handleArticleStateChange(
                 selectedArticle.id,
                 isRead ? [] : [READ_TAG],
@@ -163,13 +162,9 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
             }}
             disabled={isUpdatingArticle}
             className={`cursor-pointer rounded-full p-2.5 text-white shadow-lg transition-all disabled:bg-gray-500 md:p-3 ${
-              useArticleMetadata(selectedArticle).isRead
-                ? 'bg-blue-600 hover:bg-blue-700'
-                : 'bg-gray-800 hover:bg-gray-950'
+              isRead ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-800 hover:bg-gray-950'
             }`}
-            aria-label={
-              useArticleMetadata(selectedArticle).isRead ? 'Mark as unread' : 'Mark as read'
-            }
+            aria-label={isRead ? 'Mark as unread' : 'Mark as read'}
           >
             {isUpdatingArticle ? (
               <svg
@@ -279,7 +274,7 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.783-.57-.38-1.81.588-1.81h4.914a1 0 00.951-.69l1.519-4.674z"
+                  d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 0 0 .95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 0 0-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 0 0-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 0 0-.363-1.118l-3.976-2.888c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 0 0 .951-.69l1.519-4.674z"
                 />
               </svg>
             )}
