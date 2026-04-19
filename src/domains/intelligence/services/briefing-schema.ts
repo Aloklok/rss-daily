@@ -23,7 +23,10 @@ export const BriefingItemSchema = z.object({
   verdict: z
     .object({
       score: z.number().min(1).max(10).describe('综合评分 1-10'),
-      importance: z.string().describe('重要性级别：如 High / Medium / Low'),
+      type: z.enum(['知识洞察型', '新闻事件型']).describe('分类类型：知识洞察型 或 新闻事件型'),
+      importance: z
+        .enum(['必知要闻', '重要新闻', '常规更新'])
+        .describe('重要性级别：必知要闻、重要新闻 或 常规更新'),
     })
     .describe('评分与重要性判定'),
 });

@@ -125,7 +125,7 @@ AI 聊天的核心入口现由 **ChatOrchestrator** (位于 `intelligence/servic
 - **Google Gemini 集成 (Vercel AI SDK)**:
   - **接口**: 完整迁移至 **Vercel AI SDK** (`@ai-sdk/google`)，采用统一的 Provider 架构（见 `google-provider.ts`）。
   - **Thinking (Gemini 2.x/3.x)**: 通过 SDK 的 `thinkingConfig` 实现，支持 `thinkingBudget` 动态推理，大幅提升播客脚本与简报分析的逻辑质量。
-  - **结构化输出**: 简报生成与重排序全面采用 `generateObject` + Zod Schema (`briefing-schema.ts`)，实现零容错 JSON 解析。
+  - **结构化输出**: 简报生成与重排序全面采用 `generateObject` + Zod Schema (`briefing-schema.ts`)，实现零容错 JSON 解析。`verdict` 对象包含 `score` (评分), `type` (知识洞察型/新闻事件型) 和 `importance` (必知要闻/重要新闻/常规更新)。
   - **多 Key 管理**: 统一管理 `ALOK` 和 `CHENG30` 别名切换，确保配额最大化利用。
 - **使用看板**：对话框型号选择器中实时显示模型配额（RPM/RPD）及“独立池子”标识，辅助决策。
 
