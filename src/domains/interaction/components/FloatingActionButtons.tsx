@@ -148,188 +148,192 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
         </svg>
       </button>
 
-      {/* --- 条件渲染块：显示文章操作按钮 (非 Admin 页面，或者 Admin 页面且有文章打开时显示) --- */}
-      {isAdmin &&
-        (selectedArticle ? (
-          <>
-            {/* 仅在有选中文章时显示：标签、收藏、以及标记已读按钮 */}
-            {/* 标记已读按钮 */}
+      {/* --- Case 1: An article is selected/opened --- */}
+      {isAdmin && selectedArticle && (
+        <>
+          {/* Mark as Read Button */}
+          <button
+            onClick={() => {
+              const { isRead } = useArticleMetadata(selectedArticle);
+              handleArticleStateChange(
+                selectedArticle.id,
+                isRead ? [] : [READ_TAG],
+                isRead ? [READ_TAG] : [],
+              );
+            }}
+            disabled={isUpdatingArticle}
+            className={`cursor-pointer rounded-full p-2.5 text-white shadow-lg transition-all disabled:bg-gray-500 md:p-3 ${
+              useArticleMetadata(selectedArticle).isRead
+                ? 'bg-blue-600 hover:bg-blue-700'
+                : 'bg-gray-800 hover:bg-gray-950'
+            }`}
+            aria-label={
+              useArticleMetadata(selectedArticle).isRead ? 'Mark as unread' : 'Mark as read'
+            }
+          >
+            {isUpdatingArticle ? (
+              <svg
+                className="size-5 animate-spin md:size-6"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="size-5 md:size-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            )}
+          </button>
+
+          {/* Tags Button */}
+          <div className="relative" onClick={(e) => e.stopPropagation()}>
             <button
-              onClick={() => {
-                const { isRead } = useArticleMetadata(selectedArticle);
-                handleArticleStateChange(
-                  selectedArticle.id,
-                  isRead ? [] : [READ_TAG],
-                  isRead ? [READ_TAG] : [],
-                );
-              }}
-              disabled={isUpdatingArticle}
-              className={`cursor-pointer rounded-full p-2.5 text-white shadow-lg transition-all disabled:bg-gray-500 md:p-3 ${
-                useArticleMetadata(selectedArticle).isRead
-                  ? 'bg-blue-600 hover:bg-blue-700'
+              onClick={() => setIsTagPopoverOpen((prev) => !prev)}
+              className={`cursor-pointer rounded-full p-2.5 text-white shadow-lg transition-all md:p-3 ${
+                userTagLabels.length > 0
+                  ? 'bg-sky-600 hover:bg-sky-700'
                   : 'bg-gray-800 hover:bg-gray-950'
               }`}
-              aria-label={
-                useArticleMetadata(selectedArticle).isRead ? 'Mark as unread' : 'Mark as read'
-              }
+              aria-label="Tag article"
             >
-              {isUpdatingArticle ? (
-                <svg
-                  className="size-5 animate-spin md:size-6"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-              ) : (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="size-5 md:size-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              )}
-            </button>
-            <div className="relative" onClick={(e) => e.stopPropagation()}>
-              <button
-                onClick={() => setIsTagPopoverOpen((prev) => !prev)}
-                className={`cursor-pointer rounded-full p-2.5 text-white shadow-lg transition-all md:p-3 ${
-                  userTagLabels.length > 0
-                    ? 'bg-sky-600 hover:bg-sky-700'
-                    : 'bg-gray-800 hover:bg-gray-950'
-                }`}
-                aria-label="Tag article"
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="size-5 cursor-pointer md:size-6"
+                viewBox="0 0 20 20"
+                fill="currentColor"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="size-5 cursor-pointer md:size-6"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a1 1 0 011-1h5a.997.997 0 01.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
-              {isTagPopoverOpen && (
-                <TagPopover
-                  article={selectedArticle}
-                  onClose={() => setIsTagPopoverOpen(false)}
-                  onStateChange={handleArticleStateChange}
+                <path
+                  fillRule="evenodd"
+                  d="M17.707 9.293a1 1 0 010 1.414l-7 7a1 1 0 01-1.414 0l-7-7A.997.997 0 012 10V5a1 1 0 011-1h5a.997.997 0 01.707.293l7 7zM5 6a1 1 0 100-2 1 1 0 000 2z"
+                  clipRule="evenodd"
                 />
-              )}
-            </div>
-            <button
-              onClick={() => {
-                handleArticleStateChange(
-                  selectedArticle.id,
-                  isStarred ? [] : [STAR_TAG],
-                  isStarred ? [STAR_TAG] : [],
-                );
-              }}
-              disabled={isUpdatingArticle}
-              className={`cursor-pointer rounded-full p-2.5 text-white shadow-lg transition-all disabled:bg-gray-500 md:p-3 ${
-                isStarred ? 'bg-amber-500 hover:bg-amber-600' : 'bg-gray-800 hover:bg-gray-950'
-              }`}
-              aria-label={isStarred ? 'Remove from favorites' : 'Add to favorites'}
-            >
-              {isStarred ? (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="size-5 cursor-pointer md:size-6"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                </svg>
-              ) : (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="size-5 cursor-pointer md:size-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.783-.57-.38-1.81.588-1.81h4.914a1 0 00.951-.69l1.519-4.674z"
-                  />
-                </svg>
-              )}
+              </svg>
             </button>
-            {/* 仅在没有选中文章且非管理员页面时显示：全部标记已读按钮 */}
-            {!isAdminPage && (
-              <button
-                onClick={() => handleMarkAllClick(articleIdsInView)}
-                disabled={isMarkingAsRead || !hasUnreadInView}
-                className={`cursor-pointer rounded-full bg-gray-800 p-2.5 text-white shadow-lg transition-all hover:bg-gray-950 disabled:cursor-not-allowed disabled:bg-gray-500 md:p-3`}
-                aria-label="Mark all as read"
+            {isTagPopoverOpen && (
+              <TagPopover
+                article={selectedArticle}
+                onClose={() => setIsTagPopoverOpen(false)}
+                onStateChange={handleArticleStateChange}
+              />
+            )}
+          </div>
+
+          {/* Star Button */}
+          <button
+            onClick={() => {
+              handleArticleStateChange(
+                selectedArticle.id,
+                isStarred ? [] : [STAR_TAG],
+                isStarred ? [STAR_TAG] : [],
+              );
+            }}
+            disabled={isUpdatingArticle}
+            className={`cursor-pointer rounded-full p-2.5 text-white shadow-lg transition-all disabled:bg-gray-500 md:p-3 ${
+              isStarred ? 'bg-amber-500 hover:bg-amber-600' : 'bg-gray-800 hover:bg-gray-950'
+            }`}
+            aria-label={isStarred ? 'Remove from favorites' : 'Add to favorites'}
+          >
+            {isStarred ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="size-5 cursor-pointer md:size-6"
+                viewBox="0 0 20 20"
+                fill="currentColor"
               >
-              {isMarkingAsRead ? (
-                <svg
-                  className="size-5 animate-spin cursor-pointer md:size-6"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-              ) : (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="size-5 cursor-pointer md:size-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              )}
-            </button>
-          </>
-        ))}
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+              </svg>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="size-5 cursor-pointer md:size-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.783-.57-.38-1.81.588-1.81h4.914a1 0 00.951-.69l1.519-4.674z"
+                />
+              </svg>
+            )}
+          </button>
+        </>
+      )}
+
+      {/* --- Case 2: No article selected AND not on an admin page (Mark All as Read) --- */}
+      {isAdmin && !selectedArticle && !isAdminPage && (
+        <button
+          onClick={() => handleMarkAllClick(articleIdsInView)}
+          disabled={isMarkingAsRead || !hasUnreadInView}
+          className={`cursor-pointer rounded-full bg-gray-800 p-2.5 text-white shadow-lg transition-all hover:bg-gray-950 disabled:cursor-not-allowed disabled:bg-gray-500 md:p-3`}
+          aria-label="Mark all as read"
+        >
+          {isMarkingAsRead ? (
+            <svg
+              className="size-5 animate-spin cursor-pointer md:size-6"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+          ) : (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="size-5 cursor-pointer md:size-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          )}
+        </button>
+      )}
 
       {/* --- AI 助手入口 (仅管理员可见) --- */}
       {isAdmin && (
