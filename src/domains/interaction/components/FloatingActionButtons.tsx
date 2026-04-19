@@ -29,7 +29,7 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
   const [isTagPopoverOpen, setIsTagPopoverOpen] = useState(false);
 
   // Determine if we are on an admin page
-  const isAdminPage = pathname?.startsWith('/admin');
+  const isAdminPage = pathname?.includes('/admin');
 
   // Store State
   const activeFilter = useUIStore((state) => state.activeFilter);
@@ -123,7 +123,7 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
   const { isStarred, isRead, userTagLabels } = useArticleMetadata(selectedArticle);
 
   return (
-    <div className="fixed right-6 bottom-6 z-20 flex flex-col-reverse items-center gap-y-2.5 md:right-8 md:bottom-8 md:gap-y-3">
+    <div className="fixed right-6 bottom-6 z-[100] flex flex-col-reverse items-center gap-y-2.5 md:right-8 md:bottom-8 md:gap-y-3">
       {/* --- 共享按钮：始终显示 --- */}
       <button
         onClick={handleRefreshToHome}
