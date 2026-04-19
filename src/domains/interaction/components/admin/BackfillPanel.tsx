@@ -254,6 +254,21 @@ export default function BackfillPanel({
     setSelectedCandidateIds(new Set());
   };
 
+  const selectMoreTen = () => {
+    // 找出当前未选中的候选文章
+    const unselectedIds = candidates
+      .filter((c) => !selectedCandidateIds.has(c.id))
+      .map((c) => c.id);
+
+    // 取前 10 个
+    const nextTen = unselectedIds.slice(0, 10);
+
+    // 更新选择集合
+    const newSet = new Set(selectedCandidateIds);
+    nextTen.forEach((id) => newSet.add(id));
+    setSelectedCandidateIds(newSet);
+  };
+
   // --- Action: Start Processing ---
   const handleStartProcessing = async () => {
     const allSelected = candidates.filter((c) => selectedCandidateIds.has(c.id));
@@ -329,7 +344,7 @@ export default function BackfillPanel({
     <div className="flex h-[calc(100vh-8rem)] w-full flex-col overflow-visible rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900/50">
       {/* --- Top Bar: Source Selection --- */}
       <div className="flex items-center gap-4 border-b border-gray-200 bg-gray-50/50 px-4 py-3 dark:border-gray-800 dark:bg-black/20">
-        <div className="font-bold whitespace-nowrap text-gray-800 dark:text-gray-100">
+        <div className="whitespace-nowrap font-bold text-gray-800 dark:text-gray-100">
           1. 选择订阅源
         </div>
         <div className="max-w-xl flex-1">
@@ -341,16 +356,16 @@ export default function BackfillPanel({
               setProcessingState('idle'); // Reset state
               setCandidates([]); // Clear list
               setSelectedCandidateIds(new Set()); // Clear selection
-              setLogs([]); // Clear logs (optional, or keep history?) maybe keep is better, but user said "Clear list".
-              // Let's clear logs to separate contexts.
+              setLogs([]); // Clear logs
             }}
-            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
           >
             <option value="" disabled>
               请选择一个订阅源...
             </option>
 
-            <option value="user/-/state/com.google/unread">📬 所有未读文章 (Unread)</option>
+            <option value="user/-/state/com.google/reading-list">🌟 所有文章</option>
+            <option value="user/-/state/com.google/unread">📬 所有未读文章</option>
 
             {sortedCategories.map((category) => (
               <optgroup key={category} label={category}>
@@ -363,8 +378,6 @@ export default function BackfillPanel({
             ))}
           </select>
         </div>
-
-        {/* Global Status/Progress Indicator could go here if needed, but keeping it simple */}
       </div>
 
       {/* --- Main Content Area: 2 Columns --- */}
@@ -420,70 +433,65 @@ export default function BackfillPanel({
 
         {/* --- Right Column: Article List --- */}
         <div className="flex min-h-0 flex-1 flex-col overflow-visible bg-white dark:bg-transparent">
-          <div className="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-800">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 font-bold whitespace-nowrap text-gray-800 dark:text-gray-100 text-sm">
-                3. 选择文章
-                <span className="text-[10px] font-normal text-gray-500 opacity-70">
-                  ({selectedCandidateIds.size} / {candidates.length})
-                </span>
-              </div>
-
-              {candidates.length > 0 &&
-                (() => {
-                  const pendingIds = candidates
-                    .filter((c) => c.status === 'pending')
-                    .map((c) => c.id);
-                  // Strict check: All pending selected AND total selected equals pending count (meaning no processed are selected)
-                  const isStrictPendingSelected =
-                    pendingIds.length > 0 &&
-                    selectedCandidateIds.size === pendingIds.length &&
-                    pendingIds.every((id) => selectedCandidateIds.has(id));
-
-                  const isAllSelected =
-                    selectedCandidateIds.size === candidates.length && candidates.length > 0;
-
-                  return (
-                    <>
-                      <div className="flex items-center rounded bg-gray-100 p-0.5 dark:bg-gray-800">
-                        <button
-                          onClick={selectPending}
-                          className={`rounded px-2 py-1 text-xs transition-colors ${
-                            isStrictPendingSelected
-                              ? 'bg-indigo-600 font-bold text-white shadow-sm'
-                              : 'text-gray-600 hover:bg-white hover:text-gray-900 active:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200 dark:active:bg-gray-600'
-                          }`}
-                          title="仅选择所有未生成过的文章 (Pending)"
-                        >
-                          勾选未生成
-                        </button>
-                      </div>
-
-                      <div className="ml-auto flex items-center rounded bg-gray-100 p-0.5 dark:bg-gray-800">
-                        <button
-                          onClick={selectAll}
-                          className={`rounded px-2 py-1 text-xs transition-colors ${
-                            isAllSelected
-                              ? 'bg-indigo-600 font-bold text-white shadow-sm'
-                              : 'text-gray-600 hover:bg-white hover:text-gray-900 active:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200 dark:active:bg-gray-600'
-                          }`}
-                          title="选择列表中的所有文章 (包括已处理)"
-                        >
-                          全选
-                        </button>
-                        <div className="mx-1 h-3 w-px bg-gray-300 dark:bg-gray-700"></div>
-                        <button
-                          onClick={deselectAll}
-                          className="rounded px-2 py-1 text-xs text-gray-500 transition-colors hover:bg-white hover:text-gray-700 active:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200 dark:active:bg-gray-600"
-                          title="取消所有选择"
-                        >
-                          取消
-                        </button>
-                      </div>
-                    </>
-                  );
-                })()}
+          <div className="flex flex-col gap-3 border-b border-gray-200 p-4 dark:border-gray-800">
+            {/* Line 1: Title and Counter */}
+            <div className="flex items-center gap-2 text-sm font-bold text-gray-800 dark:text-gray-100">
+              3. 选择文章
+              <span className="text-[10px] font-medium text-gray-500 dark:text-gray-400">
+                ({selectedCandidateIds.size} / {candidates.length})
+              </span>
             </div>
+
+            {/* Line 2: Buttons */}
+            {candidates.length > 0 && (
+              <div className="flex items-center gap-2">
+                <div className="flex items-center rounded bg-gray-100 p-0.5 dark:bg-gray-800">
+                  <button
+                    onClick={selectPending}
+                    className={`rounded px-2 py-1 text-xs transition-colors ${
+                      candidates.filter((c) => c.status === 'pending').length > 0 &&
+                      candidates.filter((c) => c.status === 'pending').every((c) => selectedCandidateIds.has(c.id)) &&
+                      selectedCandidateIds.size === candidates.filter((c) => c.status === 'pending').length
+                        ? 'bg-indigo-600 font-bold text-white shadow-sm'
+                        : 'text-gray-600 hover:bg-white hover:text-gray-900 active:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200 dark:active:bg-gray-600'
+                    }`}
+                    title="仅选择所有未生成过的文章 (Pending)"
+                  >
+                    勾选未生成
+                  </button>
+                  <div className="mx-1 h-3 w-px bg-gray-300 dark:bg-gray-700"></div>
+                  <button
+                    onClick={selectMoreTen}
+                    className="rounded px-2 py-1 text-xs text-gray-600 transition-colors hover:bg-white hover:text-gray-900 active:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200 dark:active:bg-gray-600"
+                    title="再勾选 10 篇文章"
+                  >
+                    勾选 10 个文章
+                  </button>
+                </div>
+
+                <div className="flex items-center rounded bg-gray-100 p-0.5 dark:bg-gray-800">
+                  <button
+                    onClick={selectAll}
+                    className={`rounded px-2 py-1 text-xs transition-colors ${
+                      selectedCandidateIds.size === candidates.length && candidates.length > 0
+                        ? 'bg-indigo-600 font-bold text-white shadow-sm'
+                        : 'text-gray-600 hover:bg-white hover:text-gray-900 active:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200 dark:active:bg-gray-600'
+                    }`}
+                    title="选择全表"
+                  >
+                    全选
+                  </button>
+                  <div className="mx-1 h-3 w-px bg-gray-300 dark:bg-gray-700"></div>
+                  <button
+                    onClick={deselectAll}
+                    className="rounded px-2 py-1 text-xs text-gray-500 transition-colors hover:bg-white hover:text-gray-700 active:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200 dark:active:bg-gray-600"
+                    title="取消选择"
+                  >
+                    取消
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Progress Bar (Optional, thin line) */}
@@ -601,10 +609,10 @@ export default function BackfillPanel({
             )}
           </div>
 
-          {/* Bottom Action Footer */}
+          {/* Bottom Action Footer (2-Row Compact) */}
           {candidates.length > 0 && (
-            <div className="relative z-50 flex flex-col gap-5 border-t border-gray-200 bg-gray-50/50 p-6 dark:border-gray-800 dark:bg-black/20">
-              {/* Settings Row */}
+            <div className="relative z-50 flex flex-col gap-3 border-t border-gray-200 bg-gray-50/50 px-6 py-4 dark:border-gray-800 dark:bg-black/20">
+              {/* Row 1: Model & AI Settings */}
               <div className="flex flex-wrap items-center gap-6">
                 <div className="flex items-center gap-2 text-xs text-gray-800 dark:text-stone-200">
                   <span className="font-bold">模型:</span>
@@ -622,7 +630,10 @@ export default function BackfillPanel({
                   disabled={processingState === 'processing' || !currentModelDetails?.hasReasoning}
                   modelName={currentModelDetails?.name}
                 />
+              </div>
 
+              {/* Row 2: Batch & Action (Start Button on the right) */}
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs text-gray-800 dark:text-stone-200">
                   <span className="font-bold">批量:</span>
                   <input
@@ -635,42 +646,41 @@ export default function BackfillPanel({
                   />
                   <span className="text-[10px] opacity-40">篇 / 次</span>
                 </div>
-              </div>
 
-              {/* Start Button Box */}
-              <div className="flex items-center justify-center border-t border-gray-200/50 pt-5 dark:border-gray-800/50">
-                <button
-                  onClick={handleStartProcessing}
-                  disabled={selectedCandidateIds.size === 0 || processingState === 'processing'}
-                  className="flex min-w-[200px] items-center justify-center rounded-xl bg-indigo-600 px-8 py-2.5 text-sm font-black tracking-widest text-white shadow-lg transition-all hover:bg-indigo-700 hover:shadow-indigo-500/20 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {processingState === 'processing' ? (
-                    <>
-                      <svg
-                        className="mr-2 h-4 w-4 animate-spin text-white"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      处理中 {progress.current}/{progress.total}
-                    </>
-                  ) : (
-                    '开始批量生成'
-                  )}
-                </button>
+                <div className="flex-shrink-0">
+                  <button
+                    onClick={handleStartProcessing}
+                    disabled={selectedCandidateIds.size === 0 || processingState === 'processing'}
+                    className="flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-2 text-sm font-black tracking-widest text-white shadow-lg transition-all hover:bg-indigo-700 hover:shadow-indigo-500/20 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {processingState === 'processing' ? (
+                      <>
+                        <svg
+                          className="mr-2 h-4 w-4 animate-spin text-white"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        处理中 {progress.current}/{progress.total}
+                      </>
+                    ) : (
+                      '开始生成'
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           )}

@@ -91,7 +91,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </div>
 
       {/* 页面内容 */}
-      <main className="mx-auto max-w-7xl">
+      <main className="mx-auto max-w-[1800px] px-4 md:px-8">
         {children}
       </main>
     </div>
