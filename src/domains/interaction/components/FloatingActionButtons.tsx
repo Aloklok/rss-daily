@@ -34,6 +34,7 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
   // Store State
   const activeFilter = useUIStore((state) => state.activeFilter);
   const selectedArticleId = useUIStore((state) => state.selectedArticleId);
+  const modalArticleId = useUIStore((state) => state.modalArticleId);
   const setSelectedArticleId = useUIStore((state) => state.setSelectedArticleId);
   const setTimeSlot = useUIStore((state) => state.setTimeSlot);
   const timeSlot = useUIStore((state) => state.timeSlot);
@@ -106,8 +107,9 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
   };
 
   // Internal Logic
+  const effectiveArticleId = selectedArticleId || modalArticleId;
   const selectedArticle = useArticleStore((state) =>
-    selectedArticleId ? state.articlesById[selectedArticleId] : null,
+    effectiveArticleId ? state.articlesById[effectiveArticleId] : null,
   );
 
   const hasUnreadInView = useArticleStore((state) => {
@@ -146,12 +148,69 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
         </svg>
       </button>
 
-      {/* --- 条件渲染块：仅在非 Admin 页面显示文章操作按钮 --- */}
-      {!isAdminPage &&
-        isAdmin &&
+      {/* --- 条件渲染块：显示文章操作按钮 (非 Admin 页面，或者 Admin 页面且有文章打开时显示) --- */}
+      {isAdmin &&
         (selectedArticle ? (
           <>
-            {/* 仅在有选中文章时显示：标签和收藏按钮 */}
+            {/* 仅在有选中文章时显示：标签、收藏、以及标记已读按钮 */}
+            {/* 标记已读按钮 */}
+            <button
+              onClick={() => {
+                const { isRead } = useArticleMetadata(selectedArticle);
+                handleArticleStateChange(
+                  selectedArticle.id,
+                  isRead ? [] : [READ_TAG],
+                  isRead ? [READ_TAG] : [],
+                );
+              }}
+              disabled={isUpdatingArticle}
+              className={`cursor-pointer rounded-full p-2.5 text-white shadow-lg transition-all disabled:bg-gray-500 md:p-3 ${
+                useArticleMetadata(selectedArticle).isRead
+                  ? 'bg-blue-600 hover:bg-blue-700'
+                  : 'bg-gray-800 hover:bg-gray-950'
+              }`}
+              aria-label={
+                useArticleMetadata(selectedArticle).isRead ? 'Mark as unread' : 'Mark as read'
+              }
+            >
+              {isUpdatingArticle ? (
+                <svg
+                  className="size-5 animate-spin md:size-6"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="size-5 md:size-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              )}
+            </button>
             <div className="relative" onClick={(e) => e.stopPropagation()}>
               <button
                 onClick={() => setIsTagPopoverOpen((prev) => !prev)}
@@ -223,16 +282,14 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
                 </svg>
               )}
             </button>
-          </>
-        ) : (
-          <>
-            {/* 仅在没有选中文章时显示：全部标记已读按钮 */}
-            <button
-              onClick={() => handleMarkAllClick(articleIdsInView)}
-              disabled={isMarkingAsRead || !hasUnreadInView}
-              className={`cursor-pointer rounded-full bg-gray-800 p-2.5 text-white shadow-lg transition-all hover:bg-gray-950 disabled:cursor-not-allowed disabled:bg-gray-500 md:p-3`}
-              aria-label="Mark all as read"
-            >
+            {/* 仅在没有选中文章且非管理员页面时显示：全部标记已读按钮 */}
+            {!isAdminPage && (
+              <button
+                onClick={() => handleMarkAllClick(articleIdsInView)}
+                disabled={isMarkingAsRead || !hasUnreadInView}
+                className={`cursor-pointer rounded-full bg-gray-800 p-2.5 text-white shadow-lg transition-all hover:bg-gray-950 disabled:cursor-not-allowed disabled:bg-gray-500 md:p-3`}
+                aria-label="Mark all as read"
+              >
               {isMarkingAsRead ? (
                 <svg
                   className="size-5 animate-spin cursor-pointer md:size-6"
