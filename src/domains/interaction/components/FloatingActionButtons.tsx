@@ -330,8 +330,8 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
         </button>
       )}
 
-      {/* --- AI 助手入口 (仅管理员可见) --- */}
-      {isAdmin && (
+      {/* --- AI 助手入口 (仅管理员可见且未打开文章时显示) --- */}
+      {isAdmin && !selectedArticle && (
         <button
           onClick={async () => {
             const { useChatStore } = await import('@/domains/intelligence/store/chatStore');
@@ -358,9 +358,10 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
         </button>
       )}
 
-      {/* --- 共享按钮：始终显示 --- */}
-      <button
-        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      {/* --- 共享按钮：始终显示 (未打开文章时显示) --- */}
+      {!selectedArticle && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         className="cursor-pointer rounded-full bg-gray-800 p-2.5 text-white shadow-lg transition-all hover:bg-gray-950 md:p-3"
         aria-label="Back to top"
       >
@@ -375,6 +376,7 @@ const FloatingActionButtons: React.FC<FloatingActionButtonsProps> = ({ isAdmin }
           <path strokeLinecap="round" strokeLinejoin="round" d="M5 11l7-7 7 7M12 19V4" />
         </svg>
       </button>
+      )}
     </div>
   );
 };
