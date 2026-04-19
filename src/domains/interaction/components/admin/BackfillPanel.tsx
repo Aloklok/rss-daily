@@ -257,7 +257,7 @@ export default function BackfillPanel({
   const selectMoreTen = () => {
     // 找出当前未选中的候选文章
     const unselectedIds = candidates
-      .filter((c) => !selectedCandidateIds.has(c.id))
+      .filter((c) => c.status === 'pending' && !selectedCandidateIds.has(c.id))
       .map((c) => c.id);
 
     // 取前 10 个
