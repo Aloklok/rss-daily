@@ -17,6 +17,7 @@ export async function generateBriefingAction(
   article: Article,
   clientContent?: string,
   modelId?: string,
+  enableThinking: boolean = false,
 ) {
   try {
     let rawContent = clientContent;
@@ -62,7 +63,7 @@ export async function generateBriefingAction(
     console.log(JSON.stringify(payload, null, 2));
     console.log('------------------------------------------------');
 
-    const { briefing, metadata } = await generateBriefingWithGemini(payload, modelId);
+    const { briefing, metadata } = await generateBriefingWithGemini(payload, modelId, enableThinking);
 
     console.log('------------ GEMINI RESPONSE BRIEFING ------------');
     console.log(JSON.stringify(briefing, null, 2));

@@ -7,8 +7,9 @@ import { generateBriefingAction } from '@/app/actions/briefing';
 import { useAppToast } from '@/shared/hooks/useAppToast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useArticleStore } from '@/domains/article/store/articleStore';
-import { DEFAULT_MODEL_ID } from '@/domains/intelligence/constants';
+import { DEFAULT_MODEL_ID, MODELS } from '@/domains/intelligence/constants';
 import { ModelSelector } from '@/domains/intelligence/components/ai/ModelSelector';
+import { ReasoningToggle } from '@/domains/intelligence/components/ai/ReasoningToggle';
 
 import { Dictionary } from '@/app/i18n/dictionaries';
 
@@ -39,6 +40,7 @@ const ArticleBriefingView: React.FC<ArticleBriefingViewProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
   // Default to shared constant
   const [selectedModel, setSelectedModel] = useState<string>(DEFAULT_MODEL_ID);
+  const [enableThinking, setEnableThinking] = useState(false);
 
   const queryClient = useQueryClient();
   const updateArticle = useArticleStore((state) => state.updateArticle);
@@ -51,7 +53,12 @@ const ArticleBriefingView: React.FC<ArticleBriefingViewProps> = ({
       // 1. Pass the full article object (metadata).
       // 2. Pass the client-side cached reader content if available (User Priority).
       // 3. Pass selected model ID (with potential @alias)
-      const result = await generateBriefingAction(article, readerContent?.content, selectedModel);
+      const result = await generateBriefingAction(
+        article,
+        readerContent?.content,
+        selectedModel,
+        enableThinking,
+      );
 
       if (result.success) {
         showToast(dict.modal.generateSuccess, 'success');
@@ -158,6 +165,13 @@ const ArticleBriefingView: React.FC<ArticleBriefingViewProps> = ({
                   dict={dict}
                 />
               </div>
+              <ReasoningToggle
+                enabled={enableThinking}
+                onToggle={setEnableThinking}
+                disabled={!MODELS.find((m) => m.id === selectedModel.split('@')[0])?.hasReasoning}
+                modelName={MODELS.find((m) => m.id === selectedModel.split('@')[0])?.name}
+                dict={dict}
+              />
               <button
                 onClick={handleGenerateBriefing}
                 disabled={isGenerating}
@@ -200,6 +214,13 @@ const ArticleBriefingView: React.FC<ArticleBriefingViewProps> = ({
               dict={dict}
             />
           </div>
+          <ReasoningToggle
+            enabled={enableThinking}
+            onToggle={setEnableThinking}
+            disabled={!MODELS.find((m) => m.id === selectedModel.split('@')[0])?.hasReasoning}
+            modelName={MODELS.find((m) => m.id === selectedModel.split('@')[0])?.name}
+            dict={dict}
+          />
           <button
             onClick={handleGenerateBriefing}
             disabled={isGenerating}
