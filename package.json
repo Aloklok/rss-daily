@@ -88,7 +88,7 @@
     "msw": "^2.12.10",
     "node-fetch": "^3.3.2",
     "openapi-typescript": "^7.10.1",
-    "playwright": "^1.57.0",
+    "playwright": "^1.59.1",
     "postcss": "^8.5.10",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
