@@ -195,14 +195,14 @@ CI=true pnpm test:e2e
 
 **原则**：为了确保测试的一致性和维护性，严禁在测试文件中自行构造复杂的文章对象。
 
-- **统一入口**: 所有的文章 Mock 数据必须从 `@/e2e/mocks/data.ts` 导入。
+- **统一入口**: 所有的文章 Mock 数据必须从 `tests/e2e/mocks/data.ts` 导入。
 - **MOCK_ARTICLE**: 适用于大多数单一文章展示和交互测试。
 - **MOCK_ARTICLES_POOL**: 包含不同时间段（早/中/晚）和类型（深度洞察/时事新闻）的文章，适用于列表筛选测试。
 
 **为什么必须这样做？**
 
 1. **结构同步**: 真实的文章对象包含数十个字段（summary, highlights, critiques 等），自行构造极易遗漏关键字段导致渲染或逻辑错误。
-2. **场景完备**: `e2e/mocks/data.ts` 已平衡了 ID 格式、日期偏移和分类逻辑，能更好地模拟真实业务。
+2. **场景完备**: `tests/e2e/mocks/data.ts` 已平衡了 ID 格式、日期偏移和分类逻辑，能更好地模拟真实业务。
 
 ---
 
@@ -230,7 +230,7 @@ vi.mock('next/script', () => ({
 ### 🚨 测试隔离与初始化 (Mock Data Prioritization)
 
 **教训**: 在编写 `ArticleActions.test.tsx` 时，初版使用了手动构造的 `sampleArticle`。这导致了与业务逻辑的偏离（如 ID 格式不统一），并增加了维护负担。
-**反思**: 在进行任何功能域测试前，必须首先检索 `e2e/mocks` 或 `__mocks__` 目录，优先复用已有的“事实来源”数据。
+**反思**: 在进行任何功能域测试前，必须首先检索 `tests/e2e/mocks` 或 `__mocks__` 目录，优先复用已有的“事实来源”数据。
 
 ### 🚨 警惕局部状态导致的全局不同步 (State Sync Desync)
 
@@ -263,10 +263,37 @@ vi.mock('next/script', () => ({
 
 ---
 
+## 5. Playwright 1.59.1+ 进阶特性 (Modern Practices)
+
+为了进一步提升测试代码的整洁度与调试效率，推荐采用以下新特性：
+
+### ♻️ 资源自动管理 (Await Using / Disposables)
+
+从 Node 20.4+ 和 Playwright 1.59.1 开始，你可以使用 `await using` 语法来自动清理测试资源（如 Mock 路由、临时账号等）。
+
+```typescript
+// 示例：自动清理的 Mock 资源
+await using _route = await disposableRoute(page, '**/api/*', { ... });
+// 测试结束时，_route 会自动触发 unroute，无需手动 try-finally
+```
+
+### 🎥 视觉调试增强 (Show Actions)
+
+在调试复杂的交互（尤其是 Agent 编写的测试）时，开启 `showActions` 可以直观看到点击位置。
+
+```typescript
+await page.screencast.start({ path: 'reports/trace.webm' });
+await page.screencast.showActions({ position: 'top-right' });
+```
+
+---
+
 ## 6. 常用命令速查
 
 - **本地可视化开发**: `vitest --ui` (推荐 Vibe Coding 模式)
 - **单元与集成测试**: `pnpm run test` (Vitest 持续监听)
-- **CI 模式冒烟测试**: `CI=true pnpm test:e2e` (使用 Mock 数据，稳定极速)
+- **CI 模式冒烟测试**: `pnpm run test:e2e:smoke` (路径已更正为 `tests/e2e/tests/`)
 - **全栈真机测试**: `pnpm run test:e2e` (连接真实后端，本地调试用)
+- **特性演示测试**: `pnpm run test:e2e:demo` (演示 1.59.1 最新语法)
 - **生产环境验证**: `pnpm build` -> `pnpm run start` -> `CI=true pnpm test:e2e`
+

@@ -54,7 +54,7 @@
 ### 🧪 自动化测试与质量
 
 - [ ] **E2E 边界稳定性**: 完善 Playwright Mock 系统,模拟 500/404 及弱网环境,验证 UI 鲁棒性。改动难度:中,性能提升:无。
-- [ ] **状态同步 E2E 测试**: 完成 `e2e/tests/aggregation.spec.ts` (当前已跳过),验证"确认更新策略"、零冗余请求、定向缓存清除及刷新持久化。需解决 Mock 环境下的按钮定位问题。改动难度:中,性能提升:无。
+- [ ] **状态同步 E2E 测试**: 完成 `tests/e2e/tests/aggregation.spec.ts` (当前已跳过),验证"确认更新策略"、零冗余请求、定向缓存清除及刷新持久化。需解决 Mock 环境下的按钮定位问题。改动难度:中,性能提升:无。
 - [ ] **功能测试补齐**: 补充对"全站搜索"、"无限滚动"以及"移动端侧边栏"交互的自动化覆盖。改动难度:中,性能提升:无。
 - [x] Fix Tag Flicker (Folder Filtering)
   - [x] Update `purifyArticle` to support tag ID filtering.

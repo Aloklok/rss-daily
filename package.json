@@ -12,7 +12,8 @@
     "test:coverage": "vitest run --coverage",
     "test:report": "vitest run",
     "test:e2e": "env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY playwright test",
-    "test:e2e:smoke": "env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY playwright test e2e/tests/home.spec.ts",
+    "test:e2e:smoke": "env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY playwright test tests/e2e/tests/smoke-home.spec.ts",
+    "test:e2e:demo": "playwright test tests/e2e/tests/demo-new-features.spec.ts",
     "format": "prettier --write .",
     "analyze": "cross-env ANALYZE=true next build --webpack",
     "vercel": "NODE_OPTIONS='--dns-result-order=ipv4first' vercel dev",
@@ -59,7 +60,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@next/bundle-analyzer": "^16.1.3",
-    "@playwright/test": "^1.57.0",
+    "@playwright/test": "^1.59.1",
     "@tailwindcss/postcss": "^4.2.1",
     "@tailwindcss/typography": "^0.5.19",
     "@testing-library/jest-dom": "^6.9.1",
@@ -71,10 +72,10 @@
     "@types/react-dom": "^19.0.0",
     "@types/sanitize-html": "^2.16.1",
     "@vercel/node": "^5.7.11",
-    "@vitest/browser": "^4.0.16",
-    "@vitest/browser-playwright": "^4.0.16",
-    "@vitest/coverage-v8": "^4.0.16",
-    "@vitest/ui": "^4.0.16",
+    "@vitest/browser": "^4.1.4",
+    "@vitest/browser-playwright": "^4.1.4",
+    "@vitest/coverage-v8": "^4.1.4",
+    "@vitest/ui": "^4.1.4",
     "babel-plugin-react-compiler": "^1.0.0",
     "cross-env": "^10.1.0",
     "dotenv": "^17.3.1",
@@ -88,7 +89,7 @@
     "msw": "^2.12.10",
     "node-fetch": "^3.3.2",
     "openapi-typescript": "^7.10.1",
-    "playwright": "^1.57.0",
+    "playwright": "^1.59.1",
     "postcss": "^8.5.9",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
@@ -96,6 +97,6 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.58.1",
     "vite-tsconfig-paths": "^6.1.1",
-    "vitest": "^4.0.16"
+    "vitest": "^4.1.4"
   }
 }
