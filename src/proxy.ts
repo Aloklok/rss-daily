@@ -150,10 +150,11 @@ export function proxy(request: NextRequest): NextResponse | Response {
     const isEn = path.startsWith('/en/');
     const normalizedPath = isEn ? path.slice(3) : path; // Remove /en for matching if needed, but here we use full path
 
-    const isArticle = /^\/(?:en\/)?article\/[a-f0-9]+$/i.test(path);
-    const isDate = /^\/(?:en\/)?date\/\d{4}-\d{2}-\d{2}$/.test(path);
+    const isArticle = /^\/(en\/)?article\/[a-f0-9]+$/i.test(path);
+    const isDate = /^\/(en\/)?date\/\d{4}-\d{2}-\d{2}$/.test(path);
+    const isHome = path === '/' || path === '/en' || path === '/en/';
 
-    if (isArticle || isDate) {
+    if (isArticle || isDate || isHome) {
       console.log(`[MARKDOWN-NEGOTIATION] Path: ${path} | Agent: ${userAgent}`);
       const rewriteUrl = new URL(`/api/agent-ready/render-markdown?path=${encodeURIComponent(path)}`, request.url);
       return NextResponse.rewrite(rewriteUrl);

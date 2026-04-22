@@ -96,6 +96,43 @@ ${turndownService.turndown(mainContent)}
       });
     }
 
+    // 3. Homepage Pattern: / or /en
+    const isHome = path === '/' || path === '/en' || path === '/en/';
+    if (isHome) {
+      const isEn = path.startsWith('/en');
+      const date = new Date().toISOString().split('T')[0]; // Today
+      const dict = isEn ? en : zh;
+
+      const groupedArticles = await fetchBriefingData(date, isEn ? 'en' : 'zh');
+
+      if (!groupedArticles || Object.values(groupedArticles).flat().length === 0) {
+        return new Response(`# No Briefing Found for Today (${date})`, { status: 404, headers: { 'Content-Type': 'text/markdown' } });
+      }
+
+      let markdown = `# Latest Briefing - ${date}\n\n`;
+      
+      for (const [section, items] of Object.entries(groupedArticles)) {
+        if (!items || items.length === 0) continue;
+        
+        markdown += `## ${section}\n\n`;
+        items.forEach(item => {
+          markdown += `### ${item.title}\n`;
+          markdown += `*Source: ${item.sourceName}* | [Read More](${origin}${isEn ? '/en' : ''}/article/${item.id})\n\n`;
+          if (item.summary || item.tldr) {
+            markdown += `${item.summary || item.tldr}\n\n`;
+          }
+        });
+      }
+
+      return new Response(markdown, {
+        headers: {
+          'Content-Type': 'text/markdown; charset=utf-8',
+          'Vary': 'Accept',
+          'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400'
+        }
+      });
+    }
+
     return new Response('# Unsupported Path for Markdown Conversion', { status: 400, headers: { 'Content-Type': 'text/markdown' } });
 
   } catch (error) {
