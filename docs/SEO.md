@@ -109,3 +109,14 @@ Briefing Hub 作为一个内容聚合平台，SEO 是其核心增长引擎。我
 - **Bot 流量清洗**:
   - **URL 规范化**: 自动将 `/path/` (带尾部斜杠) 308 跳转至 `/path` (标准路径)，避免权重分散和 Soft 404。
   - **HEAD 审计**: 记录爬虫的 HEAD 预检请求，确保死链检测也被正确统计。
+
+## 9. AI Agent 友好性优化 (AI Agent SEO)
+
+随着 AI Agent (如 OpenAI Operator, Claude Computer Use) 成为新的流量入口，我们实施了针对性的“Agent Ready”优化：
+
+- **内容协商 (Markdown for Agents)**:
+  - **机制**: 识别 `Accept: text/markdown` 请求头，通过 `render-markdown` 渲染器返回纯净的 Markdown 正文。
+  - **收益**: 相比 HTML，Markdown 极大降低了 Agent 的 Token 消耗并提升了内容理解的准确度。
+- **标准化发现 (RFC 8288 & 9727)**:
+  - **Link Headers**: 在所有页面响应头中注入 `Link: </.well-known/api-catalog>; rel="api-catalog"`。
+  - **API Catalog**: 发布 `/.well-known/api-catalog`，让 Agent 能够自动发现 RSS Feed 和 简报 API，实现从“页面抓取”到“API 调度”的无缝切换。

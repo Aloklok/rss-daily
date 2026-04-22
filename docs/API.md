@@ -33,6 +33,9 @@ API 路由按照业务领域进行组织：
   - `GET /api/meta/available-dates`: **[优化]** 调用 RPC 获取实时日期。英文版通过 `fetchAvailableDatesEn` 过滤无效日期。
   - `GET /api/meta/tags`: **[缓存]** 获取缓存的分类标签列表。
     - _注：返回的原始数据在前端渲染前需通过 `label-display.ts` 进行多语言映射，并使用 `slug-helper.ts` 生成语义化链接。_
+- **`agent-ready/`**: AI Agent 适配服务。
+  - `GET /.well-known/api-catalog`: **[RFC 9727]** API 发现目录，列出 RSS Feed 和 简报 API。
+  - `GET /api/agent-ready/render-markdown`: **[内容协商]** 将 HTML 页面渲染为 Markdown 格式，供 AI Agent 阅读。支持文章详情和日期简报。
 
 ### 服务层 (Domain Services)
 

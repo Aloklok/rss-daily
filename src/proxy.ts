@@ -143,6 +143,22 @@ export function proxy(request: NextRequest): NextResponse | Response {
 
   const userAgent = request.headers.get('user-agent') || '';
   const path = url.pathname;
+  const acceptHeader = request.headers.get('accept') || '';
+
+  // --- Priority -1: Content Negotiation for AI Agents (Markdown) ---
+  if (acceptHeader.includes('text/markdown')) {
+    const isEn = path.startsWith('/en/');
+    const normalizedPath = isEn ? path.slice(3) : path; // Remove /en for matching if needed, but here we use full path
+
+    const isArticle = /^\/(?:en\/)?article\/[a-f0-9]+$/i.test(path);
+    const isDate = /^\/(?:en\/)?date\/\d{4}-\d{2}-\d{2}$/.test(path);
+
+    if (isArticle || isDate) {
+      console.log(`[MARKDOWN-NEGOTIATION] Path: ${path} | Agent: ${userAgent}`);
+      const rewriteUrl = new URL(`/api/agent-ready/render-markdown?path=${encodeURIComponent(path)}`, request.url);
+      return NextResponse.rewrite(rewriteUrl);
+    }
+  }
 
   // --- Priority 0: Critical Path Exceptions & Utility Bots ---
   // 0.1 Standard Files
@@ -287,11 +303,16 @@ export function proxy(request: NextRequest): NextResponse | Response {
     requestHeaders.set('x-route-pattern', routePattern);
   }
 
-  return NextResponse.next({
+  const response = NextResponse.next({
     request: {
       headers: requestHeaders,
     },
   });
+
+  // Advertise API Catalog (RFC 8288)
+  response.headers.set('Link', '</.well-known/api-catalog>; rel="api-catalog"');
+
+  return response;
 }
 
 export const config = {

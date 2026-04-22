@@ -241,3 +241,23 @@ Client-side components (`SidebarView.tsx`) **MUST** use `getSlugLink` with the c
 
 ### 8.2 高性能聚合 (RPC Integration)
 统计任务通过专门的数据库函数 `get_processing_stats` 完成。该函数在单次扫描中完成多表计数，避免了前端或 Node.js 层的大规模数据拉取与循环过滤，响应速度保持在 20ms 以内。
+
+## 9. Agent Ready 与 Markdown 协商
+
+阅读领域为 AI Agent 提供了标准化的内容协商支持。
+
+### 9.1 Markdown 渲染逻辑
+
+- **核心入口**: `/api/agent-ready/render-markdown`。
+- **转换流程**: 
+    1.  **路径解析**: 识别 `/article/[id]` 或 `/date/[date]` 路径。
+    2.  **数据获取**: 复用 `getArticlesDetails` (文章) 或 `fetchBriefingArticles` (简报) 服务。
+    3.  **格式转换**: 使用 `TurndownService` 将 HTML 内容（或结构化数据）转换为纯净的 Markdown。
+    4.  **国际化**: 根据路径前缀自动匹配 `zh` 或 `en` 字典，确保元数据（来源、标题等）翻译正确。
+
+### 9.2 边缘重写 (Middleware Rewrite)
+
+为了保持 URL 的统一并保护 ISR 缓存，系统在 `src/proxy.ts` 中实现了静默重写：
+- **触发条件**: 请求包含 `Accept: text/markdown`。
+- **重写目标**: 指向渲染 API，而不改变浏览器地址栏中的 URL。
+- **缓存策略**: 渲染响应包含 `Vary: Accept`，确保 CDN 能够区分 HTML 和 Markdown 版本。
